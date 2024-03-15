@@ -9,5 +9,6 @@
     "globales",
     "interlocutores",
     "localforage"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
