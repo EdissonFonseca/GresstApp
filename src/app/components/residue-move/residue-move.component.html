@@ -1,0 +1,62 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">Cancelar
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Mover Residuo</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="light">
+    <ion-list>
+      <ion-item lines="none" color="light">
+        <ion-title>{{ residue?.Material }} #{{residueId}}</ion-title>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.DepositoOrigen ?? '' != ''">
+        <ion-icon name="location-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.DepositoOrigen }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.FechaIngreso ?? ''  != ''">
+        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.FechaIngreso }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.Propietario ?? ''  != ''">
+        <ion-icon name="person-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Propietario }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.Solicitud ?? ''  != ''">
+        <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Solicitud }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'C'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Cantidad }} {{ cuenta?.UnidadCantidad }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'P'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Peso }} {{ cuenta?.UnidadPeso }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'V'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Volumen }} {{ cuenta?.UnidadVolumen }}</ion-label>
+      </ion-item>
+    </ion-list>
+    <ion-item-divider>Mover</ion-item-divider>
+    <ion-list inset="true">
+      <ion-item>
+        <ion-label>Fecha</ion-label>
+        <ion-datetime-button datetime="datetime" ></ion-datetime-button>
+      </ion-item>
+      <ion-item>
+        <ion-label>Destino</ion-label>
+        <ion-label>{{ target }}</ion-label>
+        <ion-button color="light" (click)="selectTarget()">...</ion-button>
+      </ion-item>
+    </ion-list>
+    <ion-button expand="full" (click)="confirm()">Mover</ion-button>
+</ion-content>
+<ion-modal [keepContentsMounted]="true">
+  <ng-template>
+    <ion-datetime id="datetime" presentation="date" (ionChange)="dateTimeChanged($event)"></ion-datetime>
+  </ng-template>
+</ion-modal>

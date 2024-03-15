@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">Cancelar
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Rechazar Recepción</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="light">
+  <form [formGroup]="frmMaterial">
+    <ion-list color="light">
+      <ion-item lines="none" color="light">
+        <ion-icon src="../../../assets/icon/recycle-bag.svg" slot="start"></ion-icon>
+        <ion-label class="ion-text-wrap">{{ material }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" *ngIf="point != ''" color="light">
+        <ion-icon name="location-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ point }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="=light">
+        <ion-icon name="person-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ stakeholder }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light">
+        <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ task?.Solicitud }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{task?.Cantidad}} Un / {{ task?.Peso ?? 0 }} Kg</ion-label>
+      </ion-item>
+    </ion-list>
+    <ion-list inset="true">
+      <ion-item>
+        <ion-note slot="start">Notas</ion-note>
+        <ion-textarea formControlName="Observaciones" aria-label="Observaciones"></ion-textarea>
+      </ion-item>
+    </ion-list>
+    <ion-button expand="full" (click)="confirm()">Rechazar</ion-button>
+  </form>
+</ion-content>
+<ion-footer>
+</ion-footer>

@@ -1,0 +1,25 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+  <ion-content *ngIf="treatments.length == 0">
+    <ion-item>
+      <ion-button (click)="create()">
+        <ion-icon name="save-outline"></ion-icon>
+        Crear
+      </ion-button>
+    </ion-item>
+    <ion-toast message="Insumo creado" [duration]="5000"></ion-toast>
+  </ion-content>
+  <ion-content>
+    <ion-list *ngFor="let treatment of treatments">
+      <ion-item (click)="select(treatment.IdTratamiento, treatment.Nombre)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === treatment.IdTratamiento"></ion-icon>
+        <ion-label>{{ treatment.Nombre }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>

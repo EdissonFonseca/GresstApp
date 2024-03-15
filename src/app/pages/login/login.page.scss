@@ -1,0 +1,32 @@
+ion-content {
+  --background: url('../../../assets/img/Fondo.png') no-repeat center center fixed;
+  --background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  vertical-align: middle;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+ion-item{
+  --ion-background-color:none
+}
+
+.logo{
+  height: 80px;
+}
+
+.vertical-center {
+  background-image: url('../../../assets/img/Fondo.png') no-repeat center center fixed;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%; /* Utiliza toda la altura disponible dentro del ion-content */
+}
+
+.transparent-item {
+  --background:transparent;
+  --border-style:none;
+}

@@ -1,0 +1,42 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-toolbar>
+</ion-header>
+<ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+<ion-content *ngIf="terceros.length == 0">
+  <form [formGroup]="formData" >
+    <ion-item>
+      <ion-note slot="start">Identificacion</ion-note>
+      <ion-input formControlName="Identificacion"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start" type="te;">Teléfono</ion-note>
+      <ion-input formControlName="Telefono"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start" type="email">Correo</ion-note>
+      <ion-input formControlName="Correo"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-item>
+        <ion-button (click)="create()">
+          <ion-icon name="save-outline"></ion-icon>
+          Crear
+        </ion-button>
+      </ion-item>
+    </ion-item>
+  </form>
+</ion-content>
+<ion-content>
+  <ion-list *ngFor="let tercero of terceros">
+    <ion-item (click)="select(tercero.IdTercero, tercero.Nombre)">
+      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.IdTercero"></ion-icon>
+      <ion-label>{{ tercero.Nombre }}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

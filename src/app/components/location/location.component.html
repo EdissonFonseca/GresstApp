@@ -1,0 +1,10 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ marker?.title}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-label> {{ marker?.snippet }} </ion-label>
+  <ion-icon name="location" slot="start"></ion-icon>
+  lat: {{ marker?.latitude}} - long: {{ marker?.longitude }}
+</ion-content>

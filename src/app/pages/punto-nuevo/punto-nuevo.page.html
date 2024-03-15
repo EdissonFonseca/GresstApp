@@ -1,0 +1,23 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Agregar Punto</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" (click)="confirm()">Confirmar</ion-button>
+    </ion-buttons>
+</ion-toolbar>
+</ion-header>
+<ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
+<ion-content *ngIf="puntos.length == 0">
+  <app-point></app-point>
+</ion-content>
+<ion-content [fullscreen]="true">
+  <ion-list *ngFor="let punto of puntos">
+    <ion-item (click)="select(punto.IdPunto, punto.Tercero || '', punto.Nombre)">
+      <ion-icon name="checkmark-outline" *ngIf="idPunto === punto.IdPunto"></ion-icon>
+      <ion-label>{{ punto.Tercero }} - {{ punto.Nombre }}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      Descargar certificado
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-item>
+    <ion-label>Tipo de certificado</ion-label>
+    <ion-select interface="action-sheet">
+      <ion-select-option value="Acopio">Acopio</ion-select-option>
+      <ion-select-option value="Almacenamiento">Almacenamiento</ion-select-option>
+      <ion-select-option value="Disposicion">Disposicion</ion-select-option>
+      <ion-select-option value="Generacion">Generacion</ion-select-option>
+      <ion-select-option value="Entrega">Entrega</ion-select-option>
+      <ion-select-option value="Manifiesto de carga">Manifiesto de carga</ion-select-option>
+      <ion-select-option value="Recepcion">Recepcion</ion-select-option>
+      <ion-select-option value="RH">RH</ion-select-option>
+      <ion-select-option value="Transporte">Transporte</ion-select-option>
+      <ion-select-option value="Tratamiento">Tratamiento</ion-select-option>
+    </ion-select>
+  </ion-item>
+  <ion-item>
+    <ion-label>Fecha</ion-label>
+    <ion-datetime-button datetime="datetime"></ion-datetime-button>
+
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="datetime" presentation="date"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+  </ion-item>
+  <ion-button expand="full" (click)="buscar()">Buscar</ion-button>
+</ion-content>

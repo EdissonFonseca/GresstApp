@@ -1,0 +1,17 @@
+<app-header [pageTitle]="title" [helpPopup]="helpPopup"></app-header>
+<app-menu></app-menu>
+<ion-content id="main-content">
+  <ion-tabs>
+    <ion-tab-bar slot="bottom">
+      <ion-tab-button tab="actividades" (click)="setHeader('Jornada','help-jornada')">
+        <ion-icon name="timer-outline"></ion-icon>
+        Jornada
+      </ion-tab-button>
+      <ion-tab-button tab="inventario" (click)="setHeader('Residuos','help-inventario')">
+        <ion-icon name="trash-bin-outline"></ion-icon>
+        Residuos
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
+</ion-content>
+

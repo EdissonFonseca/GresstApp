@@ -1,0 +1,53 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
+  <ion-content *ngIf="materials.length == 0">
+    <form [formGroup]="formData" >
+      <ion-item>
+        <ion-note slot="start">Como se captura?</ion-note>
+        <ion-select formControlName="Captura">
+          <ion-select-option>Peso</ion-select-option>
+          <ion-select-option>Volúmen</ion-select-option>
+          <ion-select-option>Cantidad</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-toggle (ionChange)="changeConversion()">Se convierte a otra unidad?</ion-toggle>
+      <ion-item *ngIf="isCaptureDifferentFromMeasure">
+        <ion-label>Como se mide?</ion-label>
+        <ion-select formControlName="Medicion">
+          <ion-select-option>Peso</ion-select-option>
+          <ion-select-option>Volúmen</ion-select-option>
+          <ion-select-option>Cantidad</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item *ngIf="isCaptureDifferentFromMeasure">
+        <ion-input formControlName="Factor" type="numeric" label="Factor"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-note slot="start">Es aprovechable?</ion-note>
+        <ion-toggle formControlName="Aprovechable">
+        </ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-item>
+          <ion-button (click)="create()">
+            <ion-icon name="save-outline"></ion-icon>
+            Crear
+          </ion-button>
+        </ion-item>
+      </ion-item>
+    </form>
+  </ion-content>
+  <ion-content>
+    <ion-list *ngFor="let material of materials">
+      <ion-item (click)="select(material.IdMaterial, material.Nombre, material.Captura, material.Medicion, material.Factor ?? 0)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === material.IdMaterial"></ion-icon>
+        <ion-label>{{ material.Nombre }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>

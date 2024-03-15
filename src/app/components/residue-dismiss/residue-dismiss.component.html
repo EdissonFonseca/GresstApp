@@ -1,0 +1,100 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancelar</ion-button>
+    </ion-buttons>
+    <ion-title>Eliminar Residuo</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="light">
+  <ion-segment value="Dismiss">
+    <ion-segment-button value="Dismiss" (click)="changeNotesColor('P')">
+      <ion-icon name="trash"></ion-icon>Desechar
+    </ion-segment-button>
+    <ion-segment-button value="Dispose" (click)="changeNotesColor('D')">
+      <ion-icon name="flame"></ion-icon>Destruir
+    </ion-segment-button>
+    <ion-segment-button value="Store" (click)="changeNotesColor('A')">
+      <ion-icon name="archive"></ion-icon>Almacenar
+    </ion-segment-button>
+  </ion-segment>
+  <ion-list>
+    <ion-item lines="none" color="light">
+      <ion-title>{{ residue?.Material }} #{{residueId}}</ion-title>
+    </ion-item>
+    <ion-item lines="none" color="light">
+      <ion-icon name="location-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.DepositoOrigen }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light">
+      <ion-icon name="calendar-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.FechaIngreso }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light">
+      <ion-icon name="person-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.Propietario }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light">
+      <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.Solicitud }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'C'">
+      <ion-icon name="calculator-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.Cantidad }} {{ cuenta?.UnidadCantidad }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'P'">
+      <ion-icon name="calculator-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.Peso }} {{ cuenta?.UnidadPeso }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'V'">
+      <ion-icon name="calculator-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ residue?.Volumen }} {{ cuenta?.UnidadVolumen }}</ion-label>
+    </ion-item>
+  </ion-list>
+  <ion-item-divider>Eliminar</ion-item-divider>
+  <ion-list inset="true">
+    <ion-item>
+      <ion-label>Fecha</ion-label>
+      <ion-datetime-button datetime="datetime" ></ion-datetime-button>
+    </ion-item>
+    <ion-item *ngIf="mode=='D'">
+      <ion-label slot="start">Planta</ion-label>
+      <ion-label>{{ point }}</ion-label>
+      <ion-button color="light" (click)="selectPlant()">...</ion-button>
+    </ion-item>
+    <ion-item *ngIf="mode=='A'">
+      <ion-label slot="start">Almacen</ion-label>
+      <ion-label>{{ point }}</ion-label>
+      <ion-button color="light" (click)="selectStore()">...</ion-button>
+    </ion-item>
+    <ion-item *ngIf="mode=='D'">
+      <ion-label slot="start">Tratamiento</ion-label>
+      <ion-label>{{ treatment }}</ion-label>
+      <ion-button color="light" (click)="selectTreatment()">...</ion-button>
+    </ion-item>
+  </ion-list>
+  <ion-button expand="full" (click)="confirm()">Eliminar</ion-button>
+  <ion-item>
+    <ion-icon name="trash" [color]="colorDismiss" slot="start"></ion-icon>
+    <ion-note [color]="colorDismiss">
+      Desechar: Eliminar un residuo del inventario sin aplicar un tratamiento, ya sea por pérdida, merma, etc
+    </ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon name="flame" [color]="colorDispose" slot="start"></ion-icon>
+    <ion-note [color]="colorDispose">
+      Destruir: Eliminar un residuo aplicando un tratamiento aprobado para su destrucción
+    </ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon name="archive" [color]="colorStore" slot="start"></ion-icon>
+    <ion-note [color]="colorStore">
+      Almacenar: Llevar el residuo a un punto de almacenamiento definitivo, como un relleno o celda
+    </ion-note>
+  </ion-item>
+</ion-content>
+<ion-modal [keepContentsMounted]="true">
+  <ng-template>
+    <ion-datetime id="datetime" presentation="date" (ionChange)="dateTimeChanged($event)"></ion-datetime>
+  </ng-template>
+</ion-modal>

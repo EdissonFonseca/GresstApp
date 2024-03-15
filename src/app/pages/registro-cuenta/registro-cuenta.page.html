@@ -1,0 +1,46 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>Datos de la cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <form [formGroup]="formData" >
+    <ion-item-divider>
+      <ion-label>Usuario</ion-label>
+    </ion-item-divider>
+    <ion-item>
+      <ion-note slot="start">Correo</ion-note>
+      <ion-input formControlName="Correo" readonly="true"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start">Nombre</ion-note>
+      <ion-input formControlName="Nombre" (ionInput)="updateNombreCuenta($event)"></ion-input>
+    </ion-item>
+    <ion-item-divider>
+      <ion-label>Cuenta</ion-label>
+    </ion-item-divider>
+    <ion-item>
+      <ion-note slot="start">Nombre</ion-note>
+      <ion-input formControlName="Cuenta"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start">Identificacion</ion-note>
+      <ion-input formControlName="Identificacion"></ion-input>
+    </ion-item>
+    <ion-item-divider>
+      <ion-label>Contraseña</ion-label>
+    </ion-item-divider>
+    <ion-item>
+      <ion-note slot="start">Nueva</ion-note>
+      <ion-input type="" formControlName="Clave"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start">Confirmar</ion-note>
+      <ion-input type="password" formControlName="ClaveConfirmar"></ion-input>
+    </ion-item>
+  <ion-item>
+      <ion-button>Guardar</ion-button>
+    </ion-item>
+  </form>
+</ion-content>

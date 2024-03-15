@@ -1,0 +1,109 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancelar</ion-button>
+    </ion-buttons>
+    <ion-title>Transferir Residuo</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="light">
+  <ion-segment value="Send">
+    <ion-segment-button value="Send" (click)="changeNotesColor('S')">
+      <ion-icon name="exit"></ion-icon>
+      Enviar
+    </ion-segment-button>
+    <ion-segment-button value="Carry" (click)="changeNotesColor('C')">
+      <ion-icon name="car"></ion-icon>
+      Llevar
+    </ion-segment-button>
+    <ion-segment-button value="Find" (click)="changeNotesColor('F')">
+      <ion-icon name="hand-right"></ion-icon>
+      Gestor
+    </ion-segment-button>
+  </ion-segment>
+    <ion-list>
+      <ion-item lines="none" color="light">
+        <ion-title>{{ residue?.Material }} #{{residueId}}</ion-title>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.DepositoOrigen ?? '' != ''">
+        <ion-icon name="location-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.DepositoOrigen }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.FechaIngreso ?? '' != ''">
+        <ion-icon name="calendar-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.FechaIngreso }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.Propietario ?? '' != ''">
+        <ion-icon name="person-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Propietario }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="residue?.Solicitud ?? '' != ''">
+        <ion-icon name="clipboard-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Solicitud }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'C'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Cantidad }} {{ cuenta?.UnidadCantidad }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'P'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Peso }} {{ cuenta?.UnidadPeso }}</ion-label>
+      </ion-item>
+      <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'V'">
+        <ion-icon name="calculator-outline" slot="start"></ion-icon>
+        <ion-label size="small">{{ residue?.Volumen }} {{ cuenta?.UnidadVolumen }}</ion-label>
+      </ion-item>
+    </ion-list>
+    <ion-item-divider>Entregar</ion-item-divider>
+    <ion-list inset="true">
+      <ion-item>
+        <ion-label>Fecha</ion-label>
+        <ion-datetime-button datetime="datetime" ></ion-datetime-button>
+      </ion-item>
+      <ion-item *ngIf="mode=='C'">
+        <ion-label slot="start">Vehículo</ion-label>
+        <ion-label>{{ vehicle }}</ion-label>
+        <ion-button color="light" (click)="selectVehicle()">...</ion-button>
+      </ion-item>
+      <ion-item *ngIf="mode=='C'">
+        <ion-label slot="start">Destino</ion-label>
+        <ion-label>{{ point }}</ion-label>
+        <ion-button color="light" (click)="selectPoint()">...</ion-button>
+      </ion-item>
+      <ion-item *ngIf="mode=='S'">
+        <ion-label slot="start">Tercero</ion-label>
+        <ion-label>{{ stakeholder }}</ion-label>
+        <ion-button color="light" (click)="selectStakeholder()">...</ion-button>
+      </ion-item>
+      <ion-item *ngIf="mode=='F'">
+        <ion-toggle>Lo puedo llevar</ion-toggle>
+      </ion-item>
+      <ion-item *ngIf="mode=='F'">
+        <ion-toggle>Lo puedo entregar en mi depósito</ion-toggle>
+      </ion-item>
+    </ion-list>
+    <ion-button expand="full" (click)="confirm()">Entregar</ion-button>
+  <ion-item>
+    <ion-icon name="exit" [color]="colorSend" slot="start"></ion-icon>
+    <ion-note [color]="colorSend">
+      Enviar: Entregar el residuo a un tercero en mi punto de entrega
+    </ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon name="car" [color]="colorCarry" slot="start"></ion-icon>
+    <ion-note [color]="colorCarry">
+      Llevar: Llevar el residuo hasta el punto de recepción del tercero
+    </ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon name="hand-right" [color]="colorFind" slot="start"></ion-icon>
+    <ion-note [color]="colorFind">
+      Gestor: Buscar un gestor que gestione el residuo
+    </ion-note>
+  </ion-item>
+</ion-content>
+<ion-modal [keepContentsMounted]="true">
+  <ng-template>
+    <ion-datetime id="datetime" presentation="date" (ionChange)="dateTimeChanged($event)"></ion-datetime>
+  </ng-template>
+</ion-modal>

@@ -1,0 +1,41 @@
+<ion-menu menuId="MainMenu" contentId="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-chip>
+        <img src="../../../assets/img/Gresst.png" alt="" class="logo">
+      </ion-chip>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-list>
+      <ion-item (click)="navigateTo('cuenta')">
+        <ion-icon name="people-outline"></ion-icon>
+        {{ account }}
+      </ion-item>
+      <ion-item (click)="navigateTo('perfil')">
+        <ion-icon name="person-outline"></ion-icon>
+        {{ user }}
+      </ion-item>
+      <ion-item (click)="navigateTo('certificados-buscar')">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>        Certificados
+      </ion-item>
+      <ion-item>
+        <ion-icon name="sync-outline"></ion-icon>        Sincronizar
+      </ion-item>
+      <ion-item-divider></ion-item-divider>
+      <ion-item (click)="navigateTo('embalajes')">Embalajes</ion-item>
+      <ion-item (click)="navigateTo('insumos')">Insumos</ion-item>
+      <ion-item (click)="navigateTo('materiales')">Materiales</ion-item>
+      <ion-item (click)="navigateTo('puntos')">Puntos</ion-item>
+      <ion-item (click)="navigateTo('terceros')">Terceros</ion-item>
+      <ion-item (click)="navigateTo('tratamientos')">Tratamientos</ion-item>
+      <ion-item (click)="navigateTo('vehiculos')">Vehículos</ion-item>
+      <ion-item-divider></ion-item-divider>
+      <ion-item (click)="logout()">
+        <ion-icon name="power-outline"></ion-icon>        Cerrar sesión
+      </ion-item>
+    </ion-list>
+  </ion-content>
+  <ion-footer>
+  </ion-footer>
+</ion-menu>

@@ -1,0 +1,26 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+    </ion-toolbar>
+  </ion-header>
+  <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
+  <ion-content *ngIf="packages.length == 0">
+      <ion-item>
+        <ion-button (click)="create()">
+          <ion-icon name="save-outline"></ion-icon>
+          Crear
+        </ion-button>
+      </ion-item>
+  </ion-content>
+  <ion-content>
+    <ion-list *ngFor="let package of packages">
+      <ion-item (click)="select(package.IdEmbalaje, package.Nombre)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === package.IdEmbalaje"></ion-icon>
+        <ion-label>{{ package.Nombre }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>

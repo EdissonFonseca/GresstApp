@@ -1,0 +1,101 @@
+<ion-header [translucent]="true">
+  <ion-toolbar class="header-green">
+    <ion-buttons slot="start">
+        <ion-menu-button menu="MainMenu"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      {{ pageTitle }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="notifications"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-popover #popInventario side="bottom" alignment="center">
+  <ng-template>
+    <ion-content>
+      <ion-list>
+        <ion-item-divider>
+          Qué estoy viendo?
+        </ion-item-divider>
+        <ion-item lines="none">
+          En esta pantalla está su lista de residuos
+        </ion-item>
+        <ion-item-divider>
+          Acciones
+        </ion-item-divider>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="add" color="primary"> </ion-icon>
+          Agregar
+        </ion-item>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="remove" color="danger"> </ion-icon>
+          Eliminar
+        </ion-item>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="move" color="primary"> </ion-icon>
+          Mover
+        </ion-item>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="construct-outline" color="primary"> </ion-icon>
+          Transformar
+        </ion-item>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="exit-outline" color="primary"> </ion-icon>
+          Transferir
+        </ion-item>
+        <ion-item lines="inset">
+          <ion-icon slot="start" name="share-social" color="primary"> </ion-icon>
+          Publicar
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>
+<ion-popover #popJornada side="bottom" alignment="center">
+  <ng-template>
+    <ion-content>
+      <ion-list>
+        <ion-item-divider>
+          Qué estoy viendo?
+        </ion-item-divider>
+        <ion-item lines="none">
+          En esta pantalla está su lista de actividades
+        </ion-item>
+        <ion-item-divider>
+          Colores
+        </ion-item-divider>
+        <ion-item lines="none">
+          <ion-icon name="disc" color="warning" slot="start"></ion-icon>Pendiente
+        </ion-item>
+        <ion-item lines="none">
+          <ion-icon name="disc" color="success" slot="start"></ion-icon>Finalizada
+        </ion-item>
+        <ion-item lines="none">
+          <ion-icon name="disc" color="danger" slot="start"></ion-icon>Rechazada
+        </ion-item>
+        <ion-item-divider>
+          Acciones
+        </ion-item-divider>
+        <ion-item lines="none">
+          <ion-icon slot="start" name="add" color="primary"> </ion-icon>
+          Iniciar actividad
+        </ion-item>
+        <ion-item lines="none">
+          <ion-icon slot="start" name="checkmark" color="success"> </ion-icon>
+          Finalizar actividad
+        </ion-item>
+        <ion-item lines="none">
+          <ion-icon slot="start" name="close" color="danger"> </ion-icon>
+          Descartar actividad
+        </ion-item>
+        <ion-item lines="none">
+          <ion-icon slot="start" name="contract" color="medium"> </ion-icon>
+          Clic en la tarjeta para entrar a los detalles
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>

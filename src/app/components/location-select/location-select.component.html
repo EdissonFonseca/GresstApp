@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancelar</ion-button>
+    </ion-buttons>
+    <ion-title></ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" (click)="confirm()">Guardar Punto</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content>
+  <ion-item>
+    <ion-label position="stacked">Descripción</ion-label>
+    <ion-input [(ngModel)]="description" placeholder="Escribe una descripción"></ion-input>
+  </ion-item>
+  <ion-label *ngIf="latitude && longitude">Ubicación: {{ latitude }}, {{ longitude }}</ion-label>
+  <ion-button expand="full" (click)="getLocation()">Obtener Ubicación</ion-button>
+</ion-content>

@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Agregar Actividad</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content color="light">
+  <form [formGroup]="frmActivity" >
+    <ion-segment Value="Collect">
+      <ion-segment-button value="Collect" (click)="changeNotesColor('L')">
+        <ion-icon name="cart"></ion-icon>
+      </ion-segment-button>
+      <ion-segment-button value="Receive" (click)="changeNotesColor('E')"  >
+        <ion-icon name="download"></ion-icon>
+      </ion-segment-button>
+      <ion-segment-button value="Send" (click)="changeNotesColor('S')">
+        <ion-icon name="open"></ion-icon>
+      </ion-segment-button>
+      <ion-segment-button value="Produce" (click)="changeNotesColor('I')">
+        <ion-icon name="archive"></ion-icon>
+      </ion-segment-button>
+    </ion-segment>
+    <ion-list inset="true">
+      <ion-item *ngIf="modo == 'L'">
+        <ion-note slot="start">Vehículo</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button color="light" (click)="selectVehicle()">...</ion-button>
+      </ion-item>
+      <ion-item *ngIf="modo == 'E'">
+        <ion-note slot="start">Depósito</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button color="light" (click)="selectTarget()">...</ion-button>
+      </ion-item>
+      <ion-item *ngIf="modo == 'S'">
+        <ion-note slot="start">Depósito</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button color="light" (click)="selectSource()">...</ion-button>
+      </ion-item>
+      <ion-item>
+        <ion-note slot="start">Descripción</ion-note>
+        <ion-textarea formControlName="Description"></ion-textarea>
+      </ion-item>
+    </ion-list>
+    <ion-button expand="full" (click)="confirm()">Iniciar</ion-button>
+  </form>
+</ion-content>
+<ion-footer>
+  <ion-item>
+    <ion-icon slot="start" name="cart" [color]="colorRecoleccion" > </ion-icon>
+    <ion-note [color]="colorRecoleccion">Recolección: Inicia una ruta para recoger/entregar residuos</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon slot="start" name="download" [color]="colorRecepcion" > </ion-icon>
+    <ion-note [color]="colorRecepcion">Recepción: Inicia una actividad de recepción masiva de residuos</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon slot="start" name="open" [color]="colorEntrega" > </ion-icon>
+    <ion-note [color]="colorEntrega">Transferencia: Inicia una actividad de entrega masiva de residuos</ion-note>
+  </ion-item>
+  <ion-item>
+    <ion-icon slot="start" name="archive" [color]="colorGeneracion" > </ion-icon>
+    <ion-note [color]="colorGeneracion">Generación: Captura de registro de residuos producidos</ion-note>
+  </ion-item>
+</ion-footer>

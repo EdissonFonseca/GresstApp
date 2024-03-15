@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <form [formGroup]="formData" >
+    <ion-item>
+      <ion-note slot="start">Nombre</ion-note>
+      <ion-input formControlName="Nombre"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-note slot="start">Identificación</ion-note>
+      <ion-input formControlName="Identificacion"></ion-input>
+    </ion-item>
+    <ion-item>
+      <ion-button>Aplicar cambios</ion-button>
+    </ion-item>
+  </form>
+</ion-content>

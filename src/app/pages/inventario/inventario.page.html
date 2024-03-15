@@ -1,0 +1,42 @@
+<ion-content [fullscreen]="true" color="light">
+  <ion-toolbar>
+    <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..."></ion-searchbar>
+  </ion-toolbar>
+  <ion-list *ngFor="let residuo of residuos" inset=true>
+    <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
+      <ion-card-title>{{residuo.Material}} {{residuo.IdResiduo}}</ion-card-title>
+    </ion-item>
+    <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
+      <ion-card-subtitle>{{residuo.Propietario}}{{residuo.DepositoOrigen}}{{residuo.Solicitud}}</ion-card-subtitle>
+    </ion-item>
+    <ion-item>
+      <ion-label size="small">{{residuo.Ubicacion}}</ion-label>
+      <ion-chip slot="end">
+        <ion-badge size="small" color="light" > {{ residuo.Cantidades }} </ion-badge>
+      </ion-chip>
+      </ion-item>
+    <ion-item lines="none">
+      <ion-button id="moveButton" fill="clear" color="primary" size="large" (click)="moveResiduo(residuo.IdResiduo)" *ngIf="residuo.IdEstado == 'A'">
+        <ion-icon name="move"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="primary" size="large" (click)="transformResiduo(residuo.IdResiduo)" *ngIf="residuo.IdEstado == 'A'">
+        <ion-icon name="construct-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="primary" size="large" (click)="transferResiduo(residuo.IdResiduo)">
+        <ion-icon name="share-outline"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="primary" size="large" (click)="shareResiduo(residuo.IdResiduo)" *ngIf="residuo.IdEstado == 'A' && residuo.Aprovechable">
+        <ion-icon name="share-social"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="danger" size="large" (click)="deleteResiduo(residuo.IdResiduo)" *ngIf="residuo.IdEstado == 'A'">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+      </ion-item>
+  </ion-list>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="receiveResiduo()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
+

@@ -1,0 +1,45 @@
+<ion-header>
+</ion-header>
+<ion-content [fullscreen]="true" color="light">
+  <ion-toolbar>
+    <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar..." show-clear-button="focus"></ion-searchbar>
+  </ion-toolbar>
+  <ion-list *ngFor="let actividad of actividades" inset="true">
+    <ion-item lines="none" (click)="navigateToTarget(actividad.IdActividad)">
+      <ion-icon slot="start" size="large" [color]="getColorEstado(actividad.IdEstado)" [name]="actividad.Icono"></ion-icon>
+        {{ actividad.Titulo }}
+    </ion-item >
+    <ion-item *ngIf="formatJornada(actividad.IdActividad) != ''" lines="none">
+      {{ formatJornada(actividad.IdActividad) }}
+    </ion-item >
+    <ion-item (click)="navigateToTarget(actividad.IdActividad)" lines="full">
+      <ion-chip slot="start">
+        {{ actividad.Accion }}
+      </ion-chip>
+      <ion-chip slot="end" *ngIf="actividad.Cantidades">
+        <ion-badge size="small" color="light"> {{ actividad.Cantidades }} </ion-badge>
+      </ion-chip>
+  </ion-item>
+  <ion-item lines="none" >
+    <ion-chip slot="start" color="light" (click)="navigateToTarget(actividad.IdActividad)">
+      <ion-icon name="location"></ion-icon>
+      <ion-badge color="success"> {{ actividad.ItemsAprobados }} </ion-badge>
+      <ion-badge color="warning"> {{ actividad.ItemsPendientes }} </ion-badge>
+      <ion-badge color="danger"> {{ actividad.ItemsRechazados }} </ion-badge>
+    </ion-chip>
+    <ion-buttons slot="end">
+    <ion-button fill="clear" color="primary" size="large" (click)="openApprove(actividad.IdActividad)" *ngIf="(actividad.ItemsAprobados ?? 0) > 0">
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-button>
+      <ion-button fill="clear" color="danger" size="large" (click)="openReject(actividad.IdActividad)" *ngIf="(actividad.ItemsAprobados ?? 0) == 0 && (actividad.ItemsPendientes ?? 0) + (actividad.ItemsRechazados ?? 0) > 0">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-item>
+</ion-list>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="openAddActivity()" >
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
