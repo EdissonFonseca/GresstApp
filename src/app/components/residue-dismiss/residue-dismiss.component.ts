@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { CRUDOperacion, EntradaSalida, Estado, TipoProceso } from 'src/app/services/constants.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { PointsComponent } from '../points/points.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
@@ -58,22 +58,22 @@ export class ResidueDismissComponent  implements OnInit {
     if (!this.residue) return;
 
     const personId = await this.globales.getIdPersona();
-    if (this.mode == TipoProceso.Perdida){
-      actividad = await this.globales.getActividadByProceso(TipoProceso.Perdida, personId ?? '');
+    if (this.mode == TipoServicio.Almacenamiento) {
+      actividad = await this.globales.getActividadByProceso(TipoServicio.Almacenamiento, this.pointId);
       if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdProceso: TipoProceso.Perdida, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+        actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Almacenamiento, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
         await this.globales.createActividad(actividad);
       }
-    } else if (this.mode == TipoProceso.Almacenamiento) {
-      actividad = await this.globales.getActividadByProceso(TipoProceso.Almacenamiento, this.pointId);
+    } else if (this.mode == TipoServicio.Disposicion) {
+      actividad = await this.globales.getActividadByProceso(TipoServicio.Disposicion, this.pointId);
       if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdProceso: TipoProceso.Almacenamiento, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+        actividad = {IdActividad: this.globales.newId(), IdServicio : TipoServicio.Disposicion, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
         await this.globales.createActividad(actividad);
       }
-    } else if (this.mode == TipoProceso.Disposicion) {
-      actividad = await this.globales.getActividadByProceso(TipoProceso.Disposicion, this.pointId);
+    } else { //Perdida
+      actividad = await this.globales.getActividadByProceso(TipoServicio.Perdida, personId ?? '');
       if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdProceso: TipoProceso.Disposicion, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+        actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Perdida, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
         await this.globales.createActividad(actividad);
       }
     }
@@ -90,7 +90,7 @@ export class ResidueDismissComponent  implements OnInit {
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
-          IdProceso: actividad.IdProceso,
+          IdServicio: actividad.IdServicio,
           Cantidades: this.globales.getResumen(this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
         };
       await this.globales.createTarea(actividad.IdActividad, tarea);
@@ -107,22 +107,22 @@ export class ResidueDismissComponent  implements OnInit {
 
   changeNotesColor(type: string) {
     this.mode = type;
-    if (type === TipoProceso.Disposicion){
+    if (type === TipoServicio.Disposicion){
       this.colorDismiss = 'medium';
       this.colorDispose = 'primary';
       this.colorStore = 'medium';
-    } else if (type == TipoProceso.Perdida){
-      this.colorDismiss = 'primary';
-      this.colorDispose = 'medium';
-      this.colorStore = 'medium';
-    } else {
+    } else if (type == TipoServicio.Almacenamiento){
       this.colorDismiss = 'medium';
       this.colorDispose = 'medium';
       this.colorStore = 'primary';
-    }
+    } else { //Perdida
+      this.colorDismiss = 'primary';
+      this.colorDispose = 'medium';
+      this.colorStore = 'medium';
    }
+  }
 
-   dateTimeChanged(event: any) {
+  dateTimeChanged(event: any) {
     this.date = event.detail.value;
   }
 

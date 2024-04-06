@@ -81,10 +81,11 @@ export class LoginPage implements OnInit {
   }
 
   async goPassword(){
+    this.navCtrl.navigateRoot('contrasena-correo');
   }
 
   async goRegister() {
-    this.navCtrl.navigateRoot('/registro');
+    this.navCtrl.navigateRoot('/registro-correo');
   }
 
   async presentAlert(header: string, subHeader: string, message: string) {

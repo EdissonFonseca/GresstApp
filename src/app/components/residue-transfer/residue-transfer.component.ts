@@ -4,7 +4,7 @@ import { Globales } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
 import { PointsComponent } from '../points/points.component';
-import { CRUDOperacion, EntradaSalida, Estado, TipoProceso } from 'src/app/services/constants.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
@@ -60,10 +60,10 @@ export class ResidueTransferComponent  implements OnInit {
     if (this.mode == 'S' || this.mode =='C') {
       const punto = await this.globales.getPunto(this.residue.IdDeposito ?? '');
       if (this.mode == "S"){
-        actividad = await this.globales.getActividadByProceso(TipoProceso.Salida, this.residue.IdDeposito ?? '');
+        actividad = await this.globales.getActividadByProceso(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto){
-            actividad = {IdActividad: this.globales.newId(), IdProceso: TipoProceso.Salida, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+            actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
             await this.globales.createActividad(actividad);
           }
         }
@@ -82,9 +82,9 @@ export class ResidueTransferComponent  implements OnInit {
           }
         }
       } else {
-        actividad = await this.globales.getActividadByProceso(TipoProceso.Transporte, this.residue.IdVehiculo ?? '');
+        actividad = await this.globales.getActividadByProceso(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
         if (!actividad){
-          actividad = {IdActividad: this.globales.newId(), IdProceso: TipoProceso.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+          actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
           actividad.CRUD = CRUDOperacion.Create;
           await this.globales.createActividad(actividad);
         }

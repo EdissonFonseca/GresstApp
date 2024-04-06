@@ -15,7 +15,7 @@ import { Globales } from 'src/app/services/globales.service';
 })
 export class TransaccionesPage implements OnInit {
   transacciones: Transaccion[] = [];
-  idProceso: string = '';
+  idServicio: string = '';
   idActividad: string = '';
   titulo: string = '';
   proceso: string = '';
@@ -40,10 +40,10 @@ export class TransaccionesPage implements OnInit {
     const actividad = await this.globales.getActividad(this.idActividad);
     if (actividad){
       this.titulo = actividad.Titulo;
-      this.idProceso = actividad.IdProceso;
+      this.idServicio = actividad.IdServicio;
       this.idEstado = actividad .IdEstado;
-      this.proceso = await this.globales.getNombreProceso(actividad.IdProceso);
-      this.icono = this.globales.procesos.find((p) => p.IdProceso == actividad.IdProceso)?.Icono!;
+      this.proceso = await this.globales.getNombreServicio(actividad.IdServicio);
+      this.icono = this.globales.servicios.find((p) => p.IdServicio == actividad.IdServicio)?.Icono!;
     }
   }
 

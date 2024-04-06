@@ -88,12 +88,32 @@ const routes: Routes = [
     loadChildren: () => import('./pages/tratamientos/tratamientos.module').then( m => m.TratamientosPageModule)
   },
   {
-    path: 'registro',
-    loadChildren: () => import('./pages/registro/registro.module').then( m => m.RegistroPageModule)
+    path: 'registro-correo',
+    loadChildren: () => import('./pages/registro-correo/registro-correo.module').then( m => m.RegistroCorreoPageModule)
   },
   {
-    path: 'registro-cuenta',
-    loadChildren: () => import('./pages/registro-cuenta/registro-cuenta.module').then( m => m.RegistroCuentaPageModule)
+    path: 'registro-codigo',
+    loadChildren: () => import('./pages/registro-codigo/registro-codigo.module').then( m => m.RegistroCodigoPageModule)
+  },
+  {
+    path: 'registro-clave',
+    loadChildren: () => import('./pages/registro-clave/registro-clave.module').then( m => m.RegistroClavePageModule)
+  },
+  {
+    path: 'servicios',
+    loadChildren: () => import('./pages/servicios/servicios.module').then( m => m.ServiciosPageModule)
+  },
+  {
+    path: 'contrasena-correo',
+    loadChildren: () => import('./pages/contrasena-correo/contrasena-correo.module').then( m => m.ContrasenaCorreoPageModule)
+  },
+  {
+    path: 'contrasena-codigo',
+    loadChildren: () => import('./pages/contrasena-codigo/contrasena-codigo.module').then( m => m.ContrasenaCodigoPageModule)
+  },
+  {
+    path: 'contrasena-clave',
+    loadChildren: () => import('./pages/contrasena-clave/contrasena-clave.module').then( m => m.ContrasenaClavePageModule)
   },
 ];
 @NgModule({

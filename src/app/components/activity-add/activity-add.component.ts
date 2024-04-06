@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { Estado, TipoProceso } from 'src/app/services/constants.service';
+import { Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
@@ -13,7 +13,7 @@ import { Actividad } from 'src/app/interfaces/actividad.interface';
   styleUrls: ['./activity-add.component.scss'],
 })
 export class ActivityAddComponent  implements OnInit {
-  modo: string = TipoProceso.Recoleccion;
+  modo: string = TipoServicio.Recoleccion;
   colorGeneracion: string = 'medium';
   colorEntrega: string = 'medium';
   colorRecepcion: string = 'medium';
@@ -41,15 +41,15 @@ export class ActivityAddComponent  implements OnInit {
     const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDay());
     let titulo: string = '';
 
-    if (this.modo == TipoProceso.Recoleccion && this.idRecurso != ''){
-      this.modo = TipoProceso.Transporte;
+    if (this.modo == TipoServicio.Recoleccion && this.idRecurso != ''){
+      this.modo = TipoServicio.Transporte;
       titulo = this.idRecurso;
     } else {
       titulo = description;
     }
     const actividad: Actividad = {
       IdActividad: this.globales.newId(),
-      IdProceso: this.modo,
+      IdServicio: this.modo,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
       FechaInicio: hoy,
@@ -68,22 +68,22 @@ export class ActivityAddComponent  implements OnInit {
 
   changeNotesColor(type: string) {
     this.modo = type;
-    if (type === TipoProceso.Recoleccion){
+    if (type === TipoServicio.Recoleccion){
       this.colorRecoleccion = 'primary';
       this.colorRecepcion = 'medium';
       this.colorEntrega = 'medium';
       this.colorGeneracion = 'medium';
-    } else if (type == TipoProceso.Entrada) {
+    } else if (type == TipoServicio.Recepcion) {
       this.colorRecoleccion = 'medium';
       this.colorRecepcion = 'primary';
       this.colorEntrega = 'medium';
       this.colorGeneracion = 'medium';
-    } else if (type == TipoProceso.Salida) {
+    } else if (type == TipoServicio.Entrega) {
       this.colorRecoleccion = 'medium';
       this.colorRecepcion = 'medium';
       this.colorEntrega = 'primary';
       this.colorGeneracion = 'medium';
-    } else if (type == TipoProceso.Inventario) {
+    } else  { //Inventario
       this.colorRecoleccion = 'medium';
       this.colorRecepcion = 'medium';
       this.colorEntrega = 'medium';

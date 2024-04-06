@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Actividad } from '../interfaces/actividad.interface';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
 import { Embalaje } from '../interfaces/embalaje.interface';
-import { Estado, TipoProceso, TipoMedicion, TipoServicio, EntradaSalida, CRUDOperacion } from 'src/app/services/constants.service';
+import { Estado, TipoMedicion, TipoServicio, EntradaSalida, CRUDOperacion } from 'src/app/services/constants.service';
 import { Insumo } from '../interfaces/insumo.interface';
 import { Material } from '../interfaces/material.interface';
 import { Punto } from '../interfaces/punto.interface';
@@ -29,33 +29,18 @@ export class Globales {
     {IdEstado: Estado.Finalizado, Nombre:'Finalizado', Color:'secondary'},
     {IdEstado: Estado.Inactivo, Nombre:'Opcional', Color:'light'},
   ];
-  procesos: {IdProceso: string, Nombre: string, Accion: string, Icono: string}[] = [
-    {IdProceso:TipoProceso.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenar', Icono:'car'},
-    {IdProceso:TipoProceso.Disposicion, Nombre:'Disposición', Accion: 'Disponer', Icono: 'flame'},
-    {IdProceso:TipoProceso.Entrada, Nombre:'Entrada', Accion: 'Ingresar', Icono: 'download'},
-    {IdProceso:TipoProceso.Generacion, Nombre:'Generación', Accion: 'Generar', Icono: 'archive'},
-    {IdProceso:TipoProceso.Recoleccion, Nombre:'Recolección', Accion: 'Recoger', Icono: 'cart'},
-    {IdProceso:TipoProceso.Transporte, Nombre:'Transporte', Accion: 'Transportar', Icono: 'car'},
-    {IdProceso:TipoProceso.Traslado, Nombre:'Traslado', Accion: 'Trasladar', Icono: 'open'},
-    {IdProceso:TipoProceso.Transformacion, Nombre:'Transformación', Accion: 'Transformar', Icono: 'construct'},
-    {IdProceso:TipoProceso.Salida, Nombre:'Entrega', Accion: 'Entregar', Icono: 'upload'},
-  ];
-  acciones: {IdServicio: Number, Nombre: string, Accion: string}[] = [
-    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenar'},
-    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disponer'},
-    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificar'},
-    {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recibir'},
-    {IdServicio:TipoServicio.Transferencia, Nombre:'Transferencia', Accion: 'Entregar'},
-    {IdServicio:TipoServicio.Tratamiento, Nombre:'Tratamiento', Accion: 'Tratar'},
-    {IdServicio:TipoServicio.TrasladoTransporte, Nombre:'Transformación', Accion: 'Transformar'}, //Transformacion
-    {IdServicio:TipoServicio.RecoleccionTransporte, Nombre:'Entrega', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Ajuste, Nombre:'Ajuste', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Conciliacion, Nombre:'Conciliacion', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Generacion, Nombre:'Generacion', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Traslado, Nombre:'Entrega', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.TransferenciaTransporte, Nombre:'Entrega', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Recoleccion, Nombre:'Entrega', Accion: 'Entregar'}, //Salida
-    {IdServicio:TipoServicio.Perdida, Nombre:'Entrega', Accion: 'Entregar'}, //Salida
+  servicios: {IdServicio: string, Nombre: string, Accion: string, Icono: string}[] = [
+    {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenar temporal', Icono: 'archive'},
+    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenar definitivo', Icono:'car'},
+    {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechar', Icono: 'construct'},
+    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificar/Separar', Icono: 'download'},
+    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disponer', Icono: 'flame'},
+    {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Generar', Icono: 'archive'},
+    {IdServicio:TipoServicio.Entrega, Nombre:'Entrega', Accion: 'Entregar', Icono: 'archive'},
+    {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recibir', Icono: 'open'},
+    {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recoger', Icono: 'cart'},
+    {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformar', Icono: 'upload'},
+    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transportar', Icono: 'car'},
   ];
 
   constructor(
@@ -135,6 +120,18 @@ export class Globales {
     return icono;
   }
 
+  async addServicio(idServicio: string) {
+    const cuenta: Cuenta = await this.storage.get('Cuenta');
+
+    const selectedServicio = this.servicios.find(x => x.IdServicio.toString() == idServicio);
+    if (selectedServicio != null)
+    {
+      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre };
+      cuenta.Servicios.push(servicio);
+      await this.storage.set('Cuenta', cuenta);
+    }
+  }
+
   // #region Create Methods
   async createActividad(actividad: Actividad) {
     const actividades: Actividad[] = await this.storage.get('Actividades');
@@ -204,11 +201,6 @@ export class Globales {
   // #endregion
 
   // #region Read Methods
-  getAccionProceso(idProceso: string): string{
-    const prc = this.procesos.find((accion) => accion.IdProceso == idProceso);
-    return prc? prc.Accion : '';
-  }
-
   async getActividad(idActividad: string): Promise<Actividad> {
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
@@ -302,8 +294,8 @@ export class Globales {
       actividad.ItemsPendientes = pendientes;
       actividad.ItemsRechazados = rechazados;
       actividad.Cantidades = resumen;
-      actividad.Icono = this.procesos.find((proceso) => actividad.IdProceso == proceso.IdProceso)?.Icono ||'';
-      actividad.Accion = this.procesos.find((proceso) => actividad.IdProceso == proceso.IdProceso)?.Nombre || '';
+      actividad.Icono = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio.toString())?.Icono ||'';
+      actividad.Accion = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio.toString())?.Nombre || '';
     });
 
     return actividades;
@@ -311,7 +303,7 @@ export class Globales {
 
   async getActividadByProceso(idProceso: string, idRecurso: string) : Promise<Actividad | undefined>{
     const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdProceso == idProceso && item.IdRecurso == idRecurso)!;
+    const actividad: Actividad = actividades.find((item) => item.IdServicio == idProceso && item.IdRecurso == idRecurso)!;
     return actividad;
   }
 
@@ -348,7 +340,7 @@ export class Globales {
   }
 
   getImagen(id: string): string{
-    const img = this.procesos.find((imagen) => imagen.IdProceso == id);
+    const img = this.servicios.find((imagen) => imagen.IdServicio.toString() == id);
     return img? img.Icono : '';
   }
 
@@ -392,7 +384,7 @@ export class Globales {
         ubicacion = residuo.IdVehiculo;
       }
       else if (residuo.IdRuta) {
-        const actividad = actividades.find(x => x.IdProceso == TipoProceso.Recoleccion && x.IdRecurso == residuo.IdRuta);
+        const actividad = actividades.find(x => x.IdServicio == TipoServicio.Recoleccion && x.IdRecurso == residuo.IdRuta);
         if (actividad)
           ubicacion = actividad.Titulo;
       }
@@ -441,10 +433,10 @@ export class Globales {
     return estado? estado.Nombre : 'Pendiente';
   }
 
-  getNombreProceso(idProceso: string) {
+  getNombreServicio(idServicio: string) {
     let procesoNombre: string = '';
 
-    const proceso = this.procesos.find((prc) => prc.IdProceso === idProceso);
+    const proceso = this.servicios.find((prc) => prc.IdServicio.toString() === idServicio);
     if (proceso)
       procesoNombre = proceso.Nombre;
 
@@ -539,7 +531,7 @@ export class Globales {
               tarea.Tratamiento = tratamientoItem.Nombre;
           }
       }
-      tarea.IdProceso = actividad.IdProceso;
+      tarea.IdServicio = actividad.IdServicio.toString();
     });
 
     return tareas;
@@ -568,7 +560,7 @@ export class Globales {
 
       if (tareas.length > 0){
         tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo).forEach((tarea) => {
-          tarea.IdProceso = actividad.IdProceso;
+          tarea.IdServicio = actividad.IdServicio;
           const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
           let resumen: string = '';
           accion = '';
@@ -590,47 +582,42 @@ export class Globales {
                 embalaje = `- (${tarea.CantidadEmbalaje ?? ''} ${embalajeData.Nombre}`;
             }
 
-            switch(actividad.IdProceso){
-              case TipoProceso.Recoleccion:
-              case TipoProceso.Transporte:
-              case TipoProceso.Traslado:
+            switch(actividad.IdServicio){
+              case TipoServicio.Recoleccion:
+              case TipoServicio.Transporte:
                 if (tarea.EntradaSalida != 'E')
                   validarInventario = true;
                 break;
-              case TipoProceso.Salida:
+              default:
                 validarInventario = true;
                 break;
             }
             resumen = this.getResumen(tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
-            switch(tarea.IdProceso){
-              case TipoProceso.Almacenamiento:
+            switch(tarea.IdServicio){
+              case TipoServicio.Almacenamiento:
                 accion = 'Almacenar';
                 break;
-              case TipoProceso.Disposicion:
+              case TipoServicio.Disposicion:
                 accion = tarea.Tratamiento ?? 'Disponer';
                 break;
-              case TipoProceso.Entrada:
+              case TipoServicio.Recepcion:
                 accion = 'Recibir';
                 break;
-                case TipoProceso.Generacion:
+                case TipoServicio.Generacion:
                   accion = 'Generar';
                   break;
-                case TipoProceso.Inventario:
-                accion = 'Inventario';
-                break;
-              case TipoProceso.Recoleccion:
-              case TipoProceso.Transporte:
-              case TipoProceso.Traslado:
+              case TipoServicio.Recoleccion:
+              case TipoServicio.Transporte:
                 if (tarea.EntradaSalida == 'E'){
                   accion = 'Recoger';
                 } else {
                   accion = 'Entregar';
                 }
                 break;
-              case TipoProceso.Salida:
+               case TipoServicio.Entrega:
                 accion = 'Entregar';
                 break;
-              case TipoProceso.Transformacion:
+               case TipoServicio.Tratamiento:
                 accion = tarea.Tratamiento ?? 'Transformar';
                 break;
             }
@@ -640,7 +627,7 @@ export class Globales {
           }
         });
       }
-      if ((actividad.IdProceso == TipoProceso.Recoleccion || actividad.IdProceso == TipoProceso.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
+      if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
         const puntos = this.getPuntos();
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdPunto)
@@ -669,7 +656,7 @@ export class Globales {
           }
         }
       }
-      if (actividad.IdProceso === TipoProceso.Transporte) {
+      if (actividad.IdServicio === TipoServicio.Transporte) {
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
 
         if (transaccion && (transaccion.EntradaSalida == 'S' || transaccion.EntradaSalida == 'T')){
@@ -1016,6 +1003,15 @@ export class Globales {
   }
 
   // #endregion
+
+  async deleteServicio(idServicio: string) {
+    const cuenta: Cuenta = await this.storage.get('Cuenta');
+
+    const servicios = cuenta.Servicios.filter(x=> x.IdServicio !== idServicio);
+    cuenta.Servicios = servicios;
+    await this.storage.set('Cuenta', cuenta);
+  }
+
 
   // #region Loading panel
   async presentAlert(header: string, subHeader: string, message: string) {

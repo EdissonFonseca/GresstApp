@@ -1,0 +1,9 @@
+<ion-header *ngIf="showHeader">
+</ion-header>
+<ion-content>
+  <ion-list *ngFor="let item of items">
+    <ion-item>
+      <ion-checkbox label="item.name" label-placement="end" justify="start" [(ngModel)]="item.selected" (ionChange)="changeSelection(item.id,$event.target.checked)">{{item.name}}</ion-checkbox>
+    </ion-item>
+  </ion-list>
+</ion-content>

@@ -13,7 +13,7 @@ export interface Tarea{
   IdItem?: number;
   IdMaterial: string;
   IdPunto?: string;
-  IdProceso?: string;
+  IdServicio?: string;
   IdResiduo?: string;
   IdSolicitud?: string;
   IdSolicitante?: string;

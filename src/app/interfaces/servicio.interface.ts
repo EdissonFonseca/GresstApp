@@ -1,5 +1,5 @@
 export interface Servicio {
   IdServicio: string;
-  IdProceso: string;
+  //IdProceso: string;
   Nombre: string;
 };

@@ -5,7 +5,7 @@ import { ActivityAddComponent } from 'src/app/components/activity-add/activity-a
 import { ApproveComponent } from 'src/app/components/approve/approve.component';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { Estado, TipoProceso } from 'src/app/services/constants.service';
+import { Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -69,10 +69,10 @@ export class ActividadesPage implements OnInit {
   async navigateToTarget(idActividad: string){
     const actividad: Actividad = await this.globales.getActividad(idActividad);
 
-    switch(actividad.IdProceso)
+    switch(actividad.IdServicio)
     {
-      case TipoProceso.Recoleccion:
-      case TipoProceso.Transporte:
+      case TipoServicio.Recoleccion:
+      case TipoServicio.Transporte:
         const navigationExtras: NavigationExtras = {
           queryParams: {
             IdActividad: idActividad,

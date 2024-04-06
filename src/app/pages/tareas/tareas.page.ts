@@ -5,7 +5,7 @@ import { ApproveComponent } from 'src/app/components/approve/approve.component';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskApproveComponent } from 'src/app/components/task-approve/task-approve.component';
 import { TaskRejectComponent } from 'src/app/components/task-reject/task-reject.component';
-import { EntradaSalida, Estado, TipoMedicion, TipoProceso } from 'src/app/services/constants.service';
+import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
@@ -46,11 +46,11 @@ export class TareasPage implements OnInit {
     });
     const actividad = await this.globales.getActividad(this.idActividad);
     if (actividad){
-      this.showDelivery = actividad.IdProceso == TipoProceso.Transporte || actividad.IdProceso == TipoProceso.Recoleccion;
+      this.showDelivery = actividad.IdServicio == TipoServicio.Transporte || actividad.IdServicio == TipoServicio.Recoleccion;
       this.actividad = actividad.Titulo ?? '';
-      this.titulo = await this.globales.getNombreProceso(actividad.IdProceso);
+      this.titulo = await this.globales.getNombreServicio(actividad.IdServicio);
       this.idEstadoActividad = actividad.IdEstado!;
-      this.imagenActividad = this.globales.procesos.find(x => x.IdProceso == actividad.IdProceso)?.Icono!;
+      this.imagenActividad = this.globales.servicios.find(x => x.IdServicio == actividad.IdServicio)?.Icono!;
     }
   }
 

@@ -5,7 +5,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { PackagesComponent } from '../packages/packages.component';
-import { CRUDOperacion, EntradaSalida, Estado, TipoProceso } from 'src/app/services/constants.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
@@ -191,9 +191,9 @@ export class TaskApproveComponent  implements OnInit {
           IdResiduo: idResiduo,
           IdMaterial: tarea.IdMaterial,
           IdPropietario: this.stakeholderId,
-          IdDeposito: actividad.IdProceso == TipoProceso.Entrada ? actividad.IdRecurso: '',
-          IdRuta: actividad.IdProceso == TipoProceso.Recoleccion? actividad.IdRecurso : '',
-          IdVehiculo: actividad.IdProceso == TipoProceso.Transporte? actividad.IdRecurso : '',
+          IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
+          IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
+          IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
           IdDepositoOrigen: tarea.IdPunto,
           Aprovechable: true, //TODO
           Cantidad: data.Cantidad,
@@ -241,9 +241,9 @@ export class TaskApproveComponent  implements OnInit {
             IdResiduo: this.globales.newId(),
             IdMaterial: this.materialId,
             IdPropietario: this.stakeholderId,
-            IdDeposito: actividad.IdProceso == TipoProceso.Entrada ? actividad.IdRecurso: '',
-            IdRuta: actividad.IdProceso == TipoProceso.Recoleccion? actividad.IdRecurso : '',
-            IdVehiculo: actividad.IdProceso == TipoProceso.Transporte? actividad.IdRecurso : '',
+            IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
+            IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
+            IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
             IdDepositoOrigen: transaccion.IdPunto,
             Aprovechable: true, //TODO
             Cantidad: data.Cantidad,
