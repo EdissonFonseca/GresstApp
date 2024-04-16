@@ -18,6 +18,7 @@ export interface Cuenta {
   UnidadCantidad: string;
   UnidadPeso: string;
   UnidadVolumen: string;
+  MostrarIntroduccion:  boolean;
 
   CuentaCRUD: CRUD;
   Embalajes: Embalaje[];

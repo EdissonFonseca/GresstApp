@@ -1,5 +1,6 @@
 export interface Servicio {
   IdServicio: string;
-  //IdProceso: string;
   Nombre: string;
+  CRUD?: string;
+  CRUDDate?: Date;
 };

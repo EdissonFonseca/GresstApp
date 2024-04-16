@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 export class AuthService {
   private loginUrl =  `${environment.apiUrl}/login/authenticate`;
   private registerUrl = `${environment.apiUrl}/login/register`;
+  private existUserUrl = `${environment.apiUrl}/login/existuser`;
   private changePasswordUrl = `${environment.apiUrl}/login/changepassword`;
 
   constructor() {}
@@ -32,9 +33,29 @@ export class AuthService {
     }
   }
 
+  async existUser(email: string): Promise<boolean>{
+    const data = {email};
+    const options = {url: this.existUserUrl, data: data, headers: { 'Content-Type': 'application/json' }};
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
   async changeEmail(email:string, password: string): Promise<string> {
     const data = {Email: email, Password: password};
-    const options = {url: this.registerUrl, data: data, headers: { 'Content-Type': 'application/json' }};
+    const options = {url: this.changePasswordUrl, data: data, headers: { 'Content-Type': 'application/json' }};
 
     try {
       const response: HttpResponse = await CapacitorHttp.post(options);

@@ -49,7 +49,7 @@ export class PointsComponent  implements OnInit {
       this.idTercero = this.navParams.get("IdTercero");
       if (this.idTercero)
       {
-        this.terceros = (await this.globales.getTerceros()).filter(x => x.IdTercero == this.idTercero);
+        this.terceros = (await this.globales.getTerceros()).filter(x => x.IdPersona == this.idTercero);
         this.puntos = (await this.globales.getPuntos()).filter((punto) => punto.IdTercero == this.idTercero);
       }
       else
@@ -60,7 +60,7 @@ export class PointsComponent  implements OnInit {
     }
     else
     {
-      this.terceros = (await this.globales.getTerceros()).filter(x => x.IdTercero == this.idTercero);
+      this.terceros = (await this.globales.getTerceros()).filter(x => x.IdPersona == this.idTercero);
       this.puntos = (await this.globales.getPuntos()).filter((punto) => punto.IdTercero == this.idTercero);
     }
     if (this.almacenamiento) {

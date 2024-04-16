@@ -34,8 +34,8 @@
 </ion-content>
 <ion-content>
   <ion-list *ngFor="let tercero of terceros">
-    <ion-item (click)="select(tercero.IdTercero, tercero.Nombre)">
-      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.IdTercero"></ion-icon>
+    <ion-item (click)="select(tercero.IdPersona, tercero.Nombre)">
+      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.IdPersona"></ion-icon>
       <ion-label>{{ tercero.Nombre }}</ion-label>
     </ion-item>
   </ion-list>

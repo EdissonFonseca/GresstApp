@@ -17,6 +17,7 @@ import { Tercero } from '../interfaces/tercero.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Tratamiento } from '../interfaces/tratamiento.interface';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
+import { IntegrationService } from './integration.service';
 
 @Injectable({
   providedIn: 'root',
@@ -45,6 +46,7 @@ export class Globales {
 
   constructor(
     private storage: Storage,
+    private integration: IntegrationService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
@@ -126,10 +128,15 @@ export class Globales {
     const selectedServicio = this.servicios.find(x => x.IdServicio.toString() == idServicio);
     if (selectedServicio != null)
     {
-      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre };
+      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre, CRUDDate: new Date() };
       cuenta.Servicios.push(servicio);
       await this.storage.set('Cuenta', cuenta);
     }
+  }
+
+  async markPosted(cuenta: Cuenta){
+    cuenta.Embalajes.forEach(x => x.CRUD = '');
+    cuenta.Insumos.forEach(x => x.CRUD = '');
   }
 
   // #region Create Methods
@@ -142,16 +149,28 @@ export class Globales {
 
   async createEmbalaje(nombre: string): Promise<string> {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const embalaje: Embalaje = { IdEmbalaje: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create};
+    const embalaje: Embalaje = { IdEmbalaje: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create, CRUDDate: new Date()};
     cuenta.Embalajes.push(embalaje);
     await this.storage.set('Cuenta', cuenta);
+
+    try{
+      const login = await this.storage.get('Login');
+      const password = await this.storage.get('Password');
+      const posted = await this.integration.postEmbalaje(login, password, embalaje);
+      if (posted) {
+        embalaje.CRUD = '';
+        embalaje.CRUDDate = undefined;
+        await this.storage.set('Cuenta', cuenta);
+      }
+    } catch {
+    }
 
     return embalaje.IdEmbalaje;
   }
 
   async createInsumo(nombre: string): Promise<string> {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const insumo: Insumo = { IdInsumo: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Activo };
+    const insumo: Insumo = { IdInsumo: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Activo, CRUDDate: new Date() };
     cuenta.Insumos.push(insumo);
     await this.storage.set('Cuenta', cuenta);
 
@@ -182,11 +201,11 @@ export class Globales {
 
   async createTercero(nombre: string, identificacion: string, telefono: string, correo: string): Promise<string> {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const tercero: Tercero = {IdTercero: this.newId(), Nombre: nombre, Identificacion: identificacion, Telefono: telefono, Correo: correo, CRUD: CRUDOperacion.Create, IdRelaciones: []};
+    const tercero: Tercero = {IdPersona: this.newId(), Nombre: nombre, Identificacion: identificacion, Telefono: telefono, Correo: correo, CRUD: CRUDOperacion.Create, IdRelaciones: [], CRUDDate: new Date()};
     cuenta.Terceros.push(tercero);
     await this.storage.set('Cuenta', cuenta);
 
-    return tercero.IdTercero;
+    return tercero.IdPersona;
   }
 
   async createTransaccion(idActividad: string, transaccion: Transaccion) {
@@ -362,7 +381,7 @@ export class Globales {
 
     residuos.forEach((residuo) => {
       const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
-      const tercero = terceros.find(x => x.IdTercero == residuo.IdPropietario);
+      const tercero = terceros.find(x => x.IdPersona == residuo.IdPropietario);
       const punto = puntos.find(x => x.IdPunto == residuo.IdDepositoOrigen);
       ubicacion = '';
       cantidades = '';
@@ -648,6 +667,7 @@ export class Globales {
                     IdEstado: Estado.Inactivo,
                     EntradaSalida: EntradaSalida.Salida,
                     Material: material.Nombre,
+                    CRUDDate: new Date(),
                   };
                   tareas.push(tarea);
                 }
@@ -702,6 +722,7 @@ export class Globales {
                   Peso: residuo.Peso,
                   Volumen: residuo.Volumen,
                   Material: material.Nombre,
+                  CRUDDate: new Date(),
                 };
                 tareas.push(tarea);
               }
@@ -728,7 +749,7 @@ export class Globales {
     const cuenta: Cuenta | null = await this.storage.get('Cuenta');
 
     if (cuenta && cuenta.Terceros) {
-      const tercero = cuenta.Terceros.find((tercero) => tercero.IdTercero === idTercero);
+      const tercero = cuenta.Terceros.find((tercero) => tercero.IdPersona === idTercero);
       return tercero || undefined;
     }
 
@@ -746,7 +767,7 @@ export class Globales {
 
     const idTerceros: string[] = cuenta.Puntos.map(x => x.IdTercero ?? '');
 
-    return cuenta.Terceros.filter(x=> idTerceros.includes(x.IdTercero));
+    return cuenta.Terceros.filter(x=> idTerceros.includes(x.IdPersona));
   }
 
   async getTransaccion(idActividad: string, idTransaccion: string) {
@@ -850,7 +871,7 @@ export class Globales {
           const punto = puntos.find(x => x.IdPunto == transaccion.IdPunto);
           if (punto) {
             transaccion.Punto = punto.Nombre;
-            const tercero = terceros.find(x => x.IdTercero == punto.IdTercero);
+            const tercero = terceros.find(x => x.IdPersona == punto.IdTercero);
             if (tercero)
               transaccion.Tercero = `${tercero.Nombre} - ${nombre}`;
             ubicacion = '';
@@ -882,7 +903,7 @@ export class Globales {
             }
         }
       } else if (transaccion && transaccion.IdTercero != null) {
-        const tercero = terceros.find(x => x.IdTercero == transaccion.IdTercero);
+        const tercero = terceros.find(x => x.IdPersona == transaccion.IdTercero);
         if (tercero) {
           transaccion.Tercero = tercero.Nombre;
           transaccion.Icono = 'person';

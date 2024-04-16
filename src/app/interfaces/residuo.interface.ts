@@ -3,6 +3,7 @@ export interface Residuo{
 
   Aprovechable: boolean;
   CRUD?: string;
+  CRUDDate?: Date;
   IdDeposito?: string;
   IdDepositoOrigen?: string;
   IdEmbalaje?: string;

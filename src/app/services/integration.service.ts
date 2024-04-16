@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
+import { Cuenta } from '../interfaces/cuenta.interface';
+import { AuthService } from './auth.service';
+import { Embalaje } from '../interfaces/embalaje.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -12,8 +15,11 @@ export class IntegrationService {
   private bancoUrl = `${environment.apiUrl}/appbanco/get`;
   private interlocutoresUrl = `${environment.apiUrl}/appmensaje/listinterlocutores`;
   private mensajesUrl = `${environment.apiUrl}/appmensaje/listmensajes`;
+  private embalajesUrl = `${environment.apiUrl}/embalajes/post`;
 
-  constructor() {}
+  constructor(
+    private authService: AuthService
+  ) {}
 
   async getActividades(token: string): Promise<any>{
     const headers = { 'Authorization': `Bearer ${token}` };
@@ -103,6 +109,33 @@ export class IntegrationService {
         throw new Error('Request error');
       }
     } catch {
+    }
+  }
+
+  async postEmbalaje(username: string, password: string, embalaje: Embalaje): Promise<boolean> {
+    const token = await this.authService.login(username, password);
+    if (token)
+    {
+      const data = { Nombre: embalaje.Nombre };
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const options = { url: this.embalajesUrl, data:data, headers };
+
+      try{
+        const response: HttpResponse = await CapacitorHttp.post(options);
+        if (response.status == 200) {
+          return true;
+        } else {
+          throw false;
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Request error: ${error.message}`);
+        } else {
+          throw new Error(`Unknown error: ${error}`);
+        }
+      }
+    } else {
+      return false;
     }
   }
 }

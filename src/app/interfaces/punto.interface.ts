@@ -17,5 +17,6 @@ export interface Punto {
   Recepcion: boolean;
   Tratamiento: boolean;
   CRUD?: string;
+  CRUDDate?: Date;
 }
 

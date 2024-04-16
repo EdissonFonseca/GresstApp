@@ -26,7 +26,7 @@ export class ContrasenaClavePage implements OnInit {
 
   async create(){
     if (this.newPassword == '' || this.confirmPassword == ''){
-      this.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
+      this.globales.presentToast('Debe digitar usuario y contrasena', 'middle');
       return;
     }
 
@@ -36,27 +36,17 @@ export class ContrasenaClavePage implements OnInit {
 
       await this.authService.changeEmail(email, this.newPassword);
       this.globales.hideLoading();
-      await this.presentAlert('Contraseña cambiada','', 'Su clave ha sido cambiada con éxito');
+      await this.globales.presentAlert('Contraseña cambiada','', 'Su clave ha sido cambiada con éxito');
       this.navCtrl.navigateRoot('/login');
     } catch (error) {
       this.globales.hideLoading();
       if (error instanceof Error){
+        this.globales.presentToast(error.message,'middle');
         throw new Error(`Request error: ${error.message}`);
       }
       else{
         throw new Error(`Unknown error: ${error}`);
       }
     }
-  }
-
-  async presentAlert(header: string, subHeader: string, message: string) {
-    const alert = await this.alertController.create({
-      header: header,
-      subHeader: subHeader,
-      message: message,
-      buttons: ['OK'],
-    });
-
-    await alert.present();
   }
 }

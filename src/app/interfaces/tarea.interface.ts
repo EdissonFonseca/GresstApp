@@ -4,6 +4,7 @@ export interface Tarea{
   Cantidad?: number;
   CantidadEmbalaje?: number;
   CRUD?: string;
+  CRUDDate?: Date;
   EntradaSalida?: string;
   FechaEjecucion?: string;
   FechaIngreso?: string;

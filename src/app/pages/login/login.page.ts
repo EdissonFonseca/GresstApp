@@ -17,7 +17,6 @@ import { StorageService } from 'src/app/services/storage.service';
 export class LoginPage implements OnInit {
   username = '';
   password = '';
-  showTutorial: boolean = true;
 
   constructor(
     private authService: AuthService,
@@ -48,8 +47,8 @@ export class LoginPage implements OnInit {
         await this.storage.set('Login', this.username);
         await this.storage.set('Password', this.password);
 
-        const data: Cuenta = await this.integrationService.getConfiguracion(token);
-        await this.storage.set('Cuenta', data);
+        const cuenta: Cuenta = await this.integrationService.getConfiguracion(token);
+        await this.storage.set('Cuenta', cuenta);
 
         const actividades: Actividad[] = await this.integrationService.getActividades(token);
         await this.storage.set('Actividades', actividades);
@@ -59,7 +58,7 @@ export class LoginPage implements OnInit {
 
         this.globales.hideLoading();
 
-        if (this.showTutorial)
+        if (cuenta.MostrarIntroduccion)
           this.navCtrl.navigateRoot('/tutorial');
         else
           this.navCtrl.navigateRoot('/home');

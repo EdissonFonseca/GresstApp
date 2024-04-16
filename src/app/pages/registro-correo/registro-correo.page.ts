@@ -16,6 +16,7 @@ export class RegistroCorreoPage implements OnInit {
   verificationCode = '';
 
   constructor(
+    private authService: AuthService,
     private menuCtrl: MenuController,
     private globales: Globales,
     private mailService: MailService,
@@ -31,18 +32,25 @@ export class RegistroCorreoPage implements OnInit {
     try {
       this.globales.showLoading('Conectando ...');
 
-      this.verificationCode = await this.mailService.sendWithToken(this.email, 'Bienvenido a Gresst', 'Digite el siguiente codigo: {Token} en la app para continuar');
-      this.globales.hideLoading();
-      if (this.verificationCode)
+      const exist = await this.authService.existUser(this.email);
+      if (!exist)
       {
-        await this.storage.set('Email', this.email);
-        await this.storage.set('Name', this.name);
-        await this.storage.set('Code', this.verificationCode);
-        this.navCtrl.navigateRoot('/registro-codigo');
+        this.verificationCode = await this.mailService.sendWithToken(this.email, 'Bienvenido a Gresst', 'Digite el siguiente codigo: {Token} en la app para continuar');
+        if (this.verificationCode)
+        {
+          await this.storage.set('Email', this.email);
+          await this.storage.set('Name', this.name);
+          await this.storage.set('Code', this.verificationCode);
+          this.navCtrl.navigateRoot('/registro-codigo');
+        }
+      } else {
+        this.globales.presentToast('Este correo ya se encuentra registrado','middle');
       }
+      this.globales.hideLoading();
     } catch (error) {
       this.globales.hideLoading();
       if (error instanceof Error){
+        this.globales.presentToast(error.message,'middle');
         throw new Error(`Request error: ${error.message}`);
       }
       else{

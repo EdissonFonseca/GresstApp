@@ -101,7 +101,7 @@ export class TaskApproveComponent  implements OnInit {
       if (this.task.IdSolicitante) {
         const solicitante = await this.globales.getTercero(this.task.IdSolicitante);
         this.stakeholder = solicitante?.Nombre ?? '';
-        this.stakeholderId = solicitante?.IdTercero ?? '';
+        this.stakeholderId = solicitante?.IdPersona ?? '';
       }
 
       if (this.inputOutput == EntradaSalida.Salida) {
@@ -136,7 +136,7 @@ export class TaskApproveComponent  implements OnInit {
             const propietario = await this.globales.getTercero(punto.IdTercero ?? '');
             if (propietario) {
               terceroNombre = propietario.Nombre;
-              terceroId = propietario.IdTercero;
+              terceroId = propietario.IdPersona;
             }
           }
         }

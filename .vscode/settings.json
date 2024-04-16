@@ -79,6 +79,7 @@
     "descartados",
     "descripcion",
     "despues",
+    "después",
     "Destruir",
     "Detalles",
     "devkit",
@@ -262,6 +263,7 @@
     "tratamientos",
     "Tratamientos",
     "Tratar",
+    "través",
     "Ubicacion",
     "Unidad",
     "usados",
@@ -286,7 +288,19 @@
   "cSpell.ignoreWords": [
     "Bienvenido",
     "Estado",
+    "Introduccion",
+    "acceso",
     "accountname",
+    "appactividades",
+    "appbanco",
+    "appconfiguracion",
+    "appinventario",
+    "appmensaje",
+    "encuentra",
+    "existuser",
+    "listinterlocutores",
+    "listmensajes",
+    "mensajes",
     "sendwithtoken"
   ]
 }

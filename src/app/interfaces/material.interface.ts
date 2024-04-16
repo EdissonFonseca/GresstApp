@@ -13,4 +13,5 @@ export interface Material{
   PrecioCompra?: number;
   PrecioServicio?: number;
   CRUD?: string;
+  CRUDDate?: Date;
 }

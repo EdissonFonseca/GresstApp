@@ -2,6 +2,7 @@ export interface Transaccion {
   IdTransaccion: string;
 
   CRUD?: string;
+  CRUDDate?: Date;
   EntradaSalida?: string;
   Fecha?: string;
   Firma?: string;
