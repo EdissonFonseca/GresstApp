@@ -9,16 +9,19 @@
   <ion-content *ngIf="materials.length == 0">
     <form [formGroup]="formData" >
       <ion-item>
-        <ion-note slot="start">Como se captura?</ion-note>
+        <ion-note slot="start">Unidad de captura</ion-note>
         <ion-select formControlName="Captura">
           <ion-select-option>Peso</ion-select-option>
           <ion-select-option>Volúmen</ion-select-option>
           <ion-select-option>Cantidad</ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-toggle (ionChange)="changeConversion()">Se convierte a otra unidad?</ion-toggle>
+      <ion-item>
+        <ion-note slot="start">Se almacena en otra unidad?</ion-note>
+        <ion-toggle (ionChange)="changeConversion()"></ion-toggle>
+      </ion-item>
       <ion-item *ngIf="isCaptureDifferentFromMeasure">
-        <ion-label>Como se mide?</ion-label>
+        <ion-note slot="start">Unidad de almacenamiento</ion-note>
         <ion-select formControlName="Medicion">
           <ion-select-option>Peso</ion-select-option>
           <ion-select-option>Volúmen</ion-select-option>
@@ -29,9 +32,13 @@
         <ion-input formControlName="Factor" type="numeric" label="Factor"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-note slot="start">Es aprovechable?</ion-note>
+        <ion-note slot="start">Residuo es aprovechable?</ion-note>
         <ion-toggle formControlName="Aprovechable">
         </ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-note slot="start">Referencia</ion-note>
+        <ion-text formControlName="Referencia"></ion-text>
       </ion-item>
       <ion-item>
         <ion-item>

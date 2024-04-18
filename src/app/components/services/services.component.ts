@@ -15,7 +15,7 @@ export class ServicesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
-  items: { id: string, name: string; selected: boolean }[] = [];
+  items: { id: number, name: string; selected: boolean }[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -29,10 +29,10 @@ export class ServicesComponent  implements OnInit {
     this.globales.servicios.forEach((item) => {
       var selected = false;
 
-      const selectedItem = this.services.find(x => x.IdServicio === item.IdServicio.toString());
+      const selectedItem = this.services.find(x => x.IdServicio === item.IdServicio);
       selected = (selectedItem != null);
       const newItem = {
-        id: item.IdServicio.toString(),
+        id: item.IdServicio,
         name: item.Accion,
         selected: selected,
       };
@@ -40,7 +40,7 @@ export class ServicesComponent  implements OnInit {
     });
   }
 
-  async changeSelection(idServicio: string, checked:boolean) {
+  async changeSelection(idServicio: number, checked:boolean) {
     if (checked) {
       await this.globales.addServicio(idServicio);
       const toast = await this.toastCtrl.create({

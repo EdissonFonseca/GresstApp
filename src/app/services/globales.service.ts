@@ -30,18 +30,18 @@ export class Globales {
     {IdEstado: Estado.Finalizado, Nombre:'Finalizado', Color:'secondary'},
     {IdEstado: Estado.Inactivo, Nombre:'Opcional', Color:'light'},
   ];
-  servicios: {IdServicio: string, Nombre: string, Accion: string, Icono: string}[] = [
-    {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenar temporal', Icono: 'archive'},
-    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenar definitivo', Icono:'car'},
-    {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechar', Icono: 'construct'},
-    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificar/Separar', Icono: 'download'},
-    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disponer', Icono: 'flame'},
-    {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Generar', Icono: 'archive'},
-    {IdServicio:TipoServicio.Entrega, Nombre:'Entrega', Accion: 'Entregar', Icono: 'archive'},
-    {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recibir', Icono: 'open'},
-    {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recoger', Icono: 'cart'},
-    {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformar', Icono: 'upload'},
-    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transportar', Icono: 'car'},
+  servicios: {IdServicio: number, Nombre: string, Accion: string, Icono: string}[] = [
+    {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenamiento temporal', Icono: 'archive'},
+    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenamiento definitivo', Icono:'car'},
+    {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechamiento de Residuos', Icono: 'construct'},
+    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificación/Separación', Icono: 'download'},
+    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disposición de Residuos', Icono: 'flame'},
+    {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Producción', Icono: 'archive'},
+    {IdServicio:TipoServicio.Entrega, Nombre:'Entrega', Accion: 'Entrega', Icono: 'archive'},
+    {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recepción', Icono: 'open'},
+    {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recolección sin vehículo', Icono: 'cart'},
+    {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: 'upload'},
+    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: 'car'},
   ];
 
   constructor(
@@ -122,10 +122,23 @@ export class Globales {
     return icono;
   }
 
-  async addServicio(idServicio: string) {
+  async allowServicio(idServicio: number): Promise<boolean> {
+    let allow: boolean = false;
     const cuenta: Cuenta = await this.storage.get('Cuenta');
 
-    const selectedServicio = this.servicios.find(x => x.IdServicio.toString() == idServicio);
+    const selectedServicio = cuenta.Servicios.find(x => x.IdServicio == idServicio);
+    if (selectedServicio != null)
+    {
+      allow = true;
+    }
+    return allow;
+  }
+
+
+  async addServicio(idServicio: number) {
+    const cuenta: Cuenta = await this.storage.get('Cuenta');
+
+    const selectedServicio = this.servicios.find(x => x.IdServicio == idServicio);
     if (selectedServicio != null)
     {
       const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre, CRUDDate: new Date() };
@@ -313,16 +326,16 @@ export class Globales {
       actividad.ItemsPendientes = pendientes;
       actividad.ItemsRechazados = rechazados;
       actividad.Cantidades = resumen;
-      actividad.Icono = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio.toString())?.Icono ||'';
-      actividad.Accion = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio.toString())?.Nombre || '';
+      actividad.Icono = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Icono ||'';
+      actividad.Accion = this.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Nombre || '';
     });
 
     return actividades;
   }
 
-  async getActividadByProceso(idProceso: string, idRecurso: string) : Promise<Actividad | undefined>{
+  async getActividadByServicio(idServicio: number, idRecurso: string) : Promise<Actividad | undefined>{
     const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdServicio == idProceso && item.IdRecurso == idRecurso)!;
+    const actividad: Actividad = actividades.find((item) => item.IdServicio == idServicio && item.IdRecurso == idRecurso)!;
     return actividad;
   }
 
@@ -452,10 +465,10 @@ export class Globales {
     return estado? estado.Nombre : 'Pendiente';
   }
 
-  getNombreServicio(idServicio: string) {
+  getNombreServicio(idServicio: number) {
     let procesoNombre: string = '';
 
-    const proceso = this.servicios.find((prc) => prc.IdServicio.toString() === idServicio);
+    const proceso = this.servicios.find((prc) => prc.IdServicio === idServicio);
     if (proceso)
       procesoNombre = proceso.Nombre;
 
@@ -505,7 +518,7 @@ export class Globales {
     return undefined;
   }
 
-  async getServicio(idServicio: string): Promise<Servicio | undefined> {
+  async getServicio(idServicio: number): Promise<Servicio | undefined> {
     const cuenta: Cuenta | null = await this.storage.get('Cuenta');
 
     if (cuenta && cuenta.Servicios) {
@@ -550,7 +563,7 @@ export class Globales {
               tarea.Tratamiento = tratamientoItem.Nombre;
           }
       }
-      tarea.IdServicio = actividad.IdServicio.toString();
+      tarea.IdServicio = actividad.IdServicio;
     });
 
     return tareas;
@@ -1025,7 +1038,7 @@ export class Globales {
 
   // #endregion
 
-  async deleteServicio(idServicio: string) {
+  async deleteServicio(idServicio: number) {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
 
     const servicios = cuenta.Servicios.filter(x=> x.IdServicio !== idServicio);

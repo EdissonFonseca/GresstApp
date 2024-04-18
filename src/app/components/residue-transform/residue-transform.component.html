@@ -8,15 +8,15 @@
 </ion-header>
 <ion-content color="light">
   <ion-segment value="Convert">
-    <ion-segment-button value="Convert" (click)="changeNotesColor('C')">
+    <ion-segment-button value="Convert" (click)="changeService(6)">
       <ion-icon name="git-compare"></ion-icon>
       Convertir
     </ion-segment-button>
-    <ion-segment-button value="Decompose" (click)="changeNotesColor('D')">
+    <ion-segment-button value="Decompose" (click)="changeService(6)">
       <ion-icon name="git-branch"></ion-icon>
       Descomponer
     </ion-segment-button>
-    <ion-segment-button value="Aggregate" (click)="changeNotesColor('A')">
+    <ion-segment-button value="Aggregate" (click)="changeService(12)">
       <ion-icon name="git-pull-request"></ion-icon>
       Agregar
     </ion-segment-button>
@@ -49,24 +49,24 @@
         <ion-label>Fecha</ion-label>
         <ion-datetime-button datetime="datetime" slot="end" ></ion-datetime-button>
       </ion-item>
-      <ion-item *ngIf="mode=='C'">
+      <ion-item *ngIf="serviceId==3">
         <ion-label slot="start">Material</ion-label>
         <ion-label>{{ material }}</ion-label>
         <ion-button color="light" (click)="selectMaterial()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="mode=='D'">
+      <ion-item *ngIf="serviceId==6">
         <ion-icon name="add-sharp" slot="start"></ion-icon>
         <ion-label slot="start">Residuo</ion-label>
         <ion-label>{{ material }}</ion-label>
         <ion-button color="light" (click)="selectMaterial()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="mode=='A'">
+      <ion-item *ngIf="serviceId==6">
         <ion-label slot="start">Residuo</ion-label>
         <ion-label>{{ residuo }}</ion-label>
         <ion-button color="light" (click)="selectResiduo()">...</ion-button>
       </ion-item>
       <ion-item>
-        <ion-icon *ngIf="mode=='D'" name="" slot="start"></ion-icon>
+        <ion-icon *ngIf="serviceId==6" name="" slot="start"></ion-icon>
         <ion-label slot="start">Cantidad</ion-label>
         <ion-input formControlName="Quantity" required="true" type="number"></ion-input>
         <ion-label>{{ unidad }}</ion-label>

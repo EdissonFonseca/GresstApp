@@ -13,7 +13,7 @@ import { Actividad } from 'src/app/interfaces/actividad.interface';
   styleUrls: ['./activity-add.component.scss'],
 })
 export class ActivityAddComponent  implements OnInit {
-  modo: string = TipoServicio.Recoleccion;
+  serviceId: number = TipoServicio.Recoleccion;
   colorGeneracion: string = 'medium';
   colorEntrega: string = 'medium';
   colorRecepcion: string = 'medium';
@@ -41,15 +41,15 @@ export class ActivityAddComponent  implements OnInit {
     const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDay());
     let titulo: string = '';
 
-    if (this.modo == TipoServicio.Recoleccion && this.idRecurso != ''){
-      this.modo = TipoServicio.Transporte;
+    if (this.serviceId == TipoServicio.Recoleccion && this.idRecurso != ''){
+      this.serviceId = TipoServicio.Transporte;
       titulo = this.idRecurso;
     } else {
       titulo = description;
     }
     const actividad: Actividad = {
       IdActividad: this.globales.newId(),
-      IdServicio: this.modo,
+      IdServicio: this.serviceId,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
       FechaInicio: hoy,
@@ -66,29 +66,8 @@ export class ActivityAddComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeNotesColor(type: string) {
-    this.modo = type;
-    if (type === TipoServicio.Recoleccion){
-      this.colorRecoleccion = 'primary';
-      this.colorRecepcion = 'medium';
-      this.colorEntrega = 'medium';
-      this.colorGeneracion = 'medium';
-    } else if (type == TipoServicio.Recepcion) {
-      this.colorRecoleccion = 'medium';
-      this.colorRecepcion = 'primary';
-      this.colorEntrega = 'medium';
-      this.colorGeneracion = 'medium';
-    } else if (type == TipoServicio.Entrega) {
-      this.colorRecoleccion = 'medium';
-      this.colorRecepcion = 'medium';
-      this.colorEntrega = 'primary';
-      this.colorGeneracion = 'medium';
-    } else  { //Inventario
-      this.colorRecoleccion = 'medium';
-      this.colorRecepcion = 'medium';
-      this.colorEntrega = 'medium';
-      this.colorGeneracion = 'primary';
-    }
+  changeService(serviceId: number) {
+    this.serviceId = serviceId;
   }
 
   async selectVehicle() {

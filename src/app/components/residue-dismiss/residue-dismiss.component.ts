@@ -24,7 +24,7 @@ export class ResidueDismissComponent  implements OnInit {
   cuenta: Cuenta | undefined = undefined;
   date: Date | null = null;
   material: Material | undefined = undefined;
-  mode: string = '';
+  serviceId: number = 0;
   point: string = '';
   pointId: string = '';
   residue: Residuo | undefined;
@@ -58,24 +58,10 @@ export class ResidueDismissComponent  implements OnInit {
     if (!this.residue) return;
 
     const personId = await this.globales.getIdPersona();
-    if (this.mode == TipoServicio.Almacenamiento) {
-      actividad = await this.globales.getActividadByProceso(TipoServicio.Almacenamiento, this.pointId);
-      if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Almacenamiento, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
-        await this.globales.createActividad(actividad);
-      }
-    } else if (this.mode == TipoServicio.Disposicion) {
-      actividad = await this.globales.getActividadByProceso(TipoServicio.Disposicion, this.pointId);
-      if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdServicio : TipoServicio.Disposicion, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
-        await this.globales.createActividad(actividad);
-      }
-    } else { //Perdida
-      actividad = await this.globales.getActividadByProceso(TipoServicio.Perdida, personId ?? '');
-      if (!actividad) {
-        actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Perdida, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
-        await this.globales.createActividad(actividad);
-      }
+    actividad = await this.globales.getActividadByServicio(this.serviceId, this.pointId);
+    if (!actividad) {
+      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+      await this.globales.createActividad(actividad);
     }
     if (actividad) {
       const tarea: Tarea = {
@@ -105,21 +91,8 @@ export class ResidueDismissComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeNotesColor(type: string) {
-    this.mode = type;
-    if (type === TipoServicio.Disposicion){
-      this.colorDismiss = 'medium';
-      this.colorDispose = 'primary';
-      this.colorStore = 'medium';
-    } else if (type == TipoServicio.Almacenamiento){
-      this.colorDismiss = 'medium';
-      this.colorDispose = 'medium';
-      this.colorStore = 'primary';
-    } else { //Perdida
-      this.colorDismiss = 'primary';
-      this.colorDispose = 'medium';
-      this.colorStore = 'medium';
-   }
+  changeService(serviceId: number) {
+    this.serviceId = serviceId;
   }
 
   dateTimeChanged(event: any) {

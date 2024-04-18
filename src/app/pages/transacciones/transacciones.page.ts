@@ -15,7 +15,7 @@ import { Globales } from 'src/app/services/globales.service';
 })
 export class TransaccionesPage implements OnInit {
   transacciones: Transaccion[] = [];
-  idServicio: string = '';
+  idServicio?: number = undefined;
   idActividad: string = '';
   titulo: string = '';
   proceso: string = '';

@@ -24,7 +24,7 @@ export class ResidueTransferComponent  implements OnInit {
   cuenta: Cuenta | undefined = undefined;
   date: Date | null = null;
   material: Material | undefined = undefined;
-  mode: string = 'S';
+  serviceId: number = 0;
   point: string = '';
   pointId: string = '';
   residue: Residuo | undefined;
@@ -57,10 +57,10 @@ export class ResidueTransferComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    if (this.mode == 'S' || this.mode =='C') {
+    if (this.serviceId == TipoServicio.Entrega || this.serviceId == TipoServicio.Recoleccion) {
       const punto = await this.globales.getPunto(this.residue.IdDeposito ?? '');
-      if (this.mode == "S"){
-        actividad = await this.globales.getActividadByProceso(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
+      if (this.serviceId == TipoServicio.Entrega){
+        actividad = await this.globales.getActividadByServicio(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto){
             actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
@@ -82,7 +82,7 @@ export class ResidueTransferComponent  implements OnInit {
           }
         }
       } else {
-        actividad = await this.globales.getActividadByProceso(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
+        actividad = await this.globales.getActividadByServicio(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
         if (!actividad){
           actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
           actividad.CRUD = CRUDOperacion.Create;
@@ -135,22 +135,8 @@ export class ResidueTransferComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeNotesColor(type: string) {
-    this.mode = type;
-    if (type === 'S'){
-      this.colorSend = 'primary';
-      this.colorCarry = 'medium';
-      this.colorFind = 'medium';
-    } else if (type == 'C') {
-      this.colorSend = 'medium';
-      this.colorCarry = 'primary';
-      this.colorFind = 'medium';
-    }
-    else {
-      this.colorSend = 'medium';
-      this.colorCarry = 'medium';
-      this.colorFind = 'primary';
-    }
+  changeService(serviceId: number) {
+    this.serviceId = serviceId;
   }
 
   dateTimeChanged(event: any) {

@@ -6,24 +6,28 @@
       </ion-button>
     </ion-buttons>
     <ion-title>
-      Agregar Residuo
+      Agregar
     </ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content>
 <ion-content [fullscreen]="true" color="light">
   <ion-segment value="Produce">
-    <ion-segment-button value="Produce" (click)="changeNotesColor('G')">
-      <ion-icon name="archive"></ion-icon>
+    <ion-segment-button *ngIf="showProduce" value="Produce" (click)="changeService(11)">
+      <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
       Producido
     </ion-segment-button>
-    <ion-segment-button value="Get" (click)="changeNotesColor('E')">
-      <ion-icon name="download"></ion-icon>
+    <ion-segment-button *ngIf="showReceive" value="Get" (click)="changeService(4)">
+      <ion-icon src="../../../assets/icon/archive.svg"></ion-icon>
       Recibido
     </ion-segment-button>
-    <ion-segment-button value="Collect" (click)="changeNotesColor('L')">
-      <ion-icon name="cart"></ion-icon>
+    <ion-segment-button *ngIf="showTransport" value="Transport" (click)="changeService(8)">
+      <ion-icon src="../../../assets/icon/truck.svg"></ion-icon>
       Recogido
+    </ion-segment-button>
+    <ion-segment-button *ngIf="showCollect" value="Collect" (click)="changeService(13)">
+      <ion-icon src="../../../assets/icon/carryonbag.svg"></ion-icon>
+      Recolectado
     </ion-segment-button>
   </ion-segment>
   <form [formGroup]="formData">
@@ -42,17 +46,17 @@
         <ion-label>{{ puntoRecepcion }}</ion-label>
         <ion-button color="light" (click)="selectPuntoRecepcion()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="mode=='L'">
+      <ion-item *ngIf="serviceId==8">
         <ion-label>Vehículo</ion-label>
         <ion-label>{{ vehiculo }}</ion-label>
         <ion-button color="light" (click)="selectVehiculo()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="mode=='L'">
+      <ion-item *ngIf="serviceId==13">
         <ion-label>Punto de Recolección</ion-label>
         <ion-label>{{ puntoRecoleccion }}</ion-label>
         <ion-button color="light" (click)="selectPuntoRecoleccion()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="mode=='E'">
+      <ion-item *ngIf="serviceId==14">
         <ion-label>Propietario</ion-label>
         <ion-label>{{ propietario }}</ion-label>
         <ion-button color="light" (click)="selectPropietario()">...</ion-button>
@@ -88,25 +92,6 @@
     </ion-item>
     <ion-button expand="full" (click)="confirm()">Agregar</ion-button>
   </form>
-  <ion-item-divider>Notas</ion-item-divider>
-  <ion-item>
-    <ion-icon name="archive" [color]="colorGeneracion" slot="start"></ion-icon>
-    <ion-note [color]="colorGeneracion">
-      Producido: Residuo generado internamente
-    </ion-note>
-  </ion-item>
-  <ion-item>
-    <ion-icon name="download" [color]="colorRecepcion" slot="start"></ion-icon>
-    <ion-note [color]="colorRecepcion">
-      Recibido: Residuo recibido en el deposito
-    </ion-note>
-  </ion-item>
-  <ion-item>
-    <ion-icon name="cart" [color]="colorRecoleccion" slot="start"></ion-icon>
-    <ion-note [color]="colorRecoleccion">
-      Recogido: Residuo recibido en una recoleccion
-    </ion-note>
-  </ion-item>
 </ion-content>
 <ion-modal [keepContentsMounted]="true">
   <ng-template>

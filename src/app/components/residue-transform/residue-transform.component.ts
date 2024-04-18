@@ -4,6 +4,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
+import { TipoServicio } from 'src/app/services/constants.service';
 
 @Component({
   selector: 'app-residue-transform',
@@ -25,7 +26,7 @@ export class ResidueTransformComponent  implements OnInit {
   colorConvert: string = 'primary';
   colorDecompose: string = 'medium';
   colorAggregate: string ='medium';
-  mode: string = 'C';
+  serviceId: number = 0;
   frm!: FormGroup;
 
   constructor(
@@ -57,26 +58,11 @@ export class ResidueTransformComponent  implements OnInit {
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
-  changeNotesColor(type: string) {
-    this.mode = type;
-    if (type === 'C'){
-      this.colorConvert = 'primary';
-      this.colorDecompose = 'medium';
-      this.colorAggregate = 'medium';
+  changeService(serviceId: number) {
+    this.serviceId = serviceId;
+    if (serviceId === TipoServicio.Tratamiento){
       this.tituloDivisor ='Convertir en';
       this.tituloBoton ='Convertir';
-    } else if (type =='D') {
-      this.colorConvert = 'medium';
-      this.colorDecompose = 'primary';
-      this.colorAggregate = 'medium';
-      this.tituloDivisor ='Partes';
-      this.tituloBoton ='Descomponer';
-    } else {
-      this.colorConvert = 'medium';
-      this.colorDecompose = 'medium';
-      this.colorAggregate = 'primary';
-      this.tituloDivisor ='Residuo existente';
-      this.tituloBoton ='Agregar';
     }
    }
 

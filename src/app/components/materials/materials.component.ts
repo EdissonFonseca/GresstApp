@@ -33,7 +33,8 @@ export class MaterialsComponent  implements OnInit {
       Captura: ['', Validators.required],
       Medicion: ['', Validators.required],
       Factor: [],
-      Aprovechable: []
+      Aprovechable: [],
+      Referencia: [],
     });
   }
 
@@ -72,7 +73,7 @@ export class MaterialsComponent  implements OnInit {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const material: Material = {IdMaterial: this.globales.newId(), Nombre: this.selectedName, Captura: formData.Captura, Factor: formData.Factor, Medicion: formData.Medicion, Aprovechable: formData.Aprovechable};
+      const material: Material = {IdMaterial: this.globales.newId(), Nombre: this.selectedName, Captura: formData.Captura, Factor: formData.Factor, Medicion: formData.Medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
       await this.globales.createMaterial(material);
       const data = {id: material.IdMaterial, name: this.selectedName};
       if (this.showHeader){

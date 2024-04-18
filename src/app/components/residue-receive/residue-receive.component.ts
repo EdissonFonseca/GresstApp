@@ -20,7 +20,7 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
   templateUrl: './residue-receive.component.html',
   styleUrls: ['./residue-receive.component.scss'],
 })
-export class ResidueReceiveComponent  implements OnInit {
+export class ResidueReceiveComponent implements OnInit {
   formData: FormGroup;
   photo!: SafeResourceUrl;
   fecha: Date | null = null;
@@ -37,12 +37,13 @@ export class ResidueReceiveComponent  implements OnInit {
   material!: string;
   medicion:string = '';
   vehiculo!: string;
-  colorRecoleccion: string = 'medium';
-  colorRecepcion: string = 'medium';
-  colorGeneracion: string = 'primary';
   residue: Residuo | undefined = undefined;
-  mode: string = 'G';
+  serviceId: number = 0;
   showDetails: boolean = false;
+  showReceive: boolean = true;
+  showTransport: boolean = true;
+  showCollect: boolean = true;
+  showProduce: boolean = true;
 
   constructor (
     private formBuilder: FormBuilder,
@@ -61,6 +62,10 @@ export class ResidueReceiveComponent  implements OnInit {
   }
 
   async ngOnInit() {
+    this.showTransport = await this.globales.allowServicio(TipoServicio.Transporte);
+    this.showCollect = await this.globales.allowServicio(TipoServicio.Recoleccion);
+    this.showProduce = await this.globales.allowServicio(TipoServicio.Generacion);
+    this.showReceive = await this.globales.allowServicio(TipoServicio.Recepcion);
   }
 
   async confirm() {
@@ -69,7 +74,6 @@ export class ResidueReceiveComponent  implements OnInit {
     let actividad: Actividad | undefined;
     let transaccion: Transaccion | undefined;
     let tarea: Tarea;
-    let tipoServicio: string = '';
     let idRecurso: string = '';
     let titulo: string = '';
     let idTransaccion: string = '';
@@ -81,9 +85,9 @@ export class ResidueReceiveComponent  implements OnInit {
       this.fecha = new Date();
     }
 
-    if (this.mode == TipoServicio.Generacion)
+    if (this.serviceId == TipoServicio.Generacion)
       this.idPropietario = await this.globales.getIdPersona() ?? '';
-    if (this.mode == TipoServicio.Recepcion || this.mode == TipoServicio.Generacion)
+    if (this.serviceId == TipoServicio.Recepcion || this.serviceId == TipoServicio.Generacion)
       this.idPuntoRecoleccion = this.idPuntoRecepcion;
 
     const residuo: Residuo = {
@@ -105,27 +109,24 @@ export class ResidueReceiveComponent  implements OnInit {
     };
     await this.globales.createResiduo(residuo);
 
-    switch(this.mode){
+    switch(this.serviceId){
       case TipoServicio.Generacion:
       case TipoServicio.Recepcion:
-        tipoServicio = this.mode;
         idRecurso = this.idPuntoRecepcion;
         titulo = this.puntoRecepcion;
         entradaSalida = EntradaSalida.Entrada;
         break;
       case TipoServicio.Recoleccion:
         if (this.idVehiculo) {
-          tipoServicio = TipoServicio.Transporte;
           idRecurso = this.idVehiculo;
           titulo = this.idVehiculo;
         } else {
-          tipoServicio = this.mode;
           idRecurso = this.idPuntoRecepcion;
           titulo = this.puntoRecepcion;
         }
         break;
     }
-    actividad = await this.globales.getActividadByProceso(tipoServicio, idRecurso);
+    actividad = await this.globales.getActividadByServicio(this.serviceId, idRecurso);
     if (!actividad)
     {
       const ahora = new Date();
@@ -134,7 +135,7 @@ export class ResidueReceiveComponent  implements OnInit {
         actividad = {
           IdActividad: this.globales.newId(),
           IdEstado: Estado.Aprobado,
-          IdServicio: tipoServicio,
+          IdServicio: this.serviceId,
           IdRecurso: idRecurso,
           NavegarPorTransaccion: false,
           FechaInicio: hoy,
@@ -152,7 +153,7 @@ export class ResidueReceiveComponent  implements OnInit {
 
     if (estaEnJornada && actividad){
       idTransaccion = '';
-      if (tipoServicio == TipoServicio.Recepcion){
+      if (this.serviceId == TipoServicio.Recepcion){
         transaccion = await this.globales.getTransaccionByTercero(actividad.IdActividad, this.idPropietario);
         if (!transaccion) {
           transaccion = {
@@ -165,7 +166,7 @@ export class ResidueReceiveComponent  implements OnInit {
           await this.globales.createTransaccion(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
         }
-      } else if (tipoServicio == TipoServicio.Recoleccion || tipoServicio == TipoServicio.Transporte) {
+      } else if (this.serviceId == TipoServicio.Recoleccion || this.serviceId == TipoServicio.Transporte) {
         transaccion = await this.globales.getTransaccionByPunto(actividad.IdActividad, this.idPuntoRecoleccion);
         if (!transaccion) {
           transaccion = {
@@ -183,7 +184,7 @@ export class ResidueReceiveComponent  implements OnInit {
       tarea = {
         IdTarea: this.globales.newId(),
         IdTransaccion: idTransaccion,
-        IdServicio: tipoServicio,
+        IdServicio: this.serviceId,
         IdEstado: Estado.Aprobado,
         IdMaterial: this.idMaterial,
         IdResiduo: residuo.IdResiduo,
@@ -202,21 +203,8 @@ export class ResidueReceiveComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeNotesColor(type: string) {
-    this.mode = type;
-    if (type === TipoServicio.Generacion){
-      this.colorGeneracion = 'primary';
-      this.colorRecepcion = 'medium';
-      this.colorRecoleccion = 'medium';
-    } else if(type == TipoServicio.Recepcion) {
-      this.colorGeneracion = 'medium';
-      this.colorRecepcion = 'primary';
-      this.colorRecoleccion = 'medium';
-    } else {
-      this.colorGeneracion = 'medium';
-      this.colorRecepcion = 'medium';
-      this.colorRecoleccion = 'primary';
-    }
+  changeService(serviceId: number) {
+    this.serviceId = serviceId;
    }
 
    dateTimeChanged(event: any) {

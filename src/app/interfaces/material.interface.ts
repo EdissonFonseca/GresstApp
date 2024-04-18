@@ -7,6 +7,7 @@ export interface Material{
   IdTratamientos?: string[];
   Medicion: string;
   Nombre: string;
+  Referencia?: string;
   Factor?: number;
   PesoUnitario?: number;
   PrecioUnitario?: number;

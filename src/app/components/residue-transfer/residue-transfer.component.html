@@ -3,20 +3,20 @@
     <ion-buttons slot="start">
       <ion-button (click)="cancel()">Cancelar</ion-button>
     </ion-buttons>
-    <ion-title>Transferir Residuo</ion-title>
+    <ion-title>Transferir</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content color="light">
   <ion-segment value="Send">
-    <ion-segment-button value="Send" (click)="changeNotesColor('S')">
+    <ion-segment-button value="Send" (click)="changeService(14)">
       <ion-icon name="exit"></ion-icon>
       Enviar
     </ion-segment-button>
-    <ion-segment-button value="Carry" (click)="changeNotesColor('C')">
+    <ion-segment-button value="Carry" (click)="changeService(8)">
       <ion-icon name="car"></ion-icon>
       Llevar
     </ion-segment-button>
-    <ion-segment-button value="Find" (click)="changeNotesColor('F')">
+    <ion-segment-button value="Find" (click)="changeService(7)">
       <ion-icon name="hand-right"></ion-icon>
       Gestor
     </ion-segment-button>
@@ -52,34 +52,6 @@
       <ion-item lines="none" color="light" *ngIf="material?.Medicion == 'V'">
         <ion-icon name="calculator-outline" slot="start"></ion-icon>
         <ion-label size="small">{{ residue?.Volumen }} {{ cuenta?.UnidadVolumen }}</ion-label>
-      </ion-item>
-    </ion-list>
-    <ion-item-divider>Entregar</ion-item-divider>
-    <ion-list inset="true">
-      <ion-item>
-        <ion-label>Fecha</ion-label>
-        <ion-datetime-button datetime="datetime" ></ion-datetime-button>
-      </ion-item>
-      <ion-item *ngIf="mode=='C'">
-        <ion-label slot="start">Vehículo</ion-label>
-        <ion-label>{{ vehicle }}</ion-label>
-        <ion-button color="light" (click)="selectVehicle()">...</ion-button>
-      </ion-item>
-      <ion-item *ngIf="mode=='C'">
-        <ion-label slot="start">Destino</ion-label>
-        <ion-label>{{ point }}</ion-label>
-        <ion-button color="light" (click)="selectPoint()">...</ion-button>
-      </ion-item>
-      <ion-item *ngIf="mode=='S'">
-        <ion-label slot="start">Tercero</ion-label>
-        <ion-label>{{ stakeholder }}</ion-label>
-        <ion-button color="light" (click)="selectStakeholder()">...</ion-button>
-      </ion-item>
-      <ion-item *ngIf="mode=='F'">
-        <ion-toggle>Lo puedo llevar</ion-toggle>
-      </ion-item>
-      <ion-item *ngIf="mode=='F'">
-        <ion-toggle>Lo puedo entregar en mi depósito</ion-toggle>
       </ion-item>
     </ion-list>
     <ion-button expand="full" (click)="confirm()">Entregar</ion-button>
