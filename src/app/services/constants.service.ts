@@ -26,22 +26,22 @@ export enum TipoMedicion{
 }
 
 export enum TipoServicio {
-  Almacenamiento = 1,
-  Disposicion = 2,
-  Pretratamiento = 3,
-  Recepcion = 4,
-  Aprovechamiento = 5,
-  Tratamiento = 6,
-  Transferencia = 7,
-  Transporte = 8,
-  Ajuste = 9,
-  Conciliacion = 10,
-  Generacion = 11,
-  Acopio = 12,
-  Recoleccion = 13,
-  Entrega = 14,
-  Perdida = 15,
-  Traslado = 16
+  Almacenamiento = "1",
+  Disposicion = "2",
+  Pretratamiento = "3",
+  Recepcion = "4",
+  Aprovechamiento = "5",
+  Tratamiento = "6",
+  Transferencia = "7",
+  Transporte = "8",
+  Ajuste = "9",
+  Conciliacion = "10",
+  Generacion = "11",
+  Acopio = "12",
+  Recoleccion = "13",
+  Entrega = "14",
+  Perdida = "15",
+  Traslado = "16"
 }
 
 export enum TipoObjeto {

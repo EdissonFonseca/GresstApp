@@ -13,20 +13,20 @@
 <ion-content>
 <ion-content [fullscreen]="true" color="light">
   <ion-segment value="Produce">
-    <ion-segment-button *ngIf="showProduce" value="Produce" (click)="changeService(11)">
+    <ion-segment-button *ngIf="showProduce" value="Produce" (click)="changeService('11')">
       <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
       Producido
     </ion-segment-button>
-    <ion-segment-button *ngIf="showReceive" value="Get" (click)="changeService(4)">
+    <ion-segment-button *ngIf="showReceive" value="Get" (click)="changeService('4')">
       <ion-icon src="../../../assets/icon/archive.svg"></ion-icon>
       Recibido
     </ion-segment-button>
-    <ion-segment-button *ngIf="showTransport" value="Transport" (click)="changeService(8)">
+    <ion-segment-button *ngIf="showTransport" value="Transport" (click)="changeService('8')">
       <ion-icon src="../../../assets/icon/truck.svg"></ion-icon>
       Recogido
     </ion-segment-button>
-    <ion-segment-button *ngIf="showCollect" value="Collect" (click)="changeService(13)">
-      <ion-icon src="../../../assets/icon/carryonbag.svg"></ion-icon>
+    <ion-segment-button *ngIf="showCollect" value="Collect" (click)="changeService('13')">
+      <ion-icon src="../../../assets/icon/trolley.svg"></ion-icon>
       Recolectado
     </ion-segment-button>
   </ion-segment>
@@ -46,17 +46,17 @@
         <ion-label>{{ puntoRecepcion }}</ion-label>
         <ion-button color="light" (click)="selectPuntoRecepcion()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="serviceId==8">
+      <ion-item *ngIf="serviceId=='8'">
         <ion-label>Vehículo</ion-label>
         <ion-label>{{ vehiculo }}</ion-label>
         <ion-button color="light" (click)="selectVehiculo()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="serviceId==13">
+      <ion-item *ngIf="serviceId=='13'">
         <ion-label>Punto de Recolección</ion-label>
         <ion-label>{{ puntoRecoleccion }}</ion-label>
         <ion-button color="light" (click)="selectPuntoRecoleccion()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="serviceId==14">
+      <ion-item *ngIf="serviceId=='14'">
         <ion-label>Propietario</ion-label>
         <ion-label>{{ propietario }}</ion-label>
         <ion-button color="light" (click)="selectPropietario()">...</ion-button>

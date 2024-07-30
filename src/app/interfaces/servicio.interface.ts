@@ -1,5 +1,5 @@
 export interface Servicio {
-  IdServicio: number;
+  IdServicio: string;
   Nombre: string;
   CRUD?: string;
   CRUDDate?: Date;

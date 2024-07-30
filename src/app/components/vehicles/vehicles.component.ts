@@ -49,22 +49,22 @@ export class VehiclesComponent  implements OnInit {
   }
 
   async create() {
-    const id : string = await this.globales.createInsumo(this.selectedName);
-    const data = {id: id, name: this.selectedName};
-    if (this.showHeader){
-      this.modalCtrl.dismiss(data);
-    }
-    else{
-      this.selectedValue = id;
-      this.searchText = '';
-      this.vehicles = await this.globales.getVehiculos();
-      const toast = await this.toastCtrl.create({
-        message: `Vehiculo ${this.selectedName} creado`,
-        duration: 1500,
-        position: 'top',
-      });
+    // const id : string = await this.globales.createVehicle(this.selectedName);
+    // const data = {id: id, name: this.selectedName};
+    // if (this.showHeader){
+    //   this.modalCtrl.dismiss(data);
+    // }
+    // else{
+    //   this.selectedValue = id;
+    //   this.searchText = '';
+    //   this.vehicles = await this.globales.getVehiculos();
+    //   const toast = await this.toastCtrl.create({
+    //     message: `Vehiculo ${this.selectedName} creado`,
+    //     duration: 1500,
+    //     position: 'top',
+    //   });
 
-      await toast.present();
-    }
+    //   await toast.present();
+    // }
   }
 }

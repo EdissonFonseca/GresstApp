@@ -16,6 +16,7 @@ export class StakeholdersComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
+  showNew: boolean = false;
 
   constructor(
     private globales: Globales,
@@ -24,6 +25,7 @@ export class StakeholdersComponent  implements OnInit {
     private toastCtrl: ToastController,
   ) {
     this.formData = this.formBuilder.group({
+      Nombre: ['', Validators.required],
       Identificacion: ['', Validators.required],
       Telefono: [''],
       Correo: [''],
@@ -38,6 +40,7 @@ export class StakeholdersComponent  implements OnInit {
     this.selectedName = event.target.value;
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
+    this.formData.patchValue({Nombre: this.selectedName});
 
     const tercerosList = await this.globales.getTerceros();
     this.terceros = tercerosList.filter((tercero) => tercero.Nombre?.toLowerCase().indexOf(query) > -1);
@@ -50,30 +53,40 @@ export class StakeholdersComponent  implements OnInit {
     this.modalCtrl.dismiss(data);
   }
 
+  search() {
+    this.showNew = false;
+  }
+
   cancel() {
     this.modalCtrl.dismiss(null);
+  }
+
+  new() {
+    this.showNew = true;
+    this.formData.setValue({Nombre: null, Identificacion: null, Telefono: null, Correo:null });
   }
 
   async create() {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const id : string = await this.globales.createTercero(this.selectedName, formData.Identificacion, formData.Telefono, formData.Correo);
-      const data = {id: id, name: this.selectedName};
-      if (this.showHeader){
-        this.modalCtrl.dismiss(data);
-      }
-      else{
-        this.selectedValue = id;
-        this.searchText = '';
-        this.terceros = await this.globales.getTerceros();
-        const toast = await this.toastCtrl.create({
-          message: `Tercero ${this.selectedName} creado`,
-          duration: 1500,
-          position: 'top',
-        });
-
-        await toast.present();
+      const tercero: Tercero = {IdPersona: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, IdRelaciones:undefined};
+      const created = await this.globales.createTercero(tercero);
+      if (created)
+      {
+        const data = {id: tercero.IdPersona, name: this.selectedName};
+        if (this.showHeader){
+          this.modalCtrl.dismiss(data);
+          this.selectedValue = tercero.IdPersona;
+        }
+        else{
+          this.terceros = await this.globales.getTerceros();
+          await this.globales.presentToast(`Tercero ${formData.Nombre} creado`, 'middle');
+          this.selectedValue = '';
+          this.searchText = '';
+        }
+        this.formData.setValue({Nombre: null, Identificacion: null, Telefono: null, Correo:null });
+        this.showNew = false;
       }
     }
   }

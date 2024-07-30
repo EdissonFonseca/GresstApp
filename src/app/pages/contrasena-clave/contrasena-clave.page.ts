@@ -34,7 +34,7 @@ export class ContrasenaClavePage implements OnInit {
       this.globales.showLoading('Conectando ...');
       const email = await this.storage.get('Email');
 
-      await this.authService.changeEmail(email, this.newPassword);
+      await this.authService.changePassword(email, this.newPassword);
       this.globales.hideLoading();
       await this.globales.presentAlert('Contraseña cambiada','', 'Su clave ha sido cambiada con éxito');
       this.navCtrl.navigateRoot('/login');

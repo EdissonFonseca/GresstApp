@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Insumo } from 'src/app/interfaces/insumo.interface';
@@ -15,13 +16,19 @@ export class SuppliesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
+  showNew: boolean = false;
+  formData: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private toastCtrl: ToastController
-  ) { }
+    private formBuilder: FormBuilder,
+  ) {
+    this.formData = this.formBuilder.group({
+      Nombre: ['', Validators.required],
+    });
+  }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
@@ -46,23 +53,30 @@ export class SuppliesComponent  implements OnInit {
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
-  async create() {
-    const id : string = await this.globales.createInsumo(this.selectedName);
-    const data = {id: id, name: this.selectedName};
-    if (this.showHeader){
-      this.modalCtrl.dismiss(data);
-    }
-    else{
-      this.selectedValue = id;
-      this.searchText = '';
-      this.supplies = await this.globales.getInsumos();
-      const toast = await this.toastCtrl.create({
-        message: `Insumo ${this.selectedName} creado`,
-        duration: 1500,
-        position: 'top',
-      });
+  new() {
+    this.showNew = true;
+    this.formData.setValue({Nombre: null});
+  }
 
-      await toast.present();
+  async create() {
+    const formData = this.formData.value;
+    const insumo: Insumo = { IdInsumo: this.globales.newId(), Nombre: formData.Nombre, IdEstado: 'A'};
+    const created = await this.globales.createInsumo(insumo);
+    if (created)
+    {
+      const data = {id: insumo.IdInsumo, name: formData.Nombre};
+      if (this.showHeader){
+        this.modalCtrl.dismiss(data);
+        this.selectedValue = insumo.IdInsumo;
+      }
+      else{
+        this.supplies = await this.globales.getInsumos();
+        await this.globales.presentToast(`Insumo ${formData.Nombre} creado`, 'middle');
+        this.selectedValue = '';
+        this.searchText = '';
+      }
+      this.formData.setValue({Nombre: null});
+      this.showNew = false;
     }
   }
 }

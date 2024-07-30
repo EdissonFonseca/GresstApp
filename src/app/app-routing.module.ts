@@ -115,6 +115,10 @@ const routes: Routes = [
     path: 'contrasena-clave',
     loadChildren: () => import('./pages/contrasena-clave/contrasena-clave.module').then( m => m.ContrasenaClavePageModule)
   },
+  {
+    path: 'produccion',
+    loadChildren: () => import('./pages/produccion/produccion.module').then( m => m.ProduccionPageModule)
+  },
 ];
 @NgModule({
   imports: [

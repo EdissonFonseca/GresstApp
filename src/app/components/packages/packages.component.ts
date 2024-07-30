@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { EmailValidator, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
@@ -15,13 +16,20 @@ export class PackagesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string ='';
+  showNew: boolean = false;
+  formData: FormGroup;
 
   constructor(
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private toastCtrl: ToastController
-  ) { }
+    private formBuilder: FormBuilder,
+  ) {
+    this.formData = this.formBuilder.group({
+      Nombre: ['', Validators.required],
+    });
+
+  }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -34,8 +42,14 @@ export class PackagesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
+    this.formData.patchValue({Nombre: this.selectedName});
     const embalajesList = await this.globales.getEmbalajes();
     this.packages = embalajesList.filter((embalaje) => embalaje.Nombre .toLowerCase().indexOf(query) > -1);
+  }
+
+  new() {
+    this.showNew = true;
+    this.formData.setValue({Nombre: null});
   }
 
   select(idMaterial: string, nombre: string) {
@@ -55,24 +69,24 @@ export class PackagesComponent  implements OnInit {
   }
 
   async create() {
-    const id : string = await this.globales.createEmbalaje(this.selectedName);
-    const data = {id: id, name: this.selectedName};
-    if (this.showHeader){
-      this.modalCtrl.dismiss(data);
-    }
-    else{
-      this.selectedValue = id;
-      this.searchText = '';
-      this.packages = await this.globales.getEmbalajes();
-      const toast = await this.toastCtrl.create({
-        message: `Embalaje ${this.selectedName} creado`,
-        duration: 1500,
-        position: 'top',
-      });
-
-      await toast.present();
-      const data = {id: this.selectedValue, name: this.selectedName};
-      this.modalCtrl.dismiss(data);
+    const formData = this.formData.value;
+    const embalaje: Embalaje = { IdEmbalaje: this.globales.newId(), Nombre: formData.Nombre};
+    const created = await this.globales.createEmbalaje(embalaje);
+    if (created)
+    {
+      const data = {id: embalaje.IdEmbalaje, name: formData.Nombre};
+      if (this.showHeader){
+        this.modalCtrl.dismiss(data);
+        this.selectedValue = embalaje.IdEmbalaje;
+      }
+      else{
+        this.packages = await this.globales.getEmbalajes();
+        await this.globales.presentToast(`Embalaje ${formData.Nombre} creado`, 'middle');
+        this.selectedValue = '';
+        this.searchText = '';
+      }
+      this.formData.setValue({Nombre: null});
+      this.showNew = false;
     }
   }
 }

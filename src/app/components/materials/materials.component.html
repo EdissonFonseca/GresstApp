@@ -6,48 +6,56 @@
     </ion-toolbar>
   </ion-header>
   <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
-  <ion-content *ngIf="materials.length == 0">
-    <form [formGroup]="formData" >
-      <ion-item>
-        <ion-note slot="start">Unidad de captura</ion-note>
-        <ion-select formControlName="Captura">
-          <ion-select-option>Peso</ion-select-option>
-          <ion-select-option>Volúmen</ion-select-option>
-          <ion-select-option>Cantidad</ion-select-option>
-        </ion-select>
-      </ion-item>
-      <ion-item>
-        <ion-note slot="start">Se almacena en otra unidad?</ion-note>
-        <ion-toggle (ionChange)="changeConversion()"></ion-toggle>
-      </ion-item>
-      <ion-item *ngIf="isCaptureDifferentFromMeasure">
-        <ion-note slot="start">Unidad de almacenamiento</ion-note>
-        <ion-select formControlName="Medicion">
-          <ion-select-option>Peso</ion-select-option>
-          <ion-select-option>Volúmen</ion-select-option>
-          <ion-select-option>Cantidad</ion-select-option>
-        </ion-select>
-      </ion-item>
-      <ion-item *ngIf="isCaptureDifferentFromMeasure">
-        <ion-input formControlName="Factor" type="numeric" label="Factor"></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-note slot="start">Residuo es aprovechable?</ion-note>
-        <ion-toggle formControlName="Aprovechable">
-        </ion-toggle>
-      </ion-item>
-      <ion-item>
-        <ion-note slot="start">Referencia</ion-note>
-        <ion-text formControlName="Referencia"></ion-text>
-      </ion-item>
-      <ion-item>
+  <ion-item *ngIf="materials.length != 0 && !showNew">
+    <ion-button (click)="new()">
+      <ion-icon name="add"></ion-icon>
+      Nuevo
+    </ion-button>
+  </ion-item>
+  <ion-content *ngIf="materials.length == 0 || showNew">
+    <ion-item-divider> Nuevo</ion-item-divider>
+    <form [formGroup]="formData">
+      <ion-list [inset]="true">
         <ion-item>
-          <ion-button (click)="create()">
-            <ion-icon name="save-outline"></ion-icon>
-            Crear
-          </ion-button>
+          <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
         </ion-item>
-      </ion-item>
+        <ion-item>
+          <ion-input formControlName="Referencia" label="Referencia" labelPlacement="stacked"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-select formControlName="Captura" label="Medida de Captura" labelPlacement="stacked" helperText="El producto llega del/al tercero por (cantidad/peso/volumen)">
+            <ion-select-option>Cantidad</ion-select-option>
+            <ion-select-option>Peso</ion-select-option>
+            <ion-select-option>Volúmen</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-select formControlName="Medicion" label="Medida de Almacenamiento" labelPlacement="stacked" placeholder="La misma de captura" (ionChange)="onChangeMedida($event.target.value)">
+            <ion-select-option>Cantidad</ion-select-option>
+            <ion-select-option>Peso</ion-select-option>
+            <ion-select-option>Volúmen</ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item *ngIf="showFactor">
+          <ion-input formControlName="Factor" type="numeric" label="Factor de conversion" labelPlacement="stacked"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-toggle formControlName="Aprovechable" labelPlacement="end"> <ion-label size="small">Residuo Aprovechable?</ion-label>
+          </ion-toggle>
+        </ion-item>
+        <ion-item>
+          <ion-item>
+            <ion-button (click)="create()">
+              <ion-icon name="save-outline"></ion-icon>
+              Crear
+            </ion-button>
+            <ion-button (click)="search()">
+              <ion-icon name="close"></ion-icon>
+              Cancelar
+            </ion-button>
+          </ion-item>
+        </ion-item>
+      </ion-list>
     </form>
   </ion-content>
   <ion-content>

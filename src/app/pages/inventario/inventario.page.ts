@@ -21,7 +21,6 @@ export class InventarioPage implements OnInit {
   imagePath: string = '';
 
   constructor(
-    private navCtrl: NavController,
     private modalCtrl: ModalController,
     private menuCtrl: MenuController,
     private globales: Globales,

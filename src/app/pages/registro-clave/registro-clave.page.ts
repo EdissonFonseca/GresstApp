@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, NavController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -17,8 +17,7 @@ export class RegistroClavePage implements OnInit {
     private authService: AuthService,
     private navCtrl: NavController,
     private storage: StorageService,
-    private globales: Globales,
-    private alertController: AlertController
+    private globales: Globales
 ) { }
 
   ngOnInit() {
@@ -26,7 +25,7 @@ export class RegistroClavePage implements OnInit {
 
   async create(){
     if (this.newPassword == '' || this.confirmPassword == ''){
-      this.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
+      this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
       return;
     }
 
@@ -37,7 +36,7 @@ export class RegistroClavePage implements OnInit {
 
       await this.authService.register(email, name, this.newPassword);
       this.globales.hideLoading();
-      await this.presentAlert('Usuario registrado','', 'Usuario registrado con exito');
+      await this.globales.presentAlert('Usuario registrado','', 'Usuario registrado con exito');
       this.navCtrl.navigateRoot('/login');
     } catch (error) {
       this.globales.hideLoading();
@@ -50,14 +49,4 @@ export class RegistroClavePage implements OnInit {
     }
   }
 
-  async presentAlert(header: string, subHeader: string, message: string) {
-    const alert = await this.alertController.create({
-      header: header,
-      subHeader: subHeader,
-      message: message,
-      buttons: ['OK'],
-    });
-
-    await alert.present();
-  }
 }

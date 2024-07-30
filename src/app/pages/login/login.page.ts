@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, MenuController, NavController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { AuthService } from 'src/app/services/auth.service';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
@@ -20,21 +20,18 @@ export class LoginPage implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private menuCtrl: MenuController,
     private navCtrl: NavController,
     private storage: StorageService,
     private integrationService: IntegrationService,
     private globales: Globales,
-    private alertController: AlertController
   ) { }
 
   ngOnInit() {
-    this.menuCtrl.enable(false);
   }
 
   async login(){
     if (this.username == '' || this.password == ''){
-      this.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
+      this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
       return;
     }
 
@@ -46,27 +43,27 @@ export class LoginPage implements OnInit {
       {
         await this.storage.set('Login', this.username);
         await this.storage.set('Password', this.password);
+        await this.storage.set('Token', token);
 
         const cuenta: Cuenta = await this.integrationService.getConfiguracion(token);
         await this.storage.set('Cuenta', cuenta);
 
-        const actividades: Actividad[] = await this.integrationService.getActividades(token);
-        await this.storage.set('Actividades', actividades);
+        //const actividades: Actividad[] = await this.integrationService.getActividades(token);
+        //await this.storage.set('Actividades', actividades);
 
-        const inventario: Residuo[] = await this.integrationService.getInventario(token);
-        await this.storage.set('Inventario', inventario);
+        //const inventario: Residuo[] = await this.integrationService.getInventario(token);
+        //await this.storage.set('Inventario', inventario);
 
         this.globales.hideLoading();
 
-        if (cuenta.MostrarIntroduccion)
-          this.navCtrl.navigateRoot('/tutorial');
-        else
-          this.navCtrl.navigateRoot('/home');
+        //if (cuenta.MostrarIntroduccion)
+        //  this.navCtrl.navigateRoot('/tutorial');
+        //else
+        //  this.navCtrl.navigateRoot('/home');
       }
       else {
         this.globales.hideLoading();
-        const conexion = `${environment.apiUrl}/login/authenticate`;
-        await this.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
+        await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
       }
     } catch (error) {
       this.globales.hideLoading();
@@ -85,16 +82,5 @@ export class LoginPage implements OnInit {
 
   async goRegister() {
     this.navCtrl.navigateRoot('/registro-correo');
-  }
-
-  async presentAlert(header: string, subHeader: string, message: string) {
-    const alert = await this.alertController.create({
-      header: header,
-      subHeader: subHeader,
-      message: message,
-      buttons: ['OK'],
-    });
-
-    await alert.present();
   }
 }

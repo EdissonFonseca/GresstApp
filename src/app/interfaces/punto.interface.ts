@@ -10,6 +10,7 @@ export interface Punto {
   Nombre: string;
   Tercero?: string;
   Tipo?: string;
+  Acopio: boolean;
   Almacenamiento: boolean;
   Disposicion: boolean;
   Entrega: boolean;

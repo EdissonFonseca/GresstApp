@@ -8,13 +8,13 @@
 </ion-header>
 <ion-content color="light">
   <ion-segment value="Dismiss">
-    <ion-segment-button value="Dismiss" (click)="changeService(15)">
+    <ion-segment-button value="Dismiss" (click)="changeService('15')">
       <ion-icon name="trash"></ion-icon>Desechar
     </ion-segment-button>
-    <ion-segment-button value="Dispose" (click)="changeService(2)">
+    <ion-segment-button value="Dispose" (click)="changeService('2')">
       <ion-icon name="flame"></ion-icon>Destruir
     </ion-segment-button>
-    <ion-segment-button value="Store" (click)="changeService(1)">
+    <ion-segment-button value="Store" (click)="changeService('1')">
       <ion-icon name="archive"></ion-icon>Almacenar
     </ion-segment-button>
   </ion-segment>
@@ -57,17 +57,17 @@
       <ion-label>Fecha</ion-label>
       <ion-datetime-button datetime="datetime" ></ion-datetime-button>
     </ion-item>
-    <ion-item *ngIf="serviceId==2">
+    <ion-item *ngIf="serviceId=='2'">
       <ion-label slot="start">Planta</ion-label>
       <ion-label>{{ point }}</ion-label>
       <ion-button color="light" (click)="selectPlant()">...</ion-button>
     </ion-item>
-    <ion-item *ngIf="serviceId==1">
+    <ion-item *ngIf="serviceId=='1'">
       <ion-label slot="start">Almacen</ion-label>
       <ion-label>{{ point }}</ion-label>
       <ion-button color="light" (click)="selectStore()">...</ion-button>
     </ion-item>
-    <ion-item *ngIf="serviceId==15">
+    <ion-item *ngIf="serviceId=='15'">
       <ion-label slot="start">Tratamiento</ion-label>
       <ion-label>{{ treatment }}</ion-label>
       <ion-button color="light" (click)="selectTreatment()">...</ion-button>

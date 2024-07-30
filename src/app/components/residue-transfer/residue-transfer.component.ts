@@ -24,7 +24,7 @@ export class ResidueTransferComponent  implements OnInit {
   cuenta: Cuenta | undefined = undefined;
   date: Date | null = null;
   material: Material | undefined = undefined;
-  serviceId: number = 0;
+  serviceId: string = '';
   point: string = '';
   pointId: string = '';
   residue: Residuo | undefined;
@@ -135,7 +135,7 @@ export class ResidueTransferComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeService(serviceId: number) {
+  changeService(serviceId: string) {
     this.serviceId = serviceId;
   }
 

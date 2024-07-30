@@ -75,22 +75,5 @@ export class ResiduesComponent  implements OnInit {
   }
 
   async create() {
-    const id : string = await this.globales.createEmbalaje(this.selectedName);
-    const data = {id: id, name: this.selectedName};
-    if (this.showHeader){
-      this.modalCtrl.dismiss(data);
-    }
-    else{
-      this.selectedValue = id;
-      this.searchText = '';
-      this.residues = await this.globales.getInventario();
-      const toast = await this.toastCtrl.create({
-        message: `Embalaje ${this.selectedName} creado`,
-        duration: 1500,
-        position: 'top',
-      });
-
-      await toast.present();
-    }
   }
 }

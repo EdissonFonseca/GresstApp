@@ -38,7 +38,7 @@ export class ResidueReceiveComponent implements OnInit {
   medicion:string = '';
   vehiculo!: string;
   residue: Residuo | undefined = undefined;
-  serviceId: number = 0;
+  serviceId: string = '';
   showDetails: boolean = false;
   showReceive: boolean = true;
   showTransport: boolean = true;
@@ -203,7 +203,7 @@ export class ResidueReceiveComponent implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeService(serviceId: number) {
+  changeService(serviceId: string) {
     this.serviceId = serviceId;
    }
 

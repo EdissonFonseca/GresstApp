@@ -26,7 +26,7 @@ export class ResidueTransformComponent  implements OnInit {
   colorConvert: string = 'primary';
   colorDecompose: string = 'medium';
   colorAggregate: string ='medium';
-  serviceId: number = 0;
+  serviceId: string = '';
   frm!: FormGroup;
 
   constructor(
@@ -58,7 +58,7 @@ export class ResidueTransformComponent  implements OnInit {
     this.modalCtrl.dismiss(null, 'cancel');
   }
 
-  changeService(serviceId: number) {
+  changeService(serviceId: string) {
     this.serviceId = serviceId;
     if (serviceId === TipoServicio.Tratamiento){
       this.tituloDivisor ='Convertir en';

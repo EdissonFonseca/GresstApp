@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Material } from 'src/app/interfaces/material.interface';
@@ -20,18 +19,18 @@ export class MaterialsComponent  implements OnInit {
   selectedMedicion: string = '';
   selectedFactor: number | null = null;
   searchText: string = '';
-  isCaptureDifferentFromMeasure: boolean = false;
+  showFactor: boolean = false;
+  showNew: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private toastCtrl: ToastController,
   ) {
     this.formData = this.formBuilder.group({
+      Nombre: ['', Validators.required],
       Captura: ['', Validators.required],
-      Medicion: ['', Validators.required],
+      Medicion: [],
       Factor: [],
       Aprovechable: [],
       Referencia: [],
@@ -46,13 +45,10 @@ export class MaterialsComponent  implements OnInit {
     this.selectedName = event.target.value;
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
+    this.formData.patchValue({Nombre: this.selectedName});
 
     const materiales = await this.globales.getMateriales();
     this.materials = materiales.filter((material) => material.Nombre .toLowerCase().indexOf(query) > -1);
-  }
-
-  changeConversion(){
-    this.isCaptureDifferentFromMeasure = !this.isCaptureDifferentFromMeasure;
   }
 
   select(idMaterial: string, nombre: string, captura: string, medicion: string, factor: number | null) {
@@ -65,32 +61,86 @@ export class MaterialsComponent  implements OnInit {
     this.modalCtrl.dismiss(data);
   }
 
+  new() {
+    this.showNew = true;
+    this.formData.setValue({Nombre: null, Referencia: null, Captura: null, Medicion:null, Factor: null, Aprovechable:false});
+  }
+
   cancel() {
     this.modalCtrl.dismiss(null);
+  }
+
+  search() {
+    this.showNew = false;
   }
 
   async create() {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const material: Material = {IdMaterial: this.globales.newId(), Nombre: this.selectedName, Captura: formData.Captura, Factor: formData.Factor, Medicion: formData.Medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
-      await this.globales.createMaterial(material);
-      const data = {id: material.IdMaterial, name: this.selectedName};
-      if (this.showHeader){
-        this.modalCtrl.dismiss(data);
-      }
-      else{
-        this.selectedValue = material.IdMaterial;
-        this.searchText = '';
-        this.materials = await this.globales.getMateriales();
-        const toast = await this.toastCtrl.create({
-          message: `Material ${this.selectedName} creado`,
-          duration: 1500,
-          position: 'top',
-        });
+      let medicion;
+      let captura;
+      let factor;
 
-        await toast.present();
+      captura = formData.Captura;
+      if (formData.Medicion == undefined || formData.Medicion == null)
+        medicion = captura;
+      else
+        medicion = formData.Medicion;
+
+      if (formData.Factor == undefined || formData.Factor == null)
+        factor = 1;
+      else
+        factor = formData.Factor;
+
+      switch(medicion) {
+          case "Cantidad":
+            medicion = "C";
+            break;
+          case "Peso":
+            medicion = "P";
+            break;
+          default:
+            medicion = "V";
+            break;
+      }
+
+      switch(captura) {
+        case "Cantidad":
+          captura = "C";
+          break;
+        case "Peso":
+          captura = "P";
+          break;
+        default:
+          captura = "V";
+          break;
+      }
+
+      const material: Material = {IdMaterial: this.globales.newId(), Nombre: formData.Nombre, Captura: captura, Factor: factor, Medicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
+      const created = await this.globales.createMaterial(material);
+      if (created)
+      {
+        const data = {id: material.IdMaterial, name: this.selectedName};
+        if (this.showHeader){
+          this.modalCtrl.dismiss(data);
+          this.selectedValue = material.IdMaterial;
+        }
+        else{
+          this.materials = await this.globales.getMateriales();
+          await this.globales.presentToast(`Material ${formData.Nombre} creado`, 'middle');
+          this.selectedValue = '';
+          this.searchText = '';
+        }
+        this.formData.setValue({Nombre: null, Captura: null, Medicion: null, Factor:1, Aprovechable:false, Referencia:null });
+        this.showNew = false;
       }
     }
+  }
+
+  async onChangeMedida(unidadMedida: string) {
+    const formData = this.formData.value;
+
+    this.showFactor = !(unidadMedida == undefined || unidadMedida == null || unidadMedida == formData.Captura);
   }
 }

@@ -30,11 +30,9 @@ export class TareasPage implements OnInit {
   mode: string = 'A';
 
   constructor(
-    private navCtrl: NavController,
     private globales: Globales,
     private modalCtrl: ModalController,
     private route: ActivatedRoute,
-    private actionSheetCtrl: ActionSheetController,
   ) {
   }
 

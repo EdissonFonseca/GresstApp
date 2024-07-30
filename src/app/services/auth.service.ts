@@ -53,8 +53,8 @@ export class AuthService {
     }
   }
 
-  async changeEmail(email:string, password: string): Promise<string> {
-    const data = {Email: email, Password: password};
+  async changePassword(email:string, password: string): Promise<string> {
+    const data = {Username: email, Password: password};
     const options = {url: this.changePasswordUrl, data: data, headers: { 'Content-Type': 'application/json' }};
 
     try {
@@ -75,7 +75,7 @@ export class AuthService {
   }
 
   async register(email:string, name: string, password: string): Promise<string> {
-    const data = {Email: email, Name: name, Password: password};
+    const data = {Username: email, Name: name, Password: password};
     const options = {url: this.registerUrl, data: data, headers: { 'Content-Type': 'application/json' }};
 
     try {

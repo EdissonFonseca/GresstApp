@@ -13,13 +13,16 @@ import { Actividad } from 'src/app/interfaces/actividad.interface';
   styleUrls: ['./activity-add.component.scss'],
 })
 export class ActivityAddComponent  implements OnInit {
-  serviceId: number = TipoServicio.Recoleccion;
+  serviceId: string = TipoServicio.Recoleccion;
   colorGeneracion: string = 'medium';
   colorEntrega: string = 'medium';
   colorRecepcion: string = 'medium';
   colorRecoleccion: string = 'primary';
   idRecurso: string ='';
   recurso: string = '';
+  showTransport: boolean = true;
+  showCollect: boolean = true;
+  showProduce: boolean = true;
   frmActivity: FormGroup;
 
   constructor(
@@ -33,7 +36,11 @@ export class ActivityAddComponent  implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  async ngOnInit() {
+    this.showTransport = await this.globales.allowServicio(TipoServicio.Transporte);
+    this.showCollect = await this.globales.allowServicio(TipoServicio.Recoleccion);
+    this.showProduce = await this.globales.allowServicio(TipoServicio.Generacion);
+  }
 
   async confirm() {
     const description: string = this.frmActivity.get('Description')?.value;
@@ -66,7 +73,7 @@ export class ActivityAddComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  changeService(serviceId: number) {
+  changeService(serviceId: string) {
     this.serviceId = serviceId;
   }
 

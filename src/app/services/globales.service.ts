@@ -1,6 +1,5 @@
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage-angular';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Actividad } from '../interfaces/actividad.interface';
@@ -18,6 +17,7 @@ import { Transaccion } from '../interfaces/transaccion.interface';
 import { Tratamiento } from '../interfaces/tratamiento.interface';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
 import { IntegrationService } from './integration.service';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
@@ -30,11 +30,11 @@ export class Globales {
     {IdEstado: Estado.Finalizado, Nombre:'Finalizado', Color:'secondary'},
     {IdEstado: Estado.Inactivo, Nombre:'Opcional', Color:'light'},
   ];
-  servicios: {IdServicio: number, Nombre: string, Accion: string, Icono: string}[] = [
+  servicios: {IdServicio: string, Nombre: string, Accion: string, Icono: string}[] = [
     {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenamiento temporal', Icono: 'archive'},
     {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenamiento definitivo', Icono:'car'},
     {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechamiento de Residuos', Icono: 'construct'},
-    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificación/Separación', Icono: 'download'},
+    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificación / Separación', Icono: 'download'},
     {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disposición de Residuos', Icono: 'flame'},
     {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Producción', Icono: 'archive'},
     {IdServicio:TipoServicio.Entrega, Nombre:'Entrega', Accion: 'Entrega', Icono: 'archive'},
@@ -45,7 +45,7 @@ export class Globales {
   ];
 
   constructor(
-    private storage: Storage,
+    private storage: StorageService,
     private integration: IntegrationService,
     private loadingCtrl: LoadingController,
     private toastCtrl: ToastController,
@@ -122,7 +122,7 @@ export class Globales {
     return icono;
   }
 
-  async allowServicio(idServicio: number): Promise<boolean> {
+  async allowServicio(idServicio: string): Promise<boolean> {
     let allow: boolean = false;
     const cuenta: Cuenta = await this.storage.get('Cuenta');
 
@@ -135,7 +135,7 @@ export class Globales {
   }
 
 
-  async addServicio(idServicio: number) {
+  async addServicio(idServicio: string) {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
 
     const selectedServicio = this.servicios.find(x => x.IdServicio == idServicio);
@@ -160,40 +160,92 @@ export class Globales {
     await this.storage.set('Actividades', actividades);
   }
 
-  async createEmbalaje(nombre: string): Promise<string> {
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const embalaje: Embalaje = { IdEmbalaje: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create, CRUDDate: new Date()};
-    cuenta.Embalajes.push(embalaje);
-    await this.storage.set('Cuenta', cuenta);
-
+  async createEmbalaje(embalaje: Embalaje): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
     try{
-      const login = await this.storage.get('Login');
-      const password = await this.storage.get('Password');
-      const posted = await this.integration.postEmbalaje(login, password, embalaje);
-      if (posted) {
-        embalaje.CRUD = '';
-        embalaje.CRUDDate = undefined;
-        await this.storage.set('Cuenta', cuenta);
+      const posted = await this.integration.postEmbalaje(token, embalaje);
+      if (!posted) {
+        embalaje.CRUD = CRUDOperacion.Create;
+        embalaje.CRUDDate = new Date();
       }
     } catch {
+      embalaje.CRUD = CRUDOperacion.Create;
+      embalaje.CRUDDate = new Date();
     }
-
-    return embalaje.IdEmbalaje;
+    finally
+    {
+      //Add to array
+      const cuenta: Cuenta = await this.storage.get('Cuenta');
+      cuenta.Embalajes.push(embalaje);
+      await this.storage.set('Cuenta', cuenta);
+    }
+    return true;
   }
 
-  async createInsumo(nombre: string): Promise<string> {
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const insumo: Insumo = { IdInsumo: this.newId(), Nombre: nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Activo, CRUDDate: new Date() };
-    cuenta.Insumos.push(insumo);
-    await this.storage.set('Cuenta', cuenta);
-
-    return insumo.IdInsumo;
+  async createInsumo(insumo: Insumo): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    try{
+      const posted = await this.integration.postInsumo(token, insumo);
+      if (!posted) {
+        insumo.CRUD = CRUDOperacion.Create;
+        insumo.CRUDDate = new Date();
+      }
+    } catch {
+      insumo.CRUD = CRUDOperacion.Create;
+      insumo.CRUDDate = new Date();
+    }
+    finally
+    {
+      //Add to array
+      const cuenta: Cuenta = await this.storage.get('Cuenta');
+      cuenta.Insumos.push(insumo);
+      await this.storage.set('Cuenta', cuenta);
+    }
+    return true;
   }
 
-  async createMaterial(material: Material) {
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
-    cuenta.Materiales.push(material);
-    await this.storage.set('Cuenta', cuenta);
+  async createMaterial(material: Material): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    try{
+      const posted = await this.integration.postMaterial(token, material);
+      if (!posted) {
+        material.CRUD = CRUDOperacion.Create;
+        material.CRUDDate = new Date();
+      }
+    } catch {
+      material.CRUD = CRUDOperacion.Create;
+      material.CRUDDate = new Date();
+    }
+    finally
+    {
+      //Add to array
+      const cuenta: Cuenta = await this.storage.get('Cuenta');
+      cuenta.Materiales.push(material);
+      await this.storage.set('Cuenta', cuenta);
+    }
+    return true;
+  }
+
+  async createTercero(tercero: Tercero): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    try{
+      const posted = await this.integration.postTercero(token, tercero);
+      if (!posted) {
+        tercero.CRUD = CRUDOperacion.Create;
+        tercero.CRUDDate = new Date();
+      }
+    } catch {
+      tercero.CRUD = CRUDOperacion.Create;
+      tercero.CRUDDate = new Date();
+    }
+    finally
+    {
+      //Add to array
+      const cuenta: Cuenta = await this.storage.get('Cuenta');
+      cuenta.Terceros.push(tercero);
+      await this.storage.set('Cuenta', cuenta);
+    }
+    return true;
   }
 
   async createResiduo(residuo: Residuo) {
@@ -212,15 +264,6 @@ export class Globales {
     }
   }
 
-  async createTercero(nombre: string, identificacion: string, telefono: string, correo: string): Promise<string> {
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
-    const tercero: Tercero = {IdPersona: this.newId(), Nombre: nombre, Identificacion: identificacion, Telefono: telefono, Correo: correo, CRUD: CRUDOperacion.Create, IdRelaciones: [], CRUDDate: new Date()};
-    cuenta.Terceros.push(tercero);
-    await this.storage.set('Cuenta', cuenta);
-
-    return tercero.IdPersona;
-  }
-
   async createTransaccion(idActividad: string, transaccion: Transaccion) {
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad = actividades.find(x => x.IdActividad == idActividad);
@@ -237,6 +280,15 @@ export class Globales {
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     return actividad;
+  }
+
+  async getUser(): Promise<string> {
+    const token: string = await this.storage.get('Token');
+    return token;
+  }
+  async getToken(): Promise<string> {
+    const token: string = await this.storage.get('Token');
+    return token;
   }
 
   async getActividades(): Promise<Actividad[]> {
@@ -333,7 +385,7 @@ export class Globales {
     return actividades;
   }
 
-  async getActividadByServicio(idServicio: number, idRecurso: string) : Promise<Actividad | undefined>{
+  async getActividadByServicio(idServicio: string, idRecurso: string) : Promise<Actividad | undefined>{
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdServicio == idServicio && item.IdRecurso == idRecurso)!;
     return actividad;
@@ -465,7 +517,7 @@ export class Globales {
     return estado? estado.Nombre : 'Pendiente';
   }
 
-  getNombreServicio(idServicio: number) {
+  getNombreServicio(idServicio: string) {
     let procesoNombre: string = '';
 
     const proceso = this.servicios.find((prc) => prc.IdServicio === idServicio);
@@ -518,7 +570,7 @@ export class Globales {
     return undefined;
   }
 
-  async getServicio(idServicio: number): Promise<Servicio | undefined> {
+  async getServicio(idServicio: string): Promise<Servicio | undefined> {
     const cuenta: Cuenta | null = await this.storage.get('Cuenta');
 
     if (cuenta && cuenta.Servicios) {
@@ -1038,7 +1090,7 @@ export class Globales {
 
   // #endregion
 
-  async deleteServicio(idServicio: number) {
+  async deleteServicio(idServicio: string) {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
 
     const servicios = cuenta.Servicios.filter(x=> x.IdServicio !== idServicio);

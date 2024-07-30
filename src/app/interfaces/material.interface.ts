@@ -9,8 +9,6 @@ export interface Material{
   Nombre: string;
   Referencia?: string;
   Factor?: number;
-  PesoUnitario?: number;
-  PrecioUnitario?: number;
   PrecioCompra?: number;
   PrecioServicio?: number;
   CRUD?: string;

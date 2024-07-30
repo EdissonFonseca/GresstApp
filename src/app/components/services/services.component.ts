@@ -15,7 +15,7 @@ export class ServicesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
-  items: { id: number, name: string; selected: boolean }[] = [];
+  items: { id: string, name: string; selected: boolean }[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -40,7 +40,7 @@ export class ServicesComponent  implements OnInit {
     });
   }
 
-  async changeSelection(idServicio: number, checked:boolean) {
+  async changeSelection(idServicio: string, checked:boolean) {
     if (checked) {
       await this.globales.addServicio(idServicio);
       const toast = await this.toastCtrl.create({

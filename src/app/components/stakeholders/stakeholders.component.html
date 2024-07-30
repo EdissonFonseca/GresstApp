@@ -7,30 +7,43 @@
     </ion-toolbar>
   </ion-toolbar>
 </ion-header>
-<ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
-<ion-content *ngIf="terceros.length == 0">
+<ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
+<ion-item *ngIf="terceros.length != 0 && !showNew">
+  <ion-button (click)="new()">
+    <ion-icon name="add"></ion-icon>
+    Nuevo
+  </ion-button>
+</ion-item>
+<ion-content *ngIf="terceros.length == 0|| showNew">
+  <ion-item-divider> Nuevo</ion-item-divider>
   <form [formGroup]="formData" >
-    <ion-item>
-      <ion-note slot="start">Identificacion</ion-note>
-      <ion-input formControlName="Identificacion"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-note slot="start" type="te;">Teléfono</ion-note>
-      <ion-input formControlName="Telefono"></ion-input>
-    </ion-item>
-    <ion-item>
-      <ion-note slot="start" type="email">Correo</ion-note>
-      <ion-input formControlName="Correo"></ion-input>
-    </ion-item>
-    <ion-item>
+    <ion-list [inset]="true">
       <ion-item>
-        <ion-button (click)="create()">
-          <ion-icon name="save-outline"></ion-icon>
-          Crear
-        </ion-button>
+        <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
       </ion-item>
-    </ion-item>
-  </form>
+      <ion-item>
+        <ion-input formControlName="Identificacion" label="Identificación" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input formControlName="Telefono" label="Teléfono" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input formControlName="Correo" label="Correo" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-item>
+          <ion-button (click)="create()">
+            <ion-icon name="save-outline"></ion-icon>
+            Crear
+          </ion-button>
+          <ion-button (click)="search()">
+            <ion-icon name="close"></ion-icon>
+            Cancelar
+          </ion-button>
+        </ion-item>
+      </ion-item>
+  </ion-list>
+</form>
 </ion-content>
 <ion-content>
   <ion-list *ngFor="let tercero of terceros">

@@ -15,7 +15,7 @@ export interface Actividad{
   FechaInicioLimite?: Date;
   Firma?: string;
   IdEstado: string;
-  IdServicio: number;
+  IdServicio: string;
   IdRecurso: string;
   Insumos?: Insumo[];
   NavegarPorTransaccion: boolean;
