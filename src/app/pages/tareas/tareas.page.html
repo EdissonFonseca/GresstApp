@@ -56,10 +56,10 @@
           <ion-badge size="small" color="light" > {{ tarea.Cantidades }} </ion-badge>
         </ion-chip>
         <ion-buttons slot="end">
-          <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'E' || tarea.IdEstado == 'I'" (click)="openApproveTarea(transaccion.IdTransaccion, tarea.IdTarea)">
+          <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'P' || tarea.IdEstado == 'I'" (click)="openApproveTarea(transaccion.IdTransaccion, tarea.IdTarea)">
             <ion-icon name="checkmark"></ion-icon>
           </ion-button>
-          <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'E'" (click)="openRejectTarea(transaccion.IdTransaccion, tarea.IdTarea)">
+          <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'P'" (click)="openRejectTarea(transaccion.IdTransaccion, tarea.IdTarea)">
             <ion-icon name="close"></ion-icon>
           </ion-button>
           </ion-buttons>
@@ -73,7 +73,7 @@
     </ion-item>
     <ion-item *ngIf="tarea.Solicitud">
       {{ tarea.Solicitud }}
-    </ion-item>
+  </ion-item>
     <ion-item lines="none">
       <ion-chip slot="start" (click)="openApproveTarea('', tarea.IdTarea)">
         <ion-label>{{tarea.Accion}}</ion-label>
@@ -82,13 +82,13 @@
         <ion-badge size="small" color="light" > {{ tarea.Cantidades }} </ion-badge>
       </ion-chip>
       <ion-buttons slot="end">
-        <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'E' || tarea.IdEstado == 'I'" (click)="openApproveTarea('', tarea.IdTarea)">
+        <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'P' || tarea.IdEstado == 'I'" (click)="openApproveTarea('', tarea.IdTarea)">
           <ion-icon name="checkmark"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'E'" (click)="openRejectTarea('', tarea.IdTarea)">
+        <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'P'" (click)="openRejectTarea('', tarea.IdTarea)">
           <ion-icon name="close"></ion-icon>
         </ion-button>
-        </ion-buttons>
+      </ion-buttons>
     </ion-item>
   </ion-list>
 

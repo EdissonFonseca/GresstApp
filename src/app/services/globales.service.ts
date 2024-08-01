@@ -997,7 +997,7 @@ export class Globales {
       transaccion.ItemsPendientes = pendientes;
       transaccion.ItemsRechazados = rechazados;
       transaccion.Cantidades = resumen;
-      transaccion.Titulo = `${transaccion.Tercero} ${transaccion.Punto ?? ''}`;
+      transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
     return transacciones;

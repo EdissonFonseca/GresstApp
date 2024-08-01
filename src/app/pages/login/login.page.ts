@@ -48,18 +48,18 @@ export class LoginPage implements OnInit {
         const cuenta: Cuenta = await this.integrationService.getConfiguracion(token);
         await this.storage.set('Cuenta', cuenta);
 
-        //const actividades: Actividad[] = await this.integrationService.getActividades(token);
-        //await this.storage.set('Actividades', actividades);
+        const actividades: Actividad[] = await this.integrationService.getActividades(token);
+        await this.storage.set('Actividades', actividades);
 
-        //const inventario: Residuo[] = await this.integrationService.getInventario(token);
-        //await this.storage.set('Inventario', inventario);
+        const inventario: Residuo[] = await this.integrationService.getInventario(token);
+        await this.storage.set('Inventario', inventario);
 
         this.globales.hideLoading();
 
-        //if (cuenta.MostrarIntroduccion)
-        //  this.navCtrl.navigateRoot('/tutorial');
-        //else
-        //  this.navCtrl.navigateRoot('/home');
+        if (cuenta.MostrarIntroduccion)
+          this.navCtrl.navigateRoot('/tutorial');
+        else
+          this.navCtrl.navigateRoot('/home');
       }
       else {
         this.globales.hideLoading();
