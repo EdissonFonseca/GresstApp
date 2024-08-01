@@ -41,7 +41,7 @@ export class Globales {
     {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recepción', Icono: 'open'},
     {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recolección sin vehículo', Icono: 'cart'},
     {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: 'upload'},
-    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: 'car'},
+    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: 'truck'},
   ];
 
   constructor(
@@ -249,8 +249,10 @@ export class Globales {
   }
 
   async createResiduo(residuo: Residuo) {
-    const inventario: Residuo[] = await this.storage.get('Inventario');
+    let inventario: Residuo[] = await this.storage.get('Inventario');
 
+    if (!inventario)
+      inventario = [];
     inventario.push(residuo);
     await this.storage.set('Inventario', inventario);
   }

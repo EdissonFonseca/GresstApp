@@ -15,7 +15,7 @@ import { environment } from 'src/environments/environment';
   })
 export class MapaPage implements OnInit, AfterViewInit {
   @ViewChild('map') mapRef!: ElementRef<HTMLElement>;
-  gresstMap!: GoogleMap;
+  gresstMap !: GoogleMap;
   idActividad!: string;
   puntos: Punto[] = [];
 
@@ -31,7 +31,6 @@ export class MapaPage implements OnInit, AfterViewInit {
       this.idActividad = params["IdActividad"]
     });
     this.puntos = await this.globales.getPuntosFromTareas(this.idActividad);
-    console.log(this.puntos);
   }
 
   ngAfterViewInit(): void {
@@ -40,6 +39,8 @@ export class MapaPage implements OnInit, AfterViewInit {
 
   async createMap() {
     const currentLocation = await Geolocation.getCurrentPosition();
+    const mapElement = this.mapRef.nativeElement;
+
     this.gresstMap = await GoogleMap.create({
       id: 'gresstMap',
       element: this.mapRef.nativeElement,
@@ -64,8 +65,8 @@ export class MapaPage implements OnInit, AfterViewInit {
         snippet: punto.Direccion!}
       ));
     markers.push({coordinate: {lat: currentLocation.coords.latitude, lng: currentLocation.coords.longitude}, title:'Origen', snippet:'Origen'});
-    const result = this.gresstMap.addMarkers(markers);
 
+    const result = this.gresstMap.addMarkers(markers);
     this.gresstMap.setOnMarkerClickListener(async (marker) => {
       const modal = await this.modalCtrl.create({
         component: LocationComponent,

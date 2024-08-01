@@ -33,7 +33,6 @@
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/global.scss",
               "src/theme/variables.scss"
             ],
@@ -117,7 +116,6 @@
               }
             ],
             "styles": [
-              "@angular/material/prebuilt-themes/indigo-pink.css",
               "src/global.scss",
               "src/theme/variables.scss"
             ],

@@ -38,28 +38,37 @@
         <ion-button color="light" (click)="selectTratamiento()">...</ion-button>
       </ion-item>
       <ion-item *ngIf="medicion=='C' || captura == 'C'">
-        <ion-input type="number" inputmode="numeric" formControlName="Cantidad" aria-label="Cantidad" label="Un"></ion-input>
+        <ion-note slot="start">Cantidad</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="Cantidad" aria-label="Cantidad"></ion-input>
+        <ion-note slot="end">un</ion-note>
       </ion-item>
       <ion-item *ngIf="medicion=='P' || captura == 'P'">
-        <ion-input type="number" inputmode="numeric" formControlName="Peso" aria-label="Peso" label="kg"></ion-input>
+        <ion-note slot="start">Peso</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="Peso" aria-label="Peso"></ion-input>
+        <ion-note slot="end">kg</ion-note>
       </ion-item>
       <ion-item *ngIf="medicion=='V' || captura == 'V'">
-        <ion-input type="number" inputmode="numeric" formControlName="Volumen" aria-label="Volumen" label="m3"></ion-input>
+        <ion-note slot="start">Volumen</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="Volumen" aria-label="Volumen"></ion-input>
+        <ion-note slot="end">m3</ion-note>
       </ion-item>
       <ion-item detail="true" (click)="toggleShowDetails()">Otros detalles</ion-item>
       <ion-item *ngIf="showDetails">
-        <ion-label slot="start">Embalaje</ion-label>
+        <ion-note slot="start">Embalaje</ion-note>
         <ion-label>{{ package }}</ion-label>
         <ion-button color="light" (click)="selectEmbalaje()">...</ion-button>
       </ion-item>
       <ion-item *ngIf="showDetails">
-        <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje" aria-label="Cantidad" label="Cant Emb."></ion-input>
+        <ion-note slot="start">Cantidad</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje" aria-label="Cantidad"></ion-input>
       </ion-item>
       <ion-item *ngIf="showDetails">
-        <ion-input type="number" inputmode="numeric" formControlName="Valor" aria-label="Precio" label="Valor"></ion-input>
+        <ion-note slot="start">Valor</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="Valor" aria-label="Precio"></ion-input>
       </ion-item>
       <ion-item *ngIf="showDetails">
-        <ion-textarea formControlName="Observaciones" aria-label="Observaciones" label="Observaciones"></ion-textarea>
+        <ion-note slot="start">Observaciones</ion-note>
+        <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
       </ion-item>
       <ion-item lines="none" color="light">
         <img [src]="photo" *ngIf="photo">

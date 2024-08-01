@@ -28,6 +28,7 @@
     "@capacitor/google-maps": "^5.4.1",
     "@capacitor/ios": "^5.7.3",
     "@ionic/angular": "^7.0.0",
+    "@ionic/pwa-elements": "^3.3.0",
     "@ionic/storage-angular": "^4.0.0",
     "ionicons": "^7.0.0",
     "rxjs": "~7.8.0",

@@ -4,7 +4,10 @@
   </ion-toolbar>
   <ion-list *ngFor="let residuo of residuos" inset=true>
     <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
-      <ion-card-title>{{residuo.Material}} {{residuo.IdResiduo}}</ion-card-title>
+      <ion-card-title>{{residuo.Material}} </ion-card-title>
+    </ion-item>
+    <ion-item *ngIf="isNumeric(residuo.IdResiduo)" lines="none" (click)="openMenu(residuo.IdResiduo)">
+      <ion-note>#{{residuo.IdResiduo}}</ion-note>
     </ion-item>
     <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
       <ion-card-subtitle>{{residuo.Propietario}}{{residuo.DepositoOrigen}}{{residuo.Solicitud}}</ion-card-subtitle>

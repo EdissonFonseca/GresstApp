@@ -209,7 +209,6 @@ export class TaskApproveComponent  implements OnInit {
           Ubicacion: '' //TODO
         };
         await this.globales.createResiduo(residuo);
-        console.log(residuo);
       } else { //Tarea -> Salida
         idResiduo = this.residueId;
         const residuo = await this.globales.getResiduo(idResiduo);

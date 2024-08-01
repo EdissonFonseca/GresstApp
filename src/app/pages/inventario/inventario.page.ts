@@ -47,7 +47,9 @@ export class InventarioPage implements OnInit {
       this.imagePath = '../../../assets/img/bagblue.png';
     }
   }
-
+  isNumeric(value: any): boolean {
+    return !isNaN(value);
+  }
   getImagen(idResiduo: string) {
     //if (this.checkImageExists())
     const imageSrc: string = '../../../assets/img/bagblue.png';
