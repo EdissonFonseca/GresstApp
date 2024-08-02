@@ -2,15 +2,15 @@ export interface Material{
   IdMaterial: string;
 
   Aprovechable: boolean;
-  Captura: string;
   IdEmbalaje?: string;
   IdTratamientos?: string[];
-  Medicion: string;
   Nombre: string;
   Referencia?: string;
   Factor?: number;
   PrecioCompra?: number;
   PrecioServicio?: number;
+  TipoCaptura: string;
+  TipoMedicion: string;
   CRUD?: string;
   CRUDDate?: Date;
 }

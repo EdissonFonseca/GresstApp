@@ -1,5 +1,5 @@
 export interface Costo{
-  Fecha?: string;
+  Fecha: string;
   Descripcion?: string;
-  Valor?: number;
+  Valor: number;
 }

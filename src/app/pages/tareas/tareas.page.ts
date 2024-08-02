@@ -127,7 +127,7 @@ export class TareasPage implements OnInit {
       transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
       transaccion.Peso = (transaccion.Peso ?? 0) + (tarea.Peso ?? 0);
       transaccion.Volumen = (transaccion.Volumen ?? 0) + (tarea.Volumen ?? 0);
-      transaccion.Cantidades = this.globales.getResumen(transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
+      transaccion.Cantidades = this.globales.getResumen(null, null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
     }
   }
 
@@ -161,7 +161,7 @@ export class TareasPage implements OnInit {
       if (tarea)
       {
         const cuenta = await this.globales.getCuenta();
-        tarea.Cantidades = this.globales.getResumen(data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
+        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
         tarea.IdEstado = Estado.Aprobado;
       } else {
         this.tareas.push(data);
@@ -200,7 +200,7 @@ export class TareasPage implements OnInit {
       if (tarea)
       {
         const cuenta = await this.globales.getCuenta();
-        tarea.Cantidades = this.globales.getResumen(data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
+        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
         tarea.IdEstado = Estado.Aprobado;
         this.updateTransaccion(data);
       }

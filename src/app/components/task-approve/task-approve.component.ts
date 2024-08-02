@@ -9,6 +9,7 @@ import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/serv
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
+import { IntegrationService } from 'src/app/services/integration.service';
 
 @Component({
   selector: 'app-task-approve',
@@ -51,7 +52,8 @@ export class TaskApproveComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private sanitizer: DomSanitizer,
-    private globales: Globales
+    private globales: Globales,
+    private integration: IntegrationService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -89,8 +91,8 @@ export class TaskApproveComponent  implements OnInit {
       const materialItem = await this.globales.getMaterial(this.task.IdMaterial);
       if (materialItem) {
         this.material = materialItem.Nombre;
-        this.medicion = materialItem.Medicion;
-        this.captura = materialItem.Captura;
+        this.medicion = materialItem.TipoMedicion;
+        this.captura = materialItem.TipoCaptura;
       }
       if (this.task.IdPunto) {
         const puntoItem = await this.globales.getPunto(this.task.IdPunto);
@@ -144,13 +146,12 @@ export class TaskApproveComponent  implements OnInit {
       const material = await this.globales.getMaterial(this.materialId);
       if (material) {
         materialNombre = material.Nombre;
-        this.medicion = material.Medicion;
-        this.captura = material.Captura;
+        this.medicion = material.TipoMedicion;
+        this.captura = material.TipoCaptura;
       }
 
       const residuo = await this.globales.getResiduo(this.residueId);
       if (residuo) {
-        console.log(residuo);
         cantidad = residuo.Cantidad ?? 0;
         peso = residuo.Peso ?? 0;
         volumen = residuo.Volumen ?? 0;
@@ -172,6 +173,8 @@ export class TaskApproveComponent  implements OnInit {
    * Confirmar la tarea
    */
   async confirm() {
+    const now = new Date();
+    const isoDate = now.toISOString();
 
     if (!this.frmMaterial.valid) return;
 
@@ -185,6 +188,21 @@ export class TaskApproveComponent  implements OnInit {
 
     tarea = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
     if (tarea) { //Si hay tarea
+
+      tarea.CRUD = CRUDOperacion.Update;
+      tarea.CRUDDate = now;
+      tarea.Cantidad = data.Cantidad;
+      tarea.CantidadEmbalaje = data.CantidadEmbalaje;
+      tarea.FechaEjecucion = isoDate;
+      tarea.IdEmbalaje = data.IdEmbalaje;
+      tarea.IdEstado = Estado.Aprobado;
+      tarea.Observaciones = data.Observaciones;
+      tarea.Peso = data.Peso;
+      tarea.Volumen = data.Volumen;
+      tarea.Cantidades = this.globales.getResumen(null, null, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso ?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
+      tarea.Valor = data.Valor;
+      this.globales.updateTarea(this.activityId, this.transactionId, tarea);
+
       if (this.inputOutput == EntradaSalida.Entrada) { //Tarea -> Entrada
         idResiduo = this.globales.newId();
         const residuo: Residuo = {
@@ -206,9 +224,12 @@ export class TaskApproveComponent  implements OnInit {
           DepositoOrigen: this.point,
           EntradaSalida: EntradaSalida.Entrada,
           IdEstado: Estado.Pendiente,
+          FechaIngreso: isoDate,
           Ubicacion: '' //TODO
         };
         await this.globales.createResiduo(residuo);
+        await this.integration.updateTarea(tarea);
+
       } else { //Tarea -> Salida
         idResiduo = this.residueId;
         const residuo = await this.globales.getResiduo(idResiduo);
@@ -218,24 +239,10 @@ export class TaskApproveComponent  implements OnInit {
         }
       }
 
-      tarea.CRUD = CRUDOperacion.Update;
-      tarea.Cantidad = data.Cantidad;
-      tarea.CantidadEmbalaje = data.CantidadEmbalaje;
-      //tarea.FechaEjecucion =
-      //tarea.FechaIngreso =
-      tarea.IdEmbalaje = data.IdEmbalaje;
-      tarea.IdEstado = Estado.Aprobado;
-      tarea.IdResiduo = idResiduo;
-      tarea.Observaciones = data.Observaciones;
-      tarea.Peso = data.Peso;
-      tarea.Volumen = data.Volumen;
-      tarea.Cantidades = this.globales.getResumen(tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso ?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
-      tarea.Valor = data.Valor;
-      this.globales.updateTarea(this.activityId, this.transactionId, tarea);
-    } else { //No hay tarea
+    } else { //No hay tarea - Agregado
       const transaccion = await this.globales.getTransaccion(this.activityId, this.transactionId);
       if (transaccion){
-        if (transaccion.EntradaSalida == 'E') { //No Tarea -> Entrada
+        if (transaccion.EntradaSalida == 'E') { //No hay tarea -> Entrada
           const residuo: Residuo = {
             IdResiduo: this.globales.newId(),
             IdMaterial: this.materialId,
@@ -253,6 +260,7 @@ export class TaskApproveComponent  implements OnInit {
             Material: this.material,
             DepositoOrigen: this.point,
             IdEstado: Estado.Activo,
+            FechaIngreso: isoDate,
             Ubicacion: '' //TODO
           };
           await this.globales.createResiduo(residuo);
@@ -265,15 +273,20 @@ export class TaskApproveComponent  implements OnInit {
             Cantidad: data.Cantidad,
             Peso: data.Peso,
             Volumen: data.Volumen,
+            FechaIngreso: isoDate,
+            IdRecurso: actividad.IdRecurso,
+            IdServicio: actividad.IdServicio,
             CantidadEmbalaje: data.CantidadEmbalaje,
             IdEmbalaje: data.IdEmbalaje,
             Observaciones: data.Observaciones,
             EntradaSalida: EntradaSalida.Entrada,
             IdEstado: Estado.Aprobado,
-            Cantidades: this.globales.getResumen(data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
+            Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
           };
           await this.globales.createTarea(this.activityId, tarea);
-        } else { //No Tarea -> Salida
+          await this.integration.createTarea(tarea);
+
+        } else { //No hay tarea -> Salida
           const residuo = await this.globales.getResiduo(this.residueId);
           if (residuo) {
             tarea = {
@@ -283,6 +296,9 @@ export class TaskApproveComponent  implements OnInit {
               CRUD: CRUDOperacion.Create,
               IdTransaccion: this.transactionId,
               Cantidad: data.Cantidad,
+              FechaIngreso: isoDate,
+              IdRecurso: actividad.IdRecurso,
+              IdServicio: actividad.IdServicio,
               Peso: data.Peso,
               Volumen: data.Volumen,
               CantidadEmbalaje: data.CantidadEmbalaje,

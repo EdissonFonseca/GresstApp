@@ -3,13 +3,13 @@ export interface Punto {
 
   Direccion?: string;
   IdMateriales: string[];
-  IdTercero?: string;
+  IdTercero: string;
   Latitud?: string;
   Longitud?: string;
   Localizacion?: string;
   Nombre: string;
   Tercero?: string;
-  Tipo?: string;
+  Tipo: string;
   Acopio: boolean;
   Almacenamiento: boolean;
   Disposicion: boolean;

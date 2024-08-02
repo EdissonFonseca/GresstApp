@@ -15,6 +15,7 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
+import { IntegrationService } from 'src/app/services/integration.service';
 
 @Component({
   selector: 'app-task-add',
@@ -61,7 +62,7 @@ export class TaskAddComponent  implements OnInit {
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private navCtrl: NavController
+    private integration: IntegrationService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -248,6 +249,8 @@ export class TaskAddComponent  implements OnInit {
     let tarea: Tarea | undefined = undefined;
     let idTransaccion: string | null = null;
     let idResiduo: string | null = null;
+    const now = new Date();
+    const isoDate = now.toISOString();
 
     if (!this.formData.valid) return;
 
@@ -295,8 +298,10 @@ export class TaskAddComponent  implements OnInit {
               ItemsRechazados: 0,
               Titulo: this.punto,
               Icono: 'location',
+              IdRecurso: actividad.IdRecurso,
+              IdServicio: actividad.IdServicio,
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
-              Cantidades: this.globales.getResumen(data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
+              Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
             await this.globales.createTransaccion(this.idActividad, transaccion);
             idTransaccion = transaccion.IdTransaccion;
@@ -317,6 +322,8 @@ export class TaskAddComponent  implements OnInit {
               EntradaSalida:EntradaSalida.Transferencia,
               IdTercero: this.idPropietario,
               CRUD: CRUDOperacion.Create,
+              IdRecurso: actividad.IdRecurso,
+              IdServicio: actividad.IdServicio,
               Cantidad: data.Cantidad,
               Peso: data.Peso,
               Volumen: data.Volumen,
@@ -326,7 +333,7 @@ export class TaskAddComponent  implements OnInit {
               Titulo: this.propietario,
               Icono: 'person',
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
-              Cantidades: this.globales.getResumen(data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
+              Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
             await this.globales.createTransaccion(this.idActividad, transaccion);
             idTransaccion = transaccion.IdTransaccion;
@@ -360,14 +367,17 @@ export class TaskAddComponent  implements OnInit {
         IdServicio: actividad.IdServicio,
         IdTransaccion: idTransaccion,
         IdEstado: Estado.Aprobado,
+        IdRecurso: actividad.IdRecurso,
+        FechaIngreso: isoDate,
         Cantidad: data.Cantidad,
         Peso: data.Peso,
         Volumen: data.Volumen,
         CantidadEmbalaje: data.CantidadEmbalaje,
         IdEmbalaje: data.IdEmbalaje,
-        Cantidades: this.globales.getResumen(data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
+        Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
       };
       await this.globales.createTarea(this.idActividad, tarea);
+      await this.integration.createTarea(tarea);
     }
     this.modalCtrl.dismiss(tarea);
   }

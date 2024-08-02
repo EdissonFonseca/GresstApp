@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">
+        Cancelar
+      </ion-button>
+    </ion-buttons>
+    <ion-title></ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" (click)="confirm()">Confirmar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-item>
+  <ion-title>
+    <ion-label class="ion-text-wrap">
+      {{ title }}
+    </ion-label>
+  </ion-title>
+</ion-item>
+<ion-content>
+  <div class="signature-container" >
+    <canvas #canvas
+      (touchstart)="startDrawing($event)"
+      (touchmove)="draw($event)"
+      (touchend)="endDrawing()">
+    </canvas>
+  </div>
+  <ion-item *ngIf="showSignPad">
+    <ion-label>
+      Firma
+    </ion-label>
+    <ion-button (click)="clear()" slot="end" fill="clear">
+      <ion-label>Borrar Firma</ion-label>
+    </ion-button>
+  </ion-item>
+  <ion-item *ngIf="showName">
+    <ion-label>Nombre</ion-label>
+    <ion-input></ion-input>
+  </ion-item>
+  <ion-item *ngIf="showPin">
+    <ion-label>Identificación</ion-label>
+    <ion-input></ion-input>
+  </ion-item>
+  <ion-item *ngIf="showNotes">
+    <ion-label>Observaciones</ion-label>
+    <ion-input></ion-input>
+  </ion-item>
+</ion-content>
+<ion-footer>
+  <ion-item>
+    <ion-label color="danger" class="ion-text-wrap">{{ notesText }}</ion-label>
+  </ion-item>
+</ion-footer>

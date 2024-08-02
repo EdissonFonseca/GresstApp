@@ -4,6 +4,7 @@ import { ActionSheetController, IonModal, ModalController, NavController } from 
 import { ApproveComponent } from 'src/app/components/approve/approve.component';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
+import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
@@ -89,7 +90,7 @@ export class TransaccionesPage implements OnInit {
 
   async openApprove(id: string){
     const modal =   await this.modalCtrl.create({
-      component: ApproveComponent,
+      component: TransactionApproveComponent,
       componentProps: {
         title: `Finalizar ${this.proceso} ${this.titulo}`
       },
@@ -162,7 +163,7 @@ export class TransaccionesPage implements OnInit {
         transaccion.Peso += data.Peso;
         transaccion.Volumen += data.Volumen;
         transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
-        transaccion.Cantidades = this.globales.getResumen(transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
+        transaccion.Cantidades = this.globales.getResumen(null,null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
       }
     }
   }

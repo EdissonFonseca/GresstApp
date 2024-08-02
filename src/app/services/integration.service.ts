@@ -6,12 +6,15 @@ import { Embalaje } from '../interfaces/embalaje.interface';
 import { Material } from '../interfaces/material.interface';
 import { Insumo } from '../interfaces/insumo.interface';
 import { Tercero } from '../interfaces/tercero.interface';
+import { StorageService } from './storage.service';
+import { Tarea } from '../interfaces/tarea.interface';
+import { Transaccion } from '../interfaces/transaccion.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class IntegrationService {
-  private actividadesUrl = `${environment.apiUrl}/appactividades/get`;
+  private actividadesUrl = `${environment.apiUrl}/appactividades`;
   private configuracionUrl = `${environment.apiUrl}/appconfiguracion/get`;
   private inventarioUrl = `${environment.apiUrl}/appinventario/get`;
   private bancoUrl = `${environment.apiUrl}/appbanco/get`;
@@ -23,12 +26,13 @@ export class IntegrationService {
   private tercerosUrl = `${environment.apiUrl}/clientes`;
 
   constructor(
-    private authService: AuthService
+    private authService: AuthService,
+    private storage: StorageService
   ) {}
 
   async getActividades(token: string): Promise<any>{
     const headers = { 'Authorization': `Bearer ${token}` };
-    const options = { url: this.actividadesUrl, headers };
+    const options = { url: `${this.actividadesUrl}/get`, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.get(options);
@@ -164,7 +168,7 @@ export class IntegrationService {
   }
 
   async postMaterial(token: string, material: Material): Promise<boolean> {
-    const data = { IdMaterial: null, Nombre: material.Nombre, Medicion: material.Medicion, Captura: material.Captura, Referencia: material.Referencia, Factor: material.Factor, Aprovechable: material.Aprovechable };
+    const data = { IdMaterial: null, Nombre: material.Nombre, Medicion: material.TipoMedicion, Captura: material.TipoCaptura, Referencia: material.Referencia, Factor: material.Factor, Aprovechable: material.Aprovechable };
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.materialesUrl}/post`, data:data, headers };
 
@@ -208,4 +212,76 @@ export class IntegrationService {
       }
     }
   }
-}
+
+  async createTarea(tarea: Tarea): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.actividadesUrl}/createtarea`, data:tarea, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 201) { //Created
+        var residuoCreado = response.data;
+        tarea.CRUD = undefined;
+        tarea.CRUDDate = undefined;
+        tarea.Item = residuoCreado.IdItem;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
+  async updateTarea(tarea: Tarea): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.actividadesUrl}/updatetarea`, data:tarea, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) { //Ok
+        var residuoCreado = response.data;
+        tarea.CRUD = undefined;
+        tarea.CRUDDate = undefined;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
+  async updateTransaccion(transaccion: Transaccion): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.actividadesUrl}/updatetransaccion`, data:transaccion, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) { //Ok
+        var residuoCreado = response.data;
+        transaccion.CRUD = undefined;
+        transaccion.CRUDDate = undefined;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }}

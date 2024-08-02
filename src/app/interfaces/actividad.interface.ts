@@ -11,7 +11,7 @@ export interface Actividad{
   Costos?: Costo[];
   FechaFin?: Date;
   FechaFinLimite?: Date;
-  FechaInicio?: Date;
+  FechaInicio: Date;
   FechaInicioLimite?: Date;
   Firma?: string;
   IdEstado: string;

@@ -54,13 +54,15 @@ export class ResidueDismissComponent  implements OnInit {
     const cuenta = await this.globales.getCuenta();
     let actividad: Actividad | undefined = undefined;
     let transaccion: Transaccion | undefined = undefined;
+    const now = new Date();
+    const isoDate = now.toISOString();
 
     if (!this.residue) return;
 
     const personId = await this.globales.getIdPersona();
     actividad = await this.globales.getActividadByServicio(this.serviceId, this.pointId);
     if (!actividad) {
-      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: now};
       await this.globales.createActividad(actividad);
     }
     if (actividad) {
@@ -71,13 +73,15 @@ export class ResidueDismissComponent  implements OnInit {
           IdPunto: this.pointId,
           IdSolicitante: this.stakeholderId,
           IdEstado: Estado.Aprobado,
+          IdRecurso: actividad.IdRecurso,
+          FechaIngreso: isoDate,
           CRUD: CRUDOperacion.Create,
           EntradaSalida: EntradaSalida.Salida,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
           IdServicio: actividad.IdServicio,
-          Cantidades: this.globales.getResumen(this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
+          Cantidades: this.globales.getResumen(null, null, this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
         };
       await this.globales.createTarea(actividad.IdActividad, tarea);
     }

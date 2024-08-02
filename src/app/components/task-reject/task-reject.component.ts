@@ -5,6 +5,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { IntegrationService } from 'src/app/services/integration.service';
 
 @Component({
   selector: 'app-task-reject',
@@ -36,7 +37,8 @@ export class TaskRejectComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private navParams: NavParams,
     private modalCtrl: ModalController,
-    private globales: Globales
+    private globales: Globales,
+    private integration: IntegrationService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -86,6 +88,7 @@ export class TaskRejectComponent  implements OnInit {
         task.Observaciones = data.Observaciones;
         task.IdEstado = Estado.Rechazado;
         this.globales.updateTarea(this.activityId, this.transactionId, task);
+        this.integration.updateTarea(task);
         this.modalCtrl.dismiss(data);
       }
     }

@@ -117,7 +117,7 @@ export class MaterialsComponent  implements OnInit {
           break;
       }
 
-      const material: Material = {IdMaterial: this.globales.newId(), Nombre: formData.Nombre, Captura: captura, Factor: factor, Medicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
+      const material: Material = {IdMaterial: this.globales.newId(), Nombre: formData.Nombre, TipoCaptura: captura, Factor: factor, TipoMedicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
       const created = await this.globales.createMaterial(material);
       if (created)
       {

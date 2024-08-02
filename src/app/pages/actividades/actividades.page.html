@@ -6,7 +6,7 @@
   </ion-toolbar>
   <ion-list *ngFor="let actividad of actividades" inset="true">
     <ion-item lines="none" (click)="navigateToTarget(actividad.IdActividad)">
-      <ion-icon slot="start" size="large" [color]="getColorEstado(actividad.IdEstado)" [name]="actividad.Icono"></ion-icon>
+      <ion-icon slot="start" size="large" [color]="getColorEstado(actividad.IdEstado)" [src]="actividad.Icono"></ion-icon>
         {{ actividad.Titulo }}
     </ion-item >
     <ion-item *ngIf="formatJornada(actividad.IdActividad) != ''" lines="none">
@@ -37,7 +37,7 @@
     </ion-buttons>
   </ion-item>
 </ion-list>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="permiteAgregar">
     <ion-fab-button (click)="openAddActivity()" >
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>

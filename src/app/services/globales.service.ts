@@ -30,18 +30,18 @@ export class Globales {
     {IdEstado: Estado.Finalizado, Nombre:'Finalizado', Color:'secondary'},
     {IdEstado: Estado.Inactivo, Nombre:'Opcional', Color:'light'},
   ];
-  servicios: {IdServicio: string, Nombre: string, Accion: string, Icono: string}[] = [
-    {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenamiento temporal', Icono: 'archive'},
-    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenamiento definitivo', Icono:'car'},
-    {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechamiento de Residuos', Icono: 'construct'},
-    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificación / Separación', Icono: 'download'},
-    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disposición de Residuos', Icono: 'flame'},
-    {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Producción', Icono: 'archive'},
+  servicios: {IdServicio: string, Nombre: string, Accion: string, Icono: string} [] = [
+    {IdServicio:TipoServicio.Acopio, Nombre:'Acopio', Accion: 'Almacenamiento temporal', Icono: '../../assets/icon/warehouse.svg'},
+    {IdServicio:TipoServicio.Almacenamiento, Nombre:'Almacenamiento', Accion: 'Almacenamiento definitivo', Icono:'../../assets/icon/archive.svg'},
+    {IdServicio:TipoServicio.Aprovechamiento, Nombre:'Aprovechamiento', Accion: 'Aprovechamiento de Residuos', Icono: '../../assets/icon/sell.svg'},
+    {IdServicio:TipoServicio.Pretratamiento, Nombre:'Pretratamiento', Accion: 'Clasificación / Separación', Icono: '../../assets/icon/household.svg'},
+    {IdServicio:TipoServicio.Disposicion, Nombre:'Disposición', Accion: 'Disposición de Residuos', Icono: '../../assets/icon/fire.svg'},
+    {IdServicio:TipoServicio.Generacion, Nombre:'Generación', Accion: 'Producción', Icono: '../../assets/icon/recycle-bag.svg'},
     {IdServicio:TipoServicio.Entrega, Nombre:'Entrega', Accion: 'Entrega', Icono: 'archive'},
     {IdServicio:TipoServicio.Recepcion, Nombre:'Recepción', Accion: 'Recepción', Icono: 'open'},
-    {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recolección sin vehículo', Icono: 'cart'},
-    {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: 'upload'},
-    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: 'truck'},
+    {IdServicio:TipoServicio.Recoleccion, Nombre:'Recolección', Accion: 'Recolección sin vehículo', Icono: '../../assets/icon/forklift.svg'},
+    {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: '../../assets/icon/construct.svg'},
+    {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
 
   constructor(
@@ -75,22 +75,28 @@ export class Globales {
     );
   }
 
-  getResumen(cantidad: number,  unidadCantidad: string, peso: number, unidadPeso: string,  volumen: number, unidadVolumen: string) {
+  getResumen(tipoMedicion: string | null, tipoCaptura: string | null, cantidad: number,  unidadCantidad: string, peso: number, unidadPeso: string,  volumen: number, unidadVolumen: string) {
     let resumen: string = '';
-    if (cantidad > 0){
-      resumen += `${cantidad} ${unidadCantidad}`;
+    if (tipoMedicion == null || tipoMedicion == 'C' || tipoCaptura == 'C') {
+      if (cantidad > 0){
+        resumen += `${cantidad} ${unidadCantidad}`;
+      }
     }
-    if (peso > 0){
-      if (resumen != '')
-        resumen += `/${peso} ${unidadPeso}`;
-      else
-        resumen = `${peso} ${unidadPeso}`;
+    if (tipoMedicion == null || tipoMedicion == 'P' || tipoCaptura == 'P'){
+      if (peso > 0){
+        if (resumen != '')
+          resumen += `/${peso} ${unidadPeso}`;
+        else
+          resumen = `${peso} ${unidadPeso}`;
+      }
     }
-    if (volumen > 0){
-      if (resumen != '')
-        resumen += `/${volumen} ${unidadVolumen}`;
-      else
-        resumen = `${volumen} ${unidadVolumen}`;
+    if (tipoMedicion == null || tipoMedicion == 'V' || tipoCaptura == 'V') {
+      if (volumen > 0){
+        if (resumen != '')
+          resumen += `/${volumen} ${unidadVolumen}`;
+        else
+          resumen = `${volumen} ${unidadVolumen}`;
+      }
     }
     return resumen;
   }
@@ -629,6 +635,8 @@ export class Globales {
     let crear: boolean;
     let embalaje: string;
     let accion: string;
+    const now = new Date();
+    const isoDate = now.toISOString();
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
@@ -678,7 +686,7 @@ export class Globales {
                 validarInventario = true;
                 break;
             }
-            resumen = this.getResumen(tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
+            resumen = this.getResumen(material.TipoMedicion, material.TipoCaptura, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
             switch(tarea.IdServicio){
               case TipoServicio.Almacenamiento:
                 accion = 'Almacenar';
@@ -730,6 +738,9 @@ export class Globales {
                     IdTarea: this.newId(),
                     IdMaterial: material.IdMaterial,
                     Accion: 'Recoger',
+                    FechaIngreso : isoDate,
+                    IdRecurso: actividad.IdRecurso,
+                    IdServicio: actividad.IdServicio,
                     IdTransaccion: idTransaccion,
                     IdEstado: Estado.Inactivo,
                     EntradaSalida: EntradaSalida.Salida,
@@ -760,7 +771,7 @@ export class Globales {
                 if (embalajeData)
                   embalaje = `- (${residuo.CantidadEmbalaje ?? ''} ${embalajeData.Nombre}`;
               }
-              if (material.Medicion == TipoMedicion.Cantidad)
+              if (material.TipoMedicion == TipoMedicion.Cantidad)
                 cantidades = `${residuo.Cantidad ?? 0} Un ${embalaje}`;
               else
                 cantidades = `${residuo.Peso ?? 0} Kg ${embalaje}`;
@@ -783,6 +794,9 @@ export class Globales {
                   Accion: 'Entregar',
                   IdTransaccion: idTransaccion,
                   IdEstado: Estado.Inactivo,
+                  FechaIngreso: isoDate,
+                  IdRecurso: actividad.IdRecurso,
+                  IdServicio: actividad.IdServicio,
                   EntradaSalida: EntradaSalida.Salida,
                   Cantidades: cantidades,
                   Cantidad: residuo.Cantidad,

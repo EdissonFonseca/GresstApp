@@ -5,7 +5,7 @@ import { ActivityAddComponent } from 'src/app/components/activity-add/activity-a
 import { ApproveComponent } from 'src/app/components/approve/approve.component';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { Estado, TipoServicio } from 'src/app/services/constants.service';
+import { CRUDOperacion, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -15,6 +15,7 @@ import { Globales } from 'src/app/services/globales.service';
 })
 export class ActividadesPage implements OnInit {
   actividades: Actividad[] = [];
+  permiteAgregar: boolean = true;
 
   constructor(
     private navCtrl: NavController,
@@ -24,6 +25,11 @@ export class ActividadesPage implements OnInit {
   }
 
   async ngOnInit() {
+    var cuenta = await this.globales.getCuenta();
+
+    if (!cuenta) return;
+
+    this.permiteAgregar = cuenta.PermisosActividadesCRUD?.includes(CRUDOperacion.Create);
   }
 
   getColorEstado(idEstado: string): string {

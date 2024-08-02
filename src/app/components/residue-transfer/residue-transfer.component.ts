@@ -54,6 +54,8 @@ export class ResidueTransferComponent  implements OnInit {
     const cuenta = await this.globales.getCuenta();
     let actividad: Actividad | undefined = undefined;
     let transaccion: Transaccion | undefined = undefined;
+    const now = new Date();
+    const isoDate = now.toISOString();
 
     if (!this.residue) return;
 
@@ -63,7 +65,7 @@ export class ResidueTransferComponent  implements OnInit {
         actividad = await this.globales.getActividadByServicio(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto){
-            actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+            actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: now};
             await this.globales.createActividad(actividad);
           }
         }
@@ -74,6 +76,8 @@ export class ResidueTransferComponent  implements OnInit {
               IdTransaccion: this.globales.newId(),
               EntradaSalida: EntradaSalida.Salida,
               IdEstado: Estado.Pendiente,
+              IdRecurso: actividad.IdRecurso,
+              IdServicio: actividad.IdServicio,
               IdTercero: this.stakeholderId,
               CRUD: CRUDOperacion.Create,
               Titulo: '' // TODO
@@ -84,7 +88,7 @@ export class ResidueTransferComponent  implements OnInit {
       } else {
         actividad = await this.globales.getActividadByServicio(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
         if (!actividad){
-          actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: []};
+          actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: now};
           actividad.CRUD = CRUDOperacion.Create;
           await this.globales.createActividad(actividad);
         }
@@ -97,7 +101,9 @@ export class ResidueTransferComponent  implements OnInit {
               IdEstado: Estado.Pendiente, IdTercero:
               this.stakeholderId, IdPunto:
               this.pointId,
-              CRUD: CRUDOperacion.Create,
+              IdRecurso: actividad.IdRecurso,
+              IdServicio: actividad.IdServicio,
+                  CRUD: CRUDOperacion.Create,
               Titulo: '' // TODO
             };
             await this.globales.createTransaccion(actividad.IdActividad, transaccion);
@@ -110,6 +116,9 @@ export class ResidueTransferComponent  implements OnInit {
           IdTransaccion: transaccion?.IdTransaccion,
           IdMaterial: this.residue.IdMaterial,
           IdResiduo: this.residue.IdResiduo,
+          IdRecurso: actividad.IdRecurso,
+          IdServicio: actividad.IdServicio,
+          FechaIngreso: isoDate,
           IdPunto: this.pointId,
           IdSolicitante: this.stakeholderId,
           IdEstado: Estado.Aprobado,
@@ -118,7 +127,7 @@ export class ResidueTransferComponent  implements OnInit {
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
-          Cantidades: this.globales.getResumen(this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
+          Cantidades: this.globales.getResumen(null, null, this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
         };
         await this.globales.createTarea(actividad.IdActividad, tarea);
       }

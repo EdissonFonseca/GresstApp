@@ -60,7 +60,7 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let material of materials">
-      <ion-item (click)="select(material.IdMaterial, material.Nombre, material.Captura, material.Medicion, material.Factor ?? 0)">
+      <ion-item (click)="select(material.IdMaterial, material.Nombre, material.TipoCaptura, material.TipoMedicion, material.Factor ?? 0)">
         <ion-icon name="checkmark-outline" *ngIf="selectedValue === material.IdMaterial"></ion-icon>
         <ion-label>{{ material.Nombre }}</ion-label>
       </ion-item>

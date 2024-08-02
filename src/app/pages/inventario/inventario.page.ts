@@ -8,7 +8,7 @@ import { ResidueTransformComponent } from 'src/app/components/residue-transform/
 import { ResiduePublishComponent } from 'src/app/components/residue-publish/residue-publish.component';
 import { ResidueReceiveComponent } from 'src/app/components/residue-receive/residue-receive.component';
 import { ResidueTransferComponent } from 'src/app/components/residue-transfer/residue-transfer.component';
-import { Estado } from 'src/app/services/constants.service';
+import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 
 @Component({
@@ -19,6 +19,7 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 export class InventarioPage implements OnInit {
   residuos: Residuo[] = [];
   imagePath: string = '';
+  permiteAgregar: boolean = true;
 
   constructor(
     private modalCtrl: ModalController,
@@ -29,6 +30,11 @@ export class InventarioPage implements OnInit {
     }
 
   async ngOnInit() {
+    var cuenta = await this.globales.getCuenta();
+
+    if (!cuenta) return;
+
+    this.permiteAgregar = cuenta.PermisosActividadesCRUD?.includes(CRUDOperacion.Create);
     this.menuCtrl.enable(true);
   }
 

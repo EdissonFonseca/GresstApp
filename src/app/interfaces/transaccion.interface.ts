@@ -9,6 +9,8 @@ export interface Transaccion {
   IdEstado: string;
   IdPunto?: string;
   IdTercero?: string;
+  IdRecurso: string;
+  IdServicio: string;
   Kilometraje?: number;
   NumeroTransaccion?: string;
   Observaciones?: string;

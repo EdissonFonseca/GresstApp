@@ -80,6 +80,8 @@ export class ResidueReceiveComponent implements OnInit {
     let entradaSalida: string = EntradaSalida.Transferencia;
     let estaEnJornada: boolean = true;
     const data = this.formData.value;
+    const now = new Date();
+    const isoDate = now.toISOString();
 
     if (this.fecha == null){
       this.fecha = new Date();
@@ -158,6 +160,8 @@ export class ResidueReceiveComponent implements OnInit {
         if (!transaccion) {
           transaccion = {
             IdTransaccion: this.globales.newId(),
+            IdServicio: actividad.IdServicio,
+            IdRecurso: actividad.IdRecurso,
             IdEstado: Estado.Aprobado,
             Titulo: this.propietario,
             IdTercero: this.idPropietario,
@@ -172,6 +176,8 @@ export class ResidueReceiveComponent implements OnInit {
           transaccion = {
             IdTransaccion: this.globales.newId(),
             IdEstado: Estado.Aprobado,
+            IdRecurso: actividad.IdRecurso,
+            IdServicio: actividad.IdServicio,
             Titulo: this.puntoRecoleccion,
             IdTercero: this.idPropietario,
             IdPunto: this.idPuntoRecoleccion,
@@ -188,6 +194,8 @@ export class ResidueReceiveComponent implements OnInit {
         IdEstado: Estado.Aprobado,
         IdMaterial: this.idMaterial,
         IdResiduo: residuo.IdResiduo,
+        IdRecurso: actividad.IdRecurso,
+        FechaIngreso: isoDate,
         EntradaSalida: EntradaSalida.Entrada,
         Cantidad: residuo.Cantidad,
         Peso: residuo.Peso,

@@ -36,7 +36,7 @@
       </ion-button>
       </ion-item>
   </ion-list>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="permiteAgregar">
     <ion-fab-button (click)="receiveResiduo()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
