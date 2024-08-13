@@ -74,7 +74,6 @@ export class ResidueTransferComponent  implements OnInit {
           if (!transaccion) {
             transaccion = {
               IdTransaccion: this.globales.newId(),
-              EntradaSalida: EntradaSalida.Salida,
               IdEstado: Estado.Pendiente,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
@@ -97,13 +96,12 @@ export class ResidueTransferComponent  implements OnInit {
           if (!transaccion) {
             transaccion = {
               IdTransaccion: this.globales.newId(),
-              EntradaSalida: EntradaSalida.Salida,
               IdEstado: Estado.Pendiente, IdTercero:
               this.stakeholderId, IdPunto:
               this.pointId,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
-                  CRUD: CRUDOperacion.Create,
+              CRUD: CRUDOperacion.Create,
               Titulo: '' // TODO
             };
             await this.globales.createTransaccion(actividad.IdActividad, transaccion);
@@ -118,15 +116,16 @@ export class ResidueTransferComponent  implements OnInit {
           IdResiduo: this.residue.IdResiduo,
           IdRecurso: actividad.IdRecurso,
           IdServicio: actividad.IdServicio,
-          FechaIngreso: isoDate,
+          FechaSistema: isoDate,
           IdPunto: this.pointId,
-          IdSolicitante: this.stakeholderId,
+          IdTercero: this.stakeholderId,
           IdEstado: Estado.Aprobado,
           CRUD: CRUDOperacion.Create,
           EntradaSalida: EntradaSalida.Salida,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
+          Fotos: [],
           Cantidades: this.globales.getResumen(null, null, this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
         };
         await this.globales.createTarea(actividad.IdActividad, tarea);

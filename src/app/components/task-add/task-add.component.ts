@@ -287,7 +287,6 @@ export class TaskAddComponent  implements OnInit {
             const transaccion: Transaccion = {
               IdTransaccion: this.globales.newId(),
               IdEstado: Estado.Pendiente,
-              EntradaSalida:EntradaSalida.Transferencia,
               IdPunto: this.idPunto,
               CRUD: CRUDOperacion.Create,
               Cantidad: data.Cantidad,
@@ -300,6 +299,8 @@ export class TaskAddComponent  implements OnInit {
               Icono: 'location',
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
+              NombrePersonaEntrega: '',
+              CargoPersonaEntrega: '',
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
               Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
@@ -319,7 +320,6 @@ export class TaskAddComponent  implements OnInit {
             const transaccion: Transaccion = {
               IdTransaccion: this.globales.newId(),
               IdEstado: Estado.Pendiente,
-              EntradaSalida:EntradaSalida.Transferencia,
               IdTercero: this.idPropietario,
               CRUD: CRUDOperacion.Create,
               IdRecurso: actividad.IdRecurso,
@@ -332,6 +332,8 @@ export class TaskAddComponent  implements OnInit {
               ItemsRechazados: 0,
               Titulo: this.propietario,
               Icono: 'person',
+              NombrePersonaEntrega: '',
+              CargoPersonaEntrega: '',
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
               Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
@@ -360,7 +362,7 @@ export class TaskAddComponent  implements OnInit {
         Material : this.material,
         IdResiduo: idResiduo,
         IdPunto: this.idPunto,
-        IdSolicitante: this.idPropietario,
+        IdTercero: this.idPropietario,
         Accion: 'Recoger',
         CRUD: CRUDOperacion.Create,
         EntradaSalida: EntradaSalida.Entrada,
@@ -368,12 +370,13 @@ export class TaskAddComponent  implements OnInit {
         IdTransaccion: idTransaccion,
         IdEstado: Estado.Aprobado,
         IdRecurso: actividad.IdRecurso,
-        FechaIngreso: isoDate,
+        FechaSistema: isoDate,
         Cantidad: data.Cantidad,
         Peso: data.Peso,
         Volumen: data.Volumen,
         CantidadEmbalaje: data.CantidadEmbalaje,
         IdEmbalaje: data.IdEmbalaje,
+        Fotos: [],
         Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
       };
       await this.globales.createTarea(this.idActividad, tarea);

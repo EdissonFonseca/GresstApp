@@ -165,7 +165,9 @@ export class ResidueReceiveComponent implements OnInit {
             IdEstado: Estado.Aprobado,
             Titulo: this.propietario,
             IdTercero: this.idPropietario,
-            EntradaSalida: entradaSalida,
+            Firma: new Blob(),
+            NombrePersonaEntrega: '',
+            CargoPersonaEntrega: ''
           }
           await this.globales.createTransaccion(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
@@ -181,7 +183,9 @@ export class ResidueReceiveComponent implements OnInit {
             Titulo: this.puntoRecoleccion,
             IdTercero: this.idPropietario,
             IdPunto: this.idPuntoRecoleccion,
-            EntradaSalida: entradaSalida,
+            Firma: new Blob(),
+            NombrePersonaEntrega: '',
+            CargoPersonaEntrega: ''
           }
           await this.globales.createTransaccion(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
@@ -195,11 +199,12 @@ export class ResidueReceiveComponent implements OnInit {
         IdMaterial: this.idMaterial,
         IdResiduo: residuo.IdResiduo,
         IdRecurso: actividad.IdRecurso,
-        FechaIngreso: isoDate,
+        FechaSistema: isoDate,
         EntradaSalida: EntradaSalida.Entrada,
         Cantidad: residuo.Cantidad,
         Peso: residuo.Peso,
         Volumen: residuo.Volumen,
+        Fotos: []
       };
       await this.globales.createTarea(actividad.IdActividad, tarea);
     }

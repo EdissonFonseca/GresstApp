@@ -64,9 +64,9 @@ export class TaskRejectComponent  implements OnInit {
         this.point = puntoItem?.Nombre ?? '';
       }
 
-      if (this.task.IdSolicitante)
+      if (this.task.IdTercero)
       {
-        const solicitante = await this.globales.getTercero(this.task.IdSolicitante);
+        const solicitante = await this.globales.getTercero(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
       }
 

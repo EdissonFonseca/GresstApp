@@ -18,6 +18,7 @@ import { Tratamiento } from '../interfaces/tratamiento.interface';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
 import { IntegrationService } from './integration.service';
 import { StorageService } from './storage.service';
+import { Photo } from '@capacitor/camera';
 
 @Injectable({
   providedIn: 'root',
@@ -269,6 +270,11 @@ export class Globales {
     if (actividad){
       actividad.Tareas.push(tarea);
       await this.storage.set('Actividades', actividades);
+
+      if (await this.integration.createTarea(tarea)){
+        await this.integration.uploadFotosTarea(tarea);
+      }
+
     }
   }
 
@@ -738,7 +744,7 @@ export class Globales {
                     IdTarea: this.newId(),
                     IdMaterial: material.IdMaterial,
                     Accion: 'Recoger',
-                    FechaIngreso : isoDate,
+                    FechaSistema : isoDate,
                     IdRecurso: actividad.IdRecurso,
                     IdServicio: actividad.IdServicio,
                     IdTransaccion: idTransaccion,
@@ -746,6 +752,7 @@ export class Globales {
                     EntradaSalida: EntradaSalida.Salida,
                     Material: material.Nombre,
                     CRUDDate: new Date(),
+                    Fotos: []
                   };
                   tareas.push(tarea);
                 }
@@ -757,7 +764,7 @@ export class Globales {
       if (actividad.IdServicio === TipoServicio.Transporte) {
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
 
-        if (transaccion && (transaccion.EntradaSalida == 'S' || transaccion.EntradaSalida == 'T')){
+        if (transaccion){
           const residuos = (await this.getInventario()).filter(x => x.IdVehiculo == actividad.IdRecurso);
           residuos.forEach((residuo) => {
             const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
@@ -794,7 +801,7 @@ export class Globales {
                   Accion: 'Entregar',
                   IdTransaccion: idTransaccion,
                   IdEstado: Estado.Inactivo,
-                  FechaIngreso: isoDate,
+                  FechaSistema: isoDate,
                   IdRecurso: actividad.IdRecurso,
                   IdServicio: actividad.IdServicio,
                   EntradaSalida: EntradaSalida.Salida,
@@ -804,6 +811,7 @@ export class Globales {
                   Volumen: residuo.Volumen,
                   Material: material.Nombre,
                   CRUDDate: new Date(),
+                  Fotos: []
                 };
                 tareas.push(tarea);
               }
@@ -966,6 +974,14 @@ export class Globales {
               ubicacion = `${punto.Direccion}`;
             }
             transaccion.Ubicacion = ubicacion;
+            if (punto.Entrega && punto.Recepcion)
+              operacion = EntradaSalida.Transferencia;
+            else if (punto.Entrega)
+              operacion = EntradaSalida.Entrada;
+            else if (punto.Recepcion)
+              operacion = EntradaSalida.Salida;
+            else
+              operacion = EntradaSalida.Transferencia;
 
             if (cantidad > 0){
               resumen += `${cantidad} ${cuenta.UnidadCantidad}`;
@@ -1005,7 +1021,7 @@ export class Globales {
           }
         }
       }
-      transaccion.Accion = this.getAccionEntradaSalida(transaccion.EntradaSalida ?? '');
+      transaccion.Accion = this.getAccionEntradaSalida(operacion ?? '');
       transaccion.Cantidad = cantidad;
       transaccion.Peso = peso;
       transaccion.Volumen = volumen;
@@ -1062,11 +1078,34 @@ export class Globales {
       const transaccionActual: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == trx.IdTransaccion);
       if (transaccionActual) {
         transaccionActual.IdEstado = transaccion.IdEstado;
+        transaccionActual.NombrePersonaEntrega = transaccion.NombrePersonaEntrega;
+        transaccionActual.CargoPersonaEntrega = transaccion.CargoPersonaEntrega;
+        transaccionActual.Firma = transaccion.Firma;
+
+        const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
+        tareasSincronizar.forEach(async(tarea) => {
+          await this.updateTarea(idActividad, transaccion.IdTransaccion, tarea);
+          tarea.CRUD =  null;;
+          tarea.CRUDDate = null;
+        });
+
+        const tareasRechazar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD == null && x.IdEstado == Estado.Pendiente);
+        tareasRechazar.forEach(async(tarea) => {
+          tarea.IdEstado = Estado.Rechazado;
+          await this.updateTarea(idActividad, transaccion.IdTransaccion, tarea);
+          tarea.CRUD =  null;;
+          tarea.CRUDDate = null;
+        });
+        if (await this.integration.updateTransaccion(transaccionActual)) {
+          this.integration.uploadFirmaTransaccion(transaccionActual);
+        }
+
+        await this.storage.set("Actividades", actividades);
       }
     }
-    await this.storage.set("Actividades", actividades);
   }
 
+  ///Modifica la solicitud/item o la tarea correspondiente
   async updateTarea(idActividad: string, idTransaccion: string, tarea: Tarea) {
     let tareaUpdate: Tarea | undefined = undefined;
     const actividades: Actividad[] = await this.storage.get('Actividades');
@@ -1084,9 +1123,16 @@ export class Globales {
         tareaUpdate.Valor = tarea.Valor;
         tareaUpdate.Observaciones = tarea.Observaciones;
         tareaUpdate.IdEstado = tarea.IdEstado;
+        tareaUpdate.Fotos = tarea.Fotos;
       }
     }
     await this.storage.set("Actividades", actividades);
+
+    if (await this.integration.updateTarea(tarea)){
+      await this.integration.uploadFotosTarea(tarea);
+      tarea.CRUD = null;
+      tarea.CRUDDate = null;
+    }
   }
 
   async updateResiduo(residuo: Residuo) {

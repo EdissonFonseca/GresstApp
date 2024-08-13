@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
-import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
-import { ApproveComponent } from 'src/app/components/approve/approve.component';
+import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskApproveComponent } from 'src/app/components/task-approve/task-approve.component';
 import { TaskRejectComponent } from 'src/app/components/task-reject/task-reject.component';
-import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
+import { Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
+import { ModalController } from '@ionic/angular';
 
 @Component({
   selector: 'app-tareas',
@@ -31,8 +31,8 @@ export class TareasPage implements OnInit {
 
   constructor(
     private globales: Globales,
-    private modalCtrl: ModalController,
     private route: ActivatedRoute,
+    private modalCtrl: ModalController,
   ) {
   }
 
@@ -233,17 +233,12 @@ export class TareasPage implements OnInit {
 
   async openApprove(id: string){
     const modal =   await this.modalCtrl.create({
-      component: ApproveComponent,
+      component: TransactionApproveComponent,
       componentProps: {
         ActivityId: this.idActividad,
-        TransactionId: this.idTransaccion,
-        TaskId: id,
-        MaterialId: id,
-        ResidueId: null,
-        InputOutput: 'E'
+        TransactionId: id,
       },
     });
-
     await modal.present();
 
     const { data } = await modal.onDidDismiss();

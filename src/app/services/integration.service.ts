@@ -246,12 +246,13 @@ export class IntegrationService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
-        var residuoCreado = response.data;
-        tarea.CRUD = undefined;
-        tarea.CRUDDate = undefined;
+        if (response.data != null)
+          tarea.IdResiduo = response.data;
+         tarea.CRUD = null;
+        tarea.CRUDDate = null;
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -259,6 +260,47 @@ export class IntegrationService {
       } else {
         throw new Error(`Unknown error: ${error}`);
       }
+    }
+  }
+
+  async uploadFotosTarea(tarea: Tarea): Promise<boolean> {
+    if (tarea.Fotos && tarea.Fotos.length > 0) {
+      const token: string = await this.storage.get('Token');
+      const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+
+      const formData = new FormData();
+      formData.append('IdSolicitud', (tarea.IdDocumento ?? "").toString());
+      formData.append('Item', (tarea.Item ?? "").toString());
+
+      for (const [index, photo] of tarea.Fotos.entries()) {
+        if (photo.webPath) {
+            try {
+                const response = await fetch(photo.webPath);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    formData.append(`photos`, blob, `photo${index + 1}.jpg`);
+                }
+            } catch {
+            }
+        }
+      }
+      const options = { url: `${this.actividadesUrl}/uploadfotostarea`, data:formData, headers };
+      try{
+        const response: HttpResponse = await CapacitorHttp.post(options);
+        if (response.status == 200) { //Ok
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Request error: ${error.message}`);
+        } else {
+          throw new Error(`Unknown error: ${error}`);
+        }
+      }
+    } else {
+      return true;
     }
   }
 
@@ -270,7 +312,6 @@ export class IntegrationService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
-        var residuoCreado = response.data;
         transaccion.CRUD = undefined;
         transaccion.CRUDDate = undefined;
         return true;
@@ -284,4 +325,38 @@ export class IntegrationService {
         throw new Error(`Unknown error: ${error}`);
       }
     }
-  }}
+  }
+
+  async uploadFirmaTransaccion(transaccion: Transaccion): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+
+    if (transaccion.Firma)
+    {
+      const formData = new FormData();
+      formData.append('IdServicio', (transaccion.IdServicio ?? "").toString());
+      formData.append('IdRecurso', (transaccion.IdRecurso ?? "").toString());
+      formData.append('IdTercero', (transaccion.IdTercero ?? "").toString());
+      formData.append('IdPunto', (transaccion.IdPunto ?? "").toString());
+      formData.append('Fecha', (transaccion.FechaProgramada ?? "").toString());
+      formData.append('Signature', transaccion.Firma, 'signature.png');
+      const options = { url: `${this.actividadesUrl}/uploadfirmatransaccion`, data:formData, headers };
+      try{
+        const response: HttpResponse = await CapacitorHttp.post(options);
+        if (response.status == 200) { //Ok
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Request error: ${error.message}`);
+        } else {
+          throw new Error(`Unknown error: ${error}`);
+        }
+      }
+    } else {
+      return false;
+    }
+  }
+}

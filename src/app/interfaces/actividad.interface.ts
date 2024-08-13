@@ -10,9 +10,7 @@ export interface Actividad{
   CRUDDate?: Date;
   Costos?: Costo[];
   FechaFin?: Date;
-  FechaFinLimite?: Date;
   FechaInicio: Date;
-  FechaInicioLimite?: Date;
   Firma?: string;
   IdEstado: string;
   IdServicio: string;

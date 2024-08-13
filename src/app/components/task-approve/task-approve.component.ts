@@ -1,15 +1,14 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { SafeResourceUrl } from '@angular/platform-browser';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { PackagesComponent } from '../packages/packages.component';
 import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { IntegrationService } from 'src/app/services/integration.service';
 
 @Component({
   selector: 'app-task-approve',
@@ -22,7 +21,7 @@ export class TaskApproveComponent  implements OnInit {
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
   @Input() notesText: string = 'Al aprobar la operacion, todos los pendientes quedan descartados';
-  frmMaterial: FormGroup;
+  frmTarea: FormGroup;
   activityId: string = '';
   captura: string = '';
   material: string = '';
@@ -46,14 +45,13 @@ export class TaskApproveComponent  implements OnInit {
   targetId: string = '';
   treatmentId: string = '';
   treatment: string = '';
+  fotos: Photo[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
     private navParams: NavParams,
     private modalCtrl: ModalController,
-    private sanitizer: DomSanitizer,
     private globales: Globales,
-    private integration: IntegrationService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -62,7 +60,7 @@ export class TaskApproveComponent  implements OnInit {
     this.residueId = this.navParams.get("ResidueId");
     this.inputOutput = this.navParams.get("InputOutput");
 
-    this.frmMaterial = this.formBuilder.group({
+    this.frmTarea = this.formBuilder.group({
       Cantidad: [],
       Peso: [],
       CantidadEmbalaje: [],
@@ -100,8 +98,8 @@ export class TaskApproveComponent  implements OnInit {
         this.pointId = puntoItem?.IdPunto ?? '';
       }
 
-      if (this.task.IdSolicitante) {
-        const solicitante = await this.globales.getTercero(this.task.IdSolicitante);
+      if (this.task.IdTercero) {
+        const solicitante = await this.globales.getTercero(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
         this.stakeholderId = solicitante?.IdPersona ?? '';
       }
@@ -115,7 +113,7 @@ export class TaskApproveComponent  implements OnInit {
         }
       }
 
-      this.frmMaterial.patchValue({
+      this.frmTarea.patchValue({
         Cantidad: cantidad,
         Peso: peso,
         CantidadEmbalaje: this.task?.CantidadEmbalaje,
@@ -162,7 +160,7 @@ export class TaskApproveComponent  implements OnInit {
       this.pointId = puntoId;
       this.stakeholder = terceroNombre;
       this.stakeholderId = terceroId;
-      this.frmMaterial.patchValue({
+      this.frmTarea.patchValue({
         Cantidad: cantidad,
         Peso: peso,
       });
@@ -176,11 +174,11 @@ export class TaskApproveComponent  implements OnInit {
     const now = new Date();
     const isoDate = now.toISOString();
 
-    if (!this.frmMaterial.valid) return;
+    if (!this.frmTarea.valid) return;
 
     let idResiduo: string | null = null;
     let tarea: Tarea | undefined;
-    const data = this.frmMaterial.value;
+    const data = this.frmTarea.value;
     const actividad = await this.globales.getActividad(this.activityId);
     const cuenta = await this.globales.getCuenta();
 
@@ -188,7 +186,6 @@ export class TaskApproveComponent  implements OnInit {
 
     tarea = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
     if (tarea) { //Si hay tarea
-
       tarea.CRUD = CRUDOperacion.Update;
       tarea.CRUDDate = now;
       tarea.Cantidad = data.Cantidad;
@@ -201,6 +198,7 @@ export class TaskApproveComponent  implements OnInit {
       tarea.Volumen = data.Volumen;
       tarea.Cantidades = this.globales.getResumen(null, null, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso ?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
       tarea.Valor = data.Valor;
+      tarea.Fotos = this.fotos;
       this.globales.updateTarea(this.activityId, this.transactionId, tarea);
 
       if (this.inputOutput == EntradaSalida.Entrada) { //Tarea -> Entrada
@@ -228,8 +226,6 @@ export class TaskApproveComponent  implements OnInit {
           Ubicacion: '' //TODO
         };
         await this.globales.createResiduo(residuo);
-        await this.integration.updateTarea(tarea);
-
       } else { //Tarea -> Salida
         idResiduo = this.residueId;
         const residuo = await this.globales.getResiduo(idResiduo);
@@ -238,11 +234,11 @@ export class TaskApproveComponent  implements OnInit {
           this.globales.updateResiduo(residuo);
         }
       }
-
     } else { //No hay tarea - Agregado
       const transaccion = await this.globales.getTransaccion(this.activityId, this.transactionId);
       if (transaccion){
-        if (transaccion.EntradaSalida == 'E') { //No hay tarea -> Entrada
+        const punto = await this.globales.getPunto(transaccion.IdPunto ?? '');
+        if (punto?.Recepcion) { //No hay tarea -> Entrada
           const residuo: Residuo = {
             IdResiduo: this.globales.newId(),
             IdMaterial: this.materialId,
@@ -273,7 +269,7 @@ export class TaskApproveComponent  implements OnInit {
             Cantidad: data.Cantidad,
             Peso: data.Peso,
             Volumen: data.Volumen,
-            FechaIngreso: isoDate,
+            FechaSistema: isoDate,
             IdRecurso: actividad.IdRecurso,
             IdServicio: actividad.IdServicio,
             CantidadEmbalaje: data.CantidadEmbalaje,
@@ -281,11 +277,10 @@ export class TaskApproveComponent  implements OnInit {
             Observaciones: data.Observaciones,
             EntradaSalida: EntradaSalida.Entrada,
             IdEstado: Estado.Aprobado,
+            Fotos: this.fotos,
             Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
           };
           await this.globales.createTarea(this.activityId, tarea);
-          await this.integration.createTarea(tarea);
-
         } else { //No hay tarea -> Salida
           const residuo = await this.globales.getResiduo(this.residueId);
           if (residuo) {
@@ -296,7 +291,7 @@ export class TaskApproveComponent  implements OnInit {
               CRUD: CRUDOperacion.Create,
               IdTransaccion: this.transactionId,
               Cantidad: data.Cantidad,
-              FechaIngreso: isoDate,
+              FechaSistema: isoDate,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
               Peso: data.Peso,
@@ -305,6 +300,7 @@ export class TaskApproveComponent  implements OnInit {
               IdEmbalaje: data.IdEmbalaje,
               Observaciones: data.Observaciones,
               EntradaSalida: EntradaSalida.Entrada,
+              Fotos: this.fotos,
               IdEstado: Estado.Aprobado,
               };
             await this.globales.createTarea(this.activityId, tarea);
@@ -370,7 +366,7 @@ export class TaskApproveComponent  implements OnInit {
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
     });
-    this.photo = this.sanitizer.bypassSecurityTrustResourceUrl(image.webPath || '');
+    this.fotos.push(image);
   };
 
   toggleShowDetails() {

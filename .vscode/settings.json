@@ -316,12 +316,15 @@
   "java.configuration.updateBuildConfiguration": "interactive",
   "cSpell.ignoreWords": [
     "Bienvenido",
+    "Borrar",
     "Clasificación",
     "Desechar",
     "Documento",
     "Estado",
     "Finalizar",
+    "Fotos",
     "GresstApp",
+    "Identificación",
     "Introduccion",
     "Kilometraje",
     "Latitud",
@@ -348,14 +351,18 @@
     "encuentra",
     "existuser",
     "geolocation",
+    "guardada",
     "ionicons",
     "listinterlocutores",
     "listmensajes",
+    "marcar",
     "mensajes",
     "produccion",
     "sendwithtoken",
     "updatesolicituditemfromtarea",
     "updatetarea",
-    "updatetransaccion"
+    "updatetransaccion",
+    "uploadfirmatransaccion",
+    "uploadfotostarea"
   ]
 }

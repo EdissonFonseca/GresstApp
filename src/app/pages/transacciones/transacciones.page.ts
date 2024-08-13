@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
-import { ActionSheetController, IonModal, ModalController, NavController } from '@ionic/angular';
-import { ApproveComponent } from 'src/app/components/approve/approve.component';
+import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
@@ -31,7 +30,6 @@ export class TransaccionesPage implements OnInit {
     private route: ActivatedRoute,
     private globales:Globales,
     private modalCtrl: ModalController,
-    private actionSheetCtrl: ActionSheetController,
   ) {}
 
   async ngOnInit() {
@@ -92,7 +90,9 @@ export class TransaccionesPage implements OnInit {
     const modal =   await this.modalCtrl.create({
       component: TransactionApproveComponent,
       componentProps: {
-        title: `Finalizar ${this.proceso} ${this.titulo}`
+        title: `Finalizar ${this.proceso} ${this.titulo}`,
+        ActivityId: this.idActividad,
+        TransactionId: id,
       },
     });
 

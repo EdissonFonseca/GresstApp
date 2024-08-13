@@ -1,13 +1,16 @@
+import { Photo } from "@capacitor/camera";
+
 export interface Tarea{
   IdTarea: string;
 
   Cantidad?: number;
   CantidadEmbalaje?: number;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
   EntradaSalida: string;
+  FechaDocumento?: string;
   FechaEjecucion?: string;
-  FechaIngreso: string;
+  FechaSistema: string;
   FechaProgramada?: string;
   IdEmbalaje?: string;
   IdEstado: string;
@@ -17,8 +20,8 @@ export interface Tarea{
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;
-  IdSolicitud?: string;
-  IdSolicitante?: string;
+  IdDocumento?: string;
+  IdTercero?: string;
   IdTransaccion?: string;
   IdTratamiento?: string;
   Imagen?: string | null;
@@ -26,6 +29,7 @@ export interface Tarea{
   Peso?: number | null;
   Valor?: number;
   Volumen?: number;
+  Fotos: Photo[];
 
   Accion?: string;
   Cantidades?: string;

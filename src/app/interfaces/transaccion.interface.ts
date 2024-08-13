@@ -1,17 +1,19 @@
 export interface Transaccion {
   IdTransaccion: string;
 
+  CargoPersonaEntrega?: string;
   CRUD?: string;
   CRUDDate?: Date;
-  EntradaSalida?: string;
-  Fecha?: string;
-  Firma?: string;
+  FechaEjecucion?: string;
+  FechaProgramada?: string;
+  Firma?: Blob;
   IdEstado: string;
   IdPunto?: string;
   IdTercero?: string;
   IdRecurso: string;
   IdServicio: string;
   Kilometraje?: number;
+  NombrePersonaEntrega?: string;
   NumeroTransaccion?: string;
   Observaciones?: string;
   Punto?: string;
