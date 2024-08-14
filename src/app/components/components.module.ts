@@ -4,7 +4,7 @@ import { NgModule } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
 import { ActivityAddComponent } from "./activity-add/activity-add.component";
-import { ApproveComponent } from "./approve/approve.component";
+import { ActivityApproveComponent } from "./activity-approve/activity-approve.component";
 import { HeaderComponent } from "./header/header.component";
 import { LocationComponent } from "./location/location.component";
 import { LocationSelectComponent } from "./location-select/location-select.component";
@@ -13,7 +13,7 @@ import { MenuComponent } from "./menu/menu.component";
 import { PackagesComponent } from "./packages/packages.component";
 import { PointComponent } from "./point/point.component";
 import { PointsComponent } from "./points/points.component";
-import { RejectComponent } from "./reject/reject.component";
+import { ActivityRejectComponent } from "./activity-reject/activity-reject.component";
 import { ResidueDismissComponent } from "./residue-dismiss/residue-dismiss.component";
 import { ResidueMoveComponent } from "./residue-move/residue-move.component";
 import { ResiduePublishComponent } from "./residue-publish/residue-publish.component";
@@ -37,8 +37,8 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
 const components = [];
 
 @NgModule({
-  declarations: [ ActivityAddComponent, ApproveComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, RejectComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
+  declarations: [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
   imports:      [ CommonModule, IonicModule, FormsModule, ReactiveFormsModule ],
-  exports:      [ ActivityAddComponent, ApproveComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, RejectComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
+  exports:      [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
 })
 export class ComponentsModule {}

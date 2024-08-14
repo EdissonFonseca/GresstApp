@@ -764,7 +764,7 @@ export class Globales {
       if (actividad.IdServicio === TipoServicio.Transporte) {
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
 
-        if (transaccion){
+        if (transaccion && transaccion.EntradaSalida != EntradaSalida.Entrada){
           const residuos = (await this.getInventario()).filter(x => x.IdVehiculo == actividad.IdRecurso);
           residuos.forEach((residuo) => {
             const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
@@ -914,6 +914,7 @@ export class Globales {
 
     transacciones.forEach(transaccion => {
       aprobados = pendientes = rechazados = peso = cantidad = volumen = 0;
+      operacion = transaccion.EntradaSalida;
       resumen = '';
       if (tareas)
       {
@@ -974,14 +975,12 @@ export class Globales {
               ubicacion = `${punto.Direccion}`;
             }
             transaccion.Ubicacion = ubicacion;
-            if (punto.Entrega && punto.Recepcion)
+            if (transaccion.EntradaSalida == EntradaSalida.Transferencia)
               operacion = EntradaSalida.Transferencia;
-            else if (punto.Entrega)
+            else if (transaccion.EntradaSalida == EntradaSalida.Entrada)
               operacion = EntradaSalida.Entrada;
-            else if (punto.Recepcion)
+            else if (transaccion.EntradaSalida == EntradaSalida.Salida)
               operacion = EntradaSalida.Salida;
-            else
-              operacion = EntradaSalida.Transferencia;
 
             if (cantidad > 0){
               resumen += `${cantidad} ${cuenta.UnidadCantidad}`;
@@ -1062,11 +1061,70 @@ export class Globales {
   // #region Update Methods
   async updateActividad(actividad: Actividad) {
     const actividades: Actividad[] = await this.storage.get('Actividades');
-    const tareaStorage: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
-    if (tareaStorage)
+    const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
+    if (current)
     {
-        tareaStorage.IdEstado = actividad.IdEstado;
-    }
+      current.IdEstado = actividad.IdEstado;
+      current.IdentificacionResponsable = actividad.IdentificacionResponsable;
+      current.NombreResponsable = actividad.NombreResponsable;
+      current.Observaciones = actividad.Observaciones;
+      current.Firma = actividad.Firma;
+
+      const transaccionesSincronizar = actividad.Transacciones.filter(x => x.CRUD != null);
+      transaccionesSincronizar.forEach(async(transaccion) => {
+        console.log(`Sincronizar transaccion ${transaccion.IdTransaccion}`);
+
+        const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
+        tareasSincronizar.forEach(async(tarea) => {
+          console.log(`Sincronizar tarea ${tarea.IdTarea}`);
+          await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
+          tarea.CRUD =  null;;
+          tarea.CRUDDate = null;
+        });
+
+        const tareasRechazar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD == null && x.IdEstado == Estado.Pendiente);
+        tareasRechazar.forEach(async(tarea) => {
+          console.log(`Rechazar tarea ${tarea.IdTarea}`);
+          tarea.IdEstado = Estado.Rechazado;
+          await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
+          tarea.CRUD =  null;;
+          tarea.CRUDDate = null;
+        });
+
+        await this.updateTransaccion(actividad.IdActividad, transaccion);
+        transaccion.CRUD =  null;;
+        transaccion.CRUDDate = null;
+      });
+
+      const transaccionesRechazar = actividad.Transacciones.filter(x => x.CRUD == null && x.IdEstado == Estado.Pendiente);
+      transaccionesRechazar.forEach(async(transaccion) => {
+          const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
+          tareasSincronizar.forEach(async(tarea) => {
+            console.log(`Sincronizar tarea ${tarea.IdTarea}`);
+            await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
+            tarea.CRUD =  null;;
+            tarea.CRUDDate = null;
+          });
+
+          const tareasRechazar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD == null && x.IdEstado == Estado.Pendiente);
+          tareasRechazar.forEach(async(tarea) => {
+            tarea.IdEstado = Estado.Rechazado;
+            await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
+            tarea.CRUD =  null;;
+            tarea.CRUDDate = null;
+          });
+
+          transaccion.IdEstado = Estado.Rechazado;
+          await this.updateTransaccion(actividad.IdActividad, transaccion);
+          transaccion.CRUD =  null;;
+          transaccion.CRUDDate = null;
+        }
+      );
+
+      if (await this.integration.updateActividad(current) && current.Firma != null) {
+        this.integration.uploadFirmaActividad(current);
+      }
+  }
     await this.storage.set("Actividades", actividades);
   }
 
@@ -1075,12 +1133,14 @@ export class Globales {
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     if (actividad)
     {
-      const transaccionActual: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == trx.IdTransaccion);
-      if (transaccionActual) {
-        transaccionActual.IdEstado = transaccion.IdEstado;
-        transaccionActual.NombrePersonaEntrega = transaccion.NombrePersonaEntrega;
-        transaccionActual.CargoPersonaEntrega = transaccion.CargoPersonaEntrega;
-        transaccionActual.Firma = transaccion.Firma;
+      const current: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == trx.IdTransaccion);
+      if (current) {
+        current.IdEstado = transaccion.IdEstado;
+        current.IdentificacionResponsable = transaccion.IdentificacionResponsable;
+        current.NombreResponsable = transaccion.NombreResponsable;
+        current.Observaciones = transaccion.Observaciones;
+        current.Firma = transaccion.Firma;
+        current.FirmaUrl = transaccion.FirmaUrl;
 
         const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
         tareasSincronizar.forEach(async(tarea) => {
@@ -1096,8 +1156,8 @@ export class Globales {
           tarea.CRUD =  null;;
           tarea.CRUDDate = null;
         });
-        if (await this.integration.updateTransaccion(transaccionActual)) {
-          this.integration.uploadFirmaTransaccion(transaccionActual);
+        if (await this.integration.updateTransaccion(current) && current.Firma != null) {
+          this.integration.uploadFirmaTransaccion(current);
         }
 
         await this.storage.set("Actividades", actividades);
@@ -1124,15 +1184,17 @@ export class Globales {
         tareaUpdate.Observaciones = tarea.Observaciones;
         tareaUpdate.IdEstado = tarea.IdEstado;
         tareaUpdate.Fotos = tarea.Fotos;
+
+        await this.storage.set("Actividades", actividades);
+
+        if (await this.integration.updateTarea(tareaUpdate)){
+          await this.integration.uploadFotosTarea(tareaUpdate);
+          tarea.CRUD = null;
+          tarea.CRUDDate = null;
+        }
       }
     }
-    await this.storage.set("Actividades", actividades);
 
-    if (await this.integration.updateTarea(tarea)){
-      await this.integration.uploadFotosTarea(tarea);
-      tarea.CRUD = null;
-      tarea.CRUDDate = null;
-    }
   }
 
   async updateResiduo(residuo: Residuo) {

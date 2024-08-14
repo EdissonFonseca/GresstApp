@@ -6,17 +6,20 @@ import { Transaccion } from "./transaccion.interface";
 export interface Actividad{
   IdActividad: string;
 
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
   Costos?: Costo[];
-  FechaFin?: Date;
-  FechaInicio: Date;
-  Firma?: string;
+  FechaFin?: string | null;
+  FechaInicio: string;
+  FirmaUrl?: string | null;
+  Firma?: Blob | null;
+  IdentificacionResponsable?: string;
   IdEstado: string;
   IdServicio: string;
   IdRecurso: string;
   Insumos?: Insumo[];
   NavegarPorTransaccion: boolean;
+  NombreResponsable?: string;
   Observaciones?: string;
   Soporte?: string;
   Tareas: Tarea[];

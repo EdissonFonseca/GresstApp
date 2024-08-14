@@ -31,7 +31,7 @@
     <ion-item *ngIf="transaccion.Ubicacion" lines="none" (click)="navigateToTareas(transaccion.IdTransaccion)">
       {{ transaccion.Ubicacion }}
     </ion-item>
-    <ion-item lines="full" (click)="navigateToTareas(transaccion.IdTransaccion)" >
+    <ion-item lines="full" *ngIf="transaccion.IdEstado == 'P'" (click)="navigateToTareas(transaccion.IdTransaccion)" >
       <ion-chip slot="start">
         <ion-label>{{transaccion.Accion}}</ion-label>
       </ion-chip>
@@ -47,10 +47,10 @@
       <ion-badge color="danger"> {{ transaccion.ItemsRechazados }} </ion-badge>
     </ion-chip>
     <ion-buttons slot="end">
-      <ion-button fill="clear" color="primary" size="large" (click)="openApprove(transaccion.IdTransaccion)" *ngIf="(transaccion.ItemsAprobados?? 0) > 0">
+      <ion-button fill="clear" color="primary" size="large" (click)="openApprove(transaccion.IdTransaccion)" *ngIf="transaccion.IdEstado == 'P' && (transaccion.ItemsAprobados?? 0) > 0">
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" color="danger" size="large" (click)="openReject(transaccion.IdTransaccion)" *ngIf="transaccion.ItemsAprobados == 0 && (transaccion.ItemsPendientes ?? 0) + (transaccion.ItemsRechazados ?? 0) > 0">
+      <ion-button fill="clear" color="danger" size="large" (click)="openReject(transaccion.IdTransaccion)" *ngIf="transaccion.IdEstado == 'P' && transaccion.ItemsAprobados == 0 && (transaccion.ItemsPendientes ?? 0) + (transaccion.ItemsRechazados ?? 0) > 0">
         <ion-icon name="close"></ion-icon>
       </ion-button>
     </ion-buttons>

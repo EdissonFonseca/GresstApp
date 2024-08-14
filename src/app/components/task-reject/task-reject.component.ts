@@ -3,9 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
-import { Estado } from 'src/app/services/constants.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
-import { IntegrationService } from 'src/app/services/integration.service';
 
 @Component({
   selector: 'app-task-reject',
@@ -38,12 +37,10 @@ export class TaskRejectComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private globales: Globales,
-    private integration: IntegrationService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
     this.taskId = this.navParams.get("TaskId");
-    console.log(this.taskId);
 
     this.frmMaterial = this.formBuilder.group({
       Cantidad: [],
@@ -79,17 +76,22 @@ export class TaskRejectComponent  implements OnInit {
   }
 
   async confirm() {
+    const now = new Date();
+    const isoDate = now.toISOString();
+
     if (this.frmMaterial.valid)
     {
       const data = this.frmMaterial.value;
-      const task = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
-      if (task)
+      const tarea = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
+      if (tarea)
       {
-        task.Observaciones = data.Observaciones;
-        task.IdEstado = Estado.Rechazado;
-        this.globales.updateTarea(this.activityId, this.transactionId, task);
-        this.integration.updateTarea(task);
-        this.modalCtrl.dismiss(data);
+        tarea.CRUD = CRUDOperacion.Update;
+        tarea.CRUDDate = now;
+        tarea.Observaciones = data.Observaciones;
+        tarea.IdEstado = Estado.Rechazado;
+        tarea.FechaEjecucion = isoDate;
+        this.globales.updateTarea(this.activityId, this.transactionId, tarea);
+        this.modalCtrl.dismiss(tarea);
       }
     }
     const data = {ActivityId:this.activityId};

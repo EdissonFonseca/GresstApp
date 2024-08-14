@@ -67,6 +67,7 @@ export class LoginPage implements OnInit {
       }
     } catch (error) {
       this.globales.hideLoading();
+      await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
       if (error instanceof Error){
         throw new Error(`Request error: ${error.message}`);
       }

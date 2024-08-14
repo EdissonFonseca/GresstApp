@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
-import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
+import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
@@ -101,24 +101,15 @@ export class TransaccionesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      const actividad = await this.globales.getActividad(this.idActividad);
-      if (actividad)
-      {
-        actividad.IdEstado = Estado.Aprobado;
-        this.globales.updateActividad(actividad);
-
-        const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
-        if (card)
-        {
-          card.IdEstado = Estado.Aprobado;
-        }
-      }
+      const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
+      if (card)
+        card.IdEstado = Estado.Aprobado;
     }
   }
 
   async openReject(id: string){
     const modal =   await this.modalCtrl.create({
-      component: RejectComponent,
+      component: TransactionRejectComponent,
       componentProps: {
         title: `Rechazar ${this.proceso} ${this.titulo}`
       },

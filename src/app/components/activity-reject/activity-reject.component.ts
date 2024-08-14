@@ -2,11 +2,11 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 
 @Component({
-  selector: 'app-reject',
-  templateUrl: './reject.component.html',
-  styleUrls: ['./reject.component.scss'],
+  selector: 'app-activity-reject',
+  templateUrl: './activity-reject.component.html',
+  styleUrls: ['./activity-reject.component.scss'],
 })
-export class RejectComponent  implements OnInit {
+export class ActivityRejectComponent  implements OnInit {
   @Input() title: string = 'Rechazar';
   @Input() notesText: string = 'Al rechazar la operacion, todos los pendientes quedan descartados';
 

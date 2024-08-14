@@ -56,13 +56,15 @@ export class ResidueDismissComponent  implements OnInit {
     let transaccion: Transaccion | undefined = undefined;
     const now = new Date();
     const isoDate = now.toISOString();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+    const isoToday = today.toISOString();
 
     if (!this.residue) return;
 
     const personId = await this.globales.getIdPersona();
     actividad = await this.globales.getActividadByServicio(this.serviceId, this.pointId);
     if (!actividad) {
-      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: now};
+      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: isoToday};
       await this.globales.createActividad(actividad);
     }
     if (actividad) {

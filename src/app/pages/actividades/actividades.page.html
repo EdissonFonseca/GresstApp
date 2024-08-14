@@ -28,10 +28,10 @@
       <ion-badge color="danger"> {{ actividad.ItemsRechazados }} </ion-badge>
     </ion-chip>
     <ion-buttons slot="end">
-    <ion-button fill="clear" color="primary" size="large" (click)="openApprove(actividad.IdActividad)" *ngIf="(actividad.ItemsAprobados ?? 0) > 0">
+    <ion-button fill="clear" color="primary" size="large" (click)="openApprove(actividad.IdActividad)" *ngIf="actividad.IdEstado == 'P' && (actividad.ItemsAprobados ?? 0) > 0">
         <ion-icon name="checkmark"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" color="danger" size="large" (click)="openReject(actividad.IdActividad)" *ngIf="(actividad.ItemsAprobados ?? 0) == 0 && (actividad.ItemsPendientes ?? 0) + (actividad.ItemsRechazados ?? 0) > 0">
+      <ion-button fill="clear" color="danger" size="large" (click)="openReject(actividad.IdActividad)" *ngIf="actividad.IdEstado == 'P' && (actividad.ItemsAprobados ?? 0) == 0 && (actividad.ItemsPendientes ?? 0) + (actividad.ItemsRechazados ?? 0) > 0">
         <ion-icon name="close"></ion-icon>
       </ion-button>
     </ion-buttons>

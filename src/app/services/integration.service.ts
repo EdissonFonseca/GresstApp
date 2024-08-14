@@ -9,6 +9,7 @@ import { Tercero } from '../interfaces/tercero.interface';
 import { StorageService } from './storage.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
+import { Actividad } from '../interfaces/actividad.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -222,9 +223,10 @@ export class IntegrationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201) { //Created
         var residuoCreado = response.data;
-        tarea.CRUD = undefined;
-        tarea.CRUDDate = undefined;
-        tarea.Item = residuoCreado.IdItem;
+        console.log('Creado');
+        tarea.CRUD = null;
+        tarea.CRUDDate = null;
+        //tarea.Item = residuoCreado.IdItem;
         return true;
       } else {
         throw false;
@@ -331,6 +333,7 @@ export class IntegrationService {
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
 
+    console.log(transaccion);
     if (transaccion.Firma)
     {
       const formData = new FormData();
@@ -359,4 +362,60 @@ export class IntegrationService {
       return false;
     }
   }
-}
+
+
+  async updateActividad(actividad: Actividad): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.actividadesUrl}/updateactividad`, data:actividad, headers };
+
+    console.log(actividad);
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) { //Ok
+        actividad.CRUD = null;
+        actividad.CRUDDate = null;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
+  async uploadFirmaActividad(actividad: Actividad): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+
+    console.log(actividad);
+    if (actividad.Firma)
+    {
+      const formData = new FormData();
+      formData.append('IdServicio', (actividad.IdServicio ?? "").toString());
+      formData.append('IdRecurso', (actividad.IdRecurso ?? "").toString());
+      formData.append('Fecha', (actividad.FechaInicio ?? "").toString());
+      formData.append('Signature', actividad.Firma, 'signature.png');
+      const options = { url: `${this.actividadesUrl}/uploadfirmaactividad`, data:formData, headers };
+      try{
+        const response: HttpResponse = await CapacitorHttp.post(options);
+        if (response.status == 200) { //Ok
+          return true;
+        } else {
+          return false;
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`Request error: ${error.message}`);
+        } else {
+          throw new Error(`Unknown error: ${error}`);
+        }
+      }
+    } else {
+      return false;
+    }
+  }}

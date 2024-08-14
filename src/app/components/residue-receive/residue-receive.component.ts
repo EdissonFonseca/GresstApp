@@ -82,6 +82,8 @@ export class ResidueReceiveComponent implements OnInit {
     const data = this.formData.value;
     const now = new Date();
     const isoDate = now.toISOString();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+    const isoToday = today.toISOString();
 
     if (this.fecha == null){
       this.fecha = new Date();
@@ -140,7 +142,7 @@ export class ResidueReceiveComponent implements OnInit {
           IdServicio: this.serviceId,
           IdRecurso: idRecurso,
           NavegarPorTransaccion: false,
-          FechaInicio: hoy,
+          FechaInicio: isoToday,
           Titulo: titulo,
           Tareas: [],
           Transacciones: []
@@ -150,7 +152,7 @@ export class ResidueReceiveComponent implements OnInit {
         estaEnJornada = false;
       }
     } else {
-      estaEnJornada = this.globales.verificarFechaJornada(actividad.FechaInicio ?? null, actividad.FechaFin ?? null, this.fecha);
+      estaEnJornada = this.globales.verificarFechaJornada(today ?? null, today, this.fecha);
     }
 
     if (estaEnJornada && actividad){
@@ -162,12 +164,11 @@ export class ResidueReceiveComponent implements OnInit {
             IdTransaccion: this.globales.newId(),
             IdServicio: actividad.IdServicio,
             IdRecurso: actividad.IdRecurso,
+            EntradaSalida: EntradaSalida.Entrada,
             IdEstado: Estado.Aprobado,
             Titulo: this.propietario,
             IdTercero: this.idPropietario,
             Firma: new Blob(),
-            NombrePersonaEntrega: '',
-            CargoPersonaEntrega: ''
           }
           await this.globales.createTransaccion(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
@@ -178,14 +179,13 @@ export class ResidueReceiveComponent implements OnInit {
           transaccion = {
             IdTransaccion: this.globales.newId(),
             IdEstado: Estado.Aprobado,
+            EntradaSalida: EntradaSalida.Entrada,
             IdRecurso: actividad.IdRecurso,
             IdServicio: actividad.IdServicio,
             Titulo: this.puntoRecoleccion,
             IdTercero: this.idPropietario,
             IdPunto: this.idPuntoRecoleccion,
             Firma: new Blob(),
-            NombrePersonaEntrega: '',
-            CargoPersonaEntrega: ''
           }
           await this.globales.createTransaccion(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;

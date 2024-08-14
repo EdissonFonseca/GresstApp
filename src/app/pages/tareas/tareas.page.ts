@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
-import { RejectComponent } from 'src/app/components/reject/reject.component';
 import { TaskApproveComponent } from 'src/app/components/task-approve/task-approve.component';
 import { TaskRejectComponent } from 'src/app/components/task-reject/task-reject.component';
 import { Estado, TipoServicio } from 'src/app/services/constants.service';
@@ -9,7 +8,8 @@ import { Globales } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
-import { ModalController } from '@ionic/angular';
+import { ModalController, NavController } from '@ionic/angular';
+import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
 
 @Component({
   selector: 'app-tareas',
@@ -78,6 +78,11 @@ export class TareasPage implements OnInit {
       this.transacciones = await this.globales.getTransacciones(this.idActividad);
     }
     this.tareas = await this.globales.getTareasSugeridas(this.idActividad, this.idTransaccion);
+    if (this.transacciones.length == 1)
+    {
+      const transaccion = this.transacciones[0];
+      this.showAdd = transaccion.IdEstado == Estado.Pendiente;
+    }
   }
 
   async handleInput(event: any){
@@ -111,23 +116,15 @@ export class TareasPage implements OnInit {
     const transaccion = this.transacciones.find(x => x.IdTransaccion == tarea.IdTransaccion);
     if (transaccion){
       switch(tarea.IdEstado){
-        case Estado.Rechazado:
-          transaccion.Cantidad = (transaccion.Cantidad ?? 0) - (tarea.Cantidad ?? 0);
-          transaccion.Peso = (transaccion.Peso ?? 0) - (tarea.Peso ?? 0);
-          transaccion.Volumen = (transaccion.Volumen ?? 0) - (tarea.Volumen ?? 0);
-          break;
-        case Estado.Rechazado:
-          transaccion.ItemsRechazados = (transaccion.ItemsRechazados ?? 0) - 1;
-          break;
-        case Estado.Pendiente:
+        case Estado.Aprobado:
+          transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
           transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
           break;
+        case Estado.Rechazado:
+          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
+          transaccion.ItemsRechazados = (transaccion.ItemsRechazados ?? 0) + 1;
+          break;
       }
-      transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
-      transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
-      transaccion.Peso = (transaccion.Peso ?? 0) + (tarea.Peso ?? 0);
-      transaccion.Volumen = (transaccion.Volumen ?? 0) + (tarea.Volumen ?? 0);
-      transaccion.Cantidades = this.globales.getResumen(null, null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
     }
   }
 
@@ -154,6 +151,7 @@ export class TareasPage implements OnInit {
             this.transacciones.push(transaccionGlobal);
           }
         } else {
+          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) + 1;
           this.updateTransaccion(data);
         }
       }
@@ -218,20 +216,20 @@ export class TareasPage implements OnInit {
     });
     await modal.present();
 
-    let descripcion: string = '';
-    let embalaje: string = '';
-
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
       const tarea = this.tareas.find((material) => material.IdMaterial == data.IdMaterial);
       if (tarea) {
+        const cuenta = await this.globales.getCuenta();
+        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
         tarea.IdEstado = Estado.Rechazado;
+        this.updateTransaccion(data);
       }
     }
   }
 
-  async openApprove(id: string){
+  async openApproveTransaccion(id: string){
     const modal =   await this.modalCtrl.create({
       component: TransactionApproveComponent,
       componentProps: {
@@ -244,14 +242,15 @@ export class TareasPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null) {
       const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
-      if (transaccion)
-          transaccion.IdEstado = Estado.Aprobado;
+      if (transaccion){
+        transaccion.IdEstado = Estado.Aprobado;
+      }
     }
   }
 
-  async openReject(id: string){
+  async openRejectTransaccion(id: string){
     const modal =   await this.modalCtrl.create({
-      component: RejectComponent,
+      component: TransactionRejectComponent,
       componentProps: {
         ActivityId: this.idActividad,
         TransactionId: this.idTransaccion,
@@ -265,8 +264,9 @@ export class TareasPage implements OnInit {
     if (data != null)
     {
       const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
-      if (transaccion)
-          transaccion.IdEstado = Estado.Rechazado;
+      if (transaccion) {
+        transaccion.IdEstado = Estado.Rechazado;
+      }
     }
   }
 }

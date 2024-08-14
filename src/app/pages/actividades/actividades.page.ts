@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { NavigationExtras } from '@angular/router';
 import { ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
-import { ApproveComponent } from 'src/app/components/approve/approve.component';
-import { RejectComponent } from 'src/app/components/reject/reject.component';
+import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
+import { ActivityRejectComponent } from 'src/app/components/activity-reject/activity-reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { CRUDOperacion, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
@@ -79,16 +80,23 @@ export class ActividadesPage implements OnInit {
     {
       case TipoServicio.Recoleccion:
       case TipoServicio.Transporte:
-        const navigationExtras: NavigationExtras = {
-          queryParams: {
-            IdActividad: idActividad,
-            Mode: 'T',
+        if (actividad.NavegarPorTransaccion) {
+          const navigationExtras: NavigationExtras = {
+            queryParams: {
+              IdActividad: idActividad,
+              Mode: 'T',
+            }
           }
+            this.navCtrl.navigateForward('/transacciones', navigationExtras);
+        } else {
+          const navigationExtras: NavigationExtras = {
+            queryParams: {
+              IdActividad: idActividad,
+              Mode: 'A',
+            }
+          }
+            this.navCtrl.navigateForward('/tareas', navigationExtras);
         }
-        if (actividad.NavegarPorTransaccion)
-          this.navCtrl.navigateForward('/transacciones', navigationExtras);
-        else
-          this.navCtrl.navigateForward('/tareas', navigationExtras);
         break;
       default:
         const navigationExtrasD: NavigationExtras = {
@@ -115,9 +123,15 @@ export class ActividadesPage implements OnInit {
   }
 
   async openApprove(idActividad: string){
+    const actividad = await this.globales.getActividad(idActividad);
+
+    if (actividad == null) return;
+
     const modal =   await this.modalCtrl.create({
-      component: ApproveComponent,
+      component: ActivityApproveComponent,
       componentProps: {
+        ActivityId: idActividad,
+        Title: actividad.Titulo
       },
     });
 
@@ -126,18 +140,14 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      const actividad = await this.globales.getActividad(idActividad);
-      if (actividad)
-      {
-        actividad.IdEstado = Estado.Aprobado;
-        this.globales.updateActividad(actividad);
-      }
+      actividad.IdEstado = Estado.Aprobado;
+      this.globales.updateActividad(actividad);
     }
   }
 
   async openReject(idActividad: string){
     const modal =   await this.modalCtrl.create({
-      component: RejectComponent,
+      component: ActivityRejectComponent,
       componentProps: {
         //title: `Rechazar ${this.proceso} ${this.titulo}`
       },

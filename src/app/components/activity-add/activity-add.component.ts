@@ -44,8 +44,10 @@ export class ActivityAddComponent  implements OnInit {
 
   async confirm() {
     const description: string = this.frmActivity.get('Description')?.value;
-    const ahora = new Date();
-    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDay());
+    const now = new Date();
+    const isoDate = now.toISOString();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+    const isoToday = today.toISOString();
     let titulo: string = '';
 
     if (this.serviceId == TipoServicio.Recoleccion && this.idRecurso != ''){
@@ -59,7 +61,7 @@ export class ActivityAddComponent  implements OnInit {
       IdServicio: this.serviceId,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
-      FechaInicio: hoy,
+      FechaInicio: isoToday,
       IdEstado: Estado.Pendiente,
       NavegarPorTransaccion: false,
       Transacciones: [],

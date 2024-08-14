@@ -28,7 +28,7 @@
   </div>
   <ion-item *ngIf="showSignPad">
     <ion-note slo="start">
-      Firma
+      Firma Responsable Entrega
     </ion-note>
     <ion-button (click)="clear()" slot="end" fill="clear">
       <ion-label>Borrar Firma</ion-label>
@@ -37,11 +37,11 @@
   <form [formGroup]="frmTransaccion">
       <ion-item *ngIf="showName">
       <ion-note slot="start">Nombre</ion-note>
-      <ion-input aria-label="Nombre"></ion-input>
+      <ion-input formControlName="Nombre" aria-label="Nombre" ></ion-input>
     </ion-item>
     <ion-item *ngIf="showPin">
       <ion-note slot="start">Identificación</ion-note>
-      <ion-input aria-label="Nombre"></ion-input>
+      <ion-input formControlName="Identificacion" aria-label="Identificación" ></ion-input>
     </ion-item>
     <ion-item *ngIf="showNotes">
       <ion-note slot="start">Observaciones</ion-note>

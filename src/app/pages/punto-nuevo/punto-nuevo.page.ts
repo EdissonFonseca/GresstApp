@@ -4,7 +4,7 @@ import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { ModalController, NavController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { Estado, TipoServicio } from 'src/app/services/constants.service';
+import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -52,6 +52,7 @@ export class PuntoNuevoPage implements OnInit {
 
     const transaccion: Transaccion = {
         IdTransaccion: this.globales.newId(),
+        EntradaSalida: EntradaSalida.Entrada,
         IdRecurso: "",
         IdServicio: TipoServicio.Recoleccion,
         IdEstado: Estado.Pendiente,

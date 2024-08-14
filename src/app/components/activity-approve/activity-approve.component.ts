@@ -1,25 +1,23 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
-  selector: 'app-transaction-approve',
-  templateUrl: './transaction-approve.component.html',
-  styleUrls: ['./transaction-approve.component.scss'],
+  selector: 'app-activity-approve',
+  templateUrl: './activity-approve.component.html',
+  styleUrls: ['./activity-approve.component.scss'],
 })
-export class TransactionApproveComponent  implements OnInit {
-  @Input() title: string='Aprobar transacción';
+export class ActivityApproveComponent  implements OnInit {
+  @Input() title: string='Aprobar actividad';
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
-  frmTransaccion: FormGroup;
+  frmActividad: FormGroup;
   idActividad: string = '';
-  idTransaccion: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -33,9 +31,8 @@ export class TransactionApproveComponent  implements OnInit {
     private modalCtrl:ModalController
   ) {
     this.idActividad = this.navParams.get("ActivityId");
-    this.idTransaccion = this.navParams.get("TransactionId");
-    this.title = this.navParams.get("Title");
-    this.frmTransaccion = this.formBuilder.group({
+    this.title = `Entregar ${this.navParams.get("Title")}`;
+    this.frmActividad = this.formBuilder.group({
       Identificacion: '',
       Nombre: '',
       Observaciones: [],
@@ -83,31 +80,26 @@ export class TransactionApproveComponent  implements OnInit {
     const now = new Date();
     const isoDate = now.toISOString();
 
-    if (!this.frmTransaccion.valid) return;
+    if (!this.frmActividad.valid) return;
 
-    let transaccion: Transaccion | undefined;
-    const data = this.frmTransaccion.value;
+    const data = this.frmActividad.value;
     const actividad = await this.globales.getActividad(this.idActividad);
 
     if (!actividad) return;
 
-    transaccion = await this.globales.getTransaccion(this.idActividad, this.idTransaccion);
-    if (transaccion) { //Si hay transaccion
-      const firmaBlob = this.getSignature();
-
-      transaccion.IdEstado = Estado.Aprobado;
-      transaccion.CRUD = CRUDOperacion.Update;
-      transaccion.CRUDDate = now;
-      transaccion.IdentificacionResponsable = data.Identificacion;
-      transaccion.NombreResponsable = data.Nombre;
-      transaccion.Observaciones = data.Observaciones;
-      transaccion.Firma = firmaBlob;
-      transaccion.FirmaUrl = firmaBlob != null ?  "firma.png": null;
-      this.globales.updateTransaccion(this.idActividad, transaccion);
-    }
+    const firmaBlob = this.getSignature();
+    actividad.IdEstado = Estado.Aprobado;
+    actividad.CRUD = CRUDOperacion.Update;
+    actividad.CRUDDate = now;
+    actividad.IdentificacionResponsable = data.Identificacion;
+    actividad.NombreResponsable = data.Nombre;
+    actividad.Observaciones = data.Observaciones;
+    actividad.FirmaUrl = firmaBlob != null ? "firma.png": null;
+    actividad.Firma = firmaBlob;
+    this.globales.updateActividad(actividad);
     this.clear();
-    this.globales.presentToast('Transaccion aprobada', "top");
-    this.modalCtrl.dismiss(transaccion);
+    this.globales.presentToast('Actividad aprobada', "top");
+    this.modalCtrl.dismiss(actividad);
   }
 
   getSignature(): Blob | null{

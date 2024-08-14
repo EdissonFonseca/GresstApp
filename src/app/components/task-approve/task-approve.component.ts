@@ -46,6 +46,7 @@ export class TaskApproveComponent  implements OnInit {
   treatmentId: string = '';
   treatment: string = '';
   fotos: Photo[] = [];
+  imageUrl: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
@@ -223,6 +224,7 @@ export class TaskApproveComponent  implements OnInit {
           EntradaSalida: EntradaSalida.Entrada,
           IdEstado: Estado.Pendiente,
           FechaIngreso: isoDate,
+          Imagen: this.imageUrl,
           Ubicacion: '' //TODO
         };
         await this.globales.createResiduo(residuo);
@@ -367,6 +369,7 @@ export class TaskApproveComponent  implements OnInit {
       source: CameraSource.Camera,
     });
     this.fotos.push(image);
+    this.imageUrl = image.dataUrl ?? '';
   };
 
   toggleShowDetails() {
