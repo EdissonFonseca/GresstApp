@@ -39,7 +39,6 @@ export class MapaPage implements OnInit, AfterViewInit {
 
   async createMap() {
     const currentLocation = await Geolocation.getCurrentPosition();
-    const mapElement = this.mapRef.nativeElement;
 
     this.gresstMap = await GoogleMap.create({
       id: 'gresstMap',
@@ -56,52 +55,6 @@ export class MapaPage implements OnInit, AfterViewInit {
     await this.addMarkers();
   }
 
-  // async addMarkers() {
-  //   const currentLocation = await Geolocation.getCurrentPosition();
-  //   const markers = this.puntos
-  //     .filter(
-  //       punto =>
-  //         punto.Longitud != null &&
-  //         punto.Longitud !== '' &&
-  //         punto.Latitud != null &&
-  //         punto.Latitud !== ''
-  //     )
-  //     .map(punto => new google.maps.marker.AdvancedMarkerElement({
-  //       map: this.gresstMap,
-  //       position: { lat: parseFloat(punto.Latitud ?? ''), lng: parseFloat(punto.Longitud ?? '') },
-  //       title: punto.Nombre,
-  //     }));
-
-  //   markers.push(new google.maps.marker.AdvancedMarkerElement({
-  //     map: this.gresstMap,
-  //     position: { lat: currentLocation.coords.latitude, lng: currentLocation.coords.longitude },
-  //     title: 'Origen',
-  //     snippet: 'Origen',
-  //   }));
-
-  //   this.gresstMap.addListener('click', (event: google.maps.MapMouseEvent) => {
-  //     const marker = new google.maps.marker.AdvancedMarkerElement({
-  //       map: this.gresstMap,
-  //       position: event.latLng,
-  //       title: 'Nuevo punto',
-  //     });
-  //   });
-
-  //   markers.forEach(marker => {
-  //     google.maps.event.addListener(marker, 'click', async () => {
-  //       const modal = await this.modalCtrl.create({
-  //         component: LocationComponent,
-  //         componentProps: {
-  //           marker,
-  //         },
-  //         breakpoints: [0, 0, 3],
-  //         initialBreakpoint: 0.3,
-  //       });
-  //       await modal.present();
-  //     });
-  //   });
-  // }
-
   async addMarkers(){
     const currentLocation = await Geolocation.getCurrentPosition();
     const markers = this.puntos.filter((punto) => punto.Longitud != null && punto.Longitud != "" && punto.Latitud != null && punto.Latitud !=  "")
@@ -112,28 +65,30 @@ export class MapaPage implements OnInit, AfterViewInit {
       ));
     markers.push({coordinate: {lat: currentLocation.coords.latitude, lng: currentLocation.coords.longitude}, title:'Origen', snippet:'Origen'});
 
-    const result = this.gresstMap.addMarkers(markers);
-    this.gresstMap.setOnMarkerClickListener(async (marker) => {
-      const modal = await this.modalCtrl.create({
-        component: LocationComponent,
-        componentProps: {
-          marker,
-        },
-        breakpoints: [0,0,3],
-        initialBreakpoint: 0.3,
-      });
-      modal.present();
-    });
+    this.gresstMap.addMarkers(markers);
+    console.log(markers);
 
-    this.gresstMap.setOnMapClickListener((position: any) => {
-      const marker = {
-        coordinate: {
-          lat: position.lat,
-          lng: position.lng,
-        },
-        title: 'Nuevo punto'
-      };
-      this.gresstMap.addMarker(marker);
-    });
+    // this.gresstMap.setOnMarkerClickListener(async (marker) => {
+    //   const modal = await this.modalCtrl.create({
+    //     component: LocationComponent,
+    //     componentProps: {
+    //       marker,
+    //     },
+    //     breakpoints: [0,0,3],
+    //     initialBreakpoint: 0.3,
+    //   });
+    //   modal.present();
+    // });
+
+    // this.gresstMap.setOnMapClickListener((position: any) => {
+    //   const marker = {
+    //     coordinate: {
+    //       lat: position.lat,
+    //       lng: position.lng,
+    //     },
+    //     title: 'Nuevo punto'
+    //   };
+    //   this.gresstMap.addMarker(marker);
+    // });
   }
 }
