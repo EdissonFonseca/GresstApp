@@ -31,7 +31,18 @@ export class IntegrationService {
     private storage: StorageService
   ) {}
 
-  async getActividades(token: string): Promise<any>{
+  async sincronizar() {
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.actividadesUrl}/get`, headers };
+
+    try{
+    } catch {
+    }
+  }
+
+  async getActividades(): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: `${this.actividadesUrl}/get`, headers };
 
@@ -46,7 +57,8 @@ export class IntegrationService {
     }
   }
 
-  async getBanco(token: string): Promise<any>{
+  async getBanco(): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: this.bancoUrl, headers };
 
@@ -61,7 +73,8 @@ export class IntegrationService {
     }
   }
 
-  async getConfiguracion(token: string): Promise<any>{
+  async getConfiguracion(): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: this.configuracionUrl, headers };
 
@@ -76,7 +89,8 @@ export class IntegrationService {
     }
   }
 
-  async getInterlocutores(token: string, idResiduo:string): Promise<any>{
+  async getInterlocutores(idResiduo:string): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: `${this.interlocutoresUrl}/${idResiduo}`, headers };
 
@@ -91,7 +105,8 @@ export class IntegrationService {
     }
   }
 
-  async getInventario(token: string): Promise<any>{
+  async getInventario(): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: this.inventarioUrl, headers };
 
@@ -106,7 +121,8 @@ export class IntegrationService {
     }
   }
 
-  async getMensajes(token: string, idResiduo:string, idInterlocutor: string): Promise<any>{
+  async getMensajes(idResiduo:string, idInterlocutor: string): Promise<any>{
+    const token: string = await this.storage.get('Token');
     const data = { IdUsuario: idInterlocutor, IdResiduo: idResiduo};
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: this.mensajesUrl, data: data, headers };
@@ -122,7 +138,8 @@ export class IntegrationService {
     }
   }
 
-  async postEmbalaje(token: string, embalaje: Embalaje): Promise<boolean> {
+  async postEmbalaje(embalaje: Embalaje): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
     const data = { Nombre: embalaje.Nombre };
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.embalajesUrl}/post`, data:data, headers };
@@ -145,7 +162,8 @@ export class IntegrationService {
     }
   }
 
-  async postInsumo(token: string, insumo: Insumo): Promise<boolean> {
+  async postInsumo(insumo: Insumo): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
     const data = { Nombre: insumo.Nombre };
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.insumosUrl}/post`, data:data, headers };
@@ -168,7 +186,8 @@ export class IntegrationService {
     }
   }
 
-  async postMaterial(token: string, material: Material): Promise<boolean> {
+  async postMaterial(material: Material): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
     const data = { IdMaterial: null, Nombre: material.Nombre, Medicion: material.TipoMedicion, Captura: material.TipoCaptura, Referencia: material.Referencia, Factor: material.Factor, Aprovechable: material.Aprovechable };
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.materialesUrl}/post`, data:data, headers };
@@ -191,7 +210,8 @@ export class IntegrationService {
     }
   }
 
-  async postTercero(token: string, tercero: Tercero): Promise<boolean> {
+  async postTercero(tercero: Tercero): Promise<boolean> {
+    const token: string = await this.storage.get('Token');
     const data = { IdTercero: null, Nombre: tercero.Nombre, Identificacion: tercero.Identificacion, Correo: tercero.Correo, Telefono: tercero.Telefono };
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.tercerosUrl}/post`, data:data, headers };
@@ -200,7 +220,7 @@ export class IntegrationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201) { //Created
         var terceroCreado = response.data;
-        tercero.IdPersona = terceroCreado.IdPersona;
+        tercero.IdTercero = terceroCreado.IdPersona;
         return true;
       } else {
         throw false;
@@ -223,7 +243,6 @@ export class IntegrationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201) { //Created
         var residuoCreado = response.data;
-        console.log('Creado');
         tarea.CRUD = null;
         tarea.CRUDDate = null;
         //tarea.Item = residuoCreado.IdItem;
@@ -333,7 +352,6 @@ export class IntegrationService {
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
 
-    console.log(transaccion);
     if (transaccion.Firma)
     {
       const formData = new FormData();
@@ -369,7 +387,6 @@ export class IntegrationService {
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.actividadesUrl}/updateactividad`, data:actividad, headers };
 
-    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
@@ -392,7 +409,6 @@ export class IntegrationService {
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
 
-    console.log(actividad);
     if (actividad.Firma)
     {
       const formData = new FormData();
@@ -418,4 +434,5 @@ export class IntegrationService {
     } else {
       return false;
     }
-  }}
+  }
+}

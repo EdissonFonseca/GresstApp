@@ -1,8 +1,9 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
+import { ClienteProveedorInterno } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -10,17 +11,14 @@ import { Globales } from 'src/app/services/globales.service';
   templateUrl: './points.component.html',
   styleUrls: ['./points.component.scss'],
 })
-export class PointsComponent  implements OnInit {
+export class PointsComponent  implements OnInit, OnChanges {
   @Input() showHeader: boolean = true;
   @Input() idTercero: string = '';
-  @Input() almacenamiento: boolean | null = null;
-  @Input() disposicion: boolean | null = null;
-  @Input() entrega: boolean | null = null;
-  @Input() generacion: boolean | null = null;
-  @Input() recepcion: boolean | null = null;
-  @Input() tratamiento: boolean | null = null;
+  @Input() tipoTercero: string = '';
+  @Input() includeMe: boolean = false;
   idPunto: string = '';
   puntos: Punto[] = [];
+  filteredPuntos: Punto[] = [];
   terceros: Tercero[] = [];
   selectedValue: string = '';
   selectedName: string = '';
@@ -30,46 +28,42 @@ export class PointsComponent  implements OnInit {
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private navParams: NavParams,
+    //private navParams: NavParams,
   ) { }
 
   async ngOnInit() {
-    // this.almacenamiento = this.navParams.get("Almacenamiento");
-    // this.disposicion = this.navParams.get("Disposicion");
-    // this.entrega = this.navParams.get("Entrega");
-    // this.generacion = this.navParams.get("Generacion");
-    // this.recepcion = this.navParams.get("Recepcion");
-    // this.tratamiento = this.navParams.get("Tratamiento");
+    await this.filterPoints();
+  }
 
-    this.almacenamiento = this.navParams.get("Almacenamiento");
-    this.disposicion = this.navParams.get("Disposicion");
-    if (!this.idTercero)
-    {
-      this.terceros = (await this.globales.getTercerosConPuntos());
-      this.idTercero = this.navParams.get("IdTercero");
-      if (this.idTercero)
-      {
-        this.terceros = (await this.globales.getTerceros()).filter(x => x.IdPersona == this.idTercero);
-        this.puntos = (await this.globales.getPuntos()).filter((punto) => punto.IdTercero == this.idTercero);
-      }
-      else
-      {
-        this.terceros = (await this.globales.getTercerosConPuntos());
-        this.puntos = (await this.globales.getPuntos());
-      }
-    }
-    else
-    {
-      this.terceros = (await this.globales.getTerceros()).filter(x => x.IdPersona == this.idTercero);
-      this.puntos = (await this.globales.getPuntos()).filter((punto) => punto.IdTercero == this.idTercero);
-    }
-    if (this.almacenamiento) {
-      this.puntos = this.puntos.filter(x => x.Almacenamiento);
+  async ngOnChanges(changes: SimpleChanges) {
+    if (changes['idTercero']) {
+      await this.filterPoints();
     }
   }
 
+  async filterPoints() {
+    const terceros = await this.globales.getTerceros();
+    if (this.idTercero) {
+      this.terceros = terceros.filter(x => x.IdTercero == this.idTercero);
+    } else if (this.tipoTercero) {
+      if (this.includeMe)
+        this.terceros = terceros.filter(x => x.ClienteProveedorInterno == this.tipoTercero || x.ClienteProveedorInterno == ClienteProveedorInterno.Interno);
+      else
+        this.terceros = terceros.filter(x => x.ClienteProveedorInterno == this.tipoTercero);
+    } else {
+      this.terceros = terceros;
+    }
+
+    const puntos =  await this.globales.getPuntos();
+    if (this.idTercero)
+      this.puntos = puntos.filter(x => x.IdTercero == this.idTercero);
+    else
+      this.puntos = puntos;
+    this.filteredPuntos = this.puntos;
+  }
+
   filterPuntos(idTercero: string) {
-    return this.puntos.filter(x => x.IdTercero == idTercero);
+    return this.filteredPuntos.filter(x => x.IdTercero == idTercero);
   }
 
   async handleInput(event: any){
@@ -78,27 +72,11 @@ export class PointsComponent  implements OnInit {
     let nombre: string = '';
 
     const query = event.target.value.toLowerCase();
-    const parts: string[] = query.split('-');
-    if (parts.length > 1)
-    {
-      tercero = parts[0].trim();
-      nombre = parts[1].trim();
-    }
-    else
-    {
-      tercero = query.trim();
-    }
-
-    puntos = await this.globales.getPuntos();
-    if (tercero != '')
-    {
-      puntos = puntos.filter((punto) => (punto.Tercero ?? '').toLowerCase().indexOf(tercero) > -1);
-    }
+    nombre = query.trim();
+    puntos = this.puntos;
     if (nombre != '')
-    {
       puntos = puntos.filter((punto) => punto.Nombre.toLowerCase().indexOf(nombre) > -1);
-    }
-    this.puntos = puntos;
+    this.filteredPuntos = puntos;
   }
 
   async select(idPunto: string, idTercero: string, tercero: string, nombre: string) {

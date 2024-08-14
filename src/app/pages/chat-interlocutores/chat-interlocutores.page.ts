@@ -32,11 +32,7 @@ export class ChatInterlocutoresPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idResiduo = params["IdResiduo"]
     });
-    const username = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.authService.login(username, password);
-    //const token = await this.storage.get('Token');
-    this.interlocutores = await this.integrationService.getInterlocutores(token, this.idResiduo);
+    this.interlocutores = await this.integrationService.getInterlocutores(this.idResiduo);
     this.globales.hideLoading();
   }
 

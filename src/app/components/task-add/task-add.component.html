@@ -11,43 +11,54 @@
   <form [formGroup]="formData" >
     <ion-list inset="true">
       <ion-item *ngIf="solicitarPunto">
-        <ion-label>Punto: {{ punto }}</ion-label>
-        <ion-button color="light" (click)="selectPunto()">...</ion-button>
+        <ion-note slot="start">P. Recolección</ion-note>
+        <ion-label> {{ puntoEntrada }}</ion-label>
+        <ion-button slot="end" color="light" (click)="selectPuntoRecoleccion()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="solicitarPropietario">
-        <ion-label>Propietario: {{ propietario }}</ion-label>
-        <ion-button color="light" (click)="selectPropietario()">...</ion-button>
+      <ion-item *ngIf="solicitarPunto">
+        <ion-note slot="start">P. Entrega</ion-note>
+        <ion-label> {{ puntoSalida }}</ion-label>
+        <ion-button slot="end" color="light" (click)="selectPuntoEntrega()">...</ion-button>
       </ion-item>
       <ion-item>
-        <ion-label>Material: {{ material }}</ion-label>
-        <ion-button label="Material" color="light" (click)="selectMaterial()">...</ion-button>
+        <ion-note slot="start">Material</ion-note>
+        <ion-label> {{ material }}</ion-label>
+        <ion-button slot="end" label="Material" color="light" (click)="selectMaterial()">...</ion-button>
       </ion-item>
       <ion-item *ngIf="solicitarTratamiento">
-        <ion-label>Tratamiento: {{ tratamiento }}</ion-label>
-        <ion-button color="light" (click)="selectTratamiento()">...</ion-button>
+        <ion-note slot="start">Tratamiento</ion-note>
+        <ion-label>{{ tratamiento }}</ion-label>
+        <ion-button slot="end" color="light" (click)="selectTratamiento()">...</ion-button>
       </ion-item>
       <ion-item *ngIf="medicion == 'C' || captura == 'C'">
-        <ion-input type="number" labelPlacement="fixed" label="{{unidadCantidad}}" inputmode="numeric" formControlName="Cantidad" [readonly]="captura != 'C'" (ionChange)="calculateFromCantidad($event)"></ion-input>
+        <ion-note slot="start">{{unidadCantidad}} </ion-note>
+        <ion-input slot="end" type="number" labelPlacement="fixed" inputmode="numeric" formControlName="Cantidad" [readonly]="captura != 'C'" (ionChange)="calculateFromCantidad($event)"></ion-input>
       </ion-item>
       <ion-item *ngIf="medicion == 'P' || captura == 'P'">
-        <ion-input type="number" labelPlacement="fixed" label="{{unidadPeso}}" inputmode="numeric" formControlName="Peso" [readonly]="captura != 'P'"></ion-input>
+        <ion-note slot="start">{{unidadPeso}}</ion-note>
+        <ion-input slot="end" type="number" labelPlacement="fixed" linputmode="numeric" formControlName="Peso" [readonly]="captura != 'P'"></ion-input>
       </ion-item>
       <ion-item *ngIf="medicion == 'V' || captura == 'V'">
-        <ion-input type="number" labelPlacement="fixed" label="{{unidadVolumen}}" inputmode="numeric" formControlName="Volumen" [readonly]="captura != 'V'"></ion-input>
+        <ion-note slot="start">{{unidadVolumen}}</ion-note>
+        <ion-input slot="end" type="number" labelPlacement="fixed" inputmode="numeric" formControlName="Volumen" [readonly]="captura != 'V'"></ion-input>
       </ion-item>
       <ion-item detail="true" (click)="toggleShowDetalles()">Otros detalles</ion-item>
       <ion-item *ngIf="showDetalles && solicitarEmbalaje">
-        <ion-label>Embalaje: {{ embalaje }}</ion-label>
+        <ion-note slot="start">Embalaje</ion-note>
+        <ion-label>{{ embalaje }}</ion-label>
         <ion-button color="light" (click)="selectEmbalaje()">...</ion-button>
       </ion-item>
       <ion-item *ngIf="showDetalles && solicitarEmbalaje">
-        <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje" label="Cant emb"></ion-input>
+        <ion-note slot="start">Cant Emb</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje"></ion-input>
       </ion-item>
       <ion-item *ngIf="showDetalles">
-        <ion-input type="number" inputmode="numeric" formControlName="Precio" label="Precio"></ion-input>
+        <ion-note slot="start">Precio</ion-note>
+        <ion-input type="number" inputmode="numeric" formControlName="Precio"></ion-input>
       </ion-item>
       <ion-item *ngIf="showDetalles">
-        <ion-textarea formControlName="Observaciones" label="Observaciones"></ion-textarea>
+        <ion-note slot="start">Notas</ion-note>
+        <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>
     </ion-list>
     <ion-item color="light">

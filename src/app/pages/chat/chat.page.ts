@@ -36,10 +36,7 @@ export class ChatPage implements OnInit {
       this.idInterlocutor = params["IdInterlocutor"],
       this.interlocutor = params["Interlocutor"]
     });
-    this.myName = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.authService.login(this.myName, password);
-    this.messages = await this.integrationService.getMensajes(token, this.idResiduo, this.idInterlocutor);
+    this.messages = await this.integrationService.getMensajes(this.idResiduo, this.idInterlocutor);
 
     this.globales.hideLoading();
   }

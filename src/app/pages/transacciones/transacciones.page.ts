@@ -120,12 +120,9 @@ export class TransaccionesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      const actividad = await this.globales.getActividad(this.idActividad);
-      if (actividad)
-      {
-        actividad.IdEstado = Estado.Rechazado;
-        this.globales.updateActividad(actividad);
-      }
+      const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
+      if (card)
+        card.IdEstado = Estado.Rechazado;
     }
   }
 

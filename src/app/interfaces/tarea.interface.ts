@@ -17,11 +17,13 @@ export interface Tarea{
   Item?: number;
   IdMaterial: string;
   IdPunto?: string;
+  IdPuntoDestino?: string;
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;
   IdDocumento?: string;
   IdTercero?: string;
+  IdTerceroDestino?: string;
   IdTransaccion?: string;
   IdTratamiento?: string;
   Imagen?: string | null;

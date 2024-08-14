@@ -1,7 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ToastController } from '@ionic/angular';
+import { ModalController, NavController, ToastController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
+import { ClienteProveedorInterno } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -22,7 +23,7 @@ export class StakeholdersComponent  implements OnInit {
     private globales: Globales,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private toastCtrl: ToastController,
+    private navCtrl: NavController
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -70,14 +71,14 @@ export class StakeholdersComponent  implements OnInit {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const tercero: Tercero = {IdPersona: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, IdRelaciones:undefined};
+      const tercero: Tercero = {IdTercero: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, ClienteProveedorInterno:ClienteProveedorInterno.Cliente};
       const created = await this.globales.createTercero(tercero);
       if (created)
       {
-        const data = {id: tercero.IdPersona, name: this.selectedName};
+        const data = {id: tercero.IdTercero, name: this.selectedName};
         if (this.showHeader){
           this.modalCtrl.dismiss(data);
-          this.selectedValue = tercero.IdPersona;
+          this.selectedValue = tercero.IdTercero;
         }
         else{
           this.terceros = await this.globales.getTerceros();
@@ -89,5 +90,9 @@ export class StakeholdersComponent  implements OnInit {
         this.showNew = false;
       }
     }
+  }
+
+  goToPuntos(idTercero: string) {
+    this.navCtrl.navigateForward(`/puntos/${idTercero}`);
   }
 }

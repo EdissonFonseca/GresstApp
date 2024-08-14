@@ -12,6 +12,15 @@ import { MenuController } from '@ionic/angular';
 export class MenuComponent  implements OnInit {
   user: string = '';
   account: string = '';
+  showEmbalajes = true;
+  showInsumos = true;
+  showMateriales = true;
+  showServicios = true;
+  showPuntos = true;
+  showTerceros = true;
+  showTratamientos = true;
+  showVehiculos = true;
+  idTercero: string = '';
 
   constructor(
     private storage: StorageService,
@@ -23,8 +32,22 @@ export class MenuComponent  implements OnInit {
   async ngOnInit() {
     const cuenta = await this.storage.get('Cuenta');
 
+    this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;
     this.user = cuenta.NombreUsuario;
+    this.showEmbalajes = cuenta.PermisosEmbalajesCRUD != null && cuenta.PermisosEmbalajesCRUD != "";
+    this.showInsumos = cuenta.PermisosInsumosCRUD != null && cuenta.PermisosInsumosCRUD != "";
+    this.showMateriales = cuenta.PermisosMaterialesCRUD != null && cuenta.PermisosMaterialesCRUD != "";
+    this.showServicios = cuenta.PermisosServiciosCRUD != null && cuenta.PermisosServiciosCRUD != "";
+    this.showPuntos = cuenta.PermisosPuntosCRUD != null && cuenta.PermisosPuntosCRUD != "";
+    this.showTerceros = cuenta.PermisosTercerosCRUD != null && cuenta.PermisosTercerosCRUD != "";
+    this.showTratamientos = cuenta.PermisosTratamientoCRUD != null && cuenta.PermisosTratamientoCRUD != "";
+    this.showVehiculos = cuenta.PermisosVehiculosCRUD != null && cuenta.PermisosVehiculosCRUD != "";
+  }
+
+  navigateToPuntos() {
+    this.menuCtrl.close();
+    this.navCtrl.navigateForward(`/puntos/${this.idTercero}`);
   }
 
   navigateTo(page: string) {

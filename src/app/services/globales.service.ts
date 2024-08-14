@@ -168,9 +168,8 @@ export class Globales {
   }
 
   async createEmbalaje(embalaje: Embalaje): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     try{
-      const posted = await this.integration.postEmbalaje(token, embalaje);
+      const posted = await this.integration.postEmbalaje(embalaje);
       if (!posted) {
         embalaje.CRUD = CRUDOperacion.Create;
         embalaje.CRUDDate = new Date();
@@ -190,9 +189,8 @@ export class Globales {
   }
 
   async createInsumo(insumo: Insumo): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     try{
-      const posted = await this.integration.postInsumo(token, insumo);
+      const posted = await this.integration.postInsumo(insumo);
       if (!posted) {
         insumo.CRUD = CRUDOperacion.Create;
         insumo.CRUDDate = new Date();
@@ -212,9 +210,8 @@ export class Globales {
   }
 
   async createMaterial(material: Material): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     try{
-      const posted = await this.integration.postMaterial(token, material);
+      const posted = await this.integration.postMaterial(material);
       if (!posted) {
         material.CRUD = CRUDOperacion.Create;
         material.CRUDDate = new Date();
@@ -234,9 +231,8 @@ export class Globales {
   }
 
   async createTercero(tercero: Tercero): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     try{
-      const posted = await this.integration.postTercero(token, tercero);
+      const posted = await this.integration.postTercero(tercero);
       if (!posted) {
         tercero.CRUD = CRUDOperacion.Create;
         tercero.CRUDDate = new Date();
@@ -460,7 +456,7 @@ export class Globales {
 
     residuos.forEach((residuo) => {
       const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
-      const tercero = terceros.find(x => x.IdPersona == residuo.IdPropietario);
+      const tercero = terceros.find(x => x.IdTercero == residuo.IdPropietario);
       const punto = puntos.find(x => x.IdPunto == residuo.IdDepositoOrigen);
       ubicacion = '';
       cantidades = '';
@@ -654,12 +650,12 @@ export class Globales {
     if (actividad)
     {
       if (idTransaccion)
-       tareas = actividad.Tareas.filter(x => x.IdTransaccion == idTransaccion);
+        tareas = actividad.Tareas.filter(x => x.IdTransaccion == idTransaccion);
       else
         tareas = actividad.Tareas;
 
       if (tareas.length > 0){
-        tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo).forEach((tarea) => {
+        tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo)?.forEach((tarea) => {
           tarea.IdServicio = actividad.IdServicio;
           const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
           let resumen: string = '';
@@ -728,13 +724,13 @@ export class Globales {
         });
       }
       if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
-        const puntos = this.getPuntos();
+        const puntos = await this.getPuntos();
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdPunto)
         {
           var punto = await this.getPunto(transaccion.IdPunto);
           if (punto){
-            punto.IdMateriales.forEach((idMaterial) => {
+            punto.IdMateriales?.forEach((idMaterial) => {
               const tareaMaterial = tareas.find(x => x.IdMaterial == idMaterial);
               if (!tareaMaterial) {
                 const material = materiales.find((x) => x.IdMaterial == idMaterial);
@@ -838,7 +834,7 @@ export class Globales {
     const cuenta: Cuenta | null = await this.storage.get('Cuenta');
 
     if (cuenta && cuenta.Terceros) {
-      const tercero = cuenta.Terceros.find((tercero) => tercero.IdPersona === idTercero);
+      const tercero = cuenta.Terceros.find((tercero) => tercero.IdTercero === idTercero);
       return tercero || undefined;
     }
 
@@ -856,7 +852,7 @@ export class Globales {
 
     const idTerceros: string[] = cuenta.Puntos.map(x => x.IdTercero ?? '');
 
-    return cuenta.Terceros.filter(x=> idTerceros.includes(x.IdPersona));
+    return cuenta.Terceros.filter(x=> idTerceros.includes(x.IdTercero));
   }
 
   async getTransaccion(idActividad: string, idTransaccion: string) {
@@ -961,7 +957,7 @@ export class Globales {
           const punto = puntos.find(x => x.IdPunto == transaccion.IdPunto);
           if (punto) {
             transaccion.Punto = punto.Nombre;
-            const tercero = terceros.find(x => x.IdPersona == punto.IdTercero);
+            const tercero = terceros.find(x => x.IdTercero == punto.IdTercero);
             if (tercero)
               transaccion.Tercero = `${tercero.Nombre} - ${nombre}`;
             ubicacion = '';
@@ -999,7 +995,7 @@ export class Globales {
             }
         }
       } else if (transaccion && transaccion.IdTercero != null) {
-        const tercero = terceros.find(x => x.IdPersona == transaccion.IdTercero);
+        const tercero = terceros.find(x => x.IdTercero == transaccion.IdTercero);
         if (tercero) {
           transaccion.Tercero = tercero.Nombre;
           transaccion.Icono = 'person';

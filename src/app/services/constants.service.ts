@@ -1,3 +1,8 @@
+export enum ClienteProveedorInterno {
+  Cliente = "C",
+  Proveedor = "P",
+  Interno = "I"
+}
 export enum CRUDOperacion {
   Create = 'C',
   Update = 'U',

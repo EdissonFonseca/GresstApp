@@ -38,32 +38,45 @@ export class LoginPage implements OnInit {
     try {
       this.globales.showLoading('Conectando ...');
 
-      const token = await this.authService.login(this.username, this.password);
-      if (token)
-      {
-        await this.storage.set('Login', this.username);
-        await this.storage.set('Password', this.password);
-        await this.storage.set('Token', token);
+      if (await this.authService.ping()){
+        const token = await this.authService.login(this.username, this.password);
+        if (token) {
+          await this.storage.set('Login', this.username);
+          await this.storage.set('Password', this.password);
+          await this.storage.set('Token', token);
 
-        const cuenta: Cuenta = await this.integrationService.getConfiguracion(token);
-        await this.storage.set('Cuenta', cuenta);
+          this.integrationService.sincronizar();
 
-        const actividades: Actividad[] = await this.integrationService.getActividades(token);
-        await this.storage.set('Actividades', actividades);
+          const cuenta: Cuenta = await this.integrationService.getConfiguracion();
+          await this.storage.set('Cuenta', cuenta);
 
-        const inventario: Residuo[] = await this.integrationService.getInventario(token);
-        await this.storage.set('Inventario', inventario);
+          const actividades: Actividad[] = await this.integrationService.getActividades();
+          await this.storage.set('Actividades', actividades);
 
-        this.globales.hideLoading();
+          const inventario: Residuo[] = await this.integrationService.getInventario();
+          await this.storage.set('Inventario', inventario);
 
-        if (cuenta.MostrarIntroduccion)
-          this.navCtrl.navigateRoot('/tutorial');
-        else
+          this.globales.hideLoading();
+
+          if (cuenta.MostrarIntroduccion)
+            this.navCtrl.navigateRoot('/tutorial');
+          else
+            this.navCtrl.navigateRoot('/home');
+        } else {
+          this.globales.hideLoading();
+          await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
+        }
+      } else {
+        const savedLogin = await this.storage.get('Login');
+        const savedPassword = await this.storage.get('Password');
+        if (this.login == savedLogin && this.password == savedPassword){
+          this.globales.hideLoading();
+          this.globales.presentToast('Trabajando en modo desconectado', "middle");
           this.navCtrl.navigateRoot('/home');
-      }
-      else {
-        this.globales.hideLoading();
-        await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
+        } else {
+          this.globales.hideLoading();
+          await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
+        }
       }
     } catch (error) {
       this.globales.hideLoading();

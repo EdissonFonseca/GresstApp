@@ -12,6 +12,7 @@ export interface Cuenta {
 
   CorreoUsuario: string;
   Identificacion: string;
+  IdPersona: string;
   Nombre: string;
   NombreUsuario: string;
   UnidadCantidad: string;
@@ -33,6 +34,7 @@ export interface Cuenta {
   PermisosCuentaCRUD: string;
   PermisosDisposicionCRUD: string;
   PermisosEmbalajesCRUD: string;
+  PermisosInsumosCRUD: string;
   PermisosInventarioCRUD: string;
   PermisosGeneracionCRUD: string;
   PermisosMaterialesCRUD: string;

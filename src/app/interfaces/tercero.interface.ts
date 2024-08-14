@@ -1,8 +1,8 @@
 export interface Tercero {
-  IdPersona: string;
+  IdTercero: string;
   Correo?: string;
   Identificacion: string;
-  IdRelaciones: string[]| undefined;
+  ClienteProveedorInterno: string;
   Nombre: string;
   Telefono: string;
   CRUD?: string;

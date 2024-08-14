@@ -14,7 +14,7 @@
     <ion-item-divider color="light">
       <ion-label>{{tercero.Nombre}}</ion-label>
     </ion-item-divider>
-    <ion-list *ngFor="let punto of filterPuntos(tercero.IdPersona)" (click)="select(punto.IdPunto, tercero.IdPersona, tercero.Nombre, punto.Nombre)">
+    <ion-list *ngFor="let punto of filterPuntos(tercero.IdTercero)" (click)="select(punto.IdPunto, tercero.IdTercero, tercero.Nombre, punto.Nombre)">
       <ion-item lines="none">
         {{punto.Nombre}}
       </ion-item>

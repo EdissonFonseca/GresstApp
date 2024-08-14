@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-puntos',
@@ -6,9 +7,12 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./puntos.page.scss'],
 })
 export class PuntosPage implements OnInit {
+  idTercero: string = '';
 
-  constructor() {}
+  constructor(private route: ActivatedRoute) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.idTercero = this.route.snapshot.paramMap.get('idTercero') || '';
+  }
 
 }

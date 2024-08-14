@@ -18,7 +18,6 @@ export class BancoPage implements OnInit {
   constructor(
     private authService: AuthService,
     private storage: StorageService,
-    private menuCtrl: MenuController,
     private integrationService: IntegrationService,
     private navCtrl: NavController,
     private globales: Globales
@@ -27,10 +26,7 @@ export class BancoPage implements OnInit {
 
   async ngOnInit() {
     this.globales.showLoading('Sincronizando ...');
-    const username = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.authService.login(username, password);
-    this.materiales = await this.integrationService.getBanco(token);
+    this.materiales = await this.integrationService.getBanco();
     this.globales.hideLoading();
   }
 
@@ -51,10 +47,7 @@ export class BancoPage implements OnInit {
     const query = event.target.value.toLowerCase();
 
     this.globales.showLoading('Sincronizando ...');
-    const username = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.authService.login(username, password);
-    const materialesList : Banco[] = await this.integrationService.getBanco(token);
+    const materialesList : Banco[] = await this.integrationService.getBanco();
 
     this.materiales = materialesList.filter((mat) => mat.Nombre.toLowerCase().indexOf(query) > -1);
 
@@ -66,7 +59,7 @@ export class BancoPage implements OnInit {
     const username = await this.storage.get('Login');
     const password = await this.storage.get('Password');
     const token = await this.authService.login(username, password);
-    this.materiales = await this.integrationService.getBanco(token);
+    this.materiales = await this.integrationService.getBanco();
     this.globales.hideLoading();
   }
 }

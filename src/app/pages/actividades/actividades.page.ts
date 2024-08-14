@@ -140,8 +140,9 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      actividad.IdEstado = Estado.Aprobado;
-      this.globales.updateActividad(actividad);
+      const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
+      if (card)
+        card.IdEstado = Estado.Aprobado;
     }
   }
 
@@ -161,8 +162,9 @@ export class ActividadesPage implements OnInit {
       const actividad = await this.globales.getActividad(idActividad);
       if (actividad)
       {
-        actividad.IdEstado = Estado.Rechazado;
-        this.globales.updateActividad(actividad);
+        const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
+        if (card)
+          card.IdEstado = Estado.Rechazado;
       }
     }
   }

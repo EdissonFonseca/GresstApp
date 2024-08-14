@@ -6,12 +6,29 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class AuthService {
+  private pingUrl =  `${environment.apiUrl}/login/ping`;
   private loginUrl =  `${environment.apiUrl}/login/authenticate`;
   private registerUrl = `${environment.apiUrl}/login/register`;
   private existUserUrl = `${environment.apiUrl}/login/existuser`;
   private changePasswordUrl = `${environment.apiUrl}/login/changepassword`;
 
   constructor() {}
+
+  async ping(): Promise<boolean>{
+    const options = {url: this.pingUrl, headers: { 'Content-Type': 'application/json' }};
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  }
+
 
   async login(username: string, password:string): Promise<any>{
     const data = {Username: username, Password: password};

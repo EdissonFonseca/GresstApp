@@ -47,9 +47,21 @@
 </ion-content>
 <ion-content>
   <ion-list *ngFor="let tercero of terceros">
-    <ion-item (click)="select(tercero.IdPersona, tercero.Nombre)">
-      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.IdPersona"></ion-icon>
-      <ion-label>{{ tercero.Nombre }}</ion-label>
+    <ion-item >
+      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.IdTercero"></ion-icon>
+      <ion-label (click)="select(tercero.IdTercero, tercero.Nombre)">{{ tercero.Nombre }}</ion-label>
+      <ion-badge slot="end" color="secondary" *ngIf="tercero.ClienteProveedorInterno=='C'">
+        Cliente
+      </ion-badge>
+      <ion-badge slot="end" color="light" *ngIf="tercero.ClienteProveedorInterno=='P'">
+        Proveedor
+      </ion-badge>
+      <ion-badge slot="end" color="warning" *ngIf="tercero.ClienteProveedorInterno=='I'">
+        Interno
+      </ion-badge>
+      <ion-buttons slot="end">
+        <ion-button (click)="goToPuntos(tercero.IdTercero)"><ion-icon name="location"></ion-icon></ion-button>
+      </ion-buttons>
     </ion-item>
   </ion-list>
 </ion-content>

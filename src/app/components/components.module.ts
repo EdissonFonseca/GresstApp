@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 
 import { ActivityAddComponent } from "./activity-add/activity-add.component";
 import { ActivityApproveComponent } from "./activity-approve/activity-approve.component";
+import { ActivityRejectComponent } from "./activity-reject/activity-reject.component";
 import { HeaderComponent } from "./header/header.component";
 import { LocationComponent } from "./location/location.component";
 import { LocationSelectComponent } from "./location-select/location-select.component";
@@ -13,7 +14,6 @@ import { MenuComponent } from "./menu/menu.component";
 import { PackagesComponent } from "./packages/packages.component";
 import { PointComponent } from "./point/point.component";
 import { PointsComponent } from "./points/points.component";
-import { ActivityRejectComponent } from "./activity-reject/activity-reject.component";
 import { ResidueDismissComponent } from "./residue-dismiss/residue-dismiss.component";
 import { ResidueMoveComponent } from "./residue-move/residue-move.component";
 import { ResiduePublishComponent } from "./residue-publish/residue-publish.component";
