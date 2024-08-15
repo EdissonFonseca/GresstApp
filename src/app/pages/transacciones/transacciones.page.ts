@@ -84,7 +84,7 @@ export class TransaccionesPage implements OnInit {
       }
     }
 //    this.navCtrl.navigateForward('/mapa', navigationExtras);
-  this.navCtrl.navigateForward('/rutas', navigationExtras);
+  this.navCtrl.navigateForward('/ruta', navigationExtras);
 }
 
   async openApprove(id: string){

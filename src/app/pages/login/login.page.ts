@@ -45,7 +45,7 @@ export class LoginPage implements OnInit {
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
 
-          this.globales.sincronizar();
+          await this.globales.sincronizar();
 
           this.globales.hideLoading();
 

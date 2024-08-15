@@ -124,8 +124,8 @@ const routes: Routes = [
     loadChildren: () => import('./pages/sincronizacion/sincronizacion.module').then( m => m.SincronizacionPageModule)
   },
   {
-    path: 'rutas',
-    loadChildren: () => import('./pages/rutas/rutas.module').then( m => m.RutasPageModule)
+    path: 'ruta',
+    loadChildren: () => import('./pages/ruta/ruta.module').then( m => m.RutaPageModule)
   },
 ];
 @NgModule({

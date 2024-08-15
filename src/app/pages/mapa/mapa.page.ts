@@ -24,7 +24,7 @@ export class MapaPage implements OnInit, AfterViewInit {
   wayPoints: Array<{ lat: number, lng: number }> = [
     { lat: 4.659383846282959, lng: -74.05394073486328 },
     { lat: 4.669383846282959, lng: -74.03394073486328 },
-  ];  // P
+  ];
   puntos: Punto[] = [];
 
   constructor(

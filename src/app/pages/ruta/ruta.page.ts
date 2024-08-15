@@ -1,36 +1,43 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Geolocation } from '@capacitor/geolocation';
+import { ModalController } from '@ionic/angular';
+import { Punto } from 'src/app/interfaces/punto.interface';
+import { Globales } from 'src/app/services/globales.service';
 import { environment } from 'src/environments/environment';
 
 declare var google: any;
 
 @Component({
-  selector: 'app-rutas',
-  templateUrl: './rutas.page.html',
-  styleUrls: ['./rutas.page.scss'],
+  selector: 'app-ruta',
+  templateUrl: './ruta.page.html',
+  styleUrls: ['./ruta.page.scss'],
 })
-export class RutasPage implements OnInit {
+export class RutaPage implements OnInit {
   map: any;
   directionsService: any;
   directionsRenderer: any;
+  idActividad!: string;
+  puntos: Punto[] = [];
 
-  origin = { lat: 4.6105, lng: -74.0817 };  // Centro histórico de Bogotá (La Candelaria)
-  destination = { lat: 4.6399, lng: -74.0824 }; // Área de Chapinero
+  origin = { lat: 4.6105, lng: -74.0817 };
+  destination = { lat: 4.6399, lng: -74.0824 };
 
-  wayPoints = [
-    { location: { lat: 4.6094, lng: -74.0761 }, stopover: true },  // Ejemplo de punto intermedio cerca de La Candelaria
-    { location: { lat: 4.6188, lng: -74.0733 }, stopover: true },  // Ejemplo de punto intermedio en el centro de Bogotá
-  ];
+  constructor(    private modalCtrl: ModalController,
+    private route: ActivatedRoute,
+    private globales:Globales) {}
 
-  constructor() {}
-
-  ngOnInit() {
-    this.loadGoogleMaps();
+  async ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.idActividad = params["IdActividad"]
+    });
+    this.puntos = await this.globales.getPuntosFromTareas(this.idActividad);
+    await this.loadGoogleMaps();
   }
 
-  loadGoogleMaps() {
+  async loadGoogleMaps() {
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.GOOGLE_MAPS_API_KEY}`;  // Reemplaza con tu API Key
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${environment.GOOGLE_MAPS_API_KEY}`;
     script.async = true;
     script.defer = true;
     script.onload = () => {
@@ -75,13 +82,26 @@ export class RutasPage implements OnInit {
     }
   }
 
+  async getDestinationPosition() {
+    const currentLocation = await Geolocation.getCurrentPosition();
+    const actividad = await this.globales.getActividad(this.idActividad);
+
+    if (actividad && actividad.Destino?.Latitud != null && actividad.Destino?.Longitud != null){
+      this.destination.lat = parseFloat(actividad.Destino.Latitud);
+      this.destination.lng = parseFloat(actividad.Destino.Longitud);
+    } else {
+      this.destination.lat = currentLocation.coords.latitude;
+      this.destination.lng = currentLocation.coords.longitude;
+    }
+  }
+
   calculateRoute() {
     const request: google.maps.DirectionsRequest = {
       origin: this.origin,
       destination: this.destination,
-      waypoints: this.wayPoints.map((point) => ({
-        location: new google.maps.LatLng(point.location.lat, point.location.lng),
-        stopover: point.stopover,
+      waypoints: this.puntos.filter((x) => x.Latitud != null && x.Longitud != null).map((point) => ({
+        location: new google.maps.LatLng(point.Latitud, point.Longitud),
+        stopover: true,
       })),
       optimizeWaypoints: true,
       travelMode: google.maps.TravelMode.DRIVING,
