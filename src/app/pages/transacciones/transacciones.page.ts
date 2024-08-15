@@ -83,8 +83,9 @@ export class TransaccionesPage implements OnInit {
         IdActividad: this.idActividad,
       }
     }
-    this.navCtrl.navigateForward('/mapa', navigationExtras);
-  }
+//    this.navCtrl.navigateForward('/mapa', navigationExtras);
+  this.navCtrl.navigateForward('/rutas', navigationExtras);
+}
 
   async openApprove(id: string){
     const modal =   await this.modalCtrl.create({

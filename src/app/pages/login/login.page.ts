@@ -45,23 +45,11 @@ export class LoginPage implements OnInit {
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
 
-          this.integrationService.sincronizar();
-
-          const cuenta: Cuenta = await this.integrationService.getConfiguracion();
-          await this.storage.set('Cuenta', cuenta);
-
-          const actividades: Actividad[] = await this.integrationService.getActividades();
-          await this.storage.set('Actividades', actividades);
-
-          const inventario: Residuo[] = await this.integrationService.getInventario();
-          await this.storage.set('Inventario', inventario);
+          this.globales.sincronizar();
 
           this.globales.hideLoading();
 
-          if (cuenta.MostrarIntroduccion)
-            this.navCtrl.navigateRoot('/tutorial');
-          else
-            this.navCtrl.navigateRoot('/home');
+          this.navCtrl.navigateRoot('/home');
         } else {
           this.globales.hideLoading();
           await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);

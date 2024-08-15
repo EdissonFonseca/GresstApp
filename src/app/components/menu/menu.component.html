@@ -5,7 +5,7 @@
     </ion-item>
   </ion-header>
   <ion-content>
-    <ion-list>
+    <ion-list lines="none">
       <ion-item (click)="navigateTo('cuenta')">
         <ion-icon name="people-outline"></ion-icon>
         {{ account }}
@@ -17,7 +17,7 @@
       <ion-item (click)="navigateTo('certificados-buscar')">
         <ion-icon name="shield-checkmark-outline"></ion-icon>        Certificados
       </ion-item>
-      <ion-item>
+      <ion-item (click)="navigateTo('sincronizacion')">
         <ion-icon name="sync-outline"></ion-icon>        Sincronizar
       </ion-item>
       <ion-item-divider>Datos Maestros</ion-item-divider>

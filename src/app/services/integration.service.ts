@@ -31,16 +31,6 @@ export class IntegrationService {
     private storage: StorageService
   ) {}
 
-  async sincronizar() {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
-    const options = { url: `${this.actividadesUrl}/get`, headers };
-
-    try{
-    } catch {
-    }
-  }
-
   async getActividades(): Promise<any>{
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };

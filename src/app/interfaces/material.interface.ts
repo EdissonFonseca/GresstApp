@@ -11,6 +11,6 @@ export interface Material{
   PrecioServicio?: number;
   TipoCaptura: string;
   TipoMedicion: string;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
 }

@@ -5,6 +5,6 @@ export interface Tratamiento {
   IdServicio: string;
   Nombre: string;
   Valor?: number;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
 }

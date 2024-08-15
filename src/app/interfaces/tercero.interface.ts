@@ -5,6 +5,6 @@ export interface Tercero {
   ClienteProveedorInterno: string;
   Nombre: string;
   Telefono: string;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
 }

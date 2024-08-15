@@ -1,6 +1,6 @@
 export interface Embalaje {
   IdEmbalaje: string;
   Nombre: string;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
 }

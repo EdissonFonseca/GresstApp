@@ -1,5 +1,6 @@
 import { Costo } from "./costo.interface";
 import { Insumo } from "./insumo.interface";
+import { Punto } from "./punto.interface";
 import { Tarea } from "./tarea.interface";
 import { Transaccion } from "./transaccion.interface";
 
@@ -9,6 +10,8 @@ export interface Actividad{
   CRUD?: string | null;
   CRUDDate?: Date | null;
   Costos?: Costo[];
+  Origen?: Punto;
+  Destino?: Punto;
   FechaFin?: string | null;
   FechaInicio: string;
   FirmaUrl?: string | null;

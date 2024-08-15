@@ -13,6 +13,6 @@ export interface  Insumo {
   Unidad?: string;
   ValorCompra?: number;
   ValorVenta?: number;
-  CRUD?: string;
-  CRUDDate?: Date;
+  CRUD?: string | null;
+  CRUDDate?: Date | null;
 }

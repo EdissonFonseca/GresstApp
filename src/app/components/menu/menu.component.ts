@@ -3,6 +3,8 @@ import { StorageService } from 'src/app/services/storage.service';
 import { NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
+import { IntegrationService } from 'src/app/services/integration.service';
+import { Globales } from 'src/app/services/globales.service';
 
 @Component({
   selector: 'app-menu',
@@ -26,7 +28,7 @@ export class MenuComponent  implements OnInit {
     private storage: StorageService,
     private navCtrl: NavController,
     private router: Router,
-    private menuCtrl: MenuController
+    private menuCtrl: MenuController,
   ) { }
 
   async ngOnInit() {

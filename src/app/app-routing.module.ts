@@ -119,6 +119,14 @@ const routes: Routes = [
     path: 'produccion',
     loadChildren: () => import('./pages/produccion/produccion.module').then( m => m.ProduccionPageModule)
   },
+  {
+    path: 'sincronizacion',
+    loadChildren: () => import('./pages/sincronizacion/sincronizacion.module').then( m => m.SincronizacionPageModule)
+  },
+  {
+    path: 'rutas',
+    loadChildren: () => import('./pages/rutas/rutas.module').then( m => m.RutasPageModule)
+  },
 ];
 @NgModule({
   imports: [

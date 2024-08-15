@@ -17,11 +17,18 @@ export class MapaPage implements OnInit, AfterViewInit {
   @ViewChild('map') mapRef!: ElementRef<HTMLElement>;
   gresstMap !: GoogleMap;
   idActividad!: string;
+  // directionsService = new google.maps.DirectionsService();
+  // directionsRenderer = new google.maps.DirectionsRenderer();
+  origin = { lat: 0, lng: 0 };
+  destination = { lat: 0, lng: 0 }; // Destino final
+  wayPoints: Array<{ lat: number, lng: number }> = [
+    { lat: 4.659383846282959, lng: -74.05394073486328 },
+    { lat: 4.669383846282959, lng: -74.03394073486328 },
+  ];  // P
   puntos: Punto[] = [];
 
   constructor(
     private modalCtrl: ModalController,
-    private navCtrl: NavController,
     private route: ActivatedRoute,
     private globales:Globales) {
   }
@@ -34,11 +41,22 @@ export class MapaPage implements OnInit, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    this.createMap();
+    await this.createMap();
   }
 
   async createMap() {
     const currentLocation = await Geolocation.getCurrentPosition();
+    const actividad = await this.globales.getActividad(this.idActividad);
+
+    this.origin.lat = currentLocation.coords.latitude;
+    this.origin.lng = currentLocation.coords.longitude;
+    if (actividad && actividad.Destino?.Latitud != null && actividad.Destino?.Longitud != null){
+      this.destination.lat = parseFloat(actividad.Destino.Latitud);
+      this.destination.lng = parseFloat(actividad.Destino.Longitud);
+    } else {
+      this.destination.lat = currentLocation.coords.latitude;
+      this.destination.lng = currentLocation.coords.longitude;
+    }
 
     this.gresstMap = await GoogleMap.create({
       id: 'gresstMap',
@@ -53,6 +71,8 @@ export class MapaPage implements OnInit, AfterViewInit {
       },
     });
     await this.addMarkers();
+    await this.addListeners();
+    //await this.calculateRoute();
   }
 
   async addMarkers(){
@@ -65,30 +85,52 @@ export class MapaPage implements OnInit, AfterViewInit {
       ));
     markers.push({coordinate: {lat: currentLocation.coords.latitude, lng: currentLocation.coords.longitude}, title:'Origen', snippet:'Origen'});
 
-    this.gresstMap.addMarkers(markers);
-    console.log(markers);
+    await this.gresstMap.addMarkers(markers);
+  }
 
-    // this.gresstMap.setOnMarkerClickListener(async (marker) => {
-    //   const modal = await this.modalCtrl.create({
-    //     component: LocationComponent,
-    //     componentProps: {
-    //       marker,
-    //     },
-    //     breakpoints: [0,0,3],
-    //     initialBreakpoint: 0.3,
-    //   });
-    //   modal.present();
-    // });
+  async addListeners() {
+    await this.gresstMap.setOnMarkerClickListener(async (marker) => {
+      const modal = await this.modalCtrl.create({
+        component: LocationComponent,
+        componentProps: {
+          marker,
+        },
+        breakpoints: [0,0,3],
+        initialBreakpoint: 0.3,
+      });
+      modal.present();
+    });
 
-    // this.gresstMap.setOnMapClickListener((position: any) => {
-    //   const marker = {
-    //     coordinate: {
-    //       lat: position.lat,
-    //       lng: position.lng,
-    //     },
-    //     title: 'Nuevo punto'
-    //   };
-    //   this.gresstMap.addMarker(marker);
+    await this.gresstMap.setOnMapClickListener((position: any) => {
+      const marker = {
+        coordinate: {
+          lat: position.lat,
+          lng: position.lng,
+        },
+        title: 'Nuevo punto'
+      };
+      this.gresstMap.addMarker(marker);
+    });
+  }
+
+  calculateRoute() {
+    // const request = {
+    //   origin: this.origin,
+    //   destination: this.destination,
+    //   waypoints: this.wayPoints.map((point) => ({
+    //     location: new google.maps.LatLng(point.lat, point.lng),
+    //     stopover: true, //new google.maps.LatLng(point.lat, point.lng),
+    //   })),
+    //   optimizeWaypoints: true,
+    //   travelMode: google.maps.TravelMode.DRIVING,
+    // };
+
+    // this.directionsService.route(request, (result, status) => {
+    //   if (status === google.maps.DirectionsStatus.OK) {
+    //     this.directionsRenderer.setDirections(result);
+    //   } else {
+    //     alert('No se pudo mostrar la ruta: ' + status);
+    //   }
     // });
   }
 }
