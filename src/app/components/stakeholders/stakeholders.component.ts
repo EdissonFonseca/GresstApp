@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, NavController, ToastController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
-import { ClienteProveedorInterno } from 'src/app/services/constants.service';
+import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -17,6 +17,7 @@ export class StakeholdersComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
+  enableNew: boolean = false;
   showNew: boolean = false;
 
   constructor(
@@ -35,6 +36,7 @@ export class StakeholdersComponent  implements OnInit {
 
   async ngOnInit() {
     this.terceros = await this.globales.getTerceros();
+    this.enableNew = (await this.globales.getPermiso(Permisos.AppTercero))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){

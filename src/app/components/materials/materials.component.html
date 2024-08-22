@@ -6,13 +6,13 @@
     </ion-toolbar>
   </ion-header>
   <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
-  <ion-item *ngIf="materials.length != 0 && !showNew">
+  <ion-item *ngIf="materials.length != 0 && !showNew && enableNew">
     <ion-button (click)="new()">
       <ion-icon name="add"></ion-icon>
       Nuevo
     </ion-button>
   </ion-item>
-  <ion-content *ngIf="materials.length == 0 || showNew">
+  <ion-content *ngIf="(materials.length == 0 || showNew) && enableNew">
     <ion-item-divider> Nuevo</ion-item-divider>
     <form [formGroup]="formData">
       <ion-list [inset]="true">

@@ -363,6 +363,7 @@ export class Globales {
     const token: string = await this.storage.get('Token');
     return token;
   }
+
   async getToken(): Promise<string> {
     const token: string = await this.storage.get('Token');
     return token;
@@ -602,6 +603,21 @@ export class Globales {
       procesoNombre = proceso.Nombre;
 
     return procesoNombre;
+  }
+
+  async getPermiso(idOpcion: string): Promise<string> {
+    const cuenta: Cuenta | null = await this.storage.get('Cuenta');
+
+    try {
+      if (cuenta && cuenta.Puntos) {
+        const permiso = cuenta.Permisos[idOpcion] || '';
+        return permiso;
+      } else {
+        return '';
+      }
+    } catch {
+      return '';
+    }
   }
 
   async getPunto(idPunto: string): Promise<Punto | undefined> {

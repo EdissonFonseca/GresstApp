@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
-import { ClienteProveedorInterno } from 'src/app/services/constants.service';
+import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class PointsComponent  implements OnInit, OnChanges {
   selectedValue: string = '';
   selectedName: string = '';
   selectedOwner: string = '';
+  enableNew: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,6 +34,7 @@ export class PointsComponent  implements OnInit, OnChanges {
 
   async ngOnInit() {
     await this.filterPoints();
+    this.enableNew = (await this.globales.getPermiso(Permisos.AppPunto))?.includes(CRUDOperacion.Create);
   }
 
   async ngOnChanges(changes: SimpleChanges) {

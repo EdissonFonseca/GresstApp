@@ -6,7 +6,7 @@
   </ion-header>
   <ion-content>
     <ion-list lines="none">
-      <ion-item (click)="navigateTo('cuenta')">
+      <ion-item *ngIf="showCuenta" (click)="navigateTo('cuenta')">
         <ion-icon name="people-outline"></ion-icon>
         {{ account }}
       </ion-item>

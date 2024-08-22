@@ -3,6 +3,7 @@ import { ModalController } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Material } from 'src/app/interfaces/material.interface';
+import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 
 @Component({
   selector: 'app-materials',
@@ -21,6 +22,7 @@ export class MaterialsComponent  implements OnInit {
   searchText: string = '';
   showFactor: boolean = false;
   showNew: boolean = false;
+  enableNew: boolean = false;
 
   constructor(
     private globales: Globales,
@@ -39,6 +41,7 @@ export class MaterialsComponent  implements OnInit {
 
   async ngOnInit() {
     this.materials = await this.globales.getMateriales();
+    this.enableNew = (await this.globales.getPermiso(Permisos.AppMaterial))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){

@@ -3,6 +3,7 @@ import { EmailValidator, FormBuilder, FormGroup, Validators } from '@angular/for
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
+import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -16,6 +17,7 @@ export class PackagesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string ='';
+  enableNew: boolean = false;
   showNew: boolean = false;
   formData: FormGroup;
 
@@ -35,6 +37,7 @@ export class PackagesComponent  implements OnInit {
     this.route.queryParams.subscribe(params => {
     });
     this.packages = await this.globales.getEmbalajes();
+    this.enableNew = (await this.globales.getPermiso(Permisos.AppEmbalaje))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){

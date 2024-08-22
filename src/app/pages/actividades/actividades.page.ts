@@ -6,7 +6,7 @@ import { ActivityAddComponent } from 'src/app/components/activity-add/activity-a
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { ActivityRejectComponent } from 'src/app/components/activity-reject/activity-reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { CRUDOperacion, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { CRUDOperacion, Estado, Permisos, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -30,7 +30,7 @@ export class ActividadesPage implements OnInit {
 
     if (!cuenta) return;
 
-    this.permiteAgregar = cuenta.PermisosActividadesCRUD?.includes(CRUDOperacion.Create);
+    this.permiteAgregar = (await this.globales.getPermiso(Permisos.AppActividad))?.includes(CRUDOperacion.Create);
   }
 
   getColorEstado(idEstado: string): string {

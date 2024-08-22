@@ -28,30 +28,5 @@ export interface Cuenta {
   Terceros: Tercero[];
   Tratamientos: Tratamiento[];
   Vehiculos: Vehiculo[];
-
-  PermisosActividadesCRUD: string;
-  PermisosAlmacenamientoCRUD: string;
-  PermisosCuentaCRUD: string;
-  PermisosDisposicionCRUD: string;
-  PermisosEmbalajesCRUD: string;
-  PermisosInsumosCRUD: string;
-  PermisosInventarioCRUD: string;
-  PermisosGeneracionCRUD: string;
-  PermisosMaterialesCRUD: string;
-  PermisosMermaCRUD: string;
-  PermisosPretratamientoCRUD: string;
-  PermisosPuntosCRUD: string;
-  PermisosRecepcionCRUD: string;
-  PermisosRecoleccionCRUD: string;
-  PermisosRecoleccionTransporteCRUD: string;
-  PermisosServiciosCRUD: string;
-  PermisosTareasCRUD: string;
-  PermisosTercerosCRUD: string;
-  PermisosTransacionesCRUD: string;
-  PermisosTransferenciaCRUD: string;
-  PermisosTransferenciaTransporteCRUD: string;
-  PermisosTrasladoCRUD: string;
-  PermisosTrasladoTransporteCRUD: string;
-  PermisosTratamientoCRUD: string;
-  PermisosVehiculosCRUD: string;
+  Permisos:  {[key: string]: string | null;};
 }

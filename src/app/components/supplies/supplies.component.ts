@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Insumo } from 'src/app/interfaces/insumo.interface';
+import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -16,6 +17,7 @@ export class SuppliesComponent  implements OnInit {
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
+  enableNew: boolean = false;
   showNew: boolean = false;
   formData: FormGroup;
 
@@ -33,6 +35,7 @@ export class SuppliesComponent  implements OnInit {
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
     this.supplies = await this.globales.getInsumos();
+    this.enableNew = (await this.globales.getPermiso(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){
