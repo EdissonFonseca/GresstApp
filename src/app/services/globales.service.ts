@@ -1212,7 +1212,7 @@ export class Globales {
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     if (actividad)
     {
-      const current: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == trx.IdTransaccion);
+      const current: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
         current.IdEstado = transaccion.IdEstado;
         current.IdentificacionResponsable = transaccion.IdentificacionResponsable;
@@ -1235,6 +1235,8 @@ export class Globales {
           tarea.CRUD =  null;;
           tarea.CRUDDate = null;
         });
+        console.log("Confirmar transaccion");
+        console.log(current);
         if (await this.integration.updateTransaccion(current) && current.Firma != null) {
           this.integration.uploadFirmaTransaccion(current);
         }
@@ -1251,7 +1253,10 @@ export class Globales {
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     if (actividad)
     {
-      tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.IdMaterial == tarea.IdMaterial);
+      if (tarea.Item == null)
+        tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.IdMaterial == tarea.IdMaterial);
+      else
+        tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
       if (tareaUpdate)
       {
         tareaUpdate.Cantidad = tarea.Cantidad;

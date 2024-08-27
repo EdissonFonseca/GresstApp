@@ -112,7 +112,9 @@ export class TransaccionesPage implements OnInit {
     const modal =   await this.modalCtrl.create({
       component: TransactionRejectComponent,
       componentProps: {
-        title: `Rechazar ${this.proceso} ${this.titulo}`
+        title: `Rechazar ${this.proceso} ${this.titulo}`,
+        ActivityId: this.idActividad,
+        TransactionId: id,
       },
     });
 
