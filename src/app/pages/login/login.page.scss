@@ -1,14 +1,11 @@
 ion-content {
-  --background: url('../../../assets/img/Fondo.png') no-repeat center center fixed;
-  --background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  vertical-align: middle;
+  --background: url('../../../assets/img/Fondo.png') no-repeat center center / contain;
+  background-attachment: fixed;
   height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
-
 ion-list{
   background-color: transparent;
 }
@@ -24,4 +21,18 @@ ion-item{
 .transparent-item {
   --background:transparent;
   --border-style:none;
+}
+
+ion-input.custom {
+  --background: #CADCB6;
+  --border-radius: 15px;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --margin-start:10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+ion-button.custom{
+  --background: #526449;
+  --color:whitesmoke;
+  height:60px;
 }

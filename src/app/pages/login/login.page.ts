@@ -22,7 +22,6 @@ export class LoginPage implements OnInit {
     private authService: AuthService,
     private navCtrl: NavController,
     private storage: StorageService,
-    private integrationService: IntegrationService,
     private globales: Globales,
   ) { }
 
@@ -68,12 +67,11 @@ export class LoginPage implements OnInit {
       }
     } catch (error) {
       this.globales.hideLoading();
-      await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
       if (error instanceof Error){
-        throw new Error(`Request error: ${error.message}`);
+        this.globales.presentAlert('Error','Request Error', error.message);
       }
       else{
-        throw new Error(`Unknown error: ${error}`);
+        this.globales.presentAlert('Error','Unknown error', `${error}`);
       }
     }
   }

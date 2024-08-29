@@ -39,7 +39,7 @@ export class AuthService {
       if (response.status == 200) {
         return response.data;
       } else {
-        throw new Error(`Response Status ${response.status}`);
+        throw new Error(`Usuario no autorizado`);
       }
     } catch (error) {
       if (error instanceof Error) {

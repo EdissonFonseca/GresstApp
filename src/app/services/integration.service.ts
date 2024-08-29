@@ -43,7 +43,8 @@ export class IntegrationService {
       } else {
         throw new Error('Request error');
       }
-    } catch {
+    } catch (error){
+      throw(error);
     }
   }
 
@@ -75,7 +76,8 @@ export class IntegrationService {
       } else {
         throw new Error('Request error');
       }
-    } catch {
+    } catch (error){
+      throw(error);
     }
   }
 
@@ -107,7 +109,8 @@ export class IntegrationService {
       } else {
         throw new Error('Request error');
       }
-    } catch {
+    } catch (error){
+      throw(error);
     }
   }
 
