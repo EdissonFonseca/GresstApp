@@ -56,7 +56,7 @@
     </ion-buttons>
   </ion-item>
   </ion-list>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
     <ion-fab-button (click)="openAddTarea()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>

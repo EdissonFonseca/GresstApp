@@ -152,7 +152,7 @@ export class TareasPage implements OnInit {
           }
         } else {
           transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) + 1;
-          this.updateTransaccion(data);
+          const actividadesList = await this.globales.getActividades();
         }
       }
       const tarea = this.tareas.find((tarea) => tarea.IdMaterial == data.IdMaterial);

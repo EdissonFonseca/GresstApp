@@ -23,6 +23,7 @@ export class TransaccionesPage implements OnInit {
   currentLocation: any;
   coordinates: string = '';
   idEstado: string = 'P';
+  showAdd: boolean = true;
   @ViewChild(IonModal) modal!: IonModal;
 
   constructor(
@@ -43,6 +44,7 @@ export class TransaccionesPage implements OnInit {
       this.idEstado = actividad .IdEstado;
       this.proceso = await this.globales.getNombreServicio(actividad.IdServicio);
       this.icono = this.globales.servicios.find((p) => p.IdServicio == actividad.IdServicio)?.Icono!;
+      this.showAdd = actividad.IdEstado == Estado.Pendiente;
     }
   }
 
@@ -83,9 +85,25 @@ export class TransaccionesPage implements OnInit {
         IdActividad: this.idActividad,
       }
     }
-//    this.navCtrl.navigateForward('/mapa', navigationExtras);
+  //    this.navCtrl.navigateForward('/mapa', navigationExtras);
   this.navCtrl.navigateForward('/ruta', navigationExtras);
-}
+  }
+
+  async updateActividad(transaccion: Transaccion){
+    const actividad = await this.globales.getActividad(this.idActividad);
+    if (actividad){
+      switch(transaccion.IdEstado){
+        case Estado.Aprobado:
+          actividad.ItemsAprobados = (actividad.ItemsAprobados ?? 0) + 1;
+          actividad.ItemsPendientes = (actividad.ItemsPendientes ?? 0) - 1;
+          break;
+        case Estado.Rechazado:
+          actividad.ItemsPendientes = (actividad.ItemsPendientes ?? 0) - 1;
+          actividad.ItemsRechazados = (actividad.ItemsRechazados ?? 0) + 1;
+          break;
+      }
+    }
+  }
 
   async openApprove(id: string){
     const modal =   await this.modalCtrl.create({
@@ -105,6 +123,8 @@ export class TransaccionesPage implements OnInit {
       const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
       if (card)
         card.IdEstado = Estado.Aprobado;
+
+      this.updateActividad(data);
     }
   }
 
@@ -123,9 +143,11 @@ export class TransaccionesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
+      const card = this.transacciones.find((transaccion) => transaccion.IdTransaccion == id);
       if (card)
         card.IdEstado = Estado.Rechazado;
+
+      this.updateActividad(data);
     }
   }
 
@@ -156,6 +178,8 @@ export class TransaccionesPage implements OnInit {
         transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
         transaccion.Cantidades = this.globales.getResumen(null,null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
       }
+
+      this.updateActividad(data);
     }
   }
 }

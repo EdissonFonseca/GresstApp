@@ -651,6 +651,20 @@ export class Globales {
     return puntos;
   }
 
+  async getPuntosFromTareasPendientes(idActividad: string){
+    let puntos: Punto[] = [];
+    const cuenta: Cuenta = await this.storage.get('Cuenta');
+    const actividades: Actividad[] = await this.storage.get('Actividades');
+    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
+    if (actividad.Tareas)
+    {
+      const tareasPuntos = actividad.Tareas.filter((x) => x.IdPunto != null && x.IdEstado == Estado.Pendiente);
+      const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdPunto ?? '');
+      puntos = cuenta.Puntos.filter((punto) => idsPuntos.includes(punto.IdPunto));
+    }
+    return puntos;
+  }
+
   async getResiduo(idResiduo: string): Promise<Residuo | undefined> {
     const inventario: Residuo[] = await this.getInventario();
 

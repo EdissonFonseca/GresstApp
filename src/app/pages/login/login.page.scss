@@ -9,21 +9,16 @@ ion-content {
   justify-content: center;
 }
 
+ion-list{
+  background-color: transparent;
+}
+
 ion-item{
   --ion-background-color:none
 }
 
 .logo{
   height: 80px;
-}
-
-.vertical-center {
-  background-image: url('../../../assets/img/Fondo.png') no-repeat center center fixed;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%; /* Utiliza toda la altura disponible dentro del ion-content */
 }
 
 .transparent-item {

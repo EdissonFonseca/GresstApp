@@ -31,7 +31,7 @@ export class RutaPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    this.puntos = await this.globales.getPuntosFromTareas(this.idActividad);
+    this.puntos = await this.globales.getPuntosFromTareasPendientes(this.idActividad);
     await this.loadGoogleMaps();
   }
 
