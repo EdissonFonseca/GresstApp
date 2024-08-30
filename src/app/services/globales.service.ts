@@ -1176,8 +1176,6 @@ export class Globales {
 
       const transaccionesSincronizar = actividad.Transacciones.filter(x => x.CRUD != null);
       transaccionesSincronizar.forEach(async(transaccion) => {
-        console.log('Sincronizar transaccion');
-        console.log(transaccion);
         await this.updateTransaccion(actividad.IdActividad, transaccion);
         transaccion.CRUD =  null;;
         transaccion.CRUDDate = null;
@@ -1185,8 +1183,6 @@ export class Globales {
 
       const transaccionesRechazar = actividad.Transacciones.filter(x => x.CRUD == null && x.IdEstado == Estado.Pendiente);
       transaccionesRechazar.forEach(async(transaccion) => {
-          console.log('Rechazar transaccion');
-          transaccion.IdEstado = Estado.Rechazado;
           await this.updateTransaccion(actividad.IdActividad, transaccion);
           transaccion.CRUD =  null;;
           transaccion.CRUDDate = null;

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ActivatedRoute, NavigationExtras } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
@@ -31,6 +31,7 @@ export class TransaccionesPage implements OnInit {
     private route: ActivatedRoute,
     private globales:Globales,
     private modalCtrl: ModalController,
+    private router: Router,
   ) {}
 
   async ngOnInit() {
@@ -67,9 +68,10 @@ export class TransaccionesPage implements OnInit {
     return this.globales.getImagen(idProceso);
   }
 
-  navigateToActividad(){
-    this.navCtrl.navigateForward('/actividades');
-  }
+  goBack() {
+    this.router.navigateByUrl('/actividades', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/home']);
+    });  }
 
   navigateToTareas(idTransaccion: string){
     const navigationExtras: NavigationExtras = {

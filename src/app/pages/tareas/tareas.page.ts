@@ -137,22 +137,19 @@ export class TareasPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     if (data) {
-      if (data.IdTransaccion)
-      {
+      if (data.IdTransaccion) {
         const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
-        if (!transaccion)
-        {
+        if (!transaccion) {
           const transaccionGlobal = await this.globales.getTransaccion(this.idActividad, data.IdTransaccion);
           if (transaccionGlobal) {
             this.transacciones.push(transaccionGlobal);
           }
         } else {
-          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) + 1;
+          transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
         }
       }
       const tarea = this.tareas.find((tarea) => tarea.IdMaterial == data.IdMaterial);
-      if (tarea)
-      {
+      if (tarea) {
         const cuenta = await this.globales.getCuenta();
         tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
         tarea.IdEstado = Estado.Aprobado;

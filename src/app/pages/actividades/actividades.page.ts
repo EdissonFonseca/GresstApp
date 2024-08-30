@@ -41,7 +41,6 @@ export class ActividadesPage implements OnInit {
   }
 
   async ionViewWillEnter() {
-    console.log('ionViewWillEnter');
     this.actividades = await this.globales.getActividades();
   }
 
