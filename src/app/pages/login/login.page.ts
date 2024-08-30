@@ -17,6 +17,7 @@ import { StorageService } from 'src/app/services/storage.service';
 export class LoginPage implements OnInit {
   username = '';
   password = '';
+  showNewAccount: boolean = false;
 
   constructor(
     private authService: AuthService,

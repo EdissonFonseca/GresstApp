@@ -1,33 +1,30 @@
 <ion-content [fullscreen]="true">
-  <br/>
-  <br/>
-  <br/>
-  <br/>
-  <br/>
-  <ion-item lines="none">
-    <img src="../../../assets/img/Gresst.png" alt="" class="logo" slot="end">
-  </ion-item>
-  <br/>
-  <br/>
+  <br>
+  <br>
+  <br>
   <form>
     <ion-list inset="true" lines="inset">
+      <ion-item>
+        <img src="../../../assets/img/Gresst.png" alt="" class="logo">
+      </ion-item>
+      <br>
       <ion-item>
         <ion-icon name="person" slot="start" ></ion-icon>
         <ion-input [(ngModel)]="username" name="username" type="email" aria-label="username" label="Usuario" labelPlacement="floating" class="custom" ></ion-input>
       </ion-item>
-      <br/>
+      <br>
       <ion-item>
         <ion-icon name="key" slot="start"></ion-icon>
         <ion-input [(ngModel)]="password" name="password" type="password" aria-label="password" label="Contraseña" labelPlacement="floating" class="custom" ></ion-input>
       </ion-item>
+      <ion-item>
+        <ion-button slot="end" color="medium" shape="round" (click)="goPassword()">Olvidó su contraseña?</ion-button>
+      </ion-item>
     </ion-list>
-    <ion-buttons>
-      <ion-button color="dark" fill="clear" (click)="goPassword()">Olvidó su contraseña?</ion-button>
-      <ion-button color="dark" fill="clear" (click)="goRegister()">Crear Cuenta?</ion-button>
-    </ion-buttons>
     <ion-button expand="block" class="custom" shape="round" (click)="login()">
       <ion-icon slot="start" name="log-in"></ion-icon>
       Ingresar
     </ion-button>
+    <ion-button *ngIf="showNewAccount" color="dark" fill="clear" (click)="goRegister()">Crear Cuenta?</ion-button>
   </form>
 </ion-content>

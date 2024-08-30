@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, NavController } from '@ionic/angular';
+import {  NavController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -18,10 +18,13 @@ export class ContrasenaClavePage implements OnInit {
     private navCtrl: NavController,
     private storage: StorageService,
     private globales: Globales,
-    private alertController: AlertController
 ) { }
 
   ngOnInit() {
+  }
+
+  goLogin() {
+    this.navCtrl.navigateRoot('/login');
   }
 
   async create(){

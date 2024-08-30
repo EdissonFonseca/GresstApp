@@ -27,6 +27,10 @@ export class ContrasenaCorreoPage implements OnInit {
     this.menuCtrl.enable(false);
   }
 
+  goLogin() {
+    this.navCtrl.navigateRoot('/login');
+  }
+
   async verify(){
     try {
       this.globales.showLoading('Conectando ...');
@@ -43,18 +47,17 @@ export class ContrasenaCorreoPage implements OnInit {
         }
       } else {
         this.globales.presentToast('Este correo no se encuentra registrado','middle');
+        this.email ='';
       }
       this.globales.hideLoading();
     } catch (error) {
       this.globales.hideLoading();
       if (error instanceof Error){
         this.globales.presentToast(error.message,'middle');
-        throw new Error(`Request error: ${error.message}`);
+      } else {
+        this.globales.presentToast(`Usuario no existe`,'middle');
       }
-      else{
-        //this.globales.presentToast(error,'middle');
-        throw new Error(`Unknown error: ${error}`);
-      }
+      this.email ='';
     }
   }
 }

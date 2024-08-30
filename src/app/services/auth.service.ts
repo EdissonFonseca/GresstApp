@@ -11,6 +11,7 @@ export class AuthService {
   private registerUrl = `${environment.apiUrl}/login/register`;
   private existUserUrl = `${environment.apiUrl}/login/existuser`;
   private changePasswordUrl = `${environment.apiUrl}/login/changepassword`;
+  private changeNameUrl = `${environment.apiUrl}/login/changename`;
 
   constructor() {}
 
@@ -51,7 +52,7 @@ export class AuthService {
   }
 
   async existUser(email: string): Promise<boolean>{
-    const data = {email};
+    const data = {Username:email};
     const options = {url: this.existUserUrl, data: data, headers: { 'Content-Type': 'application/json' }};
 
     try{
@@ -63,8 +64,29 @@ export class AuthService {
       }
     } catch (error) {
       if (error instanceof Error) {
+        throw new Error(`Usuario no existe`);
+      } else {
+        throw new Error(`Correo no registrado`);
+      }
+    }
+  }
+
+  async changeName(email:string, name: string): Promise<string> {
+    const data = {Username: email, Name: name};
+    const options = {url: this.changeNameUrl, data: data, headers: { 'Content-Type': 'application/json' }};
+
+    try {
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error(`Response Status ${response.status}`);
+      }
+    } catch(error) {
+      if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
       } else {
+        console.log(error);
         throw new Error(`Unknown error: ${error}`);
       }
     }

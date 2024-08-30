@@ -10,34 +10,31 @@
 <ion-content [fullscreen]="true">
   <form [formGroup]="formData" >
     <ion-item>
-      <ion-note slot="start">Nombre</ion-note>
-      <ion-input formControlName="Nombre"></ion-input>
-    </ion-item>
-    <ion-item>
       <ion-note slot="start">Correo</ion-note>
       <ion-input formControlName="Correo" readonly="true"></ion-input>
     </ion-item>
     <ion-item>
-      <ion-button>Aplicar cambios</ion-button>
+      <ion-note slot="start">Nombre</ion-note>
+      <ion-input formControlName="Nombre"></ion-input>
     </ion-item>
     <ion-item>
-      <ion-button (click)="toggleShowPassword()" color="secondary" >Cambiar Contraseña</ion-button>
+      <ion-buttons>
+        <ion-button (click)="changeName()" >Cambiar Nombre</ion-button>
+        <ion-button (click)="toggleShowPassword()" color="secondary" >Cambiar Contraseña</ion-button>
+      </ion-buttons>
     </ion-item>
-    <ion-list *ngIf="showPassword">
+    <ion-list inset="true" *ngIf="showPassword">
       <ion-item>
-        <ion-note slot="start">Contraseña actual</ion-note>
-        <ion-input type="" formControlName="ClaveActual"></ion-input>
+        <ion-input type="password" formControlName="ClaveActual" label="Contraseña actual" labelPlacement="floating" ></ion-input>
       </ion-item>
       <ion-item>
-        <ion-note slot="start">Contraseña nueva</ion-note>
-        <ion-input type="" formControlName="ClaveNueva"></ion-input>
+        <ion-input type="password" formControlName="ClaveNueva" label="Contraseña nueva" labelPlacement="floating" ></ion-input>
       </ion-item>
       <ion-item>
-        <ion-note slot="start">Contraseña confirmación</ion-note>
-        <ion-input type="password" formControlName="ClaveConfirmar"></ion-input>
+        <ion-input type="password" aria-label="password" formControlName="ClaveConfirmar" label="Contraseña confirmación" labelPlacement="floating" ></ion-input>
       </ion-item>
       <ion-item>
-        <ion-button color="secondary" fill="clear">Guardar Contraseña</ion-button>
+        <ion-button (click)="changePassword()" color="secondary" fill="clear">Guardar Contraseña</ion-button>
       </ion-item>
       </ion-list>
   </form>

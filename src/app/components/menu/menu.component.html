@@ -14,7 +14,7 @@
         <ion-icon name="person-outline"></ion-icon>
         {{ user }}
       </ion-item>
-      <ion-item (click)="navigateTo('certificados-buscar')">
+      <ion-item *ngIf="showCertificado" (click)="navigateTo('certificados-buscar')">
         <ion-icon name="shield-checkmark-outline"></ion-icon>        Certificados
       </ion-item>
       <ion-item (click)="navigateTo('sincronizacion')">

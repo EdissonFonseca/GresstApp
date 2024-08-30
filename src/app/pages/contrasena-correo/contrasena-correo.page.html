@@ -1,30 +1,29 @@
-<ion-header collapse="condense">
-  <ion-toolbar>
-    <ion-title size="large">Crear cuenta</ion-title>
-  </ion-toolbar>
-</ion-header>
 <ion-content [fullscreen]="true">
-  <div class="vertical-center">
-    <ion-item lines="none">
-      <img src="../../../assets/img/Gresst.png" alt="" class="logo">
-    </ion-item>
-    <form color="light">
-      <ion-list inset="true" >
-        <ion-item>
-          <ion-label position="floating" color="medium">
-            <ion-icon name="person" item-start class="text-primary"></ion-icon>
-            Correo usuario principal
-          </ion-label>
-          <ion-label position="floating" color="medium">
-            Escriba la cuenta de correo principal
-          </ion-label>
-          <ion-input [(ngModel)]="email" name="email" type="email" aria-label="email" label=""></ion-input>
-        </ion-item>
-        <ion-button expand="block" color="success" (click)="verify()">
-          <ion-icon slot="start" name="log-in"></ion-icon>
-          Verificar Correo
-        </ion-button>
+  <br>
+  <br>
+  <br>
+  <form color="light">
+    <ion-list inset="true" lines="none">
+      <ion-item lines="none">
+        <img src="../../../assets/img/Gresst.png" alt="" class="logo">
+      </ion-item>
+      <ion-item>
+        <ion-label color="dark">
+          Se enviará un codigo a su correo para cambiar la Contraseña
+        </ion-label>
+      </ion-item>
+      <ion-item></ion-item>
+      <ion-item>
+        <ion-icon name="person"></ion-icon>
+        <ion-input [(ngModel)]="email" name="email" type="email" aria-label="email" label="Correo" labelPlacement="floating" class="custom"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-button slot="end" color="medium" shape="round" (click)="goLogin()">Regresar al inicio</ion-button>
+      </ion-item>
       </ion-list>
-    </form>
-  </div>
+    <ion-button expand="block" class="custom" shape="round" (click)="verify()">
+      <ion-icon slot="start" name="log-in"></ion-icon>
+      Enviar Código
+    </ion-button>
+  </form>
 </ion-content>

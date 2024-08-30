@@ -22,6 +22,10 @@ export class ContrasenaCodigoPage implements OnInit {
     this.menuCtrl.enable(false);
   }
 
+  goLogin() {
+    this.navCtrl.navigateRoot('/login');
+  }
+
   async verify(){
     try {
       const generatedCode = await this.storage.get('Code');

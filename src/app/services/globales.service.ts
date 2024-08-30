@@ -617,7 +617,9 @@ export class Globales {
 
     try {
       if (cuenta && cuenta.Puntos) {
-        const permiso = cuenta.Permisos[idOpcion] || '';
+        let permiso = cuenta.Permisos[idOpcion] || '';
+        if (permiso == null)
+          permiso = '';
         return permiso;
       } else {
         return '';

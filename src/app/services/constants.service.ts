@@ -25,6 +25,7 @@ export enum Estado{
 };
 export enum Permisos{
   App = "App",
+  AppCertificado = "AppCertificado",
   AppConfiguracion = "AppConfiguracion",
   AppClaseTratamiento = "AppClaseTratamiento",
   AppCuenta = "AppCuenta",

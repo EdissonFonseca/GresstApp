@@ -15,6 +15,7 @@ import { Permisos } from 'src/app/services/constants.service';
 export class MenuComponent  implements OnInit {
   user: string = '';
   account: string = '';
+  showCertificado = true;
   showCuenta = true;
   showEmbalajes = true;
   showInsumos = true;
@@ -40,15 +41,16 @@ export class MenuComponent  implements OnInit {
     this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;
     this.user = cuenta.NombreUsuario;
+    this.showCertificado = await this.globales.getPermiso(Permisos.AppCertificado) != '';
     this.showCuenta = await this.globales.getPermiso(Permisos.AppCuenta) != '';
     this.showEmbalajes = await this.globales.getPermiso(Permisos.AppEmbalaje) != '';
     this.showInsumos = await this.globales.getPermiso(Permisos.AppInsumo) != '';
-    this.showMateriales = await this.globales.getPermiso(Permisos.AppMaterial) != undefined;
-    this.showServicios = await this.globales.getPermiso(Permisos.AppServicio) != undefined;
-    this.showPuntos = await this.globales.getPermiso(Permisos.AppPunto) != undefined;
-    this.showTerceros = await this.globales.getPermiso(Permisos.AppTercero) != undefined;
-    this.showTratamientos = await this.globales.getPermiso(Permisos.AppClaseTratamiento) != undefined;
-    this.showVehiculos = await this.globales.getPermiso(Permisos.AppVehiculo) != undefined;
+    this.showMateriales = await this.globales.getPermiso(Permisos.AppMaterial) != '';
+    this.showServicios = await this.globales.getPermiso(Permisos.AppServicio) != '';
+    this.showPuntos = await this.globales.getPermiso(Permisos.AppPunto) != '';
+    this.showTerceros = await this.globales.getPermiso(Permisos.AppTercero) != '';
+    this.showTratamientos = await this.globales.getPermiso(Permisos.AppClaseTratamiento) != '';
+    this.showVehiculos = await this.globales.getPermiso(Permisos.AppVehiculo) != '';
   }
 
   navigateToPuntos() {
