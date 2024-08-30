@@ -342,9 +342,11 @@ export class Globales {
       await this.storage.set('Actividades', actividades);
 
       if (await this.integration.createTarea(tarea)){
+        tarea.CRUD = null;
+        tarea.CRUDDate = null;
+        await this.storage.set('Actividades', actividades);
         await this.integration.uploadFotosTarea(tarea);
       }
-
     }
   }
 
@@ -1174,25 +1176,8 @@ export class Globales {
 
       const transaccionesSincronizar = actividad.Transacciones.filter(x => x.CRUD != null);
       transaccionesSincronizar.forEach(async(transaccion) => {
-        console.log(`Sincronizar transaccion ${transaccion.IdTransaccion}`);
-
-        const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
-        tareasSincronizar.forEach(async(tarea) => {
-          console.log(`Sincronizar tarea ${tarea.IdTarea}`);
-          await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
-          tarea.CRUD =  null;;
-          tarea.CRUDDate = null;
-        });
-
-        const tareasRechazar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD == null && x.IdEstado == Estado.Pendiente);
-        tareasRechazar.forEach(async(tarea) => {
-          console.log(`Rechazar tarea ${tarea.IdTarea}`);
-          tarea.IdEstado = Estado.Rechazado;
-          await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
-          tarea.CRUD =  null;;
-          tarea.CRUDDate = null;
-        });
-
+        console.log('Sincronizar transaccion');
+        console.log(transaccion);
         await this.updateTransaccion(actividad.IdActividad, transaccion);
         transaccion.CRUD =  null;;
         transaccion.CRUDDate = null;
@@ -1200,22 +1185,7 @@ export class Globales {
 
       const transaccionesRechazar = actividad.Transacciones.filter(x => x.CRUD == null && x.IdEstado == Estado.Pendiente);
       transaccionesRechazar.forEach(async(transaccion) => {
-          const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
-          tareasSincronizar.forEach(async(tarea) => {
-            console.log(`Sincronizar tarea ${tarea.IdTarea}`);
-            await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
-            tarea.CRUD =  null;;
-            tarea.CRUDDate = null;
-          });
-
-          const tareasRechazar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD == null && x.IdEstado == Estado.Pendiente);
-          tareasRechazar.forEach(async(tarea) => {
-            tarea.IdEstado = Estado.Rechazado;
-            await this.updateTarea(actividad.IdActividad, transaccion.IdTransaccion, tarea);
-            tarea.CRUD =  null;;
-            tarea.CRUDDate = null;
-          });
-
+          console.log('Rechazar transaccion');
           transaccion.IdEstado = Estado.Rechazado;
           await this.updateTransaccion(actividad.IdActividad, transaccion);
           transaccion.CRUD =  null;;
@@ -1224,6 +1194,8 @@ export class Globales {
       );
 
       if (await this.integration.updateActividad(current) && current.Firma != null) {
+        current.CRUD = null;
+        current.CRUDDate = null;
         this.integration.uploadFirmaActividad(current);
       }
   }
@@ -1258,9 +1230,10 @@ export class Globales {
           tarea.CRUD =  null;;
           tarea.CRUDDate = null;
         });
-        console.log("Confirmar transaccion");
-        console.log(current);
+
         if (await this.integration.updateTransaccion(current) && current.Firma != null) {
+          transaccion.CRUD = null;
+          transaccion.CRUDDate = null;
           this.integration.uploadFirmaTransaccion(current);
         }
 
@@ -1292,13 +1265,13 @@ export class Globales {
         tareaUpdate.IdEstado = tarea.IdEstado;
         tareaUpdate.Fotos = tarea.Fotos;
 
-        await this.storage.set("Actividades", actividades);
-
         if (await this.integration.updateTarea(tareaUpdate)){
-          await this.integration.uploadFotosTarea(tareaUpdate);
           tarea.CRUD = null;
           tarea.CRUDDate = null;
+          await this.integration.uploadFotosTarea(tareaUpdate);
         }
+
+        await this.storage.set("Actividades", actividades);
       }
     }
 

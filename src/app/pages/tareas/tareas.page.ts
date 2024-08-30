@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, NavigationExtras } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { TaskApproveComponent } from 'src/app/components/task-approve/task-approve.component';
 import { TaskRejectComponent } from 'src/app/components/task-reject/task-reject.component';
@@ -63,18 +63,14 @@ export class TareasPage implements OnInit {
     return this.globales.getColorEstado(idEstado);
   }
 
-  async ionViewWillEnter()
-  {
-    if (this.mode == "T")
-    {
+  async ionViewWillEnter(){
+    if (this.mode == "T") {
       const transacciones = await this.globales.getTransacciones(this.idActividad);
       if (this.idTransaccion)
         this.transacciones = transacciones.filter(x => x.IdTransaccion == this.idTransaccion);
       else
         this.transacciones = transacciones;
-    }
-    else
-    {
+    } else {
       this.transacciones = await this.globales.getTransacciones(this.idActividad);
     }
     this.tareas = await this.globales.getTareasSugeridas(this.idActividad, this.idTransaccion);
@@ -152,7 +148,6 @@ export class TareasPage implements OnInit {
           }
         } else {
           transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) + 1;
-          const actividadesList = await this.globales.getActividades();
         }
       }
       const tarea = this.tareas.find((tarea) => tarea.IdMaterial == data.IdMaterial);

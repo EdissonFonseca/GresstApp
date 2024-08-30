@@ -18,7 +18,6 @@ export class SincronizacionPage implements OnInit {
   }
 
   async synchronize() {
-    console.log('sincronizar');;
     this.globales.showLoading('Conectando ...');
 
     await this.globales.sincronizar();

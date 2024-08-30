@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NavigationExtras } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
@@ -18,47 +18,19 @@ export class ActividadesPage implements OnInit {
   permiteAgregar: boolean = true;
 
   constructor(
+    private route: ActivatedRoute,
     private navCtrl: NavController,
     private globales: Globales,
-    private modalCtrl: ModalController,
-  ) {
+    private modalCtrl: ModalController ) {
   }
 
   async ngOnInit() {
+    this.route.queryParams.subscribe(params => {});
     var cuenta = await this.globales.getCuenta();
 
     if (!cuenta) return;
 
     this.permiteAgregar = (await this.globales.getPermiso(Permisos.AppActividad))?.includes(CRUDOperacion.Create);
-  }
-
-  getColorEstado(idEstado: string): string {
-    return this.globales.getColorEstado(idEstado);
-  }
-
-  formatJornada(idActividad: string) {
-    let jornada: string = '';
-    const hoy = this.globales.today();
-    const actividad = this.actividades.find(x => x.IdActividad == idActividad);
-
-    if (!actividad) return;
-
-    if (actividad.FechaInicio){
-      const fechaInicio = new Date(actividad.FechaInicio);
-      const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDay());
-      if (actividad.FechaFin) {
-        const fechaFin = new Date(actividad.FechaFin);
-        const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDay());
-        if (diaInicio == hoy && diaFin == hoy){
-          jornada = 'Todo el dia';
-        } else if (diaInicio < hoy){
-          jornada = ""; //format(fechaInicio, 'dd/MM/yyyy') + '-'+format(fechaFin, 'dd/MM/yyyy');
-        } else {
-          jornada = ""; //format(fechaInicio, 'hh:mm') + '-'+format(fechaFin, 'hh:mm');
-        }
-      }
-    }
-    return jornada;
   }
 
   async handleInput(event: any) {
@@ -69,6 +41,7 @@ export class ActividadesPage implements OnInit {
   }
 
   async ionViewWillEnter() {
+    console.log('ionViewWillEnter');
     this.actividades = await this.globales.getActividades();
   }
 
@@ -166,5 +139,34 @@ export class ActividadesPage implements OnInit {
           card.IdEstado = Estado.Rechazado;
       }
     }
+  }
+
+  getColorEstado(idEstado: string): string {
+    return this.globales.getColorEstado(idEstado);
+  }
+
+  formatJornada(idActividad: string) {
+    let jornada: string = '';
+    const hoy = this.globales.today();
+    const actividad = this.actividades.find(x => x.IdActividad == idActividad);
+
+    if (!actividad) return;
+
+    if (actividad.FechaInicio){
+      const fechaInicio = new Date(actividad.FechaInicio);
+      const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDay());
+      if (actividad.FechaFin) {
+        const fechaFin = new Date(actividad.FechaFin);
+        const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDay());
+        if (diaInicio == hoy && diaFin == hoy){
+          jornada = 'Todo el dia';
+        } else if (diaInicio < hoy){
+          jornada = ""; //format(fechaInicio, 'dd/MM/yyyy') + '-'+format(fechaFin, 'dd/MM/yyyy');
+        } else {
+          jornada = ""; //format(fechaInicio, 'hh:mm') + '-'+format(fechaFin, 'hh:mm');
+        }
+      }
+    }
+    return jornada;
   }
 }

@@ -48,8 +48,7 @@ export class TransaccionesPage implements OnInit {
     }
   }
 
-  async ionViewWillEnter()
-  {
+  async ionViewWillEnter() {
     this.transacciones = await this.globales.getTransacciones(this.idActividad);
   }
 
@@ -66,6 +65,10 @@ export class TransaccionesPage implements OnInit {
 
   getImagen(idProceso: string) {
     return this.globales.getImagen(idProceso);
+  }
+
+  navigateToActividad(){
+    this.navCtrl.navigateForward('/actividades');
   }
 
   navigateToTareas(idTransaccion: string){
@@ -85,24 +88,7 @@ export class TransaccionesPage implements OnInit {
         IdActividad: this.idActividad,
       }
     }
-  //    this.navCtrl.navigateForward('/mapa', navigationExtras);
-  this.navCtrl.navigateForward('/ruta', navigationExtras);
-  }
-
-  async updateActividad(transaccion: Transaccion){
-    const actividad = await this.globales.getActividad(this.idActividad);
-    if (actividad){
-      switch(transaccion.IdEstado){
-        case Estado.Aprobado:
-          actividad.ItemsAprobados = (actividad.ItemsAprobados ?? 0) + 1;
-          actividad.ItemsPendientes = (actividad.ItemsPendientes ?? 0) - 1;
-          break;
-        case Estado.Rechazado:
-          actividad.ItemsPendientes = (actividad.ItemsPendientes ?? 0) - 1;
-          actividad.ItemsRechazados = (actividad.ItemsRechazados ?? 0) + 1;
-          break;
-      }
-    }
+    this.navCtrl.navigateForward('/ruta', navigationExtras);
   }
 
   async openApprove(id: string){
@@ -123,8 +109,6 @@ export class TransaccionesPage implements OnInit {
       const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
       if (card)
         card.IdEstado = Estado.Aprobado;
-
-      this.updateActividad(data);
     }
   }
 
@@ -146,8 +130,6 @@ export class TransaccionesPage implements OnInit {
       const card = this.transacciones.find((transaccion) => transaccion.IdTransaccion == id);
       if (card)
         card.IdEstado = Estado.Rechazado;
-
-      this.updateActividad(data);
     }
   }
 
@@ -178,8 +160,6 @@ export class TransaccionesPage implements OnInit {
         transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
         transaccion.Cantidades = this.globales.getResumen(null,null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
       }
-
-      this.updateActividad(data);
     }
   }
 }
