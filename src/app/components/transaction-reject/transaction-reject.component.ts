@@ -4,6 +4,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -36,7 +37,8 @@ export class TransactionRejectComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private globales: Globales,
-    private transaccionesService: TransaccionesService
+    private transaccionesService: TransaccionesService,
+    private masterDataService: MasterDataService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -53,13 +55,13 @@ export class TransactionRejectComponent  implements OnInit {
     {
       if (this.transaction.IdPunto)
       {
-        const puntoItem = await this.globales.getPunto(this.transaction.IdPunto);
+        const puntoItem = await this.masterDataService.getPunto(this.transaction.IdPunto);
         this.point = puntoItem?.Nombre ?? '';
       }
 
       if (this.transaction.IdTercero)
       {
-        const solicitante = await this.globales.getTercero(this.transaction.IdTercero);
+        const solicitante = await this.masterDataService.getTercero(this.transaction.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
       }
 

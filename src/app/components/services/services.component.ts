@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Servicio } from 'src/app/interfaces/servicio.interface';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-services',
@@ -18,13 +19,13 @@ export class ServicesComponent  implements OnInit {
   items: { id: string, name: string; selected: boolean }[] = [];
 
   constructor(
-    private route: ActivatedRoute,
     private globales: Globales,
+    private masterDataService: MasterDataService,
     private toastCtrl: ToastController
   ) { }
 
   async ngOnInit() {
-    this.services = await this.globales.getServicios();
+    this.services = await this.masterDataService.getServicios();
 
     this.globales.servicios.forEach((item) => {
       var selected = false;
@@ -42,7 +43,7 @@ export class ServicesComponent  implements OnInit {
 
   async changeSelection(idServicio: string, checked:boolean) {
     if (checked) {
-      await this.globales.addServicio(idServicio);
+      await this.masterDataService.addServicio(idServicio);
       const toast = await this.toastCtrl.create({
         message: `Servicio agregado`,
         duration: 1500,
@@ -50,7 +51,7 @@ export class ServicesComponent  implements OnInit {
       });
       await toast.present();
     } else {
-      await this.globales.deleteServicio(idServicio);
+      await this.masterDataService.deleteServicio(idServicio);
       const toast = await this.toastCtrl.create({
         message: `Servicio eliminado`,
         duration: 1500,

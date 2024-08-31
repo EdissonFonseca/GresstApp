@@ -17,6 +17,7 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TareasService } from 'src/app/services/tareas.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-residue-receive',
@@ -56,6 +57,7 @@ export class ResidueReceiveComponent implements OnInit {
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
+    private inventarioService: InventarioService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -117,7 +119,7 @@ export class ResidueReceiveComponent implements OnInit {
       Ubicacion: '', //TODO
       Volumen: data.Volumen,
     };
-    await this.globales.createResiduo(residuo);
+    await this.inventarioService.createResiduo(residuo);
 
     switch(this.serviceId){
       case TipoServicio.Generacion:

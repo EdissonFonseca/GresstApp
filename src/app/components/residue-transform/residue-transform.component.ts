@@ -5,6 +5,7 @@ import { Globales } from 'src/app/services/globales.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { TipoServicio } from 'src/app/services/constants.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-residue-transform',
@@ -33,6 +34,7 @@ export class ResidueTransformComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
     private navParams: NavParams,
+    private inventarioService: InventarioService,
     private globales: Globales
   ) {
     this.residueId = this.navParams.get("ResidueId");
@@ -43,7 +45,7 @@ export class ResidueTransformComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.globales.getResiduo(this.residueId);
+    this.residue = await this.inventarioService.getResiduo(this.residueId);
 
     this.frm.patchValue({
       Quantity: this.residue?.Cantidad

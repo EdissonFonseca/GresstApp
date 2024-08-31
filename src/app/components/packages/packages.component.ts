@@ -5,6 +5,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-packages',
@@ -24,6 +25,7 @@ export class PackagesComponent  implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private globales: Globales,
+    private masterDataService: MasterDataService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
   ) {
@@ -36,7 +38,7 @@ export class PackagesComponent  implements OnInit {
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
     });
-    this.packages = await this.globales.getEmbalajes();
+    this.packages = await this.masterDataService.getEmbalajes();
     this.enableNew = (await this.globales.getPermiso(Permisos.AppEmbalaje))?.includes(CRUDOperacion.Create);
   }
 
@@ -46,7 +48,7 @@ export class PackagesComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
 
     this.formData.patchValue({Nombre: this.selectedName});
-    const embalajesList = await this.globales.getEmbalajes();
+    const embalajesList = await this.masterDataService.getEmbalajes();
     this.packages = embalajesList.filter((embalaje) => embalaje.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
@@ -74,7 +76,7 @@ export class PackagesComponent  implements OnInit {
   async create() {
     const formData = this.formData.value;
     const embalaje: Embalaje = { IdEmbalaje: this.globales.newId(), Nombre: formData.Nombre};
-    const created = await this.globales.createEmbalaje(embalaje);
+    const created = await this.masterDataService.createEmbalaje(embalaje);
     if (created)
     {
       const data = {id: embalaje.IdEmbalaje, name: formData.Nombre};
@@ -83,7 +85,7 @@ export class PackagesComponent  implements OnInit {
         this.selectedValue = embalaje.IdEmbalaje;
       }
       else{
-        this.packages = await this.globales.getEmbalajes();
+        this.packages = await this.masterDataService.getEmbalajes();
         await this.globales.presentToast(`Embalaje ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';

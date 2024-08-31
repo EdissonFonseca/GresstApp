@@ -4,6 +4,7 @@ import { Globales } from 'src/app/services/globales.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Material } from 'src/app/interfaces/material.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-materials',
@@ -26,6 +27,7 @@ export class MaterialsComponent  implements OnInit {
 
   constructor(
     private globales: Globales,
+    private masterDataService: MasterDataService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
   ) {
@@ -40,7 +42,7 @@ export class MaterialsComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.materials = await this.globales.getMateriales();
+    this.materials = await this.masterDataService.getMateriales();
     this.enableNew = (await this.globales.getPermiso(Permisos.AppMaterial))?.includes(CRUDOperacion.Create);
   }
 
@@ -50,7 +52,7 @@ export class MaterialsComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
     this.formData.patchValue({Nombre: this.selectedName});
 
-    const materiales = await this.globales.getMateriales();
+    const materiales = await this.masterDataService.getMateriales();
     this.materials = materiales.filter((material) => material.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
@@ -121,7 +123,7 @@ export class MaterialsComponent  implements OnInit {
       }
 
       const material: Material = {IdMaterial: this.globales.newId(), Nombre: formData.Nombre, TipoCaptura: captura, Factor: factor, TipoMedicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
-      const created = await this.globales.createMaterial(material);
+      const created = await this.masterDataService.createMaterial(material);
       if (created)
       {
         const data = {id: material.IdMaterial, name: this.selectedName};
@@ -130,7 +132,7 @@ export class MaterialsComponent  implements OnInit {
           this.selectedValue = material.IdMaterial;
         }
         else{
-          this.materials = await this.globales.getMateriales();
+          this.materials = await this.masterDataService.getMateriales();
           await this.globales.presentToast(`Material ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';

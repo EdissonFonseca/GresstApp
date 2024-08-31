@@ -5,6 +5,7 @@ import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-points',
@@ -26,10 +27,9 @@ export class PointsComponent  implements OnInit, OnChanges {
   enableNew: boolean = false;
 
   constructor(
-    private route: ActivatedRoute,
     private globales: Globales,
+    private masterDataService: MasterDataService,
     private modalCtrl: ModalController,
-    //private navParams: NavParams,
   ) { }
 
   async ngOnInit() {
@@ -44,7 +44,7 @@ export class PointsComponent  implements OnInit, OnChanges {
   }
 
   async filterPoints() {
-    const terceros = await this.globales.getTerceros();
+    const terceros = await this.masterDataService.getTerceros();
     if (this.idTercero) {
       this.terceros = terceros.filter(x => x.IdTercero == this.idTercero);
     } else if (this.tipoTercero) {
@@ -56,7 +56,7 @@ export class PointsComponent  implements OnInit, OnChanges {
       this.terceros = terceros;
     }
 
-    const puntos =  await this.globales.getPuntos();
+    const puntos =  await this.masterDataService.getPuntos();
     if (this.idTercero)
       this.puntos = puntos.filter(x => x.IdTercero == this.idTercero);
     else

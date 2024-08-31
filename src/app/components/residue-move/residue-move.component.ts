@@ -6,6 +6,8 @@ import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
+import { MasterDataService } from 'src/app/services/masterdata.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-residue-move',
@@ -28,6 +30,8 @@ export class ResidueMoveComponent  implements OnInit {
   constructor(
     private navParams: NavParams,
     private modalCtrl: ModalController,
+    private masterDataService: MasterDataService,
+    private inventarioService: InventarioService,
     private globales: Globales
   ) {
     this.residueId = this.navParams.get("ResidueId");
@@ -35,11 +39,11 @@ export class ResidueMoveComponent  implements OnInit {
 
   async ngOnInit() {
     this.cuenta = await this.globales.getCuenta();
-    this.residue = await this.globales.getResiduo(this.residueId);
+    this.residue = await this.inventarioService.getResiduo(this.residueId);
 
     if (!this.residue) return;
 
-    this.material = await this.globales.getMaterial(this.residue.IdMaterial);
+    this.material = await this.masterDataService.getMaterial(this.residue.IdMaterial);
   }
 
   async confirm() {
@@ -47,7 +51,7 @@ export class ResidueMoveComponent  implements OnInit {
 
     this.residue.IdDeposito = this.targetId;
     this.residue.IdVehiculo = this.vehicleId;
-    this.globales.updateResiduo(this.residue);
+    this.inventarioService.updateResiduo(this.residue);
 
     this.modalCtrl.dismiss({TargetId: this.targetId, VehicleId: this.vehicleId, Target: this.target });
   }

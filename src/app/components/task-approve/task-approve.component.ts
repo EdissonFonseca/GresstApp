@@ -12,6 +12,8 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { TareasService } from 'src/app/services/tareas.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-task-approve',
@@ -58,6 +60,8 @@ export class TaskApproveComponent  implements OnInit {
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
+    private masterDataService: MasterDataService,
+    private inventarioService: InventarioService,
     private globales: Globales,
   ) {
     this.activityId = this.navParams.get("ActivityId");
@@ -93,26 +97,26 @@ export class TaskApproveComponent  implements OnInit {
       peso = this.task.Peso ?? 0;
       volumen = this.task.Volumen ?? 0;
 
-      const materialItem = await this.globales.getMaterial(this.task.IdMaterial);
+      const materialItem = await this.masterDataService.getMaterial(this.task.IdMaterial);
       if (materialItem) {
         this.material = materialItem.Nombre;
         this.medicion = materialItem.TipoMedicion;
         this.captura = materialItem.TipoCaptura;
       }
       if (this.task.IdPunto) {
-        const puntoItem = await this.globales.getPunto(this.task.IdPunto);
+        const puntoItem = await this.masterDataService.getPunto(this.task.IdPunto);
         this.point = puntoItem?.Nombre ?? '';
         this.pointId = puntoItem?.IdPunto ?? '';
       }
 
       if (this.task.IdTercero) {
-        const solicitante = await this.globales.getTercero(this.task.IdTercero);
+        const solicitante = await this.masterDataService.getTercero(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
         this.stakeholderId = solicitante?.IdTercero ?? '';
       }
 
       if (this.inputOutput == EntradaSalida.Salida) {
-        const residuo = await this.globales.getResiduo(this.residueId);
+        const residuo = await this.inventarioService.getResiduo(this.residueId);
         if (residuo) {
           cantidad = residuo.Cantidad ?? 0;
           peso = residuo.Peso ?? 0;
@@ -136,11 +140,11 @@ export class TaskApproveComponent  implements OnInit {
       if (this.transactionId) {
         const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
         if (transaccion) {
-          const punto = await this.globales.getPunto(transaccion.IdPunto ?? '');
+          const punto = await this.masterDataService.getPunto(transaccion.IdPunto ?? '');
           if (punto){
             puntoNombre = punto.Nombre;
             puntoId = punto.IdPunto;
-            const propietario = await this.globales.getTercero(punto.IdTercero ?? '');
+            const propietario = await this.masterDataService.getTercero(punto.IdTercero ?? '');
             if (propietario) {
               terceroNombre = propietario.Nombre;
               terceroId = propietario.IdTercero;
@@ -148,14 +152,14 @@ export class TaskApproveComponent  implements OnInit {
           }
         }
       }
-      const material = await this.globales.getMaterial(this.materialId);
+      const material = await this.masterDataService.getMaterial(this.materialId);
       if (material) {
         materialNombre = material.Nombre;
         this.medicion = material.TipoMedicion;
         this.captura = material.TipoCaptura;
       }
 
-      const residuo = await this.globales.getResiduo(this.residueId);
+      const residuo = await this.inventarioService.getResiduo(this.residueId);
       if (residuo) {
         cantidad = residuo.Cantidad ?? 0;
         peso = residuo.Peso ?? 0;
@@ -233,19 +237,19 @@ export class TaskApproveComponent  implements OnInit {
           Imagen: this.imageUrl,
           Ubicacion: '' //TODO
         };
-        await this.globales.createResiduo(residuo);
+        await this.inventarioService.createResiduo(residuo);
       } else { //Tarea -> Salida
         idResiduo = this.residueId;
-        const residuo = await this.globales.getResiduo(idResiduo);
+        const residuo = await this.inventarioService.getResiduo(idResiduo);
         if (residuo){
           residuo.IdEstado = Estado.Inactivo;
-          this.globales.updateResiduo(residuo);
+          this.inventarioService.updateResiduo(residuo);
         }
       }
     } else { //No hay tarea - Agregado
       const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
       if (transaccion){
-        const punto = await this.globales.getPunto(transaccion.IdPunto ?? '');
+        const punto = await this.masterDataService.getPunto(transaccion.IdPunto ?? '');
         if (punto?.Recepcion) { //No hay tarea -> Entrada
           const residuo: Residuo = {
             IdResiduo: this.globales.newId(),
@@ -267,7 +271,7 @@ export class TaskApproveComponent  implements OnInit {
             FechaIngreso: isoDate,
             Ubicacion: '' //TODO
           };
-          await this.globales.createResiduo(residuo);
+          await this.inventarioService.createResiduo(residuo);
           tarea = {
             IdTarea: this.globales.newId(),
             IdMaterial: this.materialId,
@@ -290,7 +294,7 @@ export class TaskApproveComponent  implements OnInit {
           };
           await this.tareasService.create(this.activityId, tarea);
         } else { //No hay tarea -> Salida
-          const residuo = await this.globales.getResiduo(this.residueId);
+          const residuo = await this.inventarioService.getResiduo(this.residueId);
           if (residuo) {
             tarea = {
               IdTarea: this.globales.newId(),
@@ -314,7 +318,7 @@ export class TaskApproveComponent  implements OnInit {
             await this.tareasService.create(this.activityId, tarea);
 
             residuo.IdEstado = Estado.Inactivo;
-            await this.globales.updateResiduo(residuo);
+            await this.inventarioService.updateResiduo(residuo);
           }
         }
       }

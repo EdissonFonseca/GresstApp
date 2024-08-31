@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Vehiculo } from 'src/app/interfaces/vehiculo.interface';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-vehicles',
@@ -20,12 +21,12 @@ export class VehiclesComponent  implements OnInit {
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private toastCtrl: ToastController
+    private masterDataService: MasterDataService
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.vehicles = await this.globales.getVehiculos();
+    this.vehicles = await this.masterDataService.getVehiculos();
   }
 
   async handleInput(event: any){
@@ -33,7 +34,7 @@ export class VehiclesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const vehiclesList = await this.globales.getVehiculos();
+    const vehiclesList = await this.masterDataService.getVehiculos();
     this.vehicles = vehiclesList.filter((vehicle) => (vehicle.Nombre??vehicle.IdVehiculo).toLowerCase().indexOf(query) > -1);
   }
 

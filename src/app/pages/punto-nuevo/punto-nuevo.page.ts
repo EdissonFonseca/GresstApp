@@ -5,6 +5,7 @@ import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -22,6 +23,7 @@ export class PuntoNuevoPage implements OnInit {
     private route: ActivatedRoute,
     private navCtrl: NavController,
     private transaccionesService: TransaccionesService,
+    private masterDataService: MasterDataService,
     private globales: Globales,
   ) {
   }
@@ -31,13 +33,13 @@ export class PuntoNuevoPage implements OnInit {
       this.idTarea= params["IdTarea"]
     });
     this.idPunto = '';
-    this.puntos = (await this.globales.getPuntos());
+    this.puntos = (await this.masterDataService.getPuntos());
   }
 
   async handleInput(event: any){
     const query = event.target.value.toLowerCase();
 
-    const puntos = await this.globales.getPuntos();
+    const puntos = await this.masterDataService.getPuntos();
     this.puntos = puntos.filter((punto) => punto.Nombre.toLowerCase().indexOf(query) > -1);
   }
 

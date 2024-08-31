@@ -7,7 +7,6 @@ import { Globales } from 'src/app/services/globales.service';
 import { PackagesComponent } from '../packages/packages.component';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PointsComponent } from '../points/points.component';
-import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
 import { ResiduesComponent } from '../residues/residues.component';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
@@ -15,10 +14,11 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
-import { IntegrationService } from 'src/app/services/integration.service';
 import { TareasService } from 'src/app/services/tareas.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-task-add',
@@ -71,7 +71,9 @@ export class TaskAddComponent  implements OnInit {
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
-    private tareasService: TareasService
+    private tareasService: TareasService,
+    private masterDataService: MasterDataService,
+    private inventarioService: InventarioService,
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -290,7 +292,7 @@ export class TaskAddComponent  implements OnInit {
         Imagen: this.imageUrl,
         Ubicacion: '' //TODO
       };
-      await this.globales.createResiduo(residuo);
+      await this.inventarioService.createResiduo(residuo);
       idResiduo = residuo.IdResiduo;
 
       if (!this.idTransaccion) {

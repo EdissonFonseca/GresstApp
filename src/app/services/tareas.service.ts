@@ -6,6 +6,8 @@ import { Actividad } from '../interfaces/actividad.interface';
 import { Cuenta } from '../interfaces/cuenta.interface';
 import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
 import { Globales } from './globales.service';
+import { MasterDataService } from './masterdata.service';
+import { InventarioService } from './inventario.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +16,8 @@ export class TareasService {
   constructor(
     private storage: StorageService,
     private integration: IntegrationService,
+    private masterDataService: MasterDataService,
+    private inventarioService: InventarioService,
     private globales: Globales
   ) {}
 
@@ -29,8 +33,8 @@ export class TareasService {
   async list(idActividad: string): Promise<Tarea[]>{
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    const materiales = await this.globales.getMateriales();
-    const tratamientos = await this.globales.getTratamientos();
+    const materiales = await this.masterDataService.getMateriales();
+    const tratamientos = await this.masterDataService.getTratamientos();
     const tareas: Tarea[] = actividad.Tareas;
 
     tareas.forEach((tarea) => {
@@ -63,9 +67,9 @@ export class TareasService {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
 
-    const materiales = await this.globales.getMateriales();
-    const tratamientos = await this.globales.getTratamientos();
-    const embalajes = await this.globales.getEmbalajes();
+    const materiales = await this.masterDataService.getMateriales();
+    const tratamientos = await this.masterDataService.getTratamientos();
+    const embalajes = await this.masterDataService.getEmbalajes();
 
     if (actividad)
     {
@@ -144,11 +148,11 @@ export class TareasService {
         });
       }
       if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
-        const puntos = await this.globales.getPuntos();
+        const puntos = await this.masterDataService.getPuntos();
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdPunto)
         {
-          var punto = await this.globales.getPunto(transaccion.IdPunto);
+          var punto = await this.masterDataService.getPunto(transaccion.IdPunto);
           if (punto){
             punto.IdMateriales?.forEach((idMaterial) => {
               const tareaMaterial = tareas.find(x => x.IdMaterial == idMaterial);
@@ -181,7 +185,7 @@ export class TareasService {
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
 
         if (transaccion && transaccion.EntradaSalida != EntradaSalida.Entrada){
-          const residuos = (await this.globales.getInventario()).filter(x => x.IdVehiculo == actividad.IdRecurso);
+          const residuos = (await this.inventarioService.list()).filter(x => x.IdVehiculo == actividad.IdRecurso);
           residuos.forEach((residuo) => {
             const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
             let embalaje: string = '';

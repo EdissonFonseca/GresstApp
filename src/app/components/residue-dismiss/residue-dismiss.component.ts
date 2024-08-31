@@ -13,6 +13,8 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TareasService } from 'src/app/services/tareas.service';
+import { InventarioService } from 'src/app/services/inventario.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-residue-dismiss',
@@ -41,17 +43,18 @@ export class ResidueDismissComponent  implements OnInit {
     private globales: Globales,
     private actividadesService: ActividadesService,
     private tareasService: TareasService,
-    private formBuilder: FormBuilder
+    private inventarioService: InventarioService,
+    private masterDataService: MasterDataService
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
 
   async ngOnInit() {
     this.cuenta = await this.globales.getCuenta();
-    this.residue = await this.globales.getResiduo(this.residueId);
+    this.residue = await this.inventarioService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.material = await this.globales.getMaterial(this.residue.IdMaterial);
+    this.material = await this.masterDataService.getMaterial(this.residue.IdMaterial);
   }
 
   async confirm() {
@@ -94,7 +97,7 @@ export class ResidueDismissComponent  implements OnInit {
     }
     this.residue.IdEstado = Estado.Inactivo;
     this.residue.IdDeposito = this.pointId;
-    await this.globales.updateResiduo(this.residue);
+    await this.inventarioService.updateResiduo(this.residue);
     this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad });
   }
 

@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Globales } from 'src/app/services/globales.service';
+import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
   selector: 'app-residues',
@@ -20,19 +21,19 @@ export class ResiduesComponent  implements OnInit {
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private toastCtrl: ToastController
+    private inventarioService: InventarioService,
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
     });
-    this.residues = await this.globales.getInventario();
+    this.residues = await this.inventarioService.list();
   }
 
   async getNombre(idResiduo: string) {
     let nombre: string = '';
     console.log(idResiduo);
-    const residuo = await this.globales.getResiduo(idResiduo);
+    const residuo = await this.inventarioService.getResiduo(idResiduo);
 
 
     // if (residuo)
@@ -59,7 +60,7 @@ export class ResiduesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const inventario = await this.globales.getInventario();
+    const inventario = await this.inventarioService.list();
     this.residues = inventario.filter((residuo) => residuo.Material??''.toLowerCase().indexOf(query) > -1);
   }
 

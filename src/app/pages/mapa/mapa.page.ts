@@ -4,10 +4,10 @@ import { Geolocation } from '@capacitor/geolocation';
 import { ModalController, NavController } from '@ionic/angular';
 import { LocationComponent } from 'src/app/components/location/location.component';
 import { ActivatedRoute } from '@angular/router';
-import { Globales } from 'src/app/services/globales.service';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { environment } from 'src/environments/environment';
 import { ActividadesService } from 'src/app/services/actividades.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
     selector: 'app-mapa',
@@ -32,14 +32,14 @@ export class MapaPage implements OnInit, AfterViewInit {
     private modalCtrl: ModalController,
     private route: ActivatedRoute,
     private actividadesService: ActividadesService,
-    private globales:Globales) {
+    private masterDataService: MasterDataService) {
   }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    this.puntos = await this.globales.getPuntosFromTareas(this.idActividad);
+    this.puntos = await this.masterDataService.getPuntosFromTareas(this.idActividad);
   }
 
   async ngAfterViewInit() {

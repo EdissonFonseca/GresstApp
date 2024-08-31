@@ -8,6 +8,7 @@ import { Cuenta } from '../interfaces/cuenta.interface';
 import { Tarea } from '../interfaces/tarea.interface';
 import { EntradaSalida, Estado } from './constants.service';
 import { Globales } from './globales.service';
+import { MasterDataService } from './masterdata.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,7 @@ export class TransaccionesService {
     private storage: StorageService,
     private integration: IntegrationService,
     private tareasService: TareasService,
+    private masterDataService: MasterDataService,
     private globales: Globales
   ) {}
 
@@ -28,8 +30,8 @@ export class TransaccionesService {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     const transacciones: Transaccion[] = actividad.Transacciones;
-    const puntos = await this.globales.getPuntos();
-    const terceros = await this.globales.getTerceros();
+    const puntos = await this.masterDataService.getPuntos();
+    const terceros = await this.masterDataService.getTerceros();
     const tareas: Tarea[] = await this.tareasService.list(idActividad);
     let cantidad: number;
     let peso: number;

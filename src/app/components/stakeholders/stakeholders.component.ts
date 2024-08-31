@@ -4,6 +4,7 @@ import { ModalController, NavController, ToastController } from '@ionic/angular'
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-stakeholders',
@@ -24,6 +25,7 @@ export class StakeholdersComponent  implements OnInit {
     private globales: Globales,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
+    private masterDataService: MasterDataService,
     private navCtrl: NavController
   ) {
     this.formData = this.formBuilder.group({
@@ -35,7 +37,7 @@ export class StakeholdersComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.terceros = await this.globales.getTerceros();
+    this.terceros = await this.masterDataService.getTerceros();
     this.enableNew = (await this.globales.getPermiso(Permisos.AppTercero))?.includes(CRUDOperacion.Create);
   }
 
@@ -45,7 +47,7 @@ export class StakeholdersComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
     this.formData.patchValue({Nombre: this.selectedName});
 
-    const tercerosList = await this.globales.getTerceros();
+    const tercerosList = await this.masterDataService.getTerceros();
     this.terceros = tercerosList.filter((tercero) => tercero.Nombre?.toLowerCase().indexOf(query) > -1);
   }
 
@@ -74,7 +76,7 @@ export class StakeholdersComponent  implements OnInit {
     {
       const formData = this.formData.value;
       const tercero: Tercero = {IdTercero: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, ClienteProveedorInterno:ClienteProveedorInterno.Cliente};
-      const created = await this.globales.createTercero(tercero);
+      const created = await this.masterDataService.createTercero(tercero);
       if (created)
       {
         const data = {id: tercero.IdTercero, name: this.selectedName};
@@ -83,7 +85,7 @@ export class StakeholdersComponent  implements OnInit {
           this.selectedValue = tercero.IdTercero;
         }
         else{
-          this.terceros = await this.globales.getTerceros();
+          this.terceros = await this.masterDataService.getTerceros();
           await this.globales.presentToast(`Tercero ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';

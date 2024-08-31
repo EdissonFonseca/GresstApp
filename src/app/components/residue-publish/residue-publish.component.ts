@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Globales } from 'src/app/services/globales.service';
+import { InventarioService } from 'src/app/services/inventario.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-residue-publish',
@@ -20,6 +22,8 @@ export class ResiduePublishComponent  implements OnInit {
     private navParams: NavParams,
     private formBuilder: FormBuilder,
     private globales: Globales,
+    private masterDataService: MasterDataService,
+    private inventarioService: InventarioService,
   ) {
     //this.targets = this.navParams.get("targets");
     this.residueId = this.navParams.get("ResidueId");
@@ -31,7 +35,7 @@ export class ResiduePublishComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.globales.getResiduo(this.residueId);
+    this.residue = await this.inventarioService.getResiduo(this.residueId);
 
     this.formData.patchValue({
       Quantity: this.residue?.Cantidad
