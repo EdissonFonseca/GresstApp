@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {  NavController } from '@ionic/angular';
-import { AuthorizationService } from 'src/app/services/authorization.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -14,10 +14,10 @@ export class ContrasenaClavePage implements OnInit {
   confirmPassword = '';
 
   constructor(
-    private authorizationService: AuthorizationService,
     private navCtrl: NavController,
     private storage: StorageService,
     private globales: Globales,
+    private authenticationService: AuthenticationService
 ) { }
 
   ngOnInit() {
@@ -37,7 +37,7 @@ export class ContrasenaClavePage implements OnInit {
       this.globales.showLoading('Conectando ...');
       const email = await this.storage.get('Email');
 
-      await this.authorizationService.changePassword(email, this.newPassword);
+      await this.authenticationService.changePassword(email, this.newPassword);
       this.globales.hideLoading();
       await this.globales.presentAlert('Contraseña cambiada','', 'Su clave ha sido cambiada con éxito');
       this.navCtrl.navigateRoot('/login');

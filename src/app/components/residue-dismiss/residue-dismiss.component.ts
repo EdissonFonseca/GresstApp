@@ -14,7 +14,7 @@ import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TareasService } from 'src/app/services/tareas.service';
 import { InventarioService } from 'src/app/services/inventario.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { MaterialesService } from 'src/app/services/materiales.service';
 
 @Component({
   selector: 'app-residue-dismiss',
@@ -44,7 +44,7 @@ export class ResidueDismissComponent  implements OnInit {
     private actividadesService: ActividadesService,
     private tareasService: TareasService,
     private inventarioService: InventarioService,
-    private masterDataService: MasterDataService
+    private materialesService: MaterialesService,
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
@@ -54,7 +54,7 @@ export class ResidueDismissComponent  implements OnInit {
     this.residue = await this.inventarioService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.material = await this.masterDataService.getMaterial(this.residue.IdMaterial);
+    this.material = await this.materialesService.get(this.residue.IdMaterial);
   }
 
   async confirm() {

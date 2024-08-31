@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Banco } from 'src/app/interfaces/banco.interface';
-import { AuthorizationService } from 'src/app/services/authorization.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Globales } from 'src/app/services/globales.service';
-import { IntegrationService } from 'src/app/services/integration.service';
+import { InventoryService } from 'src/app/services/inventory.service';
 import { StorageService } from 'src/app/services/storage.service';
 
 @Component({
@@ -16,17 +16,17 @@ export class BancoPage implements OnInit {
   materiales: Banco[] = [];
 
   constructor(
-    private authorizationService: AuthorizationService,
     private storage: StorageService,
-    private integrationService: IntegrationService,
     private navCtrl: NavController,
+    private inventoryService: InventoryService,
+    private authenticationService: AuthenticationService,
     private globales: Globales
   ) {
   }
 
   async ngOnInit() {
     this.globales.showLoading('Sincronizando ...');
-    this.materiales = await this.integrationService.getBanco();
+    this.materiales = await this.inventoryService.getBanco();
     this.globales.hideLoading();
   }
 
@@ -47,7 +47,7 @@ export class BancoPage implements OnInit {
     const query = event.target.value.toLowerCase();
 
     this.globales.showLoading('Sincronizando ...');
-    const materialesList : Banco[] = await this.integrationService.getBanco();
+    const materialesList : Banco[] = await this.inventoryService.getBanco();
 
     this.materiales = materialesList.filter((mat) => mat.Nombre.toLowerCase().indexOf(query) > -1);
 
@@ -58,8 +58,8 @@ export class BancoPage implements OnInit {
     this.globales.showLoading('Sincronizando ...');
     const username = await this.storage.get('Login');
     const password = await this.storage.get('Password');
-    const token = await this.authorizationService.login(username, password);
-    this.materiales = await this.integrationService.getBanco();
+    const token = await this.authenticationService.login(username, password);
+    this.materiales = await this.inventoryService.getBanco();
     this.globales.hideLoading();
   }
 }

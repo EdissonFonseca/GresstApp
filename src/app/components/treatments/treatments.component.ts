@@ -2,8 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Tratamiento } from 'src/app/interfaces/tratamiento.interface';
-import { Globales } from 'src/app/services/globales.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { TratamientosService } from 'src/app/services/tratamientos.service';
 
 @Component({
   selector: 'app-treatments',
@@ -19,14 +18,13 @@ export class TreatmentsComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: Globales,
     private modalCtrl: ModalController,
-    private masterDataService: MasterDataService
+    private tratamientosService: TratamientosService
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.treatments = await this.masterDataService.getTratamientos();
+    this.treatments = await this.tratamientosService.list();
   }
 
   async handleInput(event: any){
@@ -34,7 +32,7 @@ export class TreatmentsComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const tratamientos = await this.masterDataService.getTratamientos();
+    const tratamientos = await this.tratamientosService.list();
     this.treatments = tratamientos.filter((treatment) => treatment.Nombre .toLowerCase().indexOf(query) > -1);
   }
 

@@ -1,12 +1,13 @@
 import { Component, Input, OnInit, Renderer2 } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { DomSanitizer } from '@angular/platform-browser';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { MaterialesService } from 'src/app/services/materiales.service';
+import { PuntosService } from 'src/app/services/puntos.service';
 import { TareasService } from 'src/app/services/tareas.service';
+import { TercerosService } from 'src/app/services/terceros.service';
 
 @Component({
   selector: 'app-task-reject',
@@ -38,9 +39,10 @@ export class TaskRejectComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private navParams: NavParams,
     private modalCtrl: ModalController,
-    private globales: Globales,
+    private materialesService: MaterialesService,
+    private puntosService: PuntosService,
+    private tercerosService: TercerosService,
     private tareasService: TareasService,
-    private masterDataService: MasterDataService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -56,18 +58,18 @@ export class TaskRejectComponent  implements OnInit {
     this.task = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
-      const materialItem = await this.masterDataService.getMaterial(this.task.IdMaterial)
+      const materialItem = await this.materialesService.get(this.task.IdMaterial)
       this.material = materialItem?.Nombre ?? '';
 
       if (this.task.IdPunto)
       {
-        const puntoItem = await this.masterDataService.getPunto(this.task.IdPunto);
+        const puntoItem = await this.puntosService.get(this.task.IdPunto);
         this.point = puntoItem?.Nombre ?? '';
       }
 
       if (this.task.IdTercero)
       {
-        const solicitante = await this.masterDataService.getTercero(this.task.IdTercero);
+        const solicitante = await this.tercerosService.get(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
       }
 

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Mensaje } from 'src/app/interfaces/mensaje.interface';
 import { Globales } from 'src/app/services/globales.service';
-import { IntegrationService } from 'src/app/services/integration.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-chat',
@@ -20,7 +20,7 @@ export class ChatPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private globales:Globales,
-    private integrationService: IntegrationService
+    private masterdataService: MasterDataService
   ) { }
 
   async ngOnInit() {
@@ -30,7 +30,7 @@ export class ChatPage implements OnInit {
       this.idInterlocutor = params["IdInterlocutor"],
       this.interlocutor = params["Interlocutor"]
     });
-    this.messages = await this.integrationService.getMensajes(this.idResiduo, this.idInterlocutor);
+    this.messages = await this.masterdataService.getMensajes(this.idResiduo, this.idInterlocutor);
 
     this.globales.hideLoading();
   }

@@ -5,7 +5,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { Insumo } from 'src/app/interfaces/insumo.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { InsumosService } from 'src/app/services/insumos.service';
 
 @Component({
   selector: 'app-supplies',
@@ -27,7 +27,7 @@ export class SuppliesComponent  implements OnInit {
     private globales: Globales,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private masterDataService: MasterDataService,
+    private insumosService: InsumosService,
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -36,7 +36,7 @@ export class SuppliesComponent  implements OnInit {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.supplies = await this.masterDataService.getInsumos();
+    this.supplies = await this.insumosService.list();
     this.enableNew = (await this.globales.getPermiso(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
   }
 
@@ -45,7 +45,7 @@ export class SuppliesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const insumos = await this.masterDataService.getInsumos();
+    const insumos = await this.insumosService.list();
     this.supplies = insumos.filter((supply) => supply.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
@@ -66,7 +66,7 @@ export class SuppliesComponent  implements OnInit {
   async create() {
     const formData = this.formData.value;
     const insumo: Insumo = { IdInsumo: this.globales.newId(), Nombre: formData.Nombre, IdEstado: 'A'};
-    const created = await this.masterDataService.createInsumo(insumo);
+    const created = await this.insumosService.create(insumo);
     if (created)
     {
       const data = {id: insumo.IdInsumo, name: formData.Nombre};
@@ -75,7 +75,7 @@ export class SuppliesComponent  implements OnInit {
         this.selectedValue = insumo.IdInsumo;
       }
       else{
-        this.supplies = await this.masterDataService.getInsumos();
+        this.supplies = await this.insumosService.list();
         await this.globales.presentToast(`Insumo ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';

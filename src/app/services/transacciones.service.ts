@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { IntegrationService } from './integration.service';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { TareasService } from './tareas.service';
@@ -8,7 +7,9 @@ import { Cuenta } from '../interfaces/cuenta.interface';
 import { Tarea } from '../interfaces/tarea.interface';
 import { EntradaSalida, Estado } from './constants.service';
 import { Globales } from './globales.service';
-import { MasterDataService } from './masterdata.service';
+import { PuntosService } from './puntos.service';
+import { TercerosService } from './terceros.service';
+import { TransactionsService } from './transactions.service';
 
 @Injectable({
   providedIn: 'root',
@@ -16,9 +17,10 @@ import { MasterDataService } from './masterdata.service';
 export class TransaccionesService {
   constructor(
     private storage: StorageService,
-    private integration: IntegrationService,
     private tareasService: TareasService,
-    private masterDataService: MasterDataService,
+    private puntosService: PuntosService,
+    private tercerosService: TercerosService,
+    private TransactionsService: TransactionsService,
     private globales: Globales
   ) {}
 
@@ -30,8 +32,8 @@ export class TransaccionesService {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     const transacciones: Transaccion[] = actividad.Transacciones;
-    const puntos = await this.masterDataService.getPuntos();
-    const terceros = await this.masterDataService.getTerceros();
+    const puntos = await this.puntosService.list();
+    const terceros = await this.tercerosService.list();
     const tareas: Tarea[] = await this.tareasService.list(idActividad);
     let cantidad: number;
     let peso: number;
@@ -227,10 +229,10 @@ export class TransaccionesService {
           tarea.CRUDDate = null;
         });
 
-        if (await this.integration.updateTransaccion(current) && current.Firma != null) {
+        if (await this.TransactionsService.patchTransaccion(current) && current.Firma != null) {
           transaccion.CRUD = null;
           transaccion.CRUDDate = null;
-          this.integration.uploadFirmaTransaccion(current);
+          this.TransactionsService.uploadFirmaTransaccion(current);
         }
 
         await this.storage.set("Actividades", actividades);

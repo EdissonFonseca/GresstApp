@@ -3,8 +3,10 @@ import { Residuo } from "../interfaces/residuo.interface";
 import { Actividad } from "../interfaces/actividad.interface";
 import { Cuenta } from "../interfaces/cuenta.interface";
 import { StorageService } from "./storage.service";
-import { MasterDataService } from "./masterdata.service";
 import { CRUDOperacion, TipoServicio } from "./constants.service";
+import { MaterialesService } from "./materiales.service";
+import { TercerosService } from "./terceros.service";
+import { PuntosService } from "./puntos.service";
 
 @Injectable({
   providedIn: 'root',
@@ -12,16 +14,18 @@ import { CRUDOperacion, TipoServicio } from "./constants.service";
 export class InventarioService {
   constructor(
     private storage: StorageService,
-    private masterDataService: MasterDataService,
+    private materialesService: MaterialesService,
+    private tercerosService: TercerosService,
+    private puntosService: PuntosService
   ) {}
 
   async list(): Promise<Residuo[]> {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const residuos: Residuo[] = await this.storage.get('Inventario');
-    const materiales = await this.masterDataService.getMateriales();
-    const terceros = await this.masterDataService.getTerceros();
-    const puntos = await this.masterDataService.getPuntos();
+    const materiales = await this.materialesService.list();
+    const terceros = await this.tercerosService.list();
+    const puntos = await this.puntosService.list();
     let ubicacion: string = '';
     let cantidades: string = '';
 

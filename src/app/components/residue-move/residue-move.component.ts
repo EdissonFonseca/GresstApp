@@ -6,8 +6,8 @@ import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
-import { MasterDataService } from 'src/app/services/masterdata.service';
 import { InventarioService } from 'src/app/services/inventario.service';
+import { MaterialesService } from 'src/app/services/materiales.service';
 
 @Component({
   selector: 'app-residue-move',
@@ -30,8 +30,8 @@ export class ResidueMoveComponent  implements OnInit {
   constructor(
     private navParams: NavParams,
     private modalCtrl: ModalController,
-    private masterDataService: MasterDataService,
     private inventarioService: InventarioService,
+    private materialesService: MaterialesService,
     private globales: Globales
   ) {
     this.residueId = this.navParams.get("ResidueId");
@@ -43,7 +43,7 @@ export class ResidueMoveComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    this.material = await this.masterDataService.getMaterial(this.residue.IdMaterial);
+    this.material = await this.materialesService.get(this.residue.IdMaterial);
   }
 
   async confirm() {

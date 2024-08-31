@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { AuthorizationService } from 'src/app/services/authorization.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { SynchronizationService } from 'src/app/services/synchronization.service';
@@ -16,7 +16,7 @@ export class LoginPage implements OnInit {
   showNewAccount: boolean = false;
 
   constructor(
-    private authorizationService: AuthorizationService,
+    private authenticationService: AuthenticationService,
     private synchronizationService: SynchronizationService,
     private navCtrl: NavController,
     private storage: StorageService,
@@ -35,14 +35,14 @@ export class LoginPage implements OnInit {
     try {
       this.globales.showLoading('Conectando ...');
 
-      if (await this.authorizationService.ping()){
-        const token = await this.authorizationService.login(this.username, this.password);
+      if (await this.authenticationService.ping()){
+        const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
 
-          await this.synchronizationService.sincronizar();
+          await this.synchronizationService.reload();
 
           this.globales.hideLoading();
 

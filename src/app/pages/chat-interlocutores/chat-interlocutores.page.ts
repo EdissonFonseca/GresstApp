@@ -3,7 +3,7 @@ import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Interlocutor } from 'src/app/interfaces/interlocutor.interface';
 import { Globales } from 'src/app/services/globales.service';
-import { IntegrationService } from 'src/app/services/integration.service';
+import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-chat-interlocutores',
@@ -15,10 +15,10 @@ export class ChatInterlocutoresPage implements OnInit {
   idResiduo: string = '';
 
   constructor(
-    private integrationService: IntegrationService,
     private route: ActivatedRoute,
     private navCtrl: NavController,
-    private globales: Globales
+    private globales: Globales,
+    private masterdataService: MasterDataService,
   ) {
 
   }
@@ -28,7 +28,7 @@ export class ChatInterlocutoresPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idResiduo = params["IdResiduo"]
     });
-    this.interlocutores = await this.integrationService.getInterlocutores(this.idResiduo);
+    this.interlocutores = await this.masterdataService.getInterlocutores(this.idResiduo);
     this.globales.hideLoading();
   }
 

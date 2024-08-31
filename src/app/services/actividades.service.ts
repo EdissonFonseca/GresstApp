@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
-import { IntegrationService } from './integration.service';
-import { CRUDOperacion, EntradaSalida, Estado } from './constants.service';
+import { EntradaSalida, Estado } from './constants.service';
 import { Cuenta } from '../interfaces/cuenta.interface';
 import { Globales } from './globales.service';
 import { TransaccionesService } from './transacciones.service';
+import { TransactionsService } from './transactions.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,7 @@ export class ActividadesService {
     private storage: StorageService,
     private globales: Globales,
     private transaccionesService: TransaccionesService,
-    private integration: IntegrationService,
+    private transactionsService: TransactionsService
   ) {}
 
   async list(): Promise<Actividad[]> {
@@ -148,10 +148,10 @@ export class ActividadesService {
         transaccion.CRUDDate = null;
       });
 
-      if (await this.integration.updateActividad(current) && current.Firma != null) {
+      if (await this.transactionsService.patchActividad(current) && current.Firma != null) {
         current.CRUD = null;
         current.CRUDDate = null;
-        this.integration.uploadFirmaActividad(current);
+        this.transactionsService.uploadFirmaActividad(current);
       }
   }
     await this.storage.set("Actividades", actividades);

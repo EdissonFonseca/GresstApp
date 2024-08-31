@@ -2,9 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { Globales } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
   selector: 'app-residue-publish',
@@ -21,8 +19,6 @@ export class ResiduePublishComponent  implements OnInit {
     private modalCtrl: ModalController,
     private navParams: NavParams,
     private formBuilder: FormBuilder,
-    private globales: Globales,
-    private masterDataService: MasterDataService,
     private inventarioService: InventarioService,
   ) {
     //this.targets = this.navParams.get("targets");

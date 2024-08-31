@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
-import { AuthorizationService } from 'src/app/services/authorization.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -18,7 +18,7 @@ export class PerfilPage implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private globales: Globales,
-    private authorizationService: AuthorizationService,
+    private authenticationService: AuthenticationService,
     private storage: StorageService
   ) {
     this.formData = this.formBuilder.group({
@@ -48,7 +48,7 @@ export class PerfilPage implements OnInit {
 
     const formValues = this.formData.value;
     try{
-      await this.authorizationService.changeName(userName, formValues.Nombre);
+      await this.authenticationService.changeName(userName, formValues.Nombre);
       if (this.cuenta) {
         this.cuenta.NombreUsuario = formValues.Nombre;
         await this.storage.set('Cuenta', this.cuenta);
@@ -72,7 +72,7 @@ export class PerfilPage implements OnInit {
         this.globales.presentAlert('Error','Error','La clave actual no corresponde');
       } else {
         try{
-          await this.authorizationService.changePassword(userName, formValues.ClaveNueva);
+          await this.authenticationService.changePassword(userName, formValues.ClaveNueva);
           await this.storage.set('Password', formValues.ClaveNueva);
           await this.globales.presentAlert('Contraseña cambiada','', 'Su clave ha sido cambiada con éxito');
          } catch (error) {

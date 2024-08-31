@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { IntegrationService } from './integration.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { Cuenta } from '../interfaces/cuenta.interface';
 import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
 import { Globales } from './globales.service';
-import { MasterDataService } from './masterdata.service';
 import { InventarioService } from './inventario.service';
+import { SynchronizationService } from './synchronization.service';
+import { MaterialesService } from './materiales.service';
+import { TratamientosService } from './tratamientos.service';
+import { EmbalajesService } from './embalajes.service';
+import { PuntosService } from './puntos.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,9 +18,12 @@ import { InventarioService } from './inventario.service';
 export class TareasService {
   constructor(
     private storage: StorageService,
-    private integration: IntegrationService,
-    private masterDataService: MasterDataService,
     private inventarioService: InventarioService,
+    private synchronizationService: SynchronizationService,
+    private materialesService: MaterialesService,
+    private tratamientosService: TratamientosService,
+    private embalajesService: EmbalajesService,
+    private puntosService: PuntosService,
     private globales: Globales
   ) {}
 
@@ -33,8 +39,8 @@ export class TareasService {
   async list(idActividad: string): Promise<Tarea[]>{
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    const materiales = await this.masterDataService.getMateriales();
-    const tratamientos = await this.masterDataService.getTratamientos();
+    const materiales = await this.materialesService.list();
+    const tratamientos = await this.tratamientosService.list();
     const tareas: Tarea[] = actividad.Tareas;
 
     tareas.forEach((tarea) => {
@@ -67,9 +73,9 @@ export class TareasService {
     const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
 
-    const materiales = await this.masterDataService.getMateriales();
-    const tratamientos = await this.masterDataService.getTratamientos();
-    const embalajes = await this.masterDataService.getEmbalajes();
+    const materiales = await this.materialesService.list();
+    const tratamientos = await this.tratamientosService.list();
+    const embalajes = await this.embalajesService.list();
 
     if (actividad)
     {
@@ -148,11 +154,11 @@ export class TareasService {
         });
       }
       if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
-        const puntos = await this.masterDataService.getPuntos();
+        const puntos = await this.puntosService.list();
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdPunto)
         {
-          var punto = await this.masterDataService.getPunto(transaccion.IdPunto);
+          var punto = await this.puntosService.get(transaccion.IdPunto);
           if (punto){
             punto.IdMateriales?.forEach((idMaterial) => {
               const tareaMaterial = tareas.find(x => x.IdMaterial == idMaterial);
@@ -249,13 +255,7 @@ export class TareasService {
     if (actividad){
       actividad.Tareas.push(tarea);
       await this.storage.set('Actividades', actividades);
-
-      if (await this.integration.createTarea(tarea)){
-        tarea.CRUD = null;
-        tarea.CRUDDate = null;
-        await this.storage.set('Actividades', actividades);
-        await this.integration.uploadFotosTarea(tarea);
-      }
+      await this.synchronizationService.uploadTransactions();
     }
   }
 
@@ -280,14 +280,8 @@ export class TareasService {
         tareaUpdate.Observaciones = tarea.Observaciones;
         tareaUpdate.IdEstado = tarea.IdEstado;
         tareaUpdate.Fotos = tarea.Fotos;
-
-        if (await this.integration.updateTarea(tareaUpdate)){
-          tarea.CRUD = null;
-          tarea.CRUDDate = null;
-          await this.integration.uploadFotosTarea(tareaUpdate);
-        }
-
         await this.storage.set("Actividades", actividades);
+        await this.synchronizationService.uploadTransactions();
       }
     }
   }

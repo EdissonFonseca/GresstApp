@@ -17,7 +17,6 @@ import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { TareasService } from 'src/app/services/tareas.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
@@ -72,7 +71,6 @@ export class TaskAddComponent  implements OnInit {
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
-    private masterDataService: MasterDataService,
     private inventarioService: InventarioService,
   ) {
     this.formData = this.formBuilder.group({

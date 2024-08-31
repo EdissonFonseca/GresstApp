@@ -11,7 +11,7 @@ import { ResidueTransferComponent } from 'src/app/components/residue-transfer/re
 import { CRUDOperacion, Estado, Permisos } from 'src/app/services/constants.service';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { InventarioService } from 'src/app/services/inventario.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { MaterialesService } from 'src/app/services/materiales.service';
 
 @Component({
   selector: 'app-inventario',
@@ -28,7 +28,7 @@ export class InventarioPage implements OnInit {
     private menuCtrl: MenuController,
     private globales: Globales,
     private inventarioService: InventarioService,
-    private masterDataService: MasterDataService,
+    private materialesService: MaterialesService,
     private actionSheetCtrl: ActionSheetController,
     ) {
     }
@@ -188,7 +188,7 @@ export class InventarioPage implements OnInit {
     const residuo = await this.inventarioService.getResiduo(idResiduo);
     if (!residuo) return;
 
-    const material = await this.masterDataService.getMaterial(residuo.IdMaterial);
+    const material = await this.materialesService.get(residuo.IdMaterial);
     if (!material) return;
 
     let actionButtons: ActionSheetButton[] = [];

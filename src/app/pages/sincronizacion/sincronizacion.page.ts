@@ -22,7 +22,7 @@ export class SincronizacionPage implements OnInit {
   async synchronize() {
     this.globales.showLoading('Conectando ...');
 
-    await this.synchronizationService.sincronizar();
+    await this.synchronizationService.refresh();
 
     this.globales.hideLoading();
     this.globales.presentToast('Datos sincronizada', 'middle');

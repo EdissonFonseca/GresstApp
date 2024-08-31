@@ -1,11 +1,11 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { PuntosService } from 'src/app/services/puntos.service';
+import { TercerosService } from 'src/app/services/terceros.service';
 
 @Component({
   selector: 'app-points',
@@ -28,7 +28,8 @@ export class PointsComponent  implements OnInit, OnChanges {
 
   constructor(
     private globales: Globales,
-    private masterDataService: MasterDataService,
+    private puntosService: PuntosService,
+    private tercerosService: TercerosService,
     private modalCtrl: ModalController,
   ) { }
 
@@ -44,7 +45,7 @@ export class PointsComponent  implements OnInit, OnChanges {
   }
 
   async filterPoints() {
-    const terceros = await this.masterDataService.getTerceros();
+    const terceros = await this.tercerosService.list();
     if (this.idTercero) {
       this.terceros = terceros.filter(x => x.IdTercero == this.idTercero);
     } else if (this.tipoTercero) {
@@ -56,7 +57,7 @@ export class PointsComponent  implements OnInit, OnChanges {
       this.terceros = terceros;
     }
 
-    const puntos =  await this.masterDataService.getPuntos();
+    const puntos =  await this.puntosService.list();
     if (this.idTercero)
       this.puntos = puntos.filter(x => x.IdTercero == this.idTercero);
     else

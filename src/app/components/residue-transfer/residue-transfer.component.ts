@@ -14,8 +14,9 @@ import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { TareasService } from 'src/app/services/tareas.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
 import { InventarioService } from 'src/app/services/inventario.service';
+import { MaterialesService } from 'src/app/services/materiales.service';
+import { PuntosService } from 'src/app/services/puntos.service';
 
 @Component({
   selector: 'app-residue-transfer',
@@ -46,7 +47,8 @@ export class ResidueTransferComponent  implements OnInit {
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
-    private masterDataService: MasterDataService,
+    private materialesService: MaterialesService,
+    private puntosService: PuntosService,
     private inventarioService: InventarioService
   ) {
     this.residueId = this.navParams.get("ResidueId");
@@ -57,7 +59,7 @@ export class ResidueTransferComponent  implements OnInit {
     this.residue = await this.inventarioService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.material = await this.masterDataService.getMaterial(this.residue.IdMaterial);
+    this.material = await this.materialesService.get(this.residue.IdMaterial);
   }
 
   async confirm() {
@@ -72,7 +74,7 @@ export class ResidueTransferComponent  implements OnInit {
     if (!this.residue) return;
 
     if (this.serviceId == TipoServicio.Entrega || this.serviceId == TipoServicio.Recoleccion) {
-      const punto = await this.masterDataService.getPunto(this.residue.IdDeposito ?? '');
+      const punto = await this.puntosService.get(this.residue.IdDeposito ?? '');
       if (this.serviceId == TipoServicio.Entrega){
         actividad = await this.actividadesService.getByServicio(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
         if (!actividad) {

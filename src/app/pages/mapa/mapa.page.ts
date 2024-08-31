@@ -7,7 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { environment } from 'src/environments/environment';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { PuntosService } from 'src/app/services/puntos.service';
 
 @Component({
     selector: 'app-mapa',
@@ -32,14 +32,15 @@ export class MapaPage implements OnInit, AfterViewInit {
     private modalCtrl: ModalController,
     private route: ActivatedRoute,
     private actividadesService: ActividadesService,
-    private masterDataService: MasterDataService) {
+    private puntosService: PuntosService,
+  ) {
   }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    this.puntos = await this.masterDataService.getPuntosFromTareas(this.idActividad);
+    this.puntos = await this.puntosService.getPuntosFromTareas(this.idActividad);
   }
 
   async ngAfterViewInit() {

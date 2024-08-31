@@ -4,7 +4,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { ModalController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { PuntosService } from 'src/app/services/puntos.service';
 import { environment } from 'src/environments/environment';
 
 declare var google: any;
@@ -26,14 +26,15 @@ export class RutaPage implements OnInit {
 
   constructor(    private modalCtrl: ModalController,
     private route: ActivatedRoute,
-    private masterDataService: MasterDataService,
-    private actividadesService: ActividadesService) {}
+    private puntosService: PuntosService,
+    private actividadesService: ActividadesService
+  ) {}
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    this.puntos = await this.masterDataService.getPuntosFromTareasPendientes(this.idActividad);
+    this.puntos = await this.puntosService.getPuntosFromTareasPendientes(this.idActividad);
     await this.loadGoogleMaps();
   }
 

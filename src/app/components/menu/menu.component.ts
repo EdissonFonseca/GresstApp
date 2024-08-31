@@ -3,7 +3,6 @@ import { StorageService } from 'src/app/services/storage.service';
 import { NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { IntegrationService } from 'src/app/services/integration.service';
 import { Globales } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
 
