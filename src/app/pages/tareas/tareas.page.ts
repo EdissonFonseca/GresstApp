@@ -10,6 +10,9 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ModalController, NavController } from '@ionic/angular';
 import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
+import { ActividadesService } from 'src/app/services/actividades.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { TareasService } from 'src/app/services/tareas.service';
 
 @Component({
   selector: 'app-tareas',
@@ -33,6 +36,9 @@ export class TareasPage implements OnInit {
     private globales: Globales,
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService,
+    private tareasService: TareasService,
   ) {
   }
 
@@ -42,7 +48,7 @@ export class TareasPage implements OnInit {
       this.idTransaccion = params["IdTransaccion"],
       this.mode = params["Mode"]
     });
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
     if (actividad){
       this.showDelivery = actividad.IdServicio == TipoServicio.Transporte || actividad.IdServicio == TipoServicio.Recoleccion;
       this.actividad = actividad.Titulo ?? '';
@@ -65,15 +71,15 @@ export class TareasPage implements OnInit {
 
   async ionViewWillEnter(){
     if (this.mode == "T") {
-      const transacciones = await this.globales.getTransacciones(this.idActividad);
+      const transacciones = await this.transaccionesService.list(this.idActividad);
       if (this.idTransaccion)
         this.transacciones = transacciones.filter(x => x.IdTransaccion == this.idTransaccion);
       else
         this.transacciones = transacciones;
     } else {
-      this.transacciones = await this.globales.getTransacciones(this.idActividad);
+      this.transacciones = await this.transaccionesService.list(this.idActividad);
     }
-    this.tareas = await this.globales.getTareasSugeridas(this.idActividad, this.idTransaccion);
+    this.tareas = await this.tareasService.listSugeridas(this.idActividad, this.idTransaccion);
     if (this.transacciones.length == 1)
     {
       const transaccion = this.transacciones[0];
@@ -83,18 +89,18 @@ export class TareasPage implements OnInit {
 
   async handleInput(event: any){
     const query = event.target.value.toLowerCase();
-    let transaccionesList = await this.globales.getTransacciones(this.idActividad);
-    const tareasList = await this.globales.getTareasSugeridas(this.idActividad, this.idTransaccion);
+    let transaccionesList = await this.transaccionesService.list(this.idActividad);
+    const tareasList = await this.tareasService.listSugeridas(this.idActividad, this.idTransaccion);
 
     if (this.idTransaccion)
     {
-      transaccionesList = await this.globales.getTransacciones(this.idActividad);
+      transaccionesList = await this.transaccionesService.list(this.idActividad);
       if (transaccionesList)
         transaccionesList = transaccionesList.filter(x => x.IdTransaccion == this.idTransaccion);
     }
     else
     {
-      transaccionesList = await this.globales.getTransacciones(this.idActividad);
+      transaccionesList = await this.transaccionesService.list(this.idActividad);
     }
     const transaccionesFilter = transaccionesList.filter(trx => trx.Punto ?? trx.Tercero ?? ''.toLowerCase().indexOf(query) > -1);
     if (transaccionesFilter.length == 0){
@@ -140,7 +146,7 @@ export class TareasPage implements OnInit {
       if (data.IdTransaccion) {
         const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
         if (!transaccion) {
-          const transaccionGlobal = await this.globales.getTransaccion(this.idActividad, data.IdTransaccion);
+          const transaccionGlobal = await this.transaccionesService.get(this.idActividad, data.IdTransaccion);
           if (transaccionGlobal) {
             this.transacciones.push(transaccionGlobal);
           }

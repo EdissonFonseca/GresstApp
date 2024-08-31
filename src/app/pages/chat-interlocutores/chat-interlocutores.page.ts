@@ -2,10 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Interlocutor } from 'src/app/interfaces/interlocutor.interface';
-import { AuthService } from 'src/app/services/auth.service';
 import { Globales } from 'src/app/services/globales.service';
 import { IntegrationService } from 'src/app/services/integration.service';
-import { StorageService } from 'src/app/services/storage.service';
 
 @Component({
   selector: 'app-chat-interlocutores',
@@ -17,8 +15,6 @@ export class ChatInterlocutoresPage implements OnInit {
   idResiduo: string = '';
 
   constructor(
-    private authService: AuthService,
-    private storage: StorageService,
     private integrationService: IntegrationService,
     private route: ActivatedRoute,
     private navCtrl: NavController,

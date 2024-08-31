@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { AuthService } from './auth.service';
 import { Embalaje } from '../interfaces/embalaje.interface';
 import { Material } from '../interfaces/material.interface';
 import { Insumo } from '../interfaces/insumo.interface';
@@ -27,7 +26,6 @@ export class IntegrationService {
   private tercerosUrl = `${environment.apiUrl}/clientes`;
 
   constructor(
-    private authService: AuthService,
     private storage: StorageService
   ) {}
 

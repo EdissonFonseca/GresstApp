@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Globales } from 'src/app/services/globales.service';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { environment } from 'src/environments/environment';
+import { ActividadesService } from 'src/app/services/actividades.service';
 
 @Component({
     selector: 'app-mapa',
@@ -30,6 +31,7 @@ export class MapaPage implements OnInit, AfterViewInit {
   constructor(
     private modalCtrl: ModalController,
     private route: ActivatedRoute,
+    private actividadesService: ActividadesService,
     private globales:Globales) {
   }
 
@@ -46,7 +48,7 @@ export class MapaPage implements OnInit, AfterViewInit {
 
   async createMap() {
     const currentLocation = await Geolocation.getCurrentPosition();
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
 
     this.origin.lat = currentLocation.coords.latitude;
     this.origin.lng = currentLocation.coords.longitude;

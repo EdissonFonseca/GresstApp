@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthorizationService } from 'src/app/services/authorization.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -14,7 +14,7 @@ export class RegistroClavePage implements OnInit {
   confirmPassword = '';
 
   constructor(
-    private authService: AuthService,
+    private authorizationService: AuthorizationService,
     private navCtrl: NavController,
     private storage: StorageService,
     private globales: Globales
@@ -34,7 +34,7 @@ export class RegistroClavePage implements OnInit {
       const email = await this.storage.get('Email');
       const name = await this.storage.get('Name');
 
-      await this.authService.register(email, name, this.newPassword);
+      await this.authorizationService.register(email, name, this.newPassword);
       this.globales.hideLoading();
       await this.globales.presentAlert('Usuario registrado','', 'Usuario registrado con exito');
       this.navCtrl.navigateRoot('/login');

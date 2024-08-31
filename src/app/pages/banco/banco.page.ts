@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, NavigationExtras } from '@angular/router';
-import { MenuController, NavController } from '@ionic/angular';
+import { NavigationExtras } from '@angular/router';
+import { NavController } from '@ionic/angular';
 import { Banco } from 'src/app/interfaces/banco.interface';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthorizationService } from 'src/app/services/authorization.service';
 import { Globales } from 'src/app/services/globales.service';
 import { IntegrationService } from 'src/app/services/integration.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -16,7 +16,7 @@ export class BancoPage implements OnInit {
   materiales: Banco[] = [];
 
   constructor(
-    private authService: AuthService,
+    private authorizationService: AuthorizationService,
     private storage: StorageService,
     private integrationService: IntegrationService,
     private navCtrl: NavController,
@@ -58,7 +58,7 @@ export class BancoPage implements OnInit {
     this.globales.showLoading('Sincronizando ...');
     const username = await this.storage.get('Login');
     const password = await this.storage.get('Password');
-    const token = await this.authService.login(username, password);
+    const token = await this.authorizationService.login(username, password);
     this.materiales = await this.integrationService.getBanco();
     this.globales.hideLoading();
   }

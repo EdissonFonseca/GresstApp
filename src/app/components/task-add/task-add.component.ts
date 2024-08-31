@@ -16,6 +16,9 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { IntegrationService } from 'src/app/services/integration.service';
+import { TareasService } from 'src/app/services/tareas.service';
+import { ActividadesService } from 'src/app/services/actividades.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-task-add',
@@ -66,7 +69,9 @@ export class TaskAddComponent  implements OnInit {
     private route: ActivatedRoute,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private integration: IntegrationService
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService,
+    private tareasService: TareasService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -91,7 +96,7 @@ export class TaskAddComponent  implements OnInit {
       this.unidadPeso = cuenta.UnidadPeso ?? '';
       this.unidadVolumen = cuenta.UnidadVolumen ?? '';
     }
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
     if (actividad)
     {
       this.proceso = this.globales.getNombreServicio(actividad.IdServicio);
@@ -100,7 +105,7 @@ export class TaskAddComponent  implements OnInit {
         this.idVehiculo = actividad.IdRecurso ?? '';
         if (this.idTransaccion)
         {
-          const transaccion = await this.globales.getTransaccion(this.idActividad, this.idTransaccion);
+          const transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
           if (!transaccion){
             this.solicitarPunto = true;
           } else {
@@ -251,7 +256,7 @@ export class TaskAddComponent  implements OnInit {
 
   async submit() {
     const cuenta: Cuenta = await this.globales.getCuenta();
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
     let tarea: Tarea | undefined = undefined;
     let idTransaccion: string | null = null;
     let idResiduo: string | null = null;
@@ -290,7 +295,7 @@ export class TaskAddComponent  implements OnInit {
 
       if (!this.idTransaccion) {
         if (actividad.IdServicio === TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte){
-         const transaccionActual = await this.globales.getTransaccionByPunto(this.idActividad, this.idPuntoEntrada);
+         const transaccionActual = await this.transaccionesService.getByPunto(this.idActividad, this.idPuntoEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdTransaccion: this.globales.newId(),
@@ -315,19 +320,19 @@ export class TaskAddComponent  implements OnInit {
               Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
             fecha = isoDate;
-            await this.globales.createTransaccion(this.idActividad, transaccion);
+            await this.transaccionesService.create(this.idActividad, transaccion);
             idTransaccion = transaccion.IdTransaccion;
           } else {
             transaccionActual.CRUD = CRUDOperacion.Update;
             transaccionActual.Cantidad = data.Cantidad;
             transaccionActual.Peso = data.Peso;
             transaccionActual.Volumen = data.Volumen;
-            await this.globales.updateTransaccion(this.idActividad, transaccionActual);
+            await this.transaccionesService.update(this.idActividad, transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaProgramada ?? isoDate;
           }
         } else if (actividad.IdServicio == TipoServicio.Recepcion) {
-          const transaccionActual = await this.globales.getTransaccionByTercero(this.idActividad, this.idTerceroEntrada);
+          const transaccionActual = await this.transaccionesService.getByTercero(this.idActividad, this.idTerceroEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdTransaccion: this.globales.newId(),
@@ -348,7 +353,7 @@ export class TaskAddComponent  implements OnInit {
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
               Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
             };
-            await this.globales.createTransaccion(this.idActividad, transaccion);
+            await this.transaccionesService.create(this.idActividad, transaccion);
             idTransaccion = transaccion.IdTransaccion;
             fecha = isoDate;
           } else {
@@ -356,7 +361,7 @@ export class TaskAddComponent  implements OnInit {
             transaccionActual.Cantidad = data.Cantidad;
             transaccionActual.Peso = data.Peso;
             transaccionActual.Volumen = data.Volumen;
-            await this.globales.updateTransaccion(this.idActividad, transaccionActual);
+            await this.transaccionesService.update(this.idActividad, transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaProgramada ?? isoDate;
           }
@@ -397,7 +402,7 @@ export class TaskAddComponent  implements OnInit {
         Fotos: this.fotos,
         Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
       };
-      await this.globales.createTarea(this.idActividad, tarea);
+      await this.tareasService.create(this.idActividad, tarea);
     }
     this.modalCtrl.dismiss(tarea);
   }

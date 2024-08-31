@@ -2,8 +2,10 @@ import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@ang
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-transaction-approve',
@@ -30,7 +32,9 @@ export class TransactionApproveComponent  implements OnInit {
     private navParams: NavParams,
     private renderer: Renderer2,
     private globales: Globales,
-    private modalCtrl:ModalController
+    private modalCtrl:ModalController,
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService
   ) {
     this.idActividad = this.navParams.get("ActivityId");
     this.idTransaccion = this.navParams.get("TransactionId");
@@ -87,11 +91,11 @@ export class TransactionApproveComponent  implements OnInit {
 
     let transaccion: Transaccion | undefined;
     const data = this.frmTransaccion.value;
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
 
     if (!actividad) return;
 
-    transaccion = await this.globales.getTransaccion(this.idActividad, this.idTransaccion);
+    transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
     if (transaccion) { //Si hay transaccion
       const firmaBlob = this.getSignature();
 
@@ -103,7 +107,7 @@ export class TransactionApproveComponent  implements OnInit {
       transaccion.Observaciones = data.Observaciones;
       transaccion.Firma = firmaBlob;
       transaccion.FirmaUrl = firmaBlob != null ?  "firma.png": null;
-      this.globales.updateTransaccion(this.idActividad, transaccion);
+      this.transaccionesService.update(this.idActividad, transaccion);
     }
     this.clear();
     this.globales.presentToast('Transaccion aprobada', "top");

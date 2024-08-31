@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
-import { ModalController, NavController } from '@ionic/angular';
+import { NavController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-punto-nuevo',
@@ -19,10 +19,9 @@ export class PuntoNuevoPage implements OnInit {
   punto: string = '';
 
   constructor(
-    private formBuilder: FormBuilder,
-    private modalCtrl: ModalController,
     private route: ActivatedRoute,
     private navCtrl: NavController,
+    private transaccionesService: TransaccionesService,
     private globales: Globales,
   ) {
   }
@@ -58,7 +57,7 @@ export class PuntoNuevoPage implements OnInit {
         IdEstado: Estado.Pendiente,
         Titulo: '' // TODO
       };
-    await this.globales.createTransaccion(this.idTarea, transaccion);
+    await this.transaccionesService.create(this.idTarea, transaccion);
 
     const navigationExtras: NavigationExtras = {
       queryParams: {

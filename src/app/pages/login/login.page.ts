@@ -1,13 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { AuthService } from 'src/app/services/auth.service';
-import { Cuenta } from 'src/app/interfaces/cuenta.interface';
-import { environment } from 'src/environments/environment';
+import { AuthorizationService } from 'src/app/services/authorization.service';
 import { Globales } from 'src/app/services/globales.service';
-import { IntegrationService } from 'src/app/services/integration.service';
-import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { StorageService } from 'src/app/services/storage.service';
+import { SynchronizationService } from 'src/app/services/synchronization.service';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +16,8 @@ export class LoginPage implements OnInit {
   showNewAccount: boolean = false;
 
   constructor(
-    private authService: AuthService,
+    private authorizationService: AuthorizationService,
+    private synchronizationService: SynchronizationService,
     private navCtrl: NavController,
     private storage: StorageService,
     private globales: Globales,
@@ -38,14 +35,14 @@ export class LoginPage implements OnInit {
     try {
       this.globales.showLoading('Conectando ...');
 
-      if (await this.authService.ping()){
-        const token = await this.authService.login(this.username, this.password);
+      if (await this.authorizationService.ping()){
+        const token = await this.authorizationService.login(this.username, this.password);
         if (token) {
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
 
-          await this.globales.sincronizar();
+          await this.synchronizationService.sincronizar();
 
           this.globales.hideLoading();
 

@@ -4,6 +4,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-transaction-reject',
@@ -35,6 +36,7 @@ export class TransactionRejectComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private globales: Globales,
+    private transaccionesService: TransaccionesService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -46,7 +48,7 @@ export class TransactionRejectComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.transaction = await this.globales.getTransaccion(this.activityId, this.transactionId);
+    this.transaction = await this.transaccionesService.get(this.activityId, this.transactionId);
     if (this.transaction)
     {
       if (this.transaction.IdPunto)
@@ -74,7 +76,7 @@ export class TransactionRejectComponent  implements OnInit {
     {
       console.log('Reject');
       const data = this.frmTransaction.value;
-      const transaccion = await this.globales.getTransaccion(this.activityId, this.transactionId);
+      const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
       if (transaccion)
       {
         console.log(transaccion);
@@ -83,7 +85,7 @@ export class TransactionRejectComponent  implements OnInit {
         transaccion.Observaciones = data.Observaciones;
         transaccion.IdEstado = Estado.Rechazado;
         transaccion.FechaEjecucion = isoDate;
-        this.globales.updateTransaccion(this.activityId, transaccion);
+        this.transaccionesService.update(this.activityId, transaccion);
         this.modalCtrl.dismiss(transaccion);
       }
     }

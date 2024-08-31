@@ -9,6 +9,9 @@ import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/serv
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
+import { TareasService } from 'src/app/services/tareas.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { ActividadesService } from 'src/app/services/actividades.service';
 
 @Component({
   selector: 'app-task-approve',
@@ -52,6 +55,9 @@ export class TaskApproveComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private navParams: NavParams,
     private modalCtrl: ModalController,
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService,
+    private tareasService: TareasService,
     private globales: Globales,
   ) {
     this.activityId = this.navParams.get("ActivityId");
@@ -80,7 +86,7 @@ export class TaskApproveComponent  implements OnInit {
     let peso: number | null = null;
     let volumen: number | null = null;
 
-    this.task = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
+    this.task = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
       cantidad = this.task.Cantidad ?? 0;
@@ -128,7 +134,7 @@ export class TaskApproveComponent  implements OnInit {
       let puntoId: string = '';
 
       if (this.transactionId) {
-        const transaccion = await this.globales.getTransaccion(this.activityId, this.transactionId);
+        const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
         if (transaccion) {
           const punto = await this.globales.getPunto(transaccion.IdPunto ?? '');
           if (punto){
@@ -180,12 +186,12 @@ export class TaskApproveComponent  implements OnInit {
     let idResiduo: string | null = null;
     let tarea: Tarea | undefined;
     const data = this.frmTarea.value;
-    const actividad = await this.globales.getActividad(this.activityId);
+    const actividad = await this.actividadesService.get(this.activityId);
     const cuenta = await this.globales.getCuenta();
 
     if (!actividad) return;
 
-    tarea = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
+    tarea = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (tarea) { //Si hay tarea
       tarea.CRUD = CRUDOperacion.Update;
       tarea.CRUDDate = now;
@@ -200,7 +206,7 @@ export class TaskApproveComponent  implements OnInit {
       tarea.Cantidades = this.globales.getResumen(null, null, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso ?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
       tarea.Valor = data.Valor;
       tarea.Fotos = this.fotos;
-      this.globales.updateTarea(this.activityId, this.transactionId, tarea);
+      this.tareasService.update(this.activityId, this.transactionId, tarea);
 
       if (this.inputOutput == EntradaSalida.Entrada) { //Tarea -> Entrada
         idResiduo = this.globales.newId();
@@ -237,7 +243,7 @@ export class TaskApproveComponent  implements OnInit {
         }
       }
     } else { //No hay tarea - Agregado
-      const transaccion = await this.globales.getTransaccion(this.activityId, this.transactionId);
+      const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
       if (transaccion){
         const punto = await this.globales.getPunto(transaccion.IdPunto ?? '');
         if (punto?.Recepcion) { //No hay tarea -> Entrada
@@ -282,7 +288,7 @@ export class TaskApproveComponent  implements OnInit {
             Fotos: this.fotos,
             Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
           };
-          await this.globales.createTarea(this.activityId, tarea);
+          await this.tareasService.create(this.activityId, tarea);
         } else { //No hay tarea -> Salida
           const residuo = await this.globales.getResiduo(this.residueId);
           if (residuo) {
@@ -305,7 +311,7 @@ export class TaskApproveComponent  implements OnInit {
               Fotos: this.fotos,
               IdEstado: Estado.Aprobado,
               };
-            await this.globales.createTarea(this.activityId, tarea);
+            await this.tareasService.create(this.activityId, tarea);
 
             residuo.IdEstado = Estado.Inactivo;
             await this.globales.updateResiduo(residuo);

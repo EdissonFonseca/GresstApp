@@ -5,8 +5,10 @@ import { TaskAddComponent } from 'src/app/components/task-add/task-add.component
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
 import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-transacciones',
@@ -30,6 +32,8 @@ export class TransaccionesPage implements OnInit {
     private navCtrl: NavController,
     private route: ActivatedRoute,
     private globales:Globales,
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService,
     private modalCtrl: ModalController,
     private router: Router,
   ) {}
@@ -38,7 +42,7 @@ export class TransaccionesPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
     if (actividad){
       this.titulo = actividad.Titulo;
       this.idServicio = actividad.IdServicio;
@@ -50,13 +54,13 @@ export class TransaccionesPage implements OnInit {
   }
 
   async ionViewWillEnter() {
-    this.transacciones = await this.globales.getTransacciones(this.idActividad);
+    this.transacciones = await this.transaccionesService.list(this.idActividad);
   }
 
   async handleInput(event: any){
     const query = event.target.value.toLowerCase();
 
-    const puntosList = await this.globales.getTransacciones(this.idActividad);
+    const puntosList = await this.transaccionesService.list(this.idActividad);
     this.transacciones = puntosList.filter((trx) => trx.Titulo.toLowerCase().indexOf(query) > -1);
   }
 
@@ -151,7 +155,7 @@ export class TransaccionesPage implements OnInit {
     if (data) {
       const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
       if (!transaccion) {
-          const newTransaccion = await this.globales.getTransaccion(this.idActividad, data.IdTransaccion);
+          const newTransaccion = await this.transaccionesService.get(this.idActividad, data.IdTransaccion);
           if (newTransaccion)
               this.transacciones.push(newTransaccion);
       } else {

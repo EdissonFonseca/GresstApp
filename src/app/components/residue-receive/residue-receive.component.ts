@@ -14,6 +14,9 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
+import { TareasService } from 'src/app/services/tareas.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
   selector: 'app-residue-receive',
@@ -49,7 +52,10 @@ export class ResidueReceiveComponent implements OnInit {
     private formBuilder: FormBuilder,
     private globales: Globales,
     private modalCtrl: ModalController,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private actividadesService: ActividadesService,
+    private transaccionesService: TransaccionesService,
+    private tareasService: TareasService,
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -130,7 +136,7 @@ export class ResidueReceiveComponent implements OnInit {
         }
         break;
     }
-    actividad = await this.globales.getActividadByServicio(this.serviceId, idRecurso);
+    actividad = await this.actividadesService.getByServicio(this.serviceId, idRecurso);
     if (!actividad)
     {
       const ahora = new Date();
@@ -147,7 +153,7 @@ export class ResidueReceiveComponent implements OnInit {
           Tareas: [],
           Transacciones: []
         };
-        await this.globales.createActividad(actividad);
+        await this.actividadesService.create(actividad);
       } else {
         estaEnJornada = false;
       }
@@ -158,7 +164,7 @@ export class ResidueReceiveComponent implements OnInit {
     if (estaEnJornada && actividad){
       idTransaccion = '';
       if (this.serviceId == TipoServicio.Recepcion){
-        transaccion = await this.globales.getTransaccionByTercero(actividad.IdActividad, this.idPropietario);
+        transaccion = await this.transaccionesService.getByTercero(actividad.IdActividad, this.idPropietario);
         if (!transaccion) {
           transaccion = {
             IdTransaccion: this.globales.newId(),
@@ -170,11 +176,11 @@ export class ResidueReceiveComponent implements OnInit {
             IdTercero: this.idPropietario,
             Firma: new Blob(),
           }
-          await this.globales.createTransaccion(actividad.IdActividad, transaccion);
+          await this.transaccionesService.create(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
         }
       } else if (this.serviceId == TipoServicio.Recoleccion || this.serviceId == TipoServicio.Transporte) {
-        transaccion = await this.globales.getTransaccionByPunto(actividad.IdActividad, this.idPuntoRecoleccion);
+        transaccion = await this.transaccionesService.getByPunto(actividad.IdActividad, this.idPuntoRecoleccion);
         if (!transaccion) {
           transaccion = {
             IdTransaccion: this.globales.newId(),
@@ -187,7 +193,7 @@ export class ResidueReceiveComponent implements OnInit {
             IdPunto: this.idPuntoRecoleccion,
             Firma: new Blob(),
           }
-          await this.globales.createTransaccion(actividad.IdActividad, transaccion);
+          await this.transaccionesService.create(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
         }
       }
@@ -206,7 +212,7 @@ export class ResidueReceiveComponent implements OnInit {
         Volumen: residuo.Volumen,
         Fotos: []
       };
-      await this.globales.createTarea(actividad.IdActividad, tarea);
+      await this.tareasService.create(actividad.IdActividad, tarea);
     }
 
     this.modalCtrl.dismiss(residuo);

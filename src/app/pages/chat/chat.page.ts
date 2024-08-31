@@ -1,11 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController } from '@ionic/angular';
 import { Mensaje } from 'src/app/interfaces/mensaje.interface';
-import { AuthService } from 'src/app/services/auth.service';
 import { Globales } from 'src/app/services/globales.service';
 import { IntegrationService } from 'src/app/services/integration.service';
-import { StorageService } from 'src/app/services/storage.service';
 
 @Component({
   selector: 'app-chat',
@@ -21,11 +18,8 @@ export class ChatPage implements OnInit {
   myName: string = '';
 
   constructor(
-    private navCtrl: NavController,
     private route: ActivatedRoute,
     private globales:Globales,
-    private storage: StorageService,
-    private authService: AuthService,
     private integrationService: IntegrationService
   ) { }
 

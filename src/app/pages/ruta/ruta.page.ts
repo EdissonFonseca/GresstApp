@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Geolocation } from '@capacitor/geolocation';
 import { ModalController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
 import { Globales } from 'src/app/services/globales.service';
 import { environment } from 'src/environments/environment';
 
@@ -25,7 +26,8 @@ export class RutaPage implements OnInit {
 
   constructor(    private modalCtrl: ModalController,
     private route: ActivatedRoute,
-    private globales:Globales) {}
+    private globales:Globales,
+    private actividadesService: ActividadesService) {}
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -84,7 +86,7 @@ export class RutaPage implements OnInit {
 
   async getDestinationPosition() {
     const currentLocation = await Geolocation.getCurrentPosition();
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
 
     if (actividad && actividad.Destino?.Latitud != null && actividad.Destino?.Longitud != null){
       this.destination.lat = parseFloat(actividad.Destino.Latitud);

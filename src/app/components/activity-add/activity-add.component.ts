@@ -6,6 +6,7 @@ import { Globales } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
 
 @Component({
   selector: 'app-activity-add',
@@ -28,6 +29,7 @@ export class ActivityAddComponent  implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private globales: Globales,
+    private actividadesService: ActividadesService,
     private formBuilder: FormBuilder,
   ) {
     this.frmActivity = this.formBuilder.group({
@@ -67,7 +69,7 @@ export class ActivityAddComponent  implements OnInit {
       Transacciones: [],
       Tareas: []
     };
-    await this.globales.createActividad(actividad);
+    await this.actividadesService.create(actividad);
 
     this.modalCtrl.dismiss('ok');
   }

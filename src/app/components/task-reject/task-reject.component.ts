@@ -5,6 +5,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { TareasService } from 'src/app/services/tareas.service';
 
 @Component({
   selector: 'app-task-reject',
@@ -37,6 +38,7 @@ export class TaskRejectComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private globales: Globales,
+    private tareasService: TareasService
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -49,7 +51,7 @@ export class TaskRejectComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.task = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
+    this.task = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
       const materialItem = await this.globales.getMaterial(this.task.IdMaterial)
@@ -82,7 +84,7 @@ export class TaskRejectComponent  implements OnInit {
     if (this.frmMaterial.valid)
     {
       const data = this.frmMaterial.value;
-      const tarea = await this.globales.getTarea(this.activityId, this.transactionId, this.taskId);
+      const tarea = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
       if (tarea)
       {
         tarea.CRUD = CRUDOperacion.Update;
@@ -90,7 +92,7 @@ export class TaskRejectComponent  implements OnInit {
         tarea.Observaciones = data.Observaciones;
         tarea.IdEstado = Estado.Rechazado;
         tarea.FechaEjecucion = isoDate;
-        this.globales.updateTarea(this.activityId, this.transactionId, tarea);
+        this.tareasService.update(this.activityId, this.transactionId, tarea);
         this.modalCtrl.dismiss(tarea);
       }
     }

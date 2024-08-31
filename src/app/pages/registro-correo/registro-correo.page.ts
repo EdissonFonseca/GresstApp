@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MenuController, NavController } from '@ionic/angular';
-import { AuthService } from 'src/app/services/auth.service';
+import { AuthorizationService } from 'src/app/services/authorization.service';
 import { Globales } from 'src/app/services/globales.service';
 import { MailService } from 'src/app/services/mail.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -16,7 +16,7 @@ export class RegistroCorreoPage implements OnInit {
   verificationCode = '';
 
   constructor(
-    private authService: AuthService,
+    private authorizationService: AuthorizationService,
     private menuCtrl: MenuController,
     private globales: Globales,
     private mailService: MailService,
@@ -32,7 +32,7 @@ export class RegistroCorreoPage implements OnInit {
     try {
       this.globales.showLoading('Conectando ...');
 
-      const exist = await this.authService.existUser(this.email);
+      const exist = await this.authorizationService.existUser(this.email);
       if (!exist)
       {
         this.verificationCode = await this.mailService.sendWithToken(this.email, 'Bienvenido a Gresst', 'Digite el siguiente codigo: {Token} en la app para continuar');

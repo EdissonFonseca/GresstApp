@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
+import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
@@ -28,6 +29,7 @@ export class ActivityApproveComponent  implements OnInit {
     private navParams: NavParams,
     private renderer: Renderer2,
     private globales: Globales,
+    private actividadesService: ActividadesService,
     private modalCtrl:ModalController
   ) {
     this.idActividad = this.navParams.get("ActivityId");
@@ -83,7 +85,7 @@ export class ActivityApproveComponent  implements OnInit {
     if (!this.frmActividad.valid) return;
 
     const data = this.frmActividad.value;
-    const actividad = await this.globales.getActividad(this.idActividad);
+    const actividad = await this.actividadesService.get(this.idActividad);
 
     if (!actividad) return;
 
@@ -96,7 +98,7 @@ export class ActivityApproveComponent  implements OnInit {
     actividad.Observaciones = data.Observaciones;
     actividad.FirmaUrl = firmaBlob != null ? "firma.png": null;
     actividad.Firma = firmaBlob;
-    this.globales.updateActividad(actividad);
+    this.actividadesService.update(actividad);
     this.clear();
     this.globales.presentToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);

@@ -11,6 +11,8 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
+import { TareasService } from 'src/app/services/tareas.service';
 
 @Component({
   selector: 'app-residue-dismiss',
@@ -37,6 +39,8 @@ export class ResidueDismissComponent  implements OnInit {
     private modalCtrl: ModalController,
     private navParams: NavParams,
     private globales: Globales,
+    private actividadesService: ActividadesService,
+    private tareasService: TareasService,
     private formBuilder: FormBuilder
   ) {
     this.residueId = this.navParams.get("ResidueId");
@@ -62,10 +66,10 @@ export class ResidueDismissComponent  implements OnInit {
     if (!this.residue) return;
 
     const personId = await this.globales.getIdPersona();
-    actividad = await this.globales.getActividadByServicio(this.serviceId, this.pointId);
+    actividad = await this.actividadesService.getByServicio(this.serviceId, this.pointId);
     if (!actividad) {
       actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: isoToday};
-      await this.globales.createActividad(actividad);
+      await this.actividadesService.create(actividad);
     }
     if (actividad) {
       const tarea: Tarea = {
@@ -86,7 +90,7 @@ export class ResidueDismissComponent  implements OnInit {
           Fotos: [],
           Cantidades: this.globales.getResumen(null, null, this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
         };
-      await this.globales.createTarea(actividad.IdActividad, tarea);
+      await this.tareasService.create(actividad.IdActividad, tarea);
     }
     this.residue.IdEstado = Estado.Inactivo;
     this.residue.IdDeposito = this.pointId;

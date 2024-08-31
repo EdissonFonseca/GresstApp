@@ -5,6 +5,7 @@ import { ActivityAddComponent } from 'src/app/components/activity-add/activity-a
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { ActivityRejectComponent } from 'src/app/components/activity-reject/activity-reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
+import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado, Permisos, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
@@ -21,6 +22,7 @@ export class ActividadesPage implements OnInit {
     private route: ActivatedRoute,
     private navCtrl: NavController,
     private globales: Globales,
+    private actividadesService: ActividadesService,
     private modalCtrl: ModalController ) {
   }
 
@@ -36,16 +38,16 @@ export class ActividadesPage implements OnInit {
   async handleInput(event: any) {
     const query = event.target.value.toLowerCase();
 
-    const actividadesList = await this.globales.getActividades();
+    const actividadesList = await this.actividadesService.list();
     this.actividades = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
   }
 
   async ionViewWillEnter() {
-    this.actividades = await this.globales.getActividades();
+    this.actividades = await this.actividadesService.list();
   }
 
   async navigateToTarget(idActividad: string){
-    const actividad: Actividad = await this.globales.getActividad(idActividad);
+    const actividad: Actividad = await this.actividadesService.get(idActividad);
 
     switch(actividad.IdServicio)
     {
@@ -90,11 +92,11 @@ export class ActividadesPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
 
-    this.actividades = await this.globales.getActividades();
+    this.actividades = await this.actividadesService.list();
   }
 
   async openApprove(idActividad: string){
-    const actividad = await this.globales.getActividad(idActividad);
+    const actividad = await this.actividadesService.get(idActividad);
 
     if (actividad == null) return;
 
@@ -130,7 +132,7 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
-      const actividad = await this.globales.getActividad(idActividad);
+      const actividad = await this.actividadesService.get(idActividad);
       if (actividad)
       {
         const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
