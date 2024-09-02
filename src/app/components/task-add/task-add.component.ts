@@ -109,7 +109,7 @@ export class TaskAddComponent  implements OnInit {
           if (!transaccion){
             this.solicitarPunto = true;
           } else {
-            this.idPuntoEntrada = transaccion.IdPunto ?? '';
+            this.idPuntoEntrada = transaccion.IdDeposito ?? '';
             this.idTerceroEntrada = transaccion.IdTercero ?? '';
           }
         } else {
@@ -302,7 +302,7 @@ export class TaskAddComponent  implements OnInit {
               IdEstado: Estado.Pendiente,
               EntradaSalida: EntradaSalida.Entrada,
               IdTercero: this.idTerceroEntrada,
-              IdPunto: this.idPuntoEntrada,
+              IdDeposito: this.idPuntoEntrada,
               CRUD: CRUDOperacion.Create,
               Cantidad: data.Cantidad,
               Peso: data.Peso,
@@ -379,9 +379,9 @@ export class TaskAddComponent  implements OnInit {
         IdMaterial: this.idMaterial,
         Material : this.material,
         IdResiduo: idResiduo,
-        IdPunto: this.idPuntoEntrada,
+        IdDeposito: this.idPuntoEntrada,
         IdTercero: this.idTerceroEntrada,
-        IdPuntoDestino: this.idPuntoSalida,
+        IdDepositoDestino: this.idPuntoSalida,
         IdTerceroDestino: this.idTerceroSalida,
         Accion: 'Recoger',
         CRUD: CRUDOperacion.Create,

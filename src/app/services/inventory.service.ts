@@ -30,7 +30,7 @@ export class InventoryService {
     }
   }
 
-  async getInventario(): Promise<any>{
+  async get(): Promise<any>{
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
     const options = { url: `${this.inventoryUrl}/get`, headers };

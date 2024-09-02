@@ -7,7 +7,7 @@ import { Cuenta } from 'src/app/interfaces/cuenta.interface'
 import { Estado, TipoServicio, EntradaSalida } from 'src/app/services/constants.service';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { StorageService } from './storage.service';
-import { MasterData } from '../interfaces/masterdata.interface';
+import { Servicio } from '../interfaces/servicio.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -110,9 +110,9 @@ export class Globales {
 
   async allowServicio(idServicio: string): Promise<boolean> {
     let allow: boolean = false;
-    const master: MasterData = await this.storage.get('MasterData');
+    const servicios: Servicio[] = await this.storage.get('Servicios');
 
-    const selectedServicio = master.Servicios.find(x => x.IdServicio == idServicio);
+    const selectedServicio = servicios.find(x => x.IdServicio == idServicio);
     if (selectedServicio != null)
     {
       allow = true;
@@ -164,11 +164,10 @@ export class Globales {
   }
 
   async getPermiso(idOpcion: string): Promise<string> {
-    const master: MasterData | null = await this.storage.get('MasterData');
     const cuenta: Cuenta | null = await this.storage.get('Cuenta');
 
     try {
-      if (master && master.Puntos) {
+      if (cuenta && cuenta.Permisos) {
         let permiso = cuenta?.Permisos[idOpcion] || '';
         if (permiso == null)
           permiso = '';

@@ -107,16 +107,16 @@ export class TaskApproveComponent  implements OnInit {
         this.medicion = materialItem.TipoMedicion;
         this.captura = materialItem.TipoCaptura;
       }
-      if (this.task.IdPunto) {
-        const puntoItem = await this.puntosService.get(this.task.IdPunto);
+      if (this.task.IdDeposito) {
+        const puntoItem = await this.puntosService.get(this.task.IdDeposito);
         this.point = puntoItem?.Nombre ?? '';
-        this.pointId = puntoItem?.IdPunto ?? '';
+        this.pointId = puntoItem?.IdDeposito ?? '';
       }
 
       if (this.task.IdTercero) {
         const solicitante = await this.tercerosService.get(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
-        this.stakeholderId = solicitante?.IdTercero ?? '';
+        this.stakeholderId = solicitante?.IdPersona ?? '';
       }
 
       if (this.inputOutput == EntradaSalida.Salida) {
@@ -144,14 +144,14 @@ export class TaskApproveComponent  implements OnInit {
       if (this.transactionId) {
         const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
         if (transaccion) {
-          const punto = await this.puntosService.get(transaccion.IdPunto ?? '');
+          const punto = await this.puntosService.get(transaccion.IdDeposito ?? '');
           if (punto){
             puntoNombre = punto.Nombre;
-            puntoId = punto.IdPunto;
-            const propietario = await this.tercerosService.get(punto.IdTercero ?? '');
+            puntoId = punto.IdDeposito;
+            const propietario = await this.tercerosService.get(punto.IdPersona ?? '');
             if (propietario) {
               terceroNombre = propietario.Nombre;
-              terceroId = propietario.IdTercero;
+              terceroId = propietario.IdPersona;
             }
           }
         }
@@ -225,7 +225,7 @@ export class TaskApproveComponent  implements OnInit {
           IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
           IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
           IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
-          IdDepositoOrigen: tarea.IdPunto,
+          IdDepositoOrigen: tarea.IdDeposito,
           Aprovechable: true, //TODO
           Cantidad: data.Cantidad,
           Peso: data.Peso,
@@ -253,7 +253,7 @@ export class TaskApproveComponent  implements OnInit {
     } else { //No hay tarea - Agregado
       const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
       if (transaccion){
-        const punto = await this.puntosService.get(transaccion.IdPunto ?? '');
+        const punto = await this.puntosService.get(transaccion.IdDeposito ?? '');
         if (punto?.Recepcion) { //No hay tarea -> Entrada
           const residuo: Residuo = {
             IdResiduo: this.globales.newId(),
@@ -262,7 +262,7 @@ export class TaskApproveComponent  implements OnInit {
             IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
             IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
             IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
-            IdDepositoOrigen: transaccion.IdPunto,
+            IdDepositoOrigen: transaccion.IdDeposito,
             Aprovechable: true, //TODO
             Cantidad: data.Cantidad,
             Peso: data.Peso,

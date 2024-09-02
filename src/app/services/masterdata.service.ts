@@ -11,21 +11,24 @@ import { StorageService } from './storage.service';
   providedIn: 'root',
 })
 export class MasterDataService {
+  private depositosUrl = `${environment.apiUrl}/depositos`;
   private embalajesUrl = `${environment.apiUrl}/embalajes`;
   private insumosUrl = `${environment.apiUrl}/insumos`;
-  private masterdataUrl = `${environment.apiUrl}/appmasterdata`;
   private materialesUrl = `${environment.apiUrl}/materiales`;
   private mensajesUrl = `${environment.apiUrl}/mensajes`;
-  private tercerosUrl = `${environment.apiUrl}/clientes`;
+  private serviciosUrl = `${environment.apiUrl}/servicios`;
+  private tercerosUrl = `${environment.apiUrl}/terceros`;
+  private tratamientosUrl = `${environment.apiUrl}/tratamientos`;
+  private vehiculosUrl = `${environment.apiUrl}/vehiculos`;
 
   constructor(
     private storage: StorageService
   ) {}
 
-  async get(): Promise<any>{
+ async getEmbalajes(): Promise<any>{
     const token: string = await this.storage.get('Token');
     const headers = { 'Authorization': `Bearer ${token}` };
-    const options = { url: `${this.masterdataUrl}/get`, headers };
+    const options = { url: `${this.embalajesUrl}/get`, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.get(options);
@@ -34,8 +37,23 @@ export class MasterDataService {
       } else {
         throw new Error('Request error');
       }
-    } catch (error){
-      throw(error);
+    } catch{
+    }
+  }
+
+  async getInsumos(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.insumosUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
     }
   }
 
@@ -55,20 +73,115 @@ export class MasterDataService {
     }
   }
 
-  async getMensajes(idResiduo:string, idInterlocutor: string): Promise<any>{
+  async getMateriales(): Promise<any>{
     const token: string = await this.storage.get('Token');
-    const data = { IdUsuario: idInterlocutor, IdResiduo: idResiduo};
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.masterdataUrl}/listmensajes`, data: data, headers };
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.materialesUrl}/getforapp`, headers };
 
     try{
-      const response: HttpResponse = await CapacitorHttp.post(options);
+      const response: HttpResponse = await CapacitorHttp.get(options);
       if (response.status == 200) {
         return response.data;
       } else {
         throw new Error('Request error');
       }
-    } catch {
+    } catch{
+    }
+  }
+
+  async getMensajes(idResiduo: string, idInterlocutor: string): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.embalajesUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
+    }
+  }
+
+  async getPuntos(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.depositosUrl}/getpuntos`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
+    }
+  }
+
+  async getServicios(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.serviciosUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
+    }
+  }
+
+  async getTerceros(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.tercerosUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
+    }
+  }
+
+  async getTratamientos(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.tratamientosUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
+    }
+  }
+
+  async getVehiculos(): Promise<any>{
+    const token: string = await this.storage.get('Token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const options = { url: `${this.vehiculosUrl}/get`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return response.data;
+      } else {
+        throw new Error('Request error');
+      }
+    } catch{
     }
   }
 
@@ -154,7 +267,7 @@ export class MasterDataService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201) { //Created
         var terceroCreado = response.data;
-        tercero.IdTercero = terceroCreado.IdPersona;
+        tercero.IdPersona = terceroCreado.IdPersona;
         return true;
       } else {
         throw false;

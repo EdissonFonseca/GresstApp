@@ -15,8 +15,8 @@
 </ion-content>
 <ion-content [fullscreen]="true">
   <ion-list *ngFor="let punto of puntos">
-    <ion-item (click)="select(punto.IdPunto, punto.Tercero || '', punto.Nombre)">
-      <ion-icon name="checkmark-outline" *ngIf="idPunto === punto.IdPunto"></ion-icon>
+    <ion-item (click)="select(punto.IdDeposito, punto.Tercero || '', punto.Nombre)">
+      <ion-icon name="checkmark-outline" *ngIf="idPunto === punto.IdDeposito"></ion-icon>
       <ion-label>{{ punto.Tercero }} - {{ punto.Nombre }}</ion-label>
     </ion-item>
   </ion-list>

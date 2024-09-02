@@ -2,8 +2,6 @@ export interface Material{
   IdMaterial: string;
 
   Aprovechable: boolean;
-  IdEmbalaje?: string;
-  IdTratamientos?: string[];
   Nombre: string;
   Referencia?: string;
   Factor?: number;

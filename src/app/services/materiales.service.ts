@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { CRUDOperacion, Estado } from './constants.service';
 import { Material } from '../interfaces/material.interface';
-import { MasterData } from '../interfaces/masterdata.interface';
 import { MasterDataService } from './masterdata.service';
 
 @Injectable({
@@ -15,10 +14,10 @@ export class MaterialesService {
   ) {}
 
   async get(idMaterial: string): Promise<Material | undefined> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const materiales: Material[] = await this.storage.get('Materiales');
 
-    if (master && master.Materiales) {
-      const material = master.Materiales.find((material) => material.IdMaterial === idMaterial);
+    if (materiales) {
+      const material = materiales.find((material) => material.IdMaterial === idMaterial);
       return material || undefined;
     }
 
@@ -26,9 +25,9 @@ export class MaterialesService {
   }
 
   async list(): Promise<Material[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const materiales: Material[] = await this.storage.get('Materiales');
 
-    return master.Materiales;
+    return materiales;
   }
 
   async create(material: Material): Promise<boolean> {
@@ -45,9 +44,9 @@ export class MaterialesService {
     finally
     {
       //Add to array
-      const master: MasterData = await this.storage.get('MasterData');
-      master.Materiales.push(material);
-      await this.storage.set('MasterData', master);
+      const materiales: Material[] = await this.storage.get('Materiales');
+      materiales.push(material);
+      await this.storage.set('Materiales', materiales);
     }
     return true;
   }

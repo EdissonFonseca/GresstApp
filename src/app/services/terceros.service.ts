@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { Tercero } from '../interfaces/tercero.interface';
 import { CRUDOperacion, Estado } from './constants.service';
-import { MasterData } from '../interfaces/masterdata.interface';
 import { MasterDataService } from './masterdata.service';
+import { Punto } from '../interfaces/punto.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -15,10 +15,10 @@ export class TercerosService {
   ) {}
 
   async get(idTercero: string): Promise<Tercero | undefined> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const terceros: Tercero[] = await this.storage.get('Terceros');
 
-    if (master && master.Terceros) {
-      const tercero = master.Terceros.find((tercero) => tercero.IdTercero === idTercero);
+    if (terceros) {
+      const tercero = terceros.find((tercero) => tercero.IdPersona === idTercero);
       return tercero || undefined;
     }
 
@@ -26,18 +26,20 @@ export class TercerosService {
   }
 
   async list(): Promise<Tercero[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const terceros: Tercero[] = await this.storage.get('Terceros');
 
-    return master.Terceros;
+    return terceros;
   }
 
   async getTercerosConPuntos(): Promise<Tercero[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const terceros: Tercero[] = await this.storage.get('Terceros');
+    const puntos: Punto[] = await this.storage.get('Puntos');
 
-    const idTerceros: string[] = master.Puntos.map(x => x.IdTercero ?? '');
+    const idTerceros: string[] = puntos.map(x => x.IdPersona ?? '');
 
-    return master.Terceros.filter(x=> idTerceros.includes(x.IdTercero));
+    return terceros.filter(tercero => idTerceros.includes(tercero.IdPersona));
   }
+
   async create(tercero: Tercero): Promise<boolean> {
     try{
       const posted = await this.masterdataService.postTercero(tercero);
@@ -52,9 +54,9 @@ export class TercerosService {
     finally
     {
       //Add to array
-      const master: MasterData = await this.storage.get('MasterData');
-      master.Terceros.push(tercero);
-      await this.storage.set('MasterData', master);
+      const terceros: Tercero[] = await this.storage.get('Terceros');
+      terceros.push(tercero);
+      await this.storage.set('Terceros', terceros);
     }
     return true;
   }

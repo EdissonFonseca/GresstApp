@@ -53,9 +53,9 @@ export class TransactionRejectComponent  implements OnInit {
     this.transaction = await this.transaccionesService.get(this.activityId, this.transactionId);
     if (this.transaction)
     {
-      if (this.transaction.IdPunto)
+      if (this.transaction.IdDeposito)
       {
-        const puntoItem = await this.puntosService.get(this.transaction.IdPunto);
+        const puntoItem = await this.puntosService.get(this.transaction.IdDeposito);
         this.point = puntoItem?.Nombre ?? '';
       }
 

@@ -79,7 +79,7 @@ export class ResidueDismissComponent  implements OnInit {
           IdTarea: this.globales.newId(),
           IdMaterial: this.residue.IdMaterial,
           IdResiduo: this.residue.IdResiduo,
-          IdPunto: this.pointId,
+          IdDeposito: this.pointId,
           IdTercero: this.stakeholderId,
           IdEstado: Estado.Aprobado,
           IdRecurso: actividad.IdRecurso,

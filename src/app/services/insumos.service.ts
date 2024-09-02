@@ -3,7 +3,6 @@ import { StorageService } from './storage.service';
 import { CRUDOperacion, Estado } from './constants.service';
 import { Insumo } from '../interfaces/insumo.interface';
 import { MasterDataService } from './masterdata.service';
-import { MasterData } from '../interfaces/masterdata.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -15,9 +14,9 @@ export class InsumosService {
   ) {}
 
   async list(): Promise<Insumo[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const insumos: Insumo[] = await this.storage.get('Insumos');
 
-    return master.Insumos;
+    return insumos;
   }
 
   async create(insumo: Insumo): Promise<boolean> {
@@ -34,9 +33,9 @@ export class InsumosService {
     finally
     {
       //Add to array
-      const master: MasterData = await this.storage.get('MasterData');
-      master.Insumos.push(insumo);
-      await this.storage.set('MasterData', master);
+      const insumos: Insumo[] = await this.storage.get('Insumos');
+      insumos.push(insumo);
+      await this.storage.set('Insumos', insumo);
     }
     return true;
   }

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { CRUDOperacion } from './constants.service';
 import { Embalaje } from '../interfaces/embalaje.interface';
-import { MasterData } from '../interfaces/masterdata.interface';
 import { MasterDataService } from './masterdata.service';
 
 @Injectable({
@@ -15,10 +14,10 @@ export class EmbalajesService {
   ) {}
 
   async get(idEmbalaje: string): Promise<Embalaje | undefined> {
-    const master: MasterData | null = await this.storage.get('MasterData');
+    const embalajes: Embalaje[] = await this.storage.get('Embalajes');
 
-    if (master && master.Embalajes) {
-      const embalaje = master.Embalajes.find((embalaje) => embalaje.IdEmbalaje === idEmbalaje);
+    if (embalajes) {
+      const embalaje = embalajes.find((embalaje) => embalaje.IdEmbalaje === idEmbalaje);
       return embalaje || undefined;
     }
 
@@ -26,8 +25,8 @@ export class EmbalajesService {
   }
 
   async list(): Promise<Embalaje[]> {
-    const master: MasterData = await this.storage.get('MasterData');
-    const embalajes = master.Embalajes.sort((a,b) => a.Nombre.localeCompare(b.Nombre));
+    const master: Embalaje[] = await this.storage.get('Embalajes');
+    const embalajes = master.sort((a,b) => a.Nombre.localeCompare(b.Nombre));
     return embalajes;
   }
 
@@ -45,9 +44,9 @@ export class EmbalajesService {
     finally
     {
       //Add to array
-      const master: MasterData = await this.storage.get('MasterData');
-      master.Embalajes.push(embalaje);
-      await this.storage.set('MasterData', master);
+      const embalajes: Embalaje[] = await this.storage.get('Embalajes');
+      embalajes.push(embalaje);
+      await this.storage.set('Embalajes', embalajes);
     }
     return true;
   }

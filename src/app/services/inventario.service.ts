@@ -31,8 +31,8 @@ export class InventarioService {
 
     residuos.forEach((residuo) => {
       const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
-      const tercero = terceros.find(x => x.IdTercero == residuo.IdPropietario);
-      const punto = puntos.find(x => x.IdPunto == residuo.IdDepositoOrigen);
+      const tercero = terceros.find(x => x.IdPersona == residuo.IdPropietario);
+      const punto = puntos.find(x => x.IdDeposito == residuo.IdDepositoOrigen);
       ubicacion = '';
       cantidades = '';
 
@@ -45,7 +45,7 @@ export class InventarioService {
       if (punto)
         residuo.DepositoOrigen = punto.Nombre;
       if (residuo.IdDeposito) {
-        const deposito = puntos.find(x => x.IdPunto == residuo.IdDeposito);
+        const deposito = puntos.find(x => x.IdDeposito == residuo.IdDeposito);
         if (deposito)
           ubicacion = deposito.Nombre;
       }

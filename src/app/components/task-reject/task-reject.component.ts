@@ -61,9 +61,9 @@ export class TaskRejectComponent  implements OnInit {
       const materialItem = await this.materialesService.get(this.task.IdMaterial)
       this.material = materialItem?.Nombre ?? '';
 
-      if (this.task.IdPunto)
+      if (this.task.IdDeposito)
       {
-        const puntoItem = await this.puntosService.get(this.task.IdPunto);
+        const puntoItem = await this.puntosService.get(this.task.IdDeposito);
         this.point = puntoItem?.Nombre ?? '';
       }
 

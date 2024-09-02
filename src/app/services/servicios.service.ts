@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { Globales } from './globales.service';
 import { Servicio } from '../interfaces/servicio.interface';
-import { MasterData } from '../interfaces/masterdata.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -14,10 +13,10 @@ export class ServiciosService {
   ) {}
 
   async get(idServicio: string): Promise<Servicio | undefined> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const servicios: Servicio[] = await this.storage.get('Servicios');
 
-    if (master && master.Servicios) {
-      const servicio = master.Servicios.find((servicio) => servicio.IdServicio === idServicio);
+    if (servicios) {
+      const servicio = servicios.find((servicio) => servicio.IdServicio === idServicio);
       return servicio || undefined;
     }
 
@@ -25,31 +24,30 @@ export class ServiciosService {
   }
 
   async list(): Promise<Servicio[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const servicios: Servicio[] = await this.storage.get('Servicios');
 
-    return master.Servicios;
+    return servicios;
   }
 
   async create(idServicio: string) {
-    const master: MasterData = await this.storage.get('MasterData');
+    const servicios: Servicio[] = await this.storage.get('Servicios');
 
     const selectedServicio = this.globales.servicios.find(x => x.IdServicio == idServicio);
     if (selectedServicio != null)
     {
       const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre, CRUDDate: new Date() };
-      const master: MasterData = await this.storage.get('MasterData');
-      await this.storage.set('MasterData', master);
+      servicios.push(servicio);
+      await this.storage.set('Servicios', servicios);
     }
   }
 
   // #endregion
 
   async delete(idServicio: string) {
-    const master: MasterData = await this.storage.get('MasterData');
+    let servicios: Servicio[] = await this.storage.get('Servicios');
 
-    const servicios = master.Servicios.filter(x=> x.IdServicio !== idServicio);
-    master.Servicios = servicios;
-    await this.storage.set('MasterData', master);
+    servicios = servicios.filter(x=> x.IdServicio !== idServicio);
+    await this.storage.set('Servicios', servicios);
   }
 
 }

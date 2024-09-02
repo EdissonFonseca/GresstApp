@@ -156,9 +156,9 @@ export class TareasService {
       if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
         const puntos = await this.puntosService.list();
         var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
-        if (transaccion && transaccion.IdPunto)
+        if (transaccion && transaccion.IdDeposito)
         {
-          var punto = await this.puntosService.get(transaccion.IdPunto);
+          var punto = await this.puntosService.get(transaccion.IdDeposito);
           if (punto){
             punto.IdMateriales?.forEach((idMaterial) => {
               const tareaMaterial = tareas.find(x => x.IdMaterial == idMaterial);

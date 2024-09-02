@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { Globales } from './globales.service';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
-import { MasterData } from '../interfaces/masterdata.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -13,8 +11,8 @@ export class VehiculosService {
   ) {}
 
   async list(): Promise<Vehiculo[]> {
-    const master: MasterData = await this.storage.get('MasterData');
+    const vehiculos: Vehiculo[] = await this.storage.get('Vehiculos');
 
-    return master.Vehiculos;
+    return vehiculos;
   }
 }

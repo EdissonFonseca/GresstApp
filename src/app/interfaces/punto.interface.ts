@@ -1,9 +1,9 @@
 export interface Punto {
-  IdPunto: string;
+  IdDeposito: string;
 
   Direccion?: string;
   IdMateriales: string[];
-  IdTercero: string;
+  IdPersona: string;
   Latitud?: string;
   Longitud?: string;
   Localizacion?: string;

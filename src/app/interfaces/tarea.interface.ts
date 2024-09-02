@@ -16,8 +16,8 @@ export interface Tarea{
   IdEstado: string;
   Item?: number;
   IdMaterial: string;
-  IdPunto?: string;
-  IdPuntoDestino?: string;
+  IdDeposito?: string;
+  IdDepositoDestino?: string;
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;

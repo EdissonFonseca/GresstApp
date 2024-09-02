@@ -75,14 +75,14 @@ export class StakeholdersComponent  implements OnInit {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const tercero: Tercero = {IdTercero: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, ClienteProveedorInterno:ClienteProveedorInterno.Cliente};
+      const tercero: Tercero = {IdPersona: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, Cliente: true};
       const created = await this.tercerosService.create(tercero);
       if (created)
       {
-        const data = {id: tercero.IdTercero, name: this.selectedName};
+        const data = {id: tercero.IdPersona, name: this.selectedName};
         if (this.showHeader){
           this.modalCtrl.dismiss(data);
-          this.selectedValue = tercero.IdTercero;
+          this.selectedValue = tercero.IdPersona;
         }
         else{
           this.terceros = await this.tercerosService.list();

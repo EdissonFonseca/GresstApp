@@ -47,26 +47,28 @@ export class PointsComponent  implements OnInit, OnChanges {
   async filterPoints() {
     const terceros = await this.tercerosService.list();
     if (this.idTercero) {
-      this.terceros = terceros.filter(x => x.IdTercero == this.idTercero);
+      this.terceros = terceros.filter(x => x.IdPersona == this.idTercero);
     } else if (this.tipoTercero) {
-      if (this.includeMe)
-        this.terceros = terceros.filter(x => x.ClienteProveedorInterno == this.tipoTercero || x.ClienteProveedorInterno == ClienteProveedorInterno.Interno);
-      else
-        this.terceros = terceros.filter(x => x.ClienteProveedorInterno == this.tipoTercero);
+      if (this.tipoTercero == ClienteProveedorInterno.Cliente)
+        this.terceros = terceros.filter(x => x.Cliente);
+      else if (this.tipoTercero == ClienteProveedorInterno.Proveedor)
+        this.terceros = terceros.filter(x => x.Proveedor);
+      if (this.tipoTercero == ClienteProveedorInterno.Interno)
+        this.terceros = terceros.filter(x => x.Empleado);
     } else {
       this.terceros = terceros;
     }
 
     const puntos =  await this.puntosService.list();
     if (this.idTercero)
-      this.puntos = puntos.filter(x => x.IdTercero == this.idTercero);
+      this.puntos = puntos.filter(x => x.IdPersona == this.idTercero);
     else
       this.puntos = puntos;
     this.filteredPuntos = this.puntos;
   }
 
   filterPuntos(idTercero: string) {
-    return this.filteredPuntos.filter(x => x.IdTercero == idTercero);
+    return this.filteredPuntos.filter(x => x.IdPersona == idTercero);
   }
 
   async handleInput(event: any){

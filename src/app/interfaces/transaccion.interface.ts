@@ -9,7 +9,7 @@ export interface Transaccion {
   Firma?: Blob | null;
   FirmaUrl?: string | null;
   IdEstado: string;
-  IdPunto?: string;
+  IdDeposito?: string;
   IdTercero?: string;
   IdRecurso: string;
   IdServicio: string;

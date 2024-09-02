@@ -2,11 +2,20 @@ import { Injectable } from '@angular/core';
 import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
 import { MasterDataService } from './masterdata.service';
-import { Residuo } from '../interfaces/residuo.interface';
 import { CRUDOperacion } from './constants.service';
-import { MasterData } from '../interfaces/masterdata.interface';
 import { AuthorizationService } from './authorization.service';
 import { TransactionsService } from './transactions.service';
+import { Embalaje } from '../interfaces/embalaje.interface';
+import { Insumo } from '../interfaces/insumo.interface';
+import { Material } from '../interfaces/material.interface';
+import { Punto } from '../interfaces/punto.interface';
+import { Servicio } from '../interfaces/servicio.interface';
+import { Tercero } from '../interfaces/tercero.interface';
+import { Tratamiento } from '../interfaces/tratamiento.interface';
+import { Vehiculo } from '../interfaces/vehiculo.interface';
+import { Residuo } from '../interfaces/residuo.interface';
+import { InventoryService } from './inventory.service';
+import { Cuenta } from '../interfaces/cuenta.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +24,7 @@ export class SynchronizationService {
   constructor(
     private storage: StorageService,
     private authorizationService: AuthorizationService,
+    private inventoryService: InventoryService,
     private masterdataService: MasterDataService,
     private transactionsService: TransactionsService,
   ) {}
@@ -25,47 +35,71 @@ export class SynchronizationService {
       var cuenta = this.authorizationService.get();
       await this.storage.set('Cuenta', cuenta);
 
-      var masterdata = await this.storage.get('MasterData');
-      if (!masterdata) {
-        masterdata = await this.masterdataService.get();
-        await this.storage.set('MasterData', masterdata);
-      }
-
+      await this.uploadMasterData();
       await this.uploadTransactions();
-      var actividades = await this.transactionsService.get();
-      await this.storage.set('Actividades', actividades);
 
+      //var materiales = await this.storage.get('Materiales');
+      //if (!materiales) {
+        this.downloadMasterData();
+        this.downloadTransactions();
+      //}
     } catch {}
   }
 
   async refresh() {
-    let actividades: Actividad[] = await this.storage.get('Actividades');
-    let inventario: Residuo[] = await this.storage.get('Inventario');
-
     try {
-      var cuenta = this.authorizationService.get();
-      await this.storage.set('Cuenta', cuenta);
-
+      this.uploadMasterData();
+      this.uploadTransactions();
+      this.downloadMasterData();
+      this.downloadTransactions();
     } catch (error){
       throw (error);
     }
   }
 
+  async downloadMasterData() {
+    try {
+      var embalajes : Embalaje[] = await this.masterdataService.getEmbalajes();
+      await this.storage.set('Embalajes', embalajes);
+
+      var insumos : Insumo[] = await this.masterdataService.getInsumos();
+      await this.storage.set('Insumos', insumos);
+
+      var materiales: Material[] = await this.masterdataService.getMateriales();
+      await this.storage.set('Materiales', materiales);
+
+      var puntos: Punto[] = await this.masterdataService.getPuntos();
+      await this.storage.set('Puntos', puntos);
+
+      var servicios: Servicio[] = await this.masterdataService.getServicios();
+      await this.storage.set('Servicios', servicios);
+
+      var terceros: Tercero[] = await this.masterdataService.getTerceros();
+      await this.storage.set('Terceros', terceros);
+
+      var tratamientos: Tratamiento[] = await this.masterdataService.getTratamientos();
+      await this.storage.set('Tratamientos', tratamientos);
+      console.log(tratamientos);
+
+      var vehiculos: Vehiculo[] = await this.masterdataService.getVehiculos();
+      await this.storage.set('Vehiculos', vehiculos);
+
+    } catch (error) {
+
+    }
+  }
+
   async uploadMasterData() {
-    let masterdata: MasterData = await this.storage.get('MasterData');
+    let embalajes: Embalaje[] = await this.storage.get('Embalajes');
+    let insumos: Insumo[] = await this.storage.get('Insumos');
+    let materiales: Material[] = await this.storage.get('Materiales');
+    let puntos: Punto[] = await this.storage.get('Puntos');
+    let terceros: Tercero[] = await this.storage.get('Terceros');
+    let tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
 
     try {
-      if (masterdata.Insumos) {
-        const insumosCrear = masterdata.Insumos.filter(x => x.CRUD == CRUDOperacion.Create);
-        insumosCrear.forEach(async(insumo) => {
-          await this.masterdataService.postInsumo(insumo);
-          insumo.CRUD = null;
-          insumo.CRUDDate = null;
-        });
-      }
-
-      if (masterdata.Embalajes) {
-        const embalajesCrear = masterdata.Embalajes.filter(x => x.CRUD == CRUDOperacion.Create);
+      if (embalajes) {
+        const embalajesCrear = embalajes.filter(x => x.CRUD == CRUDOperacion.Create);
         embalajesCrear.forEach(async(embalaje) => {
           await this.masterdataService.postEmbalaje(embalaje);
           embalaje.CRUD = null;
@@ -73,8 +107,17 @@ export class SynchronizationService {
         });
       }
 
-      if (masterdata.Tratamientos) {
-        const tratamientosCrear = masterdata.Tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
+      if (insumos) {
+        const insumosCrear = insumos.filter(x => x.CRUD == CRUDOperacion.Create);
+        insumosCrear.forEach(async(insumo) => {
+          await this.masterdataService.postInsumo(insumo);
+          insumo.CRUD = null;
+          insumo.CRUDDate = null;
+        });
+      }
+
+      if (tratamientos) {
+        const tratamientosCrear = tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
         tratamientosCrear.forEach(async(tratamiento) => {
           //await this.integration.postTratamiento(tratamiento);
           tratamiento.CRUD = null;
@@ -82,8 +125,8 @@ export class SynchronizationService {
         });
       }
 
-      if (masterdata.Materiales) {
-        const materialesCrear = masterdata.Materiales.filter(x => x.CRUD == CRUDOperacion.Create);
+      if (materiales) {
+        const materialesCrear = materiales.filter(x => x.CRUD == CRUDOperacion.Create);
         materialesCrear.forEach(async(material) => {
           await this.masterdataService.postMaterial(material);
           material.CRUD = null;
@@ -91,8 +134,8 @@ export class SynchronizationService {
         });
       }
 
-      if (masterdata.Terceros) {
-        const tercerosCrear = masterdata.Terceros.filter(x => x.CRUD == CRUDOperacion.Create);
+      if (terceros) {
+        const tercerosCrear = terceros.filter(x => x.CRUD == CRUDOperacion.Create);
         tercerosCrear.forEach(async(tercero) => {
           await this.masterdataService.postTercero(tercero);
           tercero.CRUD = null;
@@ -100,8 +143,8 @@ export class SynchronizationService {
         });
       }
 
-      if (masterdata.Puntos) {
-        const puntosCrear = masterdata.Puntos.filter(x => x.CRUD == CRUDOperacion.Create);
+      if (puntos) {
+        const puntosCrear = puntos.filter(x => x.CRUD == CRUDOperacion.Create);
         puntosCrear.forEach(async(punto) => {
           //await this.integration.postPunto(punto);
           punto.CRUD = null;
@@ -109,6 +152,12 @@ export class SynchronizationService {
         });
       }
     } catch (error) {}
+
+  }
+
+  async downloadTransactions() {
+    var actividades : Actividad[] = await this.transactionsService.get();
+    await this.storage.set('Actividades', actividades);
 
   }
 
@@ -144,5 +193,13 @@ export class SynchronizationService {
 
     }
   }
+
+  async downloadInventory() {
+    var inventarios : Residuo[] = await this.inventoryService.get();
+    await this.
+    storage.set('Inventario', inventarios);
+
+  }
+
 
 }

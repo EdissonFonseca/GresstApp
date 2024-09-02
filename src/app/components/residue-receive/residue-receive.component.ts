@@ -192,7 +192,7 @@ export class ResidueReceiveComponent implements OnInit {
             IdServicio: actividad.IdServicio,
             Titulo: this.puntoRecoleccion,
             IdTercero: this.idPropietario,
-            IdPunto: this.idPuntoRecoleccion,
+            IdDeposito: this.idPuntoRecoleccion,
             Firma: new Blob(),
           }
           await this.transaccionesService.create(actividad.IdActividad, transaccion);

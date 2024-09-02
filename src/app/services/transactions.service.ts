@@ -154,7 +154,7 @@ export class TransactionsService {
       formData.append('IdServicio', (transaccion.IdServicio ?? "").toString());
       formData.append('IdRecurso', (transaccion.IdRecurso ?? "").toString());
       formData.append('IdTercero', (transaccion.IdTercero ?? "").toString());
-      formData.append('IdPunto', (transaccion.IdPunto ?? "").toString());
+      formData.append('IdPunto', (transaccion.IdDeposito ?? "").toString());
       formData.append('Fecha', (transaccion.FechaProgramada ?? "").toString());
       formData.append('Signature', transaccion.Firma, 'signature.png');
       const options = { url: `${this.transactionsUrl}/uploadfirmatransaccion`, data:formData, headers };

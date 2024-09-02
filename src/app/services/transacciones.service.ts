@@ -86,13 +86,13 @@ export class TransaccionesService {
           else
             return volumen;
         }, 0);
-        if (transaccion.IdPunto != null)
+        if (transaccion.IdDeposito != null)
         {
           transaccion.Icono = 'location';
-          const punto = puntos.find(x => x.IdPunto == transaccion.IdPunto);
+          const punto = puntos.find(x => x.IdDeposito == transaccion.IdDeposito);
           if (punto) {
             transaccion.Punto = punto.Nombre;
-            const tercero = terceros.find(x => x.IdTercero == punto.IdTercero);
+            const tercero = terceros.find(x => x.IdPersona == punto.IdPersona);
             if (tercero)
               transaccion.Tercero = `${tercero.Nombre} - ${nombre}`;
             ubicacion = '';
@@ -130,7 +130,7 @@ export class TransaccionesService {
             }
         }
       } else if (transaccion && transaccion.IdTercero != null) {
-        const tercero = terceros.find(x => x.IdTercero == transaccion.IdTercero);
+        const tercero = terceros.find(x => x.IdPersona == transaccion.IdTercero);
         if (tercero) {
           transaccion.Tercero = tercero.Nombre;
           transaccion.Icono = 'person';
@@ -182,7 +182,7 @@ export class TransaccionesService {
     let transaccion: Transaccion | undefined;
 
     if (actividad) {
-      transaccion = actividad.Transacciones.find(x => x.IdPunto == idPunto)!;
+      transaccion = actividad.Transacciones.find(x => x.IdDeposito == idPunto)!;
     }
     return transaccion;
   }
