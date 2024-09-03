@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
+import { Globales } from './globales.service';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +10,10 @@ import { environment } from '../../environments/environment';
 export class AuthenticationService {
   private authenticationUrl =  `${environment.apiUrl}/authentication`;
 
-  constructor() {}
+  constructor(
+    private globales: Globales,
+    private storage: StorageService,
+  ) {}
 
   async ping(): Promise<boolean>{
     const options = {url: `${this.authenticationUrl}/ping`, headers: { 'Content-Type': 'application/json' }};
@@ -25,6 +30,27 @@ export class AuthenticationService {
     }
   }
 
+  async validateToken(): Promise<boolean>{
+    if (this.globales.token == '') return false;
+
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.authenticationUrl}/validatetoken`, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
 
   async login(username: string, password:string): Promise<any>{
     const data = {Username: username, Password: password};
@@ -33,6 +59,30 @@ export class AuthenticationService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
+        this.globales.token = response.data;
+        return response.data;
+      } else {
+        throw new Error(`Usuario no autorizado`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
+  async reconnect(): Promise<any>{
+    const username = await this.storage.get('Login');
+    const password = await this.storage.get('Password');
+    const data = {Username: username, Password: password};
+    const options = {url: `${this.authenticationUrl}/authenticate`, data: data, headers: { 'Content-Type': 'application/json' }};
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) {
+        this.globales.token = response.data;
         return response.data;
       } else {
         throw new Error(`Usuario no autorizado`);

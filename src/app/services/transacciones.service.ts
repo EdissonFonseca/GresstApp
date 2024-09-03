@@ -151,7 +151,7 @@ export class TransaccionesService {
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     if (actividad)
     {
-      const current: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == transaccion.IdTransaccion);
+      const current = actividad.Transacciones.find((trx) => trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
         current.CRUD = CRUDOperacion.Update;
         current.CRUDDate = now;

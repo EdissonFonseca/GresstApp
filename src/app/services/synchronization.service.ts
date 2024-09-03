@@ -15,8 +15,8 @@ import { Tratamiento } from '../interfaces/tratamiento.interface';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
 import { Residuo } from '../interfaces/residuo.interface';
 import { InventoryService } from './inventory.service';
-import { Cuenta } from '../interfaces/cuenta.interface';
 import { Globales } from './globales.service';
+import { AuthenticationService } from './authentication.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,6 +25,7 @@ export class SynchronizationService {
   constructor(
     private storage: StorageService,
     private globales: Globales,
+    private authenticationService: AuthenticationService,
     private authorizationService: AuthorizationService,
     private inventoryService: InventoryService,
     private masterdataService: MasterDataService,
@@ -34,49 +35,104 @@ export class SynchronizationService {
   async reload()
   {
     try {
-      await this.storage.remove('Cuenta');
-      await this.storage.remove('Actividades');
-      await this.storage.remove('Inventario');
-      await this.storage.remove('Embalajes');
-      await this.storage.remove('Insumos');
-      await this.storage.remove('Materiales');
-      await this.storage.remove('Puntos');
-      await this.storage.remove('Servicios');
-      await this.storage.remove('Terceros');
-      await this.storage.remove('Tratamientos');
-      await this.storage.remove('Vehiculos');
+      console.log('Autorizando ...');
+      await this.downloadAuthorizations();
 
-      var cuenta = await this.authorizationService.get();
-      await this.storage.set('Cuenta', cuenta);
-      this.globales.unidadCantidad = cuenta.UnidadCantidad;
-      this.globales.unidadPeso = cuenta.UnidadPeso;
-      this.globales.unidadVolumen = cuenta.UnidadVolumen;
-      this.globales.mostrarIntroduccion = cuenta.mostrarIntroduccion;
+      console.log('Subiendo datos maestros ...');
+      await this.uploadMasterData();
 
-      //await this.uploadMasterData();
-      //await this.uploadTransactions();
+      console.log('Subiendo transacciones ...');
+      await this.uploadTransactions();
 
-      //var materiales = await this.storage.get('Materiales');
-      //if (!materiales) {
+      var materiales: Material[] = await this.storage.get('Materiales');
+      if (!materiales || materiales.length == 0) {
+        console.log('Descargando datos maestros ...');
         this.downloadMasterData();
-        this.downloadTransactions();
-      //}
-    } catch {}
+      }
+
+      var actividades: Actividad[] = await this.storage.get('Actividades');
+      if (!actividades || actividades.length == 0) {
+          console.log('Descargando transacciones ...');
+          this.downloadTransactions();
+      }
+
+      var inventario: Residuo[] = await this.storage.get('Inventario');
+      if (!inventario || inventario.length == 0) {
+          console.log('Descargando inventario ...');
+          this.downloadInventory();
+      }
+    } catch (error){
+      console.log(error);
+      throw (error);
+    }
   }
 
   async refresh() {
     try {
-      //this.uploadMasterData();
-      //this.uploadTransactions();
+      console.log('Subiendo datos maestros ...');
+      this.uploadMasterData();
+
+      console.log('Subiendo transacciones ...');
+      this.uploadTransactions();
+
+      console.log('Limpiando storage ...');
+      this.storage.clear();
+
+      console.log('Descargando autorizaciones ...');
+      this.downloadAuthorizations();
+
+      console.log('Descargando datos maestros ...');
       this.downloadMasterData();
+
+      console.log('Descargando transacciones ...');
       this.downloadTransactions();
+
+      console.log('Descargando inventario ...');
+      this.downloadInventory();
     } catch (error){
+      console.log(error);
+      throw (error);
+    }
+  }
+
+  async downloadAuthorizations() {
+    try {
+      if (!await this.authenticationService.validateToken())
+        await this.authenticationService.reconnect();
+
+      var data = await this.authorizationService.get();
+      await this.storage.set('Cuenta', data);
+
+      this.globales.unidadCantidad = data.UnidadCantidad;
+      this.globales.unidadPeso = data.UnidadPeso;
+      this.globales.unidadVolumen = data.UnidadVolumen;
+      this.globales.mostrarIntroduccion = data.mostrarIntroduccion;
+      this.globales.permisos = data.Permisos;
+    } catch (error) {
+      console.log(error);
+      throw (error);
+    }
+  }
+
+  async downloadInventory() {
+    try {
+      if (!await this.authenticationService.validateToken())
+        await this.authenticationService.reconnect();
+
+      var inventarios : Residuo[] = await this.inventoryService.get();
+      await this.storage.set('Inventario', inventarios);
+      console.log(inventarios);
+    } catch (error)  {
+      console.log(error);
       throw (error);
     }
   }
 
   async downloadMasterData() {
     try {
+      if (!await this.authenticationService.validateToken())
+        await this.authenticationService.reconnect();
+
       var embalajes : Embalaje[] = await this.masterdataService.getEmbalajes();
       await this.storage.set('Embalajes', embalajes);
 
@@ -102,7 +158,22 @@ export class SynchronizationService {
       await this.storage.set('Vehiculos', vehiculos);
 
     } catch (error) {
+      console.log(error);
+      throw (error);
+    }
+  }
 
+  async downloadTransactions() {
+    try {
+      if (!await this.authenticationService.validateToken())
+        await this.authenticationService.reconnect();
+
+      var actividades : Actividad[] = await this.transactionsService.get();
+      await this.storage.set('Actividades', actividades);
+
+    } catch(error) {
+      console.log(error);
+      throw (error);
     }
   }
 
@@ -114,10 +185,14 @@ export class SynchronizationService {
     let terceros: Tercero[] = await this.storage.get('Terceros');
     let tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
 
+    if (!await this.authenticationService.validateToken())
+      await this.authenticationService.reconnect();
+
     try {
       if (embalajes) {
         const embalajesCrear = embalajes.filter(x => x.CRUD == CRUDOperacion.Create);
         embalajesCrear.forEach(async(embalaje) => {
+          console.log(embalaje);
           await this.masterdataService.postEmbalaje(embalaje);
           embalaje.CRUD = null;
           embalaje.CRUDDate = null;
@@ -127,6 +202,7 @@ export class SynchronizationService {
       if (insumos) {
         const insumosCrear = insumos.filter(x => x.CRUD == CRUDOperacion.Create);
         insumosCrear.forEach(async(insumo) => {
+          console.log(insumo);
           await this.masterdataService.postInsumo(insumo);
           insumo.CRUD = null;
           insumo.CRUDDate = null;
@@ -136,6 +212,7 @@ export class SynchronizationService {
       if (tratamientos) {
         const tratamientosCrear = tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
         tratamientosCrear.forEach(async(tratamiento) => {
+          console.log(tratamiento);
           //await this.integration.postTratamiento(tratamiento);
           tratamiento.CRUD = null;
           tratamiento.CRUDDate = null;
@@ -145,6 +222,7 @@ export class SynchronizationService {
       if (materiales) {
         const materialesCrear = materiales.filter(x => x.CRUD == CRUDOperacion.Create);
         materialesCrear.forEach(async(material) => {
+          console.log(material);
           await this.masterdataService.postMaterial(material);
           material.CRUD = null;
           material.CRUDDate = null;
@@ -154,6 +232,7 @@ export class SynchronizationService {
       if (terceros) {
         const tercerosCrear = terceros.filter(x => x.CRUD == CRUDOperacion.Create);
         tercerosCrear.forEach(async(tercero) => {
+          console.log(tercero);
           await this.masterdataService.postTercero(tercero);
           tercero.CRUD = null;
           tercero.CRUDDate = null;
@@ -163,23 +242,23 @@ export class SynchronizationService {
       if (puntos) {
         const puntosCrear = puntos.filter(x => x.CRUD == CRUDOperacion.Create);
         puntosCrear.forEach(async(punto) => {
+          console.log(punto);
           //await this.integration.postPunto(punto);
           punto.CRUD = null;
           punto.CRUDDate = null;
         });
       }
-    } catch (error) {}
-
-  }
-
-  async downloadTransactions() {
-    var actividades : Actividad[] = await this.transactionsService.get();
-    await this.storage.set('Actividades', actividades);
-
+    } catch (error) {
+      console.log(error);
+      throw(error);
+    }
   }
 
   async uploadTransactions() {
     let actividades: Actividad[] = await this.storage.get('Actividades');
+
+    if (!await this.authenticationService.validateToken())
+      await this.authenticationService.reconnect();
 
     try {
       if (actividades) {
@@ -199,20 +278,32 @@ export class SynchronizationService {
               }
             }
           }
+
+          for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
+            if (transaccion.CRUD === CRUDOperacion.Update) {
+              if (await this.transactionsService.patchTransaccion(transaccion)) {
+                transaccion.CRUD = null;
+                transaccion.CRUDDate = null;
+                await this.transactionsService.uploadFirmaTransaccion(transaccion);
+              }
+            }
+          }
+
+          if (actividad.CRUD == CRUDOperacion.Update) {
+            console.log(actividad);
+            if (await this.transactionsService.patchActividad(actividad)) {
+              actividad.CRUD = null;
+              actividad.CRUDDate = null;
+              await this.transactionsService.uploadFirmaActividad(actividad);
+            }
+          }
         }
       }
       this.storage.set('Actividades', actividades);
     } catch (error) {
-
+      console.log(error);
+      throw(error);
     }
   }
-
-  async downloadInventory() {
-    var inventarios : Residuo[] = await this.inventoryService.get();
-    await this.
-    storage.set('Inventario', inventarios);
-
-  }
-
 
 }

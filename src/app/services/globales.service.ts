@@ -2,10 +2,8 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Actividad } from '../interfaces/actividad.interface';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
 import { Estado, TipoServicio, EntradaSalida } from 'src/app/services/constants.service';
-import { Transaccion } from '../interfaces/transaccion.interface';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
 import { Tarea } from '../interfaces/tarea.interface';
@@ -34,7 +32,7 @@ export class Globales {
     {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: '../../assets/icon/construct.svg'},
     {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
-  public token: string = 'un';
+  public token: string = '';
   public mostrarIntroduccion: boolean = false;
   public unidadCantidad: string = 'un';
   public unidadPeso: string = 'kg';

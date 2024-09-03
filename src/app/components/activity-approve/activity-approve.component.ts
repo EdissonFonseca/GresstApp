@@ -1,6 +1,7 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
+import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
@@ -19,6 +20,7 @@ export class ActivityApproveComponent  implements OnInit {
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
   frmActividad: FormGroup;
   idActividad: string = '';
+  actividad: Actividad | undefined = undefined;
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -41,10 +43,15 @@ export class ActivityApproveComponent  implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.actividad = await this.actividadesService.get(this.idActividad);
   }
 
   ngAfterViewInit() {}
+
+  getColorEstado(idEstado: string): string {
+    return this.globales.getColorEstado(idEstado);
+  }
 
   ionViewDidEnter() {
     this.canvas = this.signatureCanvas.nativeElement;
@@ -57,12 +64,12 @@ export class ActivityApproveComponent  implements OnInit {
   startDrawing(event: any) {
     this.drawing = true;
     this.ctx.beginPath();
-    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 100);
+    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 130);
   }
 
   draw(event: any) {
     if (!this.drawing) return;
-    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 100);
+    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 130);
     this.ctx.stroke();
   }
 
@@ -91,15 +98,12 @@ export class ActivityApproveComponent  implements OnInit {
 
     const firmaBlob = this.getSignature();
     actividad.IdEstado = Estado.Aprobado;
-    actividad.CRUD = CRUDOperacion.Update;
-    actividad.CRUDDate = now;
     actividad.IdentificacionResponsable = data.Identificacion;
     actividad.NombreResponsable = data.Nombre;
     actividad.Observaciones = data.Observaciones;
     actividad.FirmaUrl = firmaBlob != null ? "firma.png": null;
     actividad.Firma = firmaBlob;
     this.actividadesService.update(actividad);
-    this.clear();
     this.globales.presentToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }

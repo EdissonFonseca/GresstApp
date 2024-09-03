@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { StorageService } from './storage.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
+import { Globales } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,12 +13,11 @@ export class TransactionsService {
   private transactionsUrl = `${environment.apiUrl}/apptransactions`;
 
   constructor(
-    private storage: StorageService
+    private globales: Globales
   ) {}
 
   async get(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.transactionsUrl}/get`, headers };
 
     try{
@@ -34,8 +33,7 @@ export class TransactionsService {
   }
 
   async postTarea(tarea: Tarea): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers };
 
     try{
@@ -55,15 +53,12 @@ export class TransactionsService {
   }
 
   async patchTarea(tarea: Tarea): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
-        if (response.data != null)
-          tarea.IdResiduo = response.data;
         tarea.CRUD = null;
         tarea.CRUDDate = null;
         return true;
@@ -81,8 +76,7 @@ export class TransactionsService {
 
   async uploadFotosTarea(tarea: Tarea): Promise<boolean> {
     if (tarea.Fotos && tarea.Fotos.length > 0) {
-      const token: string = await this.storage.get('Token');
-      const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+      const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
 
       const formData = new FormData();
       formData.append('IdSolicitud', (tarea.IdDocumento ?? "").toString());
@@ -121,8 +115,7 @@ export class TransactionsService {
   }
 
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers };
 
     try{
@@ -144,8 +137,7 @@ export class TransactionsService {
   }
 
   async uploadFirmaTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
 
     if (transaccion.Firma)
     {
@@ -177,8 +169,7 @@ export class TransactionsService {
   }
 
   async patchActividad(actividad: Actividad): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers };
 
     try{
@@ -200,8 +191,7 @@ export class TransactionsService {
   }
 
   async uploadFirmaActividad(actividad: Actividad): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
 
     if (actividad.Firma)
     {

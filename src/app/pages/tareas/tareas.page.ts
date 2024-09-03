@@ -207,6 +207,7 @@ export class TareasPage implements OnInit {
       const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
       if (transaccion){
         transaccion.IdEstado = Estado.Aprobado;
+        this.showAdd = false;
       }
     }
   }

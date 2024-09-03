@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { StorageService } from './storage.service';
+import { Globales } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,12 +11,11 @@ export class InventoryService {
   private inventoryUrl = `${environment.apiUrl}/appinventory`;
 
   constructor(
-    private storage: StorageService
+    private globales: Globales,
   ) {}
 
   async getBanco(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.bancoUrl}/get`, headers };
 
     try{
@@ -31,8 +30,7 @@ export class InventoryService {
   }
 
   async get(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.inventoryUrl}/get`, headers };
 
     try{

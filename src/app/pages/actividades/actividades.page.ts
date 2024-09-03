@@ -89,8 +89,10 @@ export class ActividadesPage implements OnInit {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-
-    this.actividades = await this.actividadesService.list();
+    if (data) {
+      this.actividades = await this.actividadesService.list();
+      this.permiteAgregar = false;
+      }
   }
 
   getColorEstado(idEstado: string): string {

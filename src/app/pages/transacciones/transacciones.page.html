@@ -22,7 +22,7 @@
     </ion-avatar>
       {{ actividad?.Titulo }}
       <ion-buttons slot="end">
-        <ion-button fill="clear" color="primary" size="large" (click)="openApproveActividad()" *ngIf="actividad?.IdEstado=='P' && actividad?.ItemsPendientes != 0">
+        <ion-button fill="solid" shape="round" color="success" size="large" (click)="openApproveActividad()" *ngIf="actividad?.IdEstado=='P'">
           <ion-icon name="checkmark"></ion-icon>
         </ion-button>
       </ion-buttons>
@@ -48,9 +48,7 @@
       <ion-chip slot="start" *ngIf="transaccion.IdEstado == 'P'" >
         <ion-label>{{transaccion.Accion}}</ion-label>
       </ion-chip>
-      <ion-chip slot="end" *ngIf="transaccion.Cantidades">
-        <ion-badge size="small" color="light"> {{ transaccion.Cantidades }} </ion-badge>
-      </ion-chip>
+        <ion-badge slot="end" size="small" color="light"> {{ transaccion.Cantidades }} </ion-badge>
   </ion-item>
   <ion-item lines="inset" (click)="navigateToTareas(transaccion.IdTransaccion)" >
     <ion-chip color="light" slot="start" >

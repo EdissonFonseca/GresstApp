@@ -16,6 +16,7 @@ export interface Actividad{
   FechaInicio: string;
   FirmaUrl?: string | null;
   Firma?: Blob | null;
+  IdDocumento?: string | null;
   IdentificacionResponsable?: string;
   IdEstado: string;
   IdServicio: string;

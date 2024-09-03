@@ -13,10 +13,18 @@
 </ion-header>
 <ion-item>
   <ion-title>
+    <ion-icon slot="start" size="large" [color]="getColorEstado(actividad?.IdEstado ?? '')" [src]="actividad?.Icono"></ion-icon>
     <ion-label class="ion-text-wrap">
       {{ title }}
     </ion-label>
   </ion-title>
+</ion-item>
+<ion-item lines="inset" color="light" >
+  <ion-icon name="trash-bin-outline" color="medium"></ion-icon>
+  <ion-badge color="success"> {{ actividad?.ItemsAprobados }} </ion-badge>
+  <ion-badge color="warning"> {{ actividad?.ItemsPendientes }} </ion-badge>
+  <ion-badge color="danger"> {{ actividad?.ItemsRechazados }} </ion-badge>
+  <ion-badge slot="end" size="small" color="light" *ngIf="actividad?.Cantidades != ''"> {{ actividad?.Cantidades ?? '' }} </ion-badge>
 </ion-item>
 <ion-content>
   <div class="signature-container" >

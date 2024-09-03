@@ -6,6 +6,7 @@ import { Material } from '../interfaces/material.interface';
 import { Insumo } from '../interfaces/insumo.interface';
 import { Tercero } from '../interfaces/tercero.interface';
 import { StorageService } from './storage.service';
+import { Globales } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -22,12 +23,11 @@ export class MasterDataService {
   private vehiculosUrl = `${environment.apiUrl}/vehiculos`;
 
   constructor(
-    private storage: StorageService
+    private globales: Globales
   ) {}
 
  async getEmbalajes(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.embalajesUrl}/get`, headers };
 
     try{
@@ -42,8 +42,7 @@ export class MasterDataService {
   }
 
   async getInsumos(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.insumosUrl}/get`, headers };
 
     try{
@@ -58,8 +57,7 @@ export class MasterDataService {
   }
 
   async getInterlocutores(idResiduo:string): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.mensajesUrl}/listinterlocutores/${idResiduo}`, headers };
 
     try{
@@ -74,8 +72,7 @@ export class MasterDataService {
   }
 
   async getMateriales(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.materialesUrl}/getforapp`, headers };
 
     try{
@@ -90,8 +87,7 @@ export class MasterDataService {
   }
 
   async getMensajes(idResiduo: string, idInterlocutor: string): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.embalajesUrl}/get`, headers };
 
     try{
@@ -106,8 +102,7 @@ export class MasterDataService {
   }
 
   async getPuntos(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.depositosUrl}/getpuntos`, headers };
 
     try{
@@ -122,8 +117,7 @@ export class MasterDataService {
   }
 
   async getServicios(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.serviciosUrl}/get`, headers };
 
     try{
@@ -138,8 +132,7 @@ export class MasterDataService {
   }
 
   async getTerceros(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.tercerosUrl}/get`, headers };
 
     try{
@@ -154,8 +147,7 @@ export class MasterDataService {
   }
 
   async getTratamientos(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.tratamientosUrl}/get`, headers };
 
     try{
@@ -170,8 +162,7 @@ export class MasterDataService {
   }
 
   async getVehiculos(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.vehiculosUrl}/get`, headers };
 
     try{
@@ -186,9 +177,8 @@ export class MasterDataService {
   }
 
   async postEmbalaje(embalaje: Embalaje): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     const data = { Nombre: embalaje.Nombre };
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.embalajesUrl}/post`, data:data, headers };
 
     try{
@@ -210,9 +200,8 @@ export class MasterDataService {
   }
 
   async postInsumo(insumo: Insumo): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     const data = { Nombre: insumo.Nombre };
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.insumosUrl}/post`, data:data, headers };
 
     try{
@@ -234,9 +223,8 @@ export class MasterDataService {
   }
 
   async postMaterial(material: Material): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     const data = { IdMaterial: null, Nombre: material.Nombre, Medicion: material.TipoMedicion, Captura: material.TipoCaptura, Referencia: material.Referencia, Factor: material.Factor, Aprovechable: material.Aprovechable };
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.materialesUrl}/post`, data:data, headers };
 
     try{
@@ -258,9 +246,8 @@ export class MasterDataService {
   }
 
   async postTercero(tercero: Tercero): Promise<boolean> {
-    const token: string = await this.storage.get('Token');
     const data = { IdTercero: null, Nombre: tercero.Nombre, Identificacion: tercero.Identificacion, Correo: tercero.Correo, Telefono: tercero.Telefono };
-    const headers = { 'Authorization': `Bearer ${token}`,'Content-Type': 'application/json' };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.tercerosUrl}/post`, data:data, headers };
 
     try{

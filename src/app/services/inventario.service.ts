@@ -31,6 +31,8 @@ export class InventarioService {
     let ubicacion: string = '';
     let cantidades: string = '';
 
+    if(!residuos || residuos.length == 0) return residuos;
+
     residuos.forEach((residuo) => {
       const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
       const tercero = terceros.find(x => x.IdPersona == residuo.IdPropietario);

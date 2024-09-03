@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { StorageService } from './storage.service';
+import { Globales } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,12 +10,11 @@ export class AuthorizationService {
   private authorizationUrl = `${environment.apiUrl}/authorization`;
 
   constructor(
-    private storage: StorageService
+    private globales: Globales
   ) {}
 
   async get(): Promise<any>{
-    const token: string = await this.storage.get('Token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.authorizationUrl}/get/app`, headers };
 
     try{

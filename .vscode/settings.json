@@ -316,6 +316,7 @@
   "java.configuration.updateBuildConfiguration": "interactive",
   "cSpell.ignoreWords": [
     "Agrupacion",
+    "Autorizando",
     "Bienvenido",
     "Borrar",
     "Certificado",
@@ -323,6 +324,7 @@
     "Clasificación",
     "Cliente",
     "Completo",
+    "Descargando",
     "Desechar",
     "Documento",
     "Editar",
@@ -340,6 +342,7 @@
     "Introduccion",
     "Kilometraje",
     "Latitud",
+    "Limpiando",
     "Longitud",
     "Mensaje",
     "Nueva",
@@ -359,6 +362,7 @@
     "Separación",
     "Sincronización",
     "Sincronizando",
+    "Subiendo",
     "Sumatoria",
     "Teléfono",
     "Trabajando",
@@ -378,6 +382,7 @@
     "appmensaje",
     "apptransactions",
     "aprobada",
+    "autorizaciones",
     "cambiado",
     "cambiando",
     "changename",
@@ -412,6 +417,7 @@
     "produccion",
     "pudo",
     "recuperado",
+    "reiniciar",
     "rutas",
     "sendwithtoken",
     "servidor",
@@ -425,6 +431,7 @@
     "updatetransaccion",
     "uploadfirmaactividad",
     "uploadfirmatransaccion",
-    "uploadfotostarea"
+    "uploadfotostarea",
+    "validatetoken"
   ]
 }

@@ -15,10 +15,13 @@
         {{ user }}
       </ion-item>
       <ion-item *ngIf="showCertificado" (click)="navigateTo('certificados-buscar')">
-        <ion-icon name="shield-checkmark-outline"></ion-icon>        Certificados
+        <ion-icon name="shield-checkmark-outline"></ion-icon>Certificados
+      </ion-item>
+      <ion-item *ngIf="debug" (click)="reiniciar()">
+        <ion-icon name="battery-charging-outline"></ion-icon>Reiniciar
       </ion-item>
       <ion-item (click)="navigateTo('sincronizacion')">
-        <ion-icon name="sync-outline"></ion-icon>        Sincronizar
+        <ion-icon name="sync-outline"></ion-icon>Sincronizar
       </ion-item>
       <ion-item-divider>Datos Maestros</ion-item-divider>
       <ion-item *ngIf="showEmbalajes" (click)="navigateTo('embalajes')">Embalajes</ion-item>

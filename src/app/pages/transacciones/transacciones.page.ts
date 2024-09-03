@@ -42,6 +42,7 @@ export class TransaccionesPage implements OnInit {
     this.actividad = await this.actividadesService.get(this.idActividad);
 
     if (this.actividad) {
+      console.log(this.actividad);
       this.proceso = await this.globales.getNombreServicio(this.actividad.IdServicio);
       this.actividad.Icono = this.globales.servicios.find((servicio) => this.actividad?.IdServicio == servicio.IdServicio)?.Icono ||'';
       this.showAdd = this.actividad.IdEstado == Estado.Pendiente;
@@ -70,7 +71,8 @@ export class TransaccionesPage implements OnInit {
   goBack() {
     this.router.navigateByUrl('/actividades', { skipLocationChange: true }).then(() => {
       this.router.navigate(['/home']);
-    });  }
+    });
+  }
 
   navigateToTareas(idTransaccion: string){
     const navigationExtras: NavigationExtras = {
@@ -138,11 +140,10 @@ export class TransaccionesPage implements OnInit {
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
-    if (data != null)
+    if (data != null && this.actividad)
     {
-      //const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
-      //if (card)
-      //  card.IdEstado = Estado.Aprobado;
+       this.actividad.IdEstado = Estado.Aprobado;
+       this.showAdd = false;
     }
   }
 }

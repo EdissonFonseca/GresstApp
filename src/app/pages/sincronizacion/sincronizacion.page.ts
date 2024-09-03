@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { SynchronizationService } from 'src/app/services/synchronization.service';
@@ -13,7 +14,8 @@ export class SincronizacionPage implements OnInit {
   constructor(
     private navCtrl: NavController,
     private synchronizationService: SynchronizationService,
-    private globales: Globales
+    private globales: Globales,
+    private router: Router,
   ) { }
 
   ngOnInit() {
@@ -28,7 +30,9 @@ export class SincronizacionPage implements OnInit {
       await this.globales.hideLoading();
       await this.globales.presentToast('Datos sincronizada', 'middle');
 
-      this.navCtrl.navigateRoot('/home');
+      this.router.navigateByUrl('/actividades', { skipLocationChange: true }).then(() => {
+        this.router.navigate(['/home']);
+      });
     } catch (error) {
       await this.globales.presentToast('Error sincronizando', 'middle');
     }

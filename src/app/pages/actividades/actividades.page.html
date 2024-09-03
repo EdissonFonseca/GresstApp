@@ -16,9 +16,7 @@
       <ion-chip slot="start">
         {{ actividad.Accion }}
       </ion-chip>
-      <ion-chip slot="end" *ngIf="actividad.Cantidades">
-        <ion-badge size="small" color="light"> {{ actividad.Cantidades }} </ion-badge>
-      </ion-chip>
+      <ion-badge slo="end" *ngIf="actividad.Cantidades" size="small" color="light"> {{ actividad.Cantidades }} </ion-badge>
   </ion-item>
   <ion-item lines="none" >
     <ion-chip slot="start" color="light" (click)="navigateToTarget(actividad.IdActividad)">

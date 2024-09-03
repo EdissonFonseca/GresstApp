@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-menu',
@@ -25,6 +26,7 @@ export class MenuComponent  implements OnInit {
   showTratamientos = true;
   showVehiculos = true;
   idTercero: string = '';
+  debug: boolean = true;
 
   constructor(
     private storage: StorageService,
@@ -50,6 +52,8 @@ export class MenuComponent  implements OnInit {
     this.showTerceros = await this.globales.getPermiso(Permisos.AppTercero) != '';
     this.showTratamientos = await this.globales.getPermiso(Permisos.AppClaseTratamiento) != '';
     this.showVehiculos = await this.globales.getPermiso(Permisos.AppVehiculo) != '';
+
+    this.debug == !environment.production;
   }
 
   navigateToPuntos() {
@@ -60,6 +64,11 @@ export class MenuComponent  implements OnInit {
   navigateTo(page: string) {
     this.menuCtrl.close();
     this.router.navigate([page]);
+  }
+
+  async reiniciar() {
+    this.storage.clear();
+    this.navCtrl.navigateRoot('/login');
   }
 
   close() {

@@ -8,6 +8,7 @@ export interface Transaccion {
   FechaProgramada?: string;
   Firma?: Blob | null;
   FirmaUrl?: string | null;
+  IdDocumento?: string | null;
   IdEstado: string;
   IdDeposito?: string;
   IdTercero?: string;

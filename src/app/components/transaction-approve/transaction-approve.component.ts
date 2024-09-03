@@ -79,12 +79,12 @@ export class TransactionApproveComponent  implements OnInit {
   startDrawing(event: any) {
     this.drawing = true;
     this.ctx.beginPath();
-    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 130);
+    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 140);
   }
 
   draw(event: any) {
     if (!this.drawing) return;
-    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 130);
+    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 140);
     this.ctx.stroke();
   }
 
@@ -103,8 +103,6 @@ export class TransactionApproveComponent  implements OnInit {
   async confirm() {
     const now = new Date();
     const isoDate = now.toISOString();
-
-    if (!this.frmTransaccion.valid) return;
 
     let transaccion: Transaccion | undefined;
     const data = this.frmTransaccion.value;
@@ -126,7 +124,6 @@ export class TransactionApproveComponent  implements OnInit {
       transaccion.FirmaUrl = firmaBlob != null ?  "firma.png": null;
       this.transaccionesService.update(this.idActividad, transaccion);
     }
-    this.clear();
     this.globales.presentToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
