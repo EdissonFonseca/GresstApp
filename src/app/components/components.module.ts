@@ -27,8 +27,7 @@ import { SignPadComponent } from "./sign-pad/sign-pad.component";
 import { StakeholdersComponent } from "./stakeholders/stakeholders.component";
 import { SuppliesComponent } from "./supplies/supplies.component";
 import { TaskAddComponent } from "./task-add/task-add.component";
-import { TaskApproveComponent } from "./task-approve/task-approve.component";
-import { TaskRejectComponent } from "./task-reject/task-reject.component";
+import { TaskEditComponent } from "./task-edit/task-edit.component";
 import { TransactionApproveComponent } from "./transaction-approve/transaction-approve.component";
 import { TransactionRejectComponent } from "./transaction-reject/transaction-reject.component";
 import { TreatmentsComponent } from "./treatments/treatments.component";
@@ -37,8 +36,8 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
 const components = [];
 
 @NgModule({
-  declarations: [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
+  declarations: [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskEditComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
   imports:      [ CommonModule, IonicModule, FormsModule, ReactiveFormsModule ],
-  exports:      [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskApproveComponent, TaskRejectComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
+  exports:      [ ActivityAddComponent, ActivityApproveComponent, ActivityRejectComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskEditComponent, TransactionApproveComponent, TransactionRejectComponent, TreatmentsComponent, VehiclesComponent],
 })
 export class ComponentsModule {}

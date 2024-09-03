@@ -7,6 +7,7 @@ import { CRUDOperacion, TipoServicio } from "./constants.service";
 import { MaterialesService } from "./materiales.service";
 import { TercerosService } from "./terceros.service";
 import { PuntosService } from "./puntos.service";
+import { Globales } from "./globales.service";
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +15,7 @@ import { PuntosService } from "./puntos.service";
 export class InventarioService {
   constructor(
     private storage: StorageService,
+    private globales: Globales,
     private materialesService: MaterialesService,
     private tercerosService: TercerosService,
     private puntosService: PuntosService
@@ -58,21 +60,20 @@ export class InventarioService {
           ubicacion = actividad.Titulo;
       }
       residuo.Ubicacion = ubicacion;
-
       if (residuo.Cantidad ?? 0 > 0){
-        cantidades += `${residuo.Cantidad} ${cuenta.UnidadCantidad}`;
+        cantidades += `${residuo.Cantidad} ${this.globales.unidadCantidad}`;
       }
       if (residuo.Peso ?? 0 > 0){
         if (cantidades != '')
-          cantidades += `/${residuo.Peso} ${cuenta.UnidadPeso}`;
+          cantidades += `/${residuo.Peso} ${this.globales.unidadPeso}`;
         else
-          cantidades = `${residuo.Peso} ${cuenta.UnidadPeso}`;
+          cantidades = `${residuo.Peso} ${this.globales.unidadPeso}`;
       }
       if (residuo.Volumen ?? 0 > 0){
         if (cantidades != '')
-          cantidades += `/${residuo.Volumen} ${cuenta.UnidadVolumen}`;
+          cantidades += `/${residuo.Volumen} ${this.globales.unidadVolumen}`;
         else
-          cantidades = `${residuo.Volumen} ${cuenta.UnidadVolumen}`;
+          cantidades = `${residuo.Volumen} ${this.globales.unidadVolumen}`;
       }
       residuo.Cantidades = cantidades;
     });

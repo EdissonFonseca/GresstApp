@@ -8,6 +8,7 @@ import { Estado, TipoServicio, EntradaSalida } from 'src/app/services/constants.
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
+import { Tarea } from '../interfaces/tarea.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -33,6 +34,12 @@ export class Globales {
     {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: '../../assets/icon/construct.svg'},
     {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
+  public token: string = 'un';
+  public mostrarIntroduccion: boolean = false;
+  public unidadCantidad: string = 'un';
+  public unidadPeso: string = 'kg';
+  public unidadVolumen: string = 'lt';
+  public permisos:  {[key: string]: string | null;} = {};
 
   constructor(
     private storage: StorageService,
@@ -64,30 +71,142 @@ export class Globales {
     );
   }
 
-  getResumen(tipoMedicion: string | null, tipoCaptura: string | null, cantidad: number,  unidadCantidad: string, peso: number, unidadPeso: string,  volumen: number, unidadVolumen: string) {
+  getResumenCantidadesResiduo(tipoMedicion: string | null, tipoCaptura: string | null, cantidad: number,  peso: number, volumen: number): string {
     let resumen: string = '';
     if (tipoMedicion == null || tipoMedicion == 'C' || tipoCaptura == 'C') {
       if (cantidad > 0){
-        resumen += `${cantidad} ${unidadCantidad}`;
+        resumen += `${cantidad} ${this.unidadCantidad}`;
       }
     }
     if (tipoMedicion == null || tipoMedicion == 'P' || tipoCaptura == 'P'){
       if (peso > 0){
         if (resumen != '')
-          resumen += `/${peso} ${unidadPeso}`;
+          resumen += `/${peso} ${this.unidadPeso}`;
         else
-          resumen = `${peso} ${unidadPeso}`;
+          resumen = `${peso} ${this.unidadPeso}`;
       }
     }
     if (tipoMedicion == null || tipoMedicion == 'V' || tipoCaptura == 'V') {
       if (volumen > 0){
         if (resumen != '')
-          resumen += `/${volumen} ${unidadVolumen}`;
+          resumen += `/${volumen} ${this.unidadVolumen}`;
         else
-          resumen = `${volumen} ${unidadVolumen}`;
+          resumen = `${volumen} ${this.unidadVolumen}`;
       }
     }
     return resumen;
+  }
+
+  getResumenCantidadesTarea(cantidad: number,  peso: number, volumen: number): string {
+
+    let resumen: string = '';
+    if (cantidad > 0){
+      resumen += `${cantidad} ${this.unidadCantidad}`;
+    }
+    if (peso > 0){
+      if (resumen != '')
+        resumen += `/${peso} ${this.unidadPeso}`;
+      else
+        resumen = `${peso} ${this.unidadPeso}`;
+    }
+    if (volumen > 0){
+      if (resumen != '')
+        resumen += `/${volumen} ${this.unidadVolumen}`;
+      else
+        resumen = `${volumen} ${this.unidadVolumen}`;
+    }
+    return resumen;
+  }
+
+  getContadorEstadosItems(tareas: Tarea[]): { aprobados: number; pendientes: number; rechazados: number } {
+      const resultado = tareas.reduce(
+        (acumulador, tarea) => {
+          if (tarea.IdEstado === Estado.Aprobado) {
+            acumulador.aprobados += 1;
+          } else if (tarea.IdEstado === Estado.Pendiente) {
+            acumulador.pendientes += 1;
+          } else if (tarea.IdEstado === Estado.Rechazado) {
+            acumulador.rechazados += 1;
+          }
+          return acumulador;
+        },
+        { aprobados: 0, pendientes: 0, rechazados: 0 }
+      );
+      return resultado;
+  }
+
+  getSumatoriaCantidades(tareas: Tarea[]): { cantidad: number; peso: number; volumen: number } {
+    const resultado = tareas.reduce(
+      (acumulador, tarea) => {
+        if (tarea.IdEstado === Estado.Aprobado) {
+          acumulador.cantidad += tarea.Cantidad ?? 0;
+          acumulador.peso += tarea.Peso ?? 0;
+          acumulador.volumen += tarea.Volumen ?? 0;
+        }
+        return acumulador;
+      },
+      { cantidad: 0, peso: 0, volumen: 0 }
+    );
+    return resultado;
+  }
+
+  getResumen(tareas: Tarea[]): {
+    resumen: string;
+    aprobados: number;
+    pendientes: number;
+    rechazados: number;
+    cantidad: number;
+    peso: number;
+    volumen: number;
+  } {
+    const estados = { aprobados: 0, pendientes: 0, rechazados: 0 };
+    const sumatoria = { cantidad: 0, peso: 0, volumen: 0 };
+    let resumen = '';
+
+    tareas.forEach(tarea => {
+      // Contador de estados
+      if (tarea.IdEstado === Estado.Aprobado) {
+        estados.aprobados += 1;
+      } else if (tarea.IdEstado === Estado.Pendiente) {
+        estados.pendientes += 1;
+      } else if (tarea.IdEstado === Estado.Rechazado) {
+        estados.rechazados += 1;
+      }
+
+      if (tarea.IdEstado === Estado.Aprobado) {
+        sumatoria.cantidad += tarea.Cantidad ?? 0;
+        sumatoria.peso += tarea.Peso ?? 0;
+        sumatoria.volumen += tarea.Volumen ?? 0;
+      }
+    });
+
+    if (sumatoria.cantidad > 0) {
+      resumen += `${sumatoria.cantidad} ${this.unidadCantidad}`;
+    }
+    if (sumatoria.peso > 0) {
+      if (resumen !== '') {
+        resumen += `/${sumatoria.peso} ${this.unidadPeso}`;
+      } else {
+        resumen = `${sumatoria.peso} ${this.unidadPeso}`;
+      }
+    }
+    if (sumatoria.volumen > 0) {
+      if (resumen !== '') {
+        resumen += `/${sumatoria.volumen} ${this.unidadVolumen}`;
+      } else {
+        resumen = `${sumatoria.volumen} ${this.unidadVolumen}`;
+      }
+    }
+
+    return {
+      resumen: resumen,
+      aprobados: estados.aprobados,
+      pendientes: estados.pendientes,
+      rechazados: estados.rechazados,
+      cantidad: sumatoria.cantidad,
+      peso: sumatoria.peso,
+      volumen: sumatoria.volumen
+    };
   }
 
   getAccionEntradaSalida(entradaSalida: string): string {
@@ -122,11 +241,6 @@ export class Globales {
   // #endregion
 
   // #region Read Methods
-  async getToken(): Promise<string> {
-    const token: string = await this.storage.get('Token');
-    return token;
-  }
-
   getColorEstado(idEstado: string): string{
     const estado = this.estados.find((estado) => estado.IdEstado == idEstado);
     return estado? estado.Color : 'light';
@@ -163,12 +277,10 @@ export class Globales {
     return procesoNombre;
   }
 
-  async getPermiso(idOpcion: string): Promise<string> {
-    const cuenta: Cuenta | null = await this.storage.get('Cuenta');
-
+  getPermiso(idOpcion: string): string {
     try {
-      if (cuenta && cuenta.Permisos) {
-        let permiso = cuenta?.Permisos[idOpcion] || '';
+      if (this.permisos) {
+        let permiso = this.permisos[idOpcion] || '';
         if (permiso == null)
           permiso = '';
         return permiso;
@@ -178,17 +290,6 @@ export class Globales {
     } catch {
       return '';
     }
-  }
-
-  async getTareaTransaccion(idActividad: string, idTransaccion: string): Promise<Transaccion | undefined> {
-    let transaccion: Transaccion | undefined = undefined;
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    if (actividad)
-    {
-      transaccion = actividad.Transacciones.find((trx) => trx.IdTransaccion == idTransaccion);
-    }
-    return transaccion;
   }
 
   // #endregion

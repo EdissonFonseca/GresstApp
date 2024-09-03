@@ -27,7 +27,6 @@ export class ResidueTransferComponent  implements OnInit {
   colorSend: string = 'primary';
   colorCarry: string = 'medium';
   colorFind: string = 'medium';
-  cuenta: Cuenta | undefined = undefined;
   date: Date | null = null;
   material: Material | undefined = undefined;
   serviceId: string = '';
@@ -39,6 +38,10 @@ export class ResidueTransferComponent  implements OnInit {
   stakeholderId: string = '';
   vehicleId: string = '';
   vehicle: string = '';
+  unidadCantidad: string = 'un';
+  unidadPeso: string = 'kg';
+  unidadVolumen: string = 'lt';
+
 
   constructor(
     private modalCtrl: ModalController,
@@ -55,15 +58,17 @@ export class ResidueTransferComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.cuenta = await this.globales.getCuenta();
     this.residue = await this.inventarioService.getResiduo(this.residueId);
     if (!this.residue) return;
+
+    this.unidadCantidad = this.globales.unidadCantidad;
+    this.unidadPeso = this.globales.unidadPeso;
+    this.unidadVolumen = this.globales.unidadPeso;
 
     this.material = await this.materialesService.get(this.residue.IdMaterial);
   }
 
   async confirm() {
-    const cuenta = await this.globales.getCuenta();
     let actividad: Actividad | undefined = undefined;
     let transaccion: Transaccion | undefined = undefined;
     const now = new Date();
@@ -142,7 +147,7 @@ export class ResidueTransferComponent  implements OnInit {
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
           Fotos: [],
-          Cantidades: this.globales.getResumen(null, null, this.residue.Cantidad ?? 0, cuenta.UnidadCantidad, this.residue.Peso ?? 0, cuenta.UnidadPeso, this.residue.Volumen ?? 0, cuenta.UnidadVolumen),
+          Cantidades: await this.globales.getResumenCantidadesTarea(this.residue.Cantidad ?? 0, this.residue.Peso ?? 0, this.residue.Volumen ?? 0),
         };
         await this.tareasService.create(actividad.IdActividad, tarea);
       }

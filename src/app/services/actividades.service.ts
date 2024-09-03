@@ -6,6 +6,7 @@ import { Cuenta } from '../interfaces/cuenta.interface';
 import { Globales } from './globales.service';
 import { TransaccionesService } from './transacciones.service';
 import { TransactionsService } from './transactions.service';
+import { SynchronizationService } from './synchronization.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,95 +15,20 @@ export class ActividadesService {
   constructor(
     private storage: StorageService,
     private globales: Globales,
-    private transaccionesService: TransaccionesService,
-    private transactionsService: TransactionsService
+    private synchronizationService: SynchronizationService,
   ) {}
 
   async list(): Promise<Actividad[]> {
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const cuenta: Cuenta = await this.storage.get('Cuenta');
-    let cantidad: number;
-    let peso: number;
-    let volumen: number;
-    let aprobados: number;
-    let pendientes: number;
-    let rechazados: number;
-    let resumen: string;
 
     actividades.forEach((actividad) => {
       const tareas = actividad.Tareas;
-
-      aprobados = pendientes = rechazados = peso = 0;
-      resumen = '';
-      aprobados = tareas.reduce((contador, tarea) => {
-        if (tarea.IdEstado == Estado.Aprobado)
-          return contador + 1;
-        else
-          return contador;
-      }, 0);
-      pendientes = tareas.reduce((contador, tarea) => {
-        if (tarea.IdEstado == Estado.Pendiente)
-          return contador + 1;
-        else
-          return contador;
-      }, 0);
-      rechazados = tareas.reduce((contador, tarea) => {
-        if (tarea.IdEstado == Estado.Rechazado)
-          return contador + 1;
-        else
-          return contador;
-      }, 0);
-      cantidad = tareas.reduce((cantidad, tarea) => {
-        if (tarea.IdEstado == Estado.Aprobado){
-          if (tarea.EntradaSalida == EntradaSalida.Entrada)
-            return cantidad + (tarea.Cantidad ?? 0);
-          else
-            return cantidad - (tarea.Cantidad ?? 0);
-        }
-        else {
-          return cantidad;
-        }
-      }, 0);
-      peso = tareas.reduce((peso, tarea) => {
-        if (tarea.IdEstado == Estado.Aprobado){
-          if (tarea.EntradaSalida == EntradaSalida.Entrada)
-            return peso + (tarea.Peso ?? 0);
-          else
-            return peso - (tarea.Peso ?? 0);
-        } else {
-          return peso;
-        }
-      }, 0);
-      volumen = tareas.reduce((volumen, tarea) => {
-        if (tarea.IdEstado == Estado.Aprobado){
-          if (tarea.EntradaSalida == EntradaSalida.Entrada)
-            return volumen + (tarea.Volumen ?? 0);
-          else
-          return volumen - (tarea.Volumen ?? 0);
-        } else {
-          return volumen;
-        }
-      }, 0);
-      if (cantidad > 0){
-        resumen += `${cantidad} ${cuenta.UnidadCantidad}`;
-      }
-      if (peso > 0){
-        if (resumen != '')
-          resumen += `/${peso} ${cuenta.UnidadPeso}`;
-        else
-          resumen = `${peso} ${cuenta.UnidadPeso}`;
-      }
-      if (volumen > 0){
-        if (resumen != '')
-          resumen += `/${volumen} ${cuenta.UnidadVolumen}`;
-        else
-          resumen = `${volumen} ${cuenta.UnidadVolumen}`;
-      }
-
-      actividad.ItemsAprobados = aprobados;
-      actividad.ItemsPendientes = pendientes;
-      actividad.ItemsRechazados = rechazados;
-      actividad.Cantidades = resumen;
+      var resumen = this.globales.getResumen(tareas);
+      actividad.ItemsAprobados = resumen.aprobados;
+      actividad.ItemsPendientes = resumen.pendientes;
+      actividad.ItemsRechazados = resumen.rechazados;
+      actividad.Cantidades = resumen.resumen;
       actividad.Icono = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Icono ||'';
       actividad.Accion = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Nombre || '';
     });
@@ -128,6 +54,7 @@ export class ActividadesService {
 
     actividades.push(actividad);
     await this.storage.set('Actividades', actividades);
+    await this.synchronizationService.uploadTransactions();
   }
 
   async update(actividad: Actividad) {
@@ -140,20 +67,8 @@ export class ActividadesService {
       current.NombreResponsable = actividad.NombreResponsable;
       current.Observaciones = actividad.Observaciones;
       current.Firma = actividad.Firma;
-
-      const transaccionesSincronizar = actividad.Transacciones.filter(x => x.CRUD != null);
-      transaccionesSincronizar.forEach(async(transaccion) => {
-        await this.transaccionesService.update(actividad.IdActividad, transaccion);
-        transaccion.CRUD =  null;;
-        transaccion.CRUDDate = null;
-      });
-
-      if (await this.transactionsService.patchActividad(current) && current.Firma != null) {
-        current.CRUD = null;
-        current.CRUDDate = null;
-        this.transactionsService.uploadFirmaActividad(current);
-      }
-  }
-    await this.storage.set("Actividades", actividades);
+      await this.storage.set("Actividades", actividades);
+      await this.synchronizationService.uploadTransactions();
+    }
   }
 }

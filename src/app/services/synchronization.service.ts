@@ -16,6 +16,7 @@ import { Vehiculo } from '../interfaces/vehiculo.interface';
 import { Residuo } from '../interfaces/residuo.interface';
 import { InventoryService } from './inventory.service';
 import { Cuenta } from '../interfaces/cuenta.interface';
+import { Globales } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +24,7 @@ import { Cuenta } from '../interfaces/cuenta.interface';
 export class SynchronizationService {
   constructor(
     private storage: StorageService,
+    private globales: Globales,
     private authorizationService: AuthorizationService,
     private inventoryService: InventoryService,
     private masterdataService: MasterDataService,
@@ -32,11 +34,27 @@ export class SynchronizationService {
   async reload()
   {
     try {
-      var cuenta = this.authorizationService.get();
-      await this.storage.set('Cuenta', cuenta);
+      await this.storage.remove('Cuenta');
+      await this.storage.remove('Actividades');
+      await this.storage.remove('Inventario');
+      await this.storage.remove('Embalajes');
+      await this.storage.remove('Insumos');
+      await this.storage.remove('Materiales');
+      await this.storage.remove('Puntos');
+      await this.storage.remove('Servicios');
+      await this.storage.remove('Terceros');
+      await this.storage.remove('Tratamientos');
+      await this.storage.remove('Vehiculos');
 
-      await this.uploadMasterData();
-      await this.uploadTransactions();
+      var cuenta = await this.authorizationService.get();
+      await this.storage.set('Cuenta', cuenta);
+      this.globales.unidadCantidad = cuenta.UnidadCantidad;
+      this.globales.unidadPeso = cuenta.UnidadPeso;
+      this.globales.unidadVolumen = cuenta.UnidadVolumen;
+      this.globales.mostrarIntroduccion = cuenta.mostrarIntroduccion;
+
+      //await this.uploadMasterData();
+      //await this.uploadTransactions();
 
       //var materiales = await this.storage.get('Materiales');
       //if (!materiales) {
@@ -48,8 +66,8 @@ export class SynchronizationService {
 
   async refresh() {
     try {
-      this.uploadMasterData();
-      this.uploadTransactions();
+      //this.uploadMasterData();
+      //this.uploadTransactions();
       this.downloadMasterData();
       this.downloadTransactions();
     } catch (error){
@@ -79,7 +97,6 @@ export class SynchronizationService {
 
       var tratamientos: Tratamiento[] = await this.masterdataService.getTratamientos();
       await this.storage.set('Tratamientos', tratamientos);
-      console.log(tratamientos);
 
       var vehiculos: Vehiculo[] = await this.masterdataService.getVehiculos();
       await this.storage.set('Vehiculos', vehiculos);
@@ -166,27 +183,23 @@ export class SynchronizationService {
 
     try {
       if (actividades) {
-        actividades.forEach(async(actividad) => {
-          actividad.Tareas.filter((tarea) => tarea.CRUD != null).forEach(async (tarea) => {
-            if (tarea.CRUD == CRUDOperacion.Create) {
+        for (const actividad of actividades) {
+          for (const tarea of actividad.Tareas.filter((tarea) => tarea.CRUD != null)) {
+            if (tarea.CRUD === CRUDOperacion.Create) {
               if (await this.transactionsService.postTarea(tarea)) {
+                tarea.CRUD = null;
+                tarea.CRUDDate = null;
                 await this.transactionsService.uploadFotosTarea(tarea);
               }
             } else {
-              if (await (this.transactionsService.patchTarea(tarea))){
+              if (await this.transactionsService.patchTarea(tarea)) {
+                tarea.CRUD = null;
+                tarea.CRUDDate = null;
                 await this.transactionsService.uploadFotosTarea(tarea);
               }
             }
-          });
-        });
-
-        actividades.forEach(async(actividad) => {
-          actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null).forEach(async (transaccion) => {
-            if (transaccion.CRUD == CRUDOperacion.Create) {
-            } else {
-            }
-          });
-        });
+          }
+        }
       }
       this.storage.set('Actividades', actividades);
     } catch (error) {

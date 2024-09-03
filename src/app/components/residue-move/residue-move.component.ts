@@ -24,8 +24,10 @@ export class ResidueMoveComponent  implements OnInit {
   vehicleId: string = '';
   residue: Residuo | undefined = undefined;
   material: Material | undefined = undefined;
-  cuenta: Cuenta | undefined = undefined;
   mode: string = '';
+  unidadCantidad: string = 'un';
+  unidadPeso: string = 'kg';
+  unidadVolumen: string = 'lt';
 
   constructor(
     private navParams: NavParams,
@@ -38,10 +40,13 @@ export class ResidueMoveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.cuenta = await this.globales.getCuenta();
     this.residue = await this.inventarioService.getResiduo(this.residueId);
 
     if (!this.residue) return;
+
+    this.unidadCantidad = this.globales.unidadCantidad;
+    this.unidadPeso = this.globales.unidadPeso;
+    this.unidadVolumen = this.globales.unidadPeso;
 
     this.material = await this.materialesService.get(this.residue.IdMaterial);
   }

@@ -1,9 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { IonModal, ModalController, NavController } from '@ionic/angular';
+import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
-import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
-import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
+import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { Estado } from 'src/app/services/constants.service';
@@ -17,14 +17,11 @@ import { TransaccionesService } from 'src/app/services/transacciones.service';
 })
 export class TransaccionesPage implements OnInit {
   transacciones: Transaccion[] = [];
-  idServicio?: string = '';
+  actividad: Actividad | undefined;
   idActividad: string = '';
-  titulo: string = '';
   proceso: string = '';
-  icono: string = '';
   currentLocation: any;
   coordinates: string = '';
-  idEstado: string = 'P';
   showAdd: boolean = true;
   @ViewChild(IonModal) modal!: IonModal;
 
@@ -42,14 +39,12 @@ export class TransaccionesPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    const actividad = await this.actividadesService.get(this.idActividad);
-    if (actividad){
-      this.titulo = actividad.Titulo;
-      this.idServicio = actividad.IdServicio;
-      this.idEstado = actividad .IdEstado;
-      this.proceso = await this.globales.getNombreServicio(actividad.IdServicio);
-      this.icono = this.globales.servicios.find((p) => p.IdServicio == actividad.IdServicio)?.Icono!;
-      this.showAdd = actividad.IdEstado == Estado.Pendiente;
+    this.actividad = await this.actividadesService.get(this.idActividad);
+
+    if (this.actividad) {
+      this.proceso = await this.globales.getNombreServicio(this.actividad.IdServicio);
+      this.actividad.Icono = this.globales.servicios.find((servicio) => this.actividad?.IdServicio == servicio.IdServicio)?.Icono ||'';
+      this.showAdd = this.actividad.IdEstado == Estado.Pendiente;
     }
   }
 
@@ -97,47 +92,6 @@ export class TransaccionesPage implements OnInit {
     this.navCtrl.navigateForward('/ruta', navigationExtras);
   }
 
-  async openApprove(id: string){
-    const modal =   await this.modalCtrl.create({
-      component: TransactionApproveComponent,
-      componentProps: {
-        title: `Finalizar ${this.proceso} ${this.titulo}`,
-        ActivityId: this.idActividad,
-        TransactionId: id,
-      },
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data != null)
-    {
-      const card = this.transacciones.find((tarea) => tarea.IdTransaccion == id);
-      if (card)
-        card.IdEstado = Estado.Aprobado;
-    }
-  }
-
-  async openReject(id: string){
-    const modal =   await this.modalCtrl.create({
-      component: TransactionRejectComponent,
-      componentProps: {
-        title: `Rechazar ${this.proceso} ${this.titulo}`,
-        ActivityId: this.idActividad,
-        TransactionId: id,
-      },
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data != null)
-    {
-      const card = this.transacciones.find((transaccion) => transaccion.IdTransaccion == id);
-      if (card)
-        card.IdEstado = Estado.Rechazado;
-    }
-  }
 
   async openAddTarea() {
     const origen: string = 'Transacciones';
@@ -159,13 +113,36 @@ export class TransaccionesPage implements OnInit {
           if (newTransaccion)
               this.transacciones.push(newTransaccion);
       } else {
-        const cuenta = await this.globales.getCuenta();
         transaccion.Cantidad += data.Cantidad;
         transaccion.Peso += data.Peso;
         transaccion.Volumen += data.Volumen;
         transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
-        transaccion.Cantidades = this.globales.getResumen(null,null, transaccion.Cantidad ?? 0, cuenta.UnidadCantidad, transaccion.Peso ?? 0, cuenta.UnidadPeso, transaccion.Volumen ?? 0, cuenta.UnidadVolumen);
+        transaccion.Cantidades = await this.globales.getResumenCantidadesTarea(transaccion.Cantidad ?? 0, transaccion.Peso ?? 0, transaccion.Volumen ?? 0);
       }
+    }
+  }
+
+  async openApproveActividad() {
+    const actividad = await this.actividadesService.get(this.idActividad);
+
+    if (actividad == null) return;
+
+    const modal =   await this.modalCtrl.create({
+      component: ActivityApproveComponent,
+      componentProps: {
+        ActivityId: this.idActividad,
+        Title: actividad.Titulo
+      },
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onDidDismiss();
+    if (data != null)
+    {
+      //const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
+      //if (card)
+      //  card.IdEstado = Estado.Aprobado;
     }
   }
 }

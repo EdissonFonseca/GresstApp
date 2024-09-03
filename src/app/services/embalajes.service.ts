@@ -32,14 +32,14 @@ export class EmbalajesService {
 
   async create(embalaje: Embalaje): Promise<boolean> {
     try{
-      const posted = await this.masterdataService.postEmbalaje(embalaje);
-      if (!posted) {
-        embalaje.CRUD = CRUDOperacion.Create;
-        embalaje.CRUDDate = new Date();
-      }
-    } catch {
       embalaje.CRUD = CRUDOperacion.Create;
       embalaje.CRUDDate = new Date();
+      const posted = await this.masterdataService.postEmbalaje(embalaje);
+      if (posted) {
+        embalaje.CRUD = null;
+        embalaje.CRUDDate = null;
+      }
+    } catch {
     }
     finally
     {

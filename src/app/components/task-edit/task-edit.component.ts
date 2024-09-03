@@ -1,28 +1,28 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { SafeResourceUrl } from '@angular/platform-browser';
-import { ModalController, NavParams } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
-import { PackagesComponent } from '../packages/packages.component';
-import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
-import { TreatmentsComponent } from '../treatments/treatments.component';
-import { Tarea } from 'src/app/interfaces/tarea.interface';
+import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { TareasService } from 'src/app/services/tareas.service';
-import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { Globales } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 import { MaterialesService } from 'src/app/services/materiales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
+import { TareasService } from 'src/app/services/tareas.service';
 import { TercerosService } from 'src/app/services/terceros.service';
+import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { PackagesComponent } from '../packages/packages.component';
+import { TreatmentsComponent } from '../treatments/treatments.component';
 
 @Component({
-  selector: 'app-task-approve',
-  templateUrl: './task-approve.component.html',
-  styleUrls: ['./task-approve.component.scss'],
+  selector: 'app-task-edit',
+  templateUrl: './task-edit.component.html',
+  styleUrls: ['./task-edit.component.scss'],
 })
-export class TaskApproveComponent  implements OnInit {
+export class TaskEditComponent  implements OnInit {
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
@@ -107,6 +107,7 @@ export class TaskApproveComponent  implements OnInit {
         this.medicion = materialItem.TipoMedicion;
         this.captura = materialItem.TipoCaptura;
       }
+
       if (this.task.IdDeposito) {
         const puntoItem = await this.puntosService.get(this.task.IdDeposito);
         this.point = puntoItem?.Nombre ?? '';
@@ -195,14 +196,11 @@ export class TaskApproveComponent  implements OnInit {
     let tarea: Tarea | undefined;
     const data = this.frmTarea.value;
     const actividad = await this.actividadesService.get(this.activityId);
-    const cuenta = await this.globales.getCuenta();
 
     if (!actividad) return;
 
     tarea = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (tarea) { //Si hay tarea
-      tarea.CRUD = CRUDOperacion.Update;
-      tarea.CRUDDate = now;
       tarea.Cantidad = data.Cantidad;
       tarea.CantidadEmbalaje = data.CantidadEmbalaje;
       tarea.FechaEjecucion = isoDate;
@@ -211,7 +209,7 @@ export class TaskApproveComponent  implements OnInit {
       tarea.Observaciones = data.Observaciones;
       tarea.Peso = data.Peso;
       tarea.Volumen = data.Volumen;
-      tarea.Cantidades = this.globales.getResumen(null, null, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso ?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
+      tarea.Cantidades = await this.globales.getResumenCantidadesTarea(tarea.Cantidad ?? 0, tarea.Peso ?? 0, tarea.Volumen ?? 0);
       tarea.Valor = data.Valor;
       tarea.Fotos = this.fotos;
       this.tareasService.update(this.activityId, this.transactionId, tarea);
@@ -280,7 +278,6 @@ export class TaskApproveComponent  implements OnInit {
             IdTarea: this.globales.newId(),
             IdMaterial: this.materialId,
             IdResiduo: residuo.IdResiduo,
-            CRUD: CRUDOperacion.Create,
             IdTransaccion: this.transactionId,
             Cantidad: data.Cantidad,
             Peso: data.Peso,
@@ -294,7 +291,7 @@ export class TaskApproveComponent  implements OnInit {
             EntradaSalida: EntradaSalida.Entrada,
             IdEstado: Estado.Aprobado,
             Fotos: this.fotos,
-            Cantidades: this.globales.getResumen(null, null, data.Cantidad ?? 0, cuenta.UnidadCantidad, data.Peso ?? 0, cuenta.UnidadPeso, data.Volumen ?? 0, cuenta.UnidadVolumen),
+            Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
           };
           await this.tareasService.create(this.activityId, tarea);
         } else { //No hay tarea -> Salida
@@ -304,7 +301,6 @@ export class TaskApproveComponent  implements OnInit {
               IdTarea: this.globales.newId(),
               IdMaterial: this.materialId,
               IdResiduo: residuo.IdResiduo,
-              CRUD: CRUDOperacion.Create,
               IdTransaccion: this.transactionId,
               Cantidad: data.Cantidad,
               FechaSistema: isoDate,
@@ -330,7 +326,22 @@ export class TaskApproveComponent  implements OnInit {
     this.modalCtrl.dismiss(tarea);
   }
 
-  /**
+  async reject() {
+    const now = new Date();
+    const isoDate = now.toISOString();
+
+    const data = this.frmTarea.value;
+    const tarea = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
+    if (tarea)
+    {
+      tarea.Observaciones = data.Observaciones;
+      tarea.IdEstado = Estado.Rechazado;
+      tarea.FechaEjecucion = isoDate;
+      this.tareasService.update(this.activityId, this.transactionId, tarea);
+    }
+    this.modalCtrl.dismiss(tarea);
+  }
+    /**
    * Retornar a la página inicial
    */
   cancel() {
@@ -378,7 +389,7 @@ export class TaskApproveComponent  implements OnInit {
   async takePhoto() {
     const image = await Camera.getPhoto({
       quality: 90,
-      allowEditing: true,
+      allowEditing: false,
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
     });
@@ -388,5 +399,4 @@ export class TaskApproveComponent  implements OnInit {
 
   toggleShowDetails() {
     this.showDetails = !this.showDetails;
-  }
-}
+  }}

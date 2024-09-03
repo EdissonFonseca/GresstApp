@@ -30,15 +30,15 @@
       </ion-item>
       <ion-item lines="none" color="light" *ngIf="material?.TipoMedicion == 'C'">
         <ion-icon name="calculator-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ residue?.Cantidad }} {{ cuenta?.UnidadCantidad }}</ion-label>
+        <ion-label size="small">{{ residue?.Cantidad }} {{ unidadCantidad }}</ion-label>
       </ion-item>
       <ion-item lines="none" color="light" *ngIf="material?.TipoMedicion == 'P'">
         <ion-icon name="calculator-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ residue?.Peso }} {{ cuenta?.UnidadPeso }}</ion-label>
+        <ion-label size="small">{{ residue?.Peso }} {{ unidadPeso }}</ion-label>
       </ion-item>
       <ion-item lines="none" color="light" *ngIf="material?.TipoMedicion == 'V'">
         <ion-icon name="calculator-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ residue?.Volumen }} {{ cuenta?.UnidadVolumen }}</ion-label>
+        <ion-label size="small">{{ residue?.Volumen }} {{ unidadVolumen }}</ion-label>
       </ion-item>
     </ion-list>
     <ion-item-divider>Mover</ion-item-divider>

@@ -41,8 +41,7 @@ export class TransactionsService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201) { //Created
-        var residuoCreado = response.data;
-        return true;
+        return response.data;
       } else {
         throw false;
       }

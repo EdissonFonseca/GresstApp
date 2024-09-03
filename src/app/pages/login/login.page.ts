@@ -40,7 +40,7 @@ export class LoginPage implements OnInit {
         if (token) {
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
-          await this.storage.set('Token', token);
+          this.globales.token = token;
 
           await this.synchronizationService.reload();
 

@@ -6,10 +6,4 @@ export interface Cuenta {
   IdPersona: string;
   Nombre: string;
   NombreUsuario: string;
-  UnidadCantidad: string;
-  UnidadPeso: string;
-  UnidadVolumen: string;
-  MostrarIntroduccion:  boolean;
-
-  Permisos:  {[key: string]: string | null;};
 }

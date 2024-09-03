@@ -20,14 +20,18 @@ export class SincronizacionPage implements OnInit {
   }
 
   async synchronize() {
-    this.globales.showLoading('Conectando ...');
+    try {
+      await this.globales.showLoading('Conectando ...');
 
-    await this.synchronizationService.refresh();
+      await this.synchronizationService.refresh();
 
-    this.globales.hideLoading();
-    this.globales.presentToast('Datos sincronizada', 'middle');
+      await this.globales.hideLoading();
+      await this.globales.presentToast('Datos sincronizada', 'middle');
 
-    this.navCtrl.navigateRoot('/home');
+      this.navCtrl.navigateRoot('/home');
+    } catch (error) {
+      await this.globales.presentToast('Error sincronizando', 'middle');
+    }
   }
 
   async cancel() {

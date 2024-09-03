@@ -4,73 +4,51 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
     <ion-icon slot="start" size="large" src="imagenActividad" [color]="getColorEstado(idEstadoActividad)"></ion-icon>
-    <ion-title>{{titulo}} - Residuos</ion-title>
+    <ion-title>{{ actividad }}</ion-title>
   </ion-toolbar>
-  <ion-item lines="none">
-    <ion-avatar slot="start">
-      <ion-icon size="large" [name]="imagenActividad" [color]="getColorEstado(idEstadoActividad)"></ion-icon>
-    </ion-avatar>
-    {{ actividad }}
-  </ion-item>
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 <ion-content [fullscreen]="true" color="light">
   <ion-item-group *ngFor="let transaccion of transacciones">
-    <ion-item lines="none"  color="medium">
+    <ion-item lines="none"  color="light">
       <ion-icon slot="start" size="large" [name]="transaccion.Icono" [color]="getColorEstado(transaccion.IdEstado)"></ion-icon>
       {{ transaccion.Titulo }}
-      <ion-chip slot="end"  *ngIf="transaccion.Cantidades != ''">
-        <ion-badge size="small" color="light" > {{ transaccion.Cantidades }} </ion-badge>
-      </ion-chip>
-    </ion-item>
-    <ion-item lines="none" color="light" >
-      <ion-chip slot="start">
-        <ion-icon name="trash-bin"></ion-icon>
-        <ion-badge color="success"> {{ transaccion.ItemsAprobados }} </ion-badge>
-        <ion-badge color="warning"> {{ transaccion.ItemsPendientes }} </ion-badge>
-        <ion-badge color="danger"> {{ transaccion.ItemsRechazados }} </ion-badge>
-      </ion-chip>
       <ion-buttons slot="end">
-        <ion-button fill="clear" color="primary" size="large" (click)="openApproveTransaccion(transaccion.IdTransaccion)" *ngIf="mode == 'A' && transaccion.IdEstado=='P' && transaccion.ItemsPendientes != 0">
+        <ion-button fill="solid" shape="round" color="success" size="large" (click)="openApproveTransaccion(transaccion.IdTransaccion)" *ngIf="transaccion.IdEstado=='P' && transaccion.ItemsAprobados != 0">
           <ion-icon name="checkmark"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" color="danger" size="large" (click)="openRejectTransaccion(transaccion.IdTransaccion)" *ngIf="mode == 'A' && transaccion.IdEstado=='P' && transaccion.ItemsAprobados == 0">
+        <ion-button fill="solid" shape="round" color="danger" size="large" (click)="openRejectTransaccion(transaccion.IdTransaccion)" *ngIf="transaccion.IdEstado=='P' && transaccion.ItemsAprobados == 0">
           <ion-icon name="close"></ion-icon>
         </ion-button>
       </ion-buttons>
     </ion-item>
+    <ion-item lines="none" color="light" >
+        <ion-icon name="trash-bin-outline" size="small" color="medium"></ion-icon>
+        <ion-badge color="success"> {{ transaccion.ItemsAprobados }} </ion-badge>
+        <ion-badge color="warning"> {{ transaccion.ItemsPendientes }} </ion-badge>
+        <ion-badge color="danger"> {{ transaccion.ItemsRechazados }} </ion-badge>
+        <ion-badge slot="end" size="small" color="light" *ngIf="transaccion.Cantidades != ''"> {{ transaccion.Cantidades }} </ion-badge>
+    </ion-item>
     <ion-list *ngFor="let tarea of filterTareas(transaccion.IdTransaccion)" inset="true" >
-      <ion-item lines="none" (click)="openApproveTarea(transaccion.IdTransaccion, tarea.IdTarea)">
-        <ion-icon slot="start" size="large" name="trash-bin" [color]="getColorEstado(tarea.IdEstado)"></ion-icon>
+      <ion-item lines="none" (click)="openEditTarea(transaccion.IdTransaccion, tarea.IdTarea)">
+        <ion-icon slot="start" size="small" name="trash-bin-outline" [color]="getColorEstado(tarea.IdEstado)"></ion-icon>
         {{tarea.Material}}
         <ion-note slot="start" *ngIf="tarea.Solicitud">
           {{ tarea.Solicitud }}
         </ion-note>
       </ion-item>
-      <ion-item lines="none" *ngIf="tarea.IdEstado=='P'" >
-        <ion-chip slot="start" (click)="openApproveTarea(transaccion.IdTransaccion, tarea.IdTarea)">
+      <ion-item lines="none" (click)="openEditTarea(transaccion.IdTransaccion, tarea.IdTarea)">
+        <ion-chip slot="start" *ngIf="tarea.IdEstado=='P'" >
           <ion-label>{{tarea.Accion}}</ion-label>
         </ion-chip>
-      </ion-item>
-      <ion-item >
-        <ion-label slot="start" *ngIf="tarea.Cantidades">
-          <ion-badge size="small" color="light" > {{ tarea.Cantidades }} </ion-badge>
-        </ion-label>
-        <ion-buttons slot="end">
-          <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'P' || tarea.IdEstado == 'I'" (click)="openApproveTarea(transaccion.IdTransaccion, tarea.IdTarea)">
-            <ion-icon name="checkmark"></ion-icon>
-          </ion-button>
-          <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'P'" (click)="openRejectTarea(transaccion.IdTransaccion, tarea.IdTarea)">
-            <ion-icon name="close"></ion-icon>
-          </ion-button>
-          </ion-buttons>
+        <ion-badge slot="end" *ngIf="tarea.Cantidades" size="small" color="light" > {{ tarea.Cantidades }} </ion-badge>
       </ion-item>
     </ion-list>
   </ion-item-group>
   <ion-list *ngFor="let tarea of filterTareas('')" inset="true">
-    <ion-item lines="none" (click)="openApproveTarea('', tarea.IdTarea)">
+    <ion-item lines="none" (click)="openEditTarea('', tarea.IdTarea)">
       <ion-icon slot="start" size="large" name="trash-bin" [color]="getColorEstado(tarea.IdEstado)"></ion-icon>
       {{tarea.Material}}
     </ion-item>
@@ -78,20 +56,12 @@
       {{ tarea.Solicitud }}
   </ion-item>
     <ion-item lines="none">
-      <ion-chip slot="start" (click)="openApproveTarea('', tarea.IdTarea)">
+      <ion-chip slot="start" (click)="openEditTarea('', tarea.IdTarea)">
         <ion-label>{{tarea.Accion}}</ion-label>
       </ion-chip>
       <ion-chip *ngIf="tarea.Cantidades">
         <ion-badge size="small" color="light" > {{ tarea.Cantidades }} </ion-badge>
       </ion-chip>
-      <ion-buttons slot="end">
-        <ion-button fill="clear" color="primary" size="large" *ngIf="tarea.IdEstado == 'P' || tarea.IdEstado == 'I'" (click)="openApproveTarea('', tarea.IdTarea)">
-          <ion-icon name="checkmark"></ion-icon>
-        </ion-button>
-        <ion-button fill="clear" color="danger" size="large" *ngIf="tarea.IdEstado == 'P'" (click)="openRejectTarea('', tarea.IdTarea)">
-          <ion-icon name="close"></ion-icon>
-        </ion-button>
-      </ion-buttons>
     </ion-item>
   </ion-list>
 

@@ -3,7 +3,7 @@ import { StorageService } from './storage.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { Cuenta } from '../interfaces/cuenta.interface';
-import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
 import { Globales } from './globales.service';
 import { InventarioService } from './inventario.service';
 import { SynchronizationService } from './synchronization.service';
@@ -70,7 +70,6 @@ export class TareasService {
     const now = new Date();
     const isoDate = now.toISOString();
     const actividades: Actividad[] = await this.storage.get('Actividades');
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
 
     const materiales = await this.materialesService.list();
@@ -85,7 +84,7 @@ export class TareasService {
         tareas = actividad.Tareas;
 
       if (tareas.length > 0){
-        tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo)?.forEach((tarea) => {
+        tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo)?.forEach(async (tarea) => {
           tarea.IdServicio = actividad.IdServicio;
           const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
           let resumen: string = '';
@@ -118,7 +117,7 @@ export class TareasService {
                 validarInventario = true;
                 break;
             }
-            resumen = this.globales.getResumen(material.TipoMedicion, material.TipoCaptura, tarea.Cantidad ?? 0, cuenta.UnidadCantidad, tarea.Peso?? 0, cuenta.UnidadPeso, tarea.Volumen ?? 0, cuenta.UnidadVolumen);
+            resumen = await this.globales.getResumenCantidadesResiduo(material.TipoMedicion, material.TipoCaptura, tarea.Cantidad ?? 0, tarea.Peso?? 0, tarea.Volumen ?? 0);
             switch(tarea.IdServicio){
               case TipoServicio.Almacenamiento:
                 accion = 'Almacenar';
@@ -250,9 +249,12 @@ export class TareasService {
   }
 
   async create(idActividad: string, tarea: Tarea) {
+    const now = new Date();
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad = actividades.find(x => x.IdActividad == idActividad);
     if (actividad){
+      tarea.CRUD = CRUDOperacion.Create;
+      tarea.CRUDDate = now;
       actividad.Tareas.push(tarea);
       await this.storage.set('Actividades', actividades);
       await this.synchronizationService.uploadTransactions();
@@ -260,6 +262,7 @@ export class TareasService {
   }
 
   async update(idActividad: string, idTransaccion: string, tarea: Tarea) {
+    const now = new Date();
     let tareaUpdate: Tarea | undefined = undefined;
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
@@ -271,6 +274,8 @@ export class TareasService {
         tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
       if (tareaUpdate)
       {
+        tareaUpdate.CRUD = CRUDOperacion.Update;
+        tareaUpdate.CRUDDate = now;
         tareaUpdate.Cantidad = tarea.Cantidad;
         tareaUpdate.CantidadEmbalaje = tarea.CantidadEmbalaje;
         tareaUpdate.IdEmbalaje = tarea.IdEmbalaje;

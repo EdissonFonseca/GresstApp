@@ -42,21 +42,16 @@
         <ion-note slot="start">{{unidadVolumen}}</ion-note>
         <ion-input slot="end" type="number" labelPlacement="fixed" inputmode="numeric" formControlName="Volumen" [readonly]="captura != 'V'"></ion-input>
       </ion-item>
-      <ion-item detail="true" (click)="toggleShowDetalles()">Otros detalles</ion-item>
-      <ion-item *ngIf="showDetalles && solicitarEmbalaje">
+      <ion-item *ngIf="solicitarEmbalaje">
         <ion-note slot="start">Embalaje</ion-note>
         <ion-label>{{ embalaje }}</ion-label>
         <ion-button color="light" (click)="selectEmbalaje()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="showDetalles && solicitarEmbalaje">
+      <ion-item *ngIf="solicitarEmbalaje">
         <ion-note slot="start">Cant Emb</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje"></ion-input>
       </ion-item>
-      <ion-item *ngIf="showDetalles">
-        <ion-note slot="start">Precio</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Precio"></ion-input>
-      </ion-item>
-      <ion-item *ngIf="showDetalles">
+      <ion-item>
         <ion-note slot="start">Notas</ion-note>
         <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>

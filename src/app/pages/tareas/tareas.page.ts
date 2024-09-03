@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
-import { TaskApproveComponent } from 'src/app/components/task-approve/task-approve.component';
-import { TaskRejectComponent } from 'src/app/components/task-reject/task-reject.component';
 import { Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
@@ -13,6 +11,7 @@ import { TransactionRejectComponent } from 'src/app/components/transaction-rejec
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { TareasService } from 'src/app/services/tareas.service';
+import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.component';
 
 @Component({
   selector: 'app-tareas',
@@ -112,21 +111,24 @@ export class TareasPage implements OnInit {
     }
   }
 
-  async updateTransaccion(tarea: Tarea){
-    const cuenta = await this.globales.getCuenta();
-
+  async updateTransaccion(tarea: Tarea, esNuevo: boolean){
     const transaccion = this.transacciones.find(x => x.IdTransaccion == tarea.IdTransaccion);
     if (transaccion){
       switch(tarea.IdEstado){
         case Estado.Aprobado:
+          transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
+          transaccion.Peso = (transaccion.Peso ?? 0) + (tarea.Peso ?? 0);
+          transaccion.Volumen = (transaccion.Cantidad ?? 0) + (tarea.Volumen ?? 0);
           transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
-          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
+          if (!esNuevo)
+            transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
           break;
         case Estado.Rechazado:
-          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
           transaccion.ItemsRechazados = (transaccion.ItemsRechazados ?? 0) + 1;
+          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
           break;
       }
+      transaccion.Cantidades = await this.globales.getResumenCantidadesTarea(transaccion.Cantidad ?? 0, transaccion.Peso ?? 0, transaccion.Volumen ?? 0);
     }
   }
 
@@ -150,40 +152,32 @@ export class TareasPage implements OnInit {
           if (transaccionGlobal) {
             this.transacciones.push(transaccionGlobal);
           }
-        } else {
-          transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
         }
       }
-      const tarea = this.tareas.find((tarea) => tarea.IdMaterial == data.IdMaterial);
-      if (tarea) {
-        const cuenta = await this.globales.getCuenta();
-        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
-        tarea.IdEstado = Estado.Aprobado;
-      } else {
-        this.tareas.push(data);
-      }
+      this.tareas.push(data);
+      this.updateTransaccion(data, true);
     }
   }
 
-  /**
+   /**
    * Abre popup para aprobar tarea. El componente modifica la tarea con el estado y retorna los datos a esta pagina
    * @param idTransaccion
    * @param idTarea
    */
-  async openApproveTarea(idTransaccion: string, idTarea: string) {
-    const tarea = this.tareas.find(x => x.IdTarea == idTarea);
-    if (!tarea) return;
-    if (tarea.IdEstado != Estado.Pendiente && tarea.IdEstado != Estado.Inactivo) return;
+   async openEditTarea(idTransaccion: string, idTarea: string) {
+    const card = this.tareas.find(x => x.IdTarea == idTarea);
+    if (!card) return;
+    if (card.IdEstado != Estado.Pendiente && card.IdEstado != Estado.Inactivo) return;
 
     const modal =   await this.modalCtrl.create({
-      component: TaskApproveComponent,
+      component: TaskEditComponent,
       componentProps: {
         ActivityId: this.idActividad,
         TransactionId: idTransaccion,
         TaskId: idTarea,
-        MaterialId: tarea.IdMaterial,
-        ResidueId: tarea.IdResiduo,
-        InputOutput: tarea.EntradaSalida
+        MaterialId: card.IdMaterial,
+        ResidueId: card.IdResiduo,
+        InputOutput: card.EntradaSalida
       },
     });
 
@@ -192,39 +186,10 @@ export class TareasPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data)
     {
-      const tarea = this.tareas.find((tarea) => tarea.IdMaterial == data.IdMaterial);
-      if (tarea)
-      {
-        const cuenta = await this.globales.getCuenta();
-        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
-        tarea.IdEstado = Estado.Aprobado;
-        this.updateTransaccion(data);
-      }
+      card.IdEstado = data.IdEstado;
+      card.Cantidades = await this.globales.getResumenCantidadesTarea(data.Cantidad, data.Peso, data.Volumen);
     }
-  }
-
-  async openRejectTarea(idTransaccion: string, idTarea: string) {
-    const modal =   await this.modalCtrl.create({
-      component: TaskRejectComponent,
-      componentProps: {
-        ActivityId: this.idActividad,
-        TransactionId: idTransaccion,
-        TaskId: idTarea,
-      },
-    });
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data != null)
-    {
-      const tarea = this.tareas.find((material) => material.IdMaterial == data.IdMaterial);
-      if (tarea) {
-        const cuenta = await this.globales.getCuenta();
-        tarea.Cantidades = this.globales.getResumen(null, null, data.Cantidad, cuenta.UnidadCantidad, data.Peso, cuenta.UnidadPeso, data.Volumen, cuenta.UnidadVolumen);
-        tarea.IdEstado = Estado.Rechazado;
-        this.updateTransaccion(data);
-      }
-    }
+    this.updateTransaccion(data, false);
   }
 
   async openApproveTransaccion(id: string){

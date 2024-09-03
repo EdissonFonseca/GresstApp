@@ -2,8 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
-import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
-import { ActivityRejectComponent } from 'src/app/components/activity-reject/activity-reject.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado, Permisos, TipoServicio } from 'src/app/services/constants.service';
@@ -93,53 +91,6 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
 
     this.actividades = await this.actividadesService.list();
-  }
-
-  async openApprove(idActividad: string){
-    const actividad = await this.actividadesService.get(idActividad);
-
-    if (actividad == null) return;
-
-    const modal =   await this.modalCtrl.create({
-      component: ActivityApproveComponent,
-      componentProps: {
-        ActivityId: idActividad,
-        Title: actividad.Titulo
-      },
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data != null)
-    {
-      const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
-      if (card)
-        card.IdEstado = Estado.Aprobado;
-    }
-  }
-
-  async openReject(idActividad: string){
-    const modal =   await this.modalCtrl.create({
-      component: ActivityRejectComponent,
-      componentProps: {
-        //title: `Rechazar ${this.proceso} ${this.titulo}`
-      },
-    });
-
-    await modal.present();
-
-    const { data } = await modal.onDidDismiss();
-    if (data != null)
-    {
-      const actividad = await this.actividadesService.get(idActividad);
-      if (actividad)
-      {
-        const card = this.actividades.find((actividad) => actividad.IdActividad == idActividad);
-        if (card)
-          card.IdEstado = Estado.Rechazado;
-      }
-    }
   }
 
   getColorEstado(idEstado: string): string {

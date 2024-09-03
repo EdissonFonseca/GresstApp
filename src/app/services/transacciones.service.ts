@@ -5,11 +5,11 @@ import { Actividad } from '../interfaces/actividad.interface';
 import { TareasService } from './tareas.service';
 import { Cuenta } from '../interfaces/cuenta.interface';
 import { Tarea } from '../interfaces/tarea.interface';
-import { EntradaSalida, Estado } from './constants.service';
+import { CRUDOperacion, EntradaSalida, Estado } from './constants.service';
 import { Globales } from './globales.service';
 import { PuntosService } from './puntos.service';
 import { TercerosService } from './terceros.service';
-import { TransactionsService } from './transactions.service';
+import { SynchronizationService } from './synchronization.service';
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +20,7 @@ export class TransaccionesService {
     private tareasService: TareasService,
     private puntosService: PuntosService,
     private tercerosService: TercerosService,
-    private TransactionsService: TransactionsService,
+    private synchronizationService: SynchronizationService,
     private globales: Globales
   ) {}
 
@@ -35,60 +35,15 @@ export class TransaccionesService {
     const puntos = await this.puntosService.list();
     const terceros = await this.tercerosService.list();
     const tareas: Tarea[] = await this.tareasService.list(idActividad);
-    let cantidad: number;
-    let peso: number;
-    let volumen: number;
-    let aprobados: number;
-    let pendientes: number;
-    let rechazados: number;
-    let resumen: string;
 
     transacciones.forEach(transaccion => {
-      aprobados = pendientes = rechazados = peso = cantidad = volumen = 0;
       operacion = transaccion.EntradaSalida;
-      resumen = '';
       if (tareas)
       {
-        const tareas2 = tareas.filter((x) => x.IdTransaccion == transaccion.IdTransaccion);
-        aprobados = tareas2.reduce((contador, tarea) => {
-          if (tarea.IdEstado == Estado.Aprobado)
-            return contador + 1;
-          else
-            return contador;
-        }, 0);
-        pendientes = tareas2.reduce((contador, tarea) => {
-          if (tarea.IdEstado == Estado.Pendiente)
-            return contador + 1;
-          else
-            return contador;
-        }, 0);
-        rechazados = tareas2.reduce((contador, tarea) => {
-          if (tarea.IdEstado == Estado.Rechazado)
-            return contador + 1;
-          else
-            return contador;
-        }, 0);
-        cantidad = tareas2.reduce((cantidad, tarea) => {
-          if (tarea.IdEstado == Estado.Aprobado)
-            return cantidad + (tarea.Cantidad ?? 0);
-          else
-            return cantidad;
-        }, 0);
-        peso = tareas2.reduce((peso, tarea) => {
-          if (tarea.IdEstado == Estado.Aprobado)
-            return peso + (tarea.Peso ?? 0);
-          else
-            return peso;
-        }, 0);
-        volumen = tareas2.reduce((volumen, tarea) => {
-          if (tarea.IdEstado == Estado.Aprobado)
-            return volumen + (tarea.Volumen ?? 0);
-          else
-            return volumen;
-        }, 0);
+        const tareas2 = tareas.filter((x) => x.IdTransaccion === transaccion.IdTransaccion);
         if (transaccion.IdDeposito != null)
         {
-          transaccion.Icono = 'location';
+          transaccion.Icono = 'location-outline';
           const punto = puntos.find(x => x.IdDeposito == transaccion.IdDeposito);
           if (punto) {
             transaccion.Punto = punto.Nombre;
@@ -112,53 +67,23 @@ export class TransaccionesService {
               operacion = EntradaSalida.Entrada;
             else if (transaccion.EntradaSalida == EntradaSalida.Salida)
               operacion = EntradaSalida.Salida;
-
-            if (cantidad > 0){
-              resumen += `${cantidad} ${cuenta.UnidadCantidad}`;
-            }
-            if (peso > 0){
-              if (resumen != '')
-                resumen += `/${peso} ${cuenta.UnidadPeso}`;
-              else
-                resumen = `${peso} ${cuenta.UnidadPeso}`;
-            }
-            if (volumen > 0){
-              if (resumen != '')
-                resumen += `/${volumen} ${cuenta.UnidadVolumen}`;
-              else
-                resumen = `${volumen} ${cuenta.UnidadVolumen}`;
-            }
         }
       } else if (transaccion && transaccion.IdTercero != null) {
         const tercero = terceros.find(x => x.IdPersona == transaccion.IdTercero);
         if (tercero) {
           transaccion.Tercero = tercero.Nombre;
           transaccion.Icono = 'person';
-          if (cantidad > 0){
-            resumen += `${cantidad} ${cuenta.UnidadCantidad}`;
-          }
-          if (peso > 0){
-            if (resumen != '')
-              resumen += `/${peso} ${cuenta.UnidadPeso}`;
-            else
-              resumen = `${peso} ${cuenta.UnidadPeso}`;
-          }
-          if (volumen > 0){
-            if (resumen != '')
-              resumen += `/${volumen} ${cuenta.UnidadVolumen}`;
-            else
-              resumen = `${volumen} ${cuenta.UnidadVolumen}`;
-          }
         }
       }
+      const resumen = this.globales.getResumen(tareas2);
       transaccion.Accion = this.globales.getAccionEntradaSalida(operacion ?? '');
-      transaccion.Cantidad = cantidad;
-      transaccion.Peso = peso;
-      transaccion.Volumen = volumen;
-      transaccion.ItemsAprobados = aprobados;
-      transaccion.ItemsPendientes = pendientes;
-      transaccion.ItemsRechazados = rechazados;
-      transaccion.Cantidades = resumen;
+      transaccion.Cantidad = resumen.cantidad;
+      transaccion.Peso = resumen.peso;
+      transaccion.Volumen = resumen.volumen;
+      transaccion.ItemsAprobados = resumen.aprobados;
+      transaccion.ItemsPendientes = resumen.pendientes;
+      transaccion.ItemsRechazados = resumen.rechazados;
+      transaccion.Cantidades = resumen.resumen;
       transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
@@ -170,8 +95,19 @@ export class TransaccionesService {
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     let transaccion: Transaccion | undefined;
 
-    if (actividad)
+    if (actividad){
       transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion)!;
+      const tareas = actividad.Tareas.filter(x => x.IdTransaccion == idTransaccion);
+      const resumen = this.globales.getResumen(tareas);
+      transaccion.Cantidad = resumen.cantidad;
+      transaccion.Peso = resumen.peso;
+      transaccion.Volumen = resumen.volumen;
+      transaccion.ItemsAprobados = resumen.aprobados;
+      transaccion.ItemsPendientes = resumen.pendientes;
+      transaccion.ItemsRechazados = resumen.rechazados;
+      transaccion.Cantidades = resumen.resumen;
+      transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
+    }
 
     return transaccion;
   }
@@ -205,37 +141,28 @@ export class TransaccionesService {
     if (actividad) {
       actividad.Transacciones.push(transaccion);
       await this.storage.set('Actividades', actividades);
+      await this.synchronizationService.uploadTransactions();
     }
   }
 
   async update(idActividad: string, transaccion: Transaccion) {
+    const now = new Date();
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     if (actividad)
     {
       const current: Transaccion | undefined = actividad.Transacciones.find((trx) => trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
+        current.CRUD = CRUDOperacion.Update;
+        current.CRUDDate = now;
         current.IdEstado = transaccion.IdEstado;
         current.IdentificacionResponsable = transaccion.IdentificacionResponsable;
         current.NombreResponsable = transaccion.NombreResponsable;
         current.Observaciones = transaccion.Observaciones;
         current.Firma = transaccion.Firma;
         current.FirmaUrl = transaccion.FirmaUrl;
-
-        const tareasSincronizar = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.CRUD != null);
-        tareasSincronizar.forEach(async(tarea) => {
-          await this.tareasService.update(idActividad, transaccion.IdTransaccion, tarea);
-          tarea.CRUD =  null;;
-          tarea.CRUDDate = null;
-        });
-
-        if (await this.TransactionsService.patchTransaccion(current) && current.Firma != null) {
-          transaccion.CRUD = null;
-          transaccion.CRUDDate = null;
-          this.TransactionsService.uploadFirmaTransaccion(current);
-        }
-
         await this.storage.set("Actividades", actividades);
+        await this.synchronizationService.uploadTransactions();
       }
     }
   }

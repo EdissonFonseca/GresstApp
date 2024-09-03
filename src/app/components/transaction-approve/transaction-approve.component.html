@@ -11,14 +11,22 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-item>
-  <ion-title>
-    <ion-label class="ion-text-wrap">
-      {{ title }}
-    </ion-label>
-  </ion-title>
-</ion-item>
 <ion-content>
+  <ion-item>
+    <ion-icon name="location-outline" color="warning"></ion-icon>
+    <ion-title>
+      <ion-label class="ion-text-wrap">
+        {{ title }}
+      </ion-label>
+    </ion-title>
+  </ion-item>
+  <ion-item lines="inset" color="light" >
+    <ion-icon name="trash-bin" color="light"></ion-icon>
+    <ion-badge color="success"> {{ transaccion?.ItemsAprobados }} </ion-badge>
+    <ion-badge color="warning"> {{ transaccion?.ItemsPendientes }} </ion-badge>
+    <ion-badge color="danger"> {{ transaccion?.ItemsRechazados }} </ion-badge>
+    <ion-badge slot="end" size="small" color="light" *ngIf="transaccion?.Cantidades != ''"> {{ transaccion?.Cantidades ?? '' }} </ion-badge>
+  </ion-item>
   <div class="signature-container" >
     <canvas #canvas
       (touchstart)="startDrawing($event)"

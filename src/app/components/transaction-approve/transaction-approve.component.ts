@@ -5,6 +5,8 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { PuntosService } from 'src/app/services/puntos.service';
+import { TercerosService } from 'src/app/services/terceros.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -13,7 +15,6 @@ import { TransaccionesService } from 'src/app/services/transacciones.service';
   styleUrls: ['./transaction-approve.component.scss'],
 })
 export class TransactionApproveComponent  implements OnInit {
-  @Input() title: string='Aprobar transacción';
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
@@ -22,6 +23,8 @@ export class TransactionApproveComponent  implements OnInit {
   frmTransaccion: FormGroup;
   idActividad: string = '';
   idTransaccion: string = '';
+  transaccion: Transaccion | undefined;
+  title: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -33,12 +36,13 @@ export class TransactionApproveComponent  implements OnInit {
     private renderer: Renderer2,
     private globales: Globales,
     private modalCtrl:ModalController,
+    private puntosService: PuntosService,
+    private tercerosService: TercerosService,
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService
   ) {
     this.idActividad = this.navParams.get("ActivityId");
     this.idTransaccion = this.navParams.get("TransactionId");
-    this.title = this.navParams.get("Title");
     this.frmTransaccion = this.formBuilder.group({
       Identificacion: '',
       Nombre: '',
@@ -46,7 +50,20 @@ export class TransactionApproveComponent  implements OnInit {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
+    console.log(this.transaccion);
+
+    if (this.transaccion && this.transaccion.IdTercero && this.transaccion.IdDeposito)
+    {
+      const tercero = await this.tercerosService.get(this.transaccion.IdTercero);
+      if (tercero)
+        this.title = tercero.Nombre;
+
+      const punto = await this.puntosService.get(this.transaccion.IdDeposito);
+      if (punto)
+        this.title +=  ` - ${punto.Nombre}`;
+    }
   }
 
   ngAfterViewInit() {}
@@ -62,12 +79,12 @@ export class TransactionApproveComponent  implements OnInit {
   startDrawing(event: any) {
     this.drawing = true;
     this.ctx.beginPath();
-    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 100);
+    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 130);
   }
 
   draw(event: any) {
     if (!this.drawing) return;
-    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 100);
+    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 130);
     this.ctx.stroke();
   }
 
