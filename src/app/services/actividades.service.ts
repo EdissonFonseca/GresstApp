@@ -3,7 +3,7 @@ import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
 import { Globales } from './globales.service';
 import { SynchronizationService } from './synchronization.service';
-import { CRUDOperacion } from './constants.service';
+import { CRUDOperacion, Estado } from './constants.service';
 
 @Injectable({
   providedIn: 'root',
@@ -77,6 +77,21 @@ export class ActividadesService {
       current.NombreResponsable = actividad.NombreResponsable;
       current.Observaciones = actividad.Observaciones;
       current.Firma = actividad.Firma;
+
+      const tareas = current.Tareas.filter(x => x.IdEstado == Estado.Pendiente && x.CRUD == null);
+      tareas.forEach(x => {
+        x.IdEstado = Estado.Rechazado,
+        x.CRUD = CRUDOperacion.Update,
+        x.CRUDDate = now
+      });
+
+      const transacciones = current.Transacciones.filter(x => x.IdEstado == Estado.Pendiente && x.CRUD == null);
+      transacciones.forEach(x => {
+        x.IdEstado = Estado.Rechazado,
+        x.CRUD = CRUDOperacion.Update,
+        x.CRUDDate = now
+      });
+
       await this.storage.set("Actividades", actividades);
       await this.synchronizationService.uploadTransactions();
     }

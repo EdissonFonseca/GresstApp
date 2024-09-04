@@ -161,6 +161,14 @@ export class TransaccionesService {
         current.Observaciones = transaccion.Observaciones;
         current.Firma = transaccion.Firma;
         current.FirmaUrl = transaccion.FirmaUrl;
+
+        const tareas = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+        tareas.forEach(x => {
+          x.IdEstado = Estado.Rechazado,
+          x.CRUD = CRUDOperacion.Update,
+          x.CRUDDate = now
+        });
+
         await this.storage.set("Actividades", actividades);
         await this.synchronizationService.uploadTransactions();
       }

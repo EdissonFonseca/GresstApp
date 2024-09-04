@@ -281,6 +281,7 @@ export class SynchronizationService {
 
           for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Update) {
+              console.log(transaccion);
               if (await this.transactionsService.patchTransaccion(transaccion)) {
                 transaccion.CRUD = null;
                 transaccion.CRUDDate = null;

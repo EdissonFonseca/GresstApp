@@ -79,12 +79,12 @@ export class TransactionApproveComponent  implements OnInit {
   startDrawing(event: any) {
     this.drawing = true;
     this.ctx.beginPath();
-    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 140);
+    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 150);
   }
 
   draw(event: any) {
     if (!this.drawing) return;
-    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 140);
+    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 150);
     this.ctx.stroke();
   }
 

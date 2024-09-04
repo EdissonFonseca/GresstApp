@@ -46,7 +46,8 @@ export class LoginPage implements OnInit {
 
           this.globales.hideLoading();
 
-          this.navCtrl.navigateRoot('/home');
+          this.navCtrl.navigateRoot('/home?refresh=true');
+
         } else {
           this.globales.hideLoading();
           await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
