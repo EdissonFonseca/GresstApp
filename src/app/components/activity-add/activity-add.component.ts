@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
-import { Estado, TipoServicio } from 'src/app/services/constants.service';
+import { ModalController, NavParams } from '@ionic/angular';
+import { CRUDOperacion, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-activity-add',
@@ -14,58 +15,60 @@ import { ActividadesService } from 'src/app/services/actividades.service';
   styleUrls: ['./activity-add.component.scss'],
 })
 export class ActivityAddComponent  implements OnInit {
-  serviceId: string = TipoServicio.Recoleccion;
   colorGeneracion: string = 'medium';
   colorEntrega: string = 'medium';
   colorRecepcion: string = 'medium';
   colorRecoleccion: string = 'primary';
+  idServicio: string = '';
   idRecurso: string ='';
   recurso: string = '';
-  showTransport: boolean = true;
-  showCollect: boolean = true;
-  showProduce: boolean = true;
+  showTransport: boolean = false;
+  showCollect: boolean = false;
+  showProduce: boolean = false;
   frmActivity: FormGroup;
 
   constructor(
     private modalCtrl: ModalController,
     private globales: Globales,
+    private navParams: NavParams,
     private actividadesService: ActividadesService,
     private formBuilder: FormBuilder,
   ) {
     this.frmActivity = this.formBuilder.group({
-      Description: ['', [Validators.required]],
-      IdRecurso: []
+      IdRecurso: ['', [Validators.required]]
     });
   }
 
   async ngOnInit() {
-    this.showTransport = await this.globales.allowServicio(TipoServicio.Transporte);
-    this.showCollect = await this.globales.allowServicio(TipoServicio.Recoleccion);
-    this.showProduce = await this.globales.allowServicio(TipoServicio.Generacion);
+    this.idServicio = this.navParams.get('IdServicio');
+    console.log(this.idServicio);
+    console.log(TipoServicio.Transporte);
+    if (this.idServicio == TipoServicio.Transporte) {
+      this.showTransport = true;
+    }
   }
 
   async confirm() {
-    const description: string = this.frmActivity.get('Description')?.value;
+    const recurso: string = this.frmActivity.get('recurso')?.value;
     const now = new Date();
-    const isoDate = now.toISOString();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
     const isoToday = today.toISOString();
     let titulo: string = '';
 
-    if (this.serviceId == TipoServicio.Recoleccion && this.idRecurso != ''){
-      this.serviceId = TipoServicio.Transporte;
+    if (this.idServicio == TipoServicio.Transporte && this.idRecurso != ''){
+      this.idServicio = TipoServicio.Transporte;
       titulo = this.idRecurso;
     } else {
-      titulo = description;
+      titulo = recurso;
     }
     const actividad: Actividad = {
       IdActividad: this.globales.newId(),
-      IdServicio: this.serviceId,
+      IdServicio: this.idServicio,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
       FechaInicio: isoToday,
       IdEstado: Estado.Pendiente,
-      NavegarPorTransaccion: false,
+      NavegarPorTransaccion: true,
       Transacciones: [],
       Tareas: []
     };
@@ -78,7 +81,7 @@ export class ActivityAddComponent  implements OnInit {
   }
 
   changeService(serviceId: string) {
-    this.serviceId = serviceId;
+    this.idServicio = serviceId;
   }
 
   async selectVehicle() {

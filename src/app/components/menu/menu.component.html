@@ -17,13 +17,15 @@
       <ion-item *ngIf="showCertificado" (click)="navigateTo('certificados-buscar')">
         <ion-icon name="shield-checkmark-outline"></ion-icon>Certificados
       </ion-item>
-      <ion-item *ngIf="debug" (click)="reiniciar()">
-        <ion-icon name="battery-charging-outline"></ion-icon>Reiniciar
+      <ion-item href="https://gresst.com/Content/Gresst%20-%20Manual%20y%20Política%20de%20Protección%20de%20Datos%20del%20Producto.htm" aria-hidden="false">
+        <ion-icon color="medium" name="information-outline"></ion-icon>
+        Informarción legal
       </ion-item>
-      <ion-item (click)="navigateTo('sincronizacion')">
-        <ion-icon name="sync-outline"></ion-icon>Sincronizar
+      <ion-item href="https://gresst.com/Content/Gresst%20-%20Términos%20y%20Condiciones.htm" aria-hidden="false">
+        <ion-icon color="medium" name="ribbon-outline"></ion-icon>
+        Términos y condiciones
       </ion-item>
-      <ion-item-divider>Datos Maestros</ion-item-divider>
+      <ion-item-divider *ngIf="showEmbalajes || showInsumos || showMateriales || showServicios || showPuntos || showTerceros || showTratamientos || showVehiculos">Datos Maestros</ion-item-divider>
       <ion-item *ngIf="showEmbalajes" (click)="navigateTo('embalajes')">Embalajes</ion-item>
       <ion-item *ngIf="showInsumos" (click)="navigateTo('insumos')">Insumos</ion-item>
       <ion-item *ngIf="showMateriales" (click)="navigateTo('materiales')">Materiales</ion-item>
@@ -32,14 +34,18 @@
       <ion-item *ngIf="showTerceros" (click)="navigateTo('terceros')">Terceros</ion-item>
       <ion-item *ngIf="showTratamientos" (click)="navigateTo('tratamientos')">Tratamientos</ion-item>
       <ion-item *ngIf="showVehiculos" (click)="navigateTo('vehiculos')">Vehículos</ion-item>
-      <ion-item-divider>Salir</ion-item-divider>
-      <ion-item (click)="logout()">
+      <ion-item-divider></ion-item-divider>
+      <ion-item (click)="sincronizarMaestros()">
+        <ion-icon name="sync-outline"></ion-icon>Sincronizar Datos Maestros
+      </ion-item>
+      <ion-item (click)="sincronizarTransacciones()">
+        <ion-icon name="sync-circle-outline"></ion-icon>Sincronizar Transacciones
+      </ion-item>
+      <ion-item (click)="logout()" aria-hidden="false">
         <ion-icon name="power-outline"></ion-icon>        Cerrar sesión
       </ion-item>
-    </ion-list>
+      </ion-list>
   </ion-content>
   <ion-footer>
-    <ion-item>
-    </ion-item>
   </ion-footer>
 </ion-menu>

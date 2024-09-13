@@ -7,6 +7,7 @@ export interface Tarea{
   CantidadEmbalaje?: number;
   CRUD?: string | null;
   CRUDDate?: Date | null;
+  Solicitud?: string | null;
   EntradaSalida: string;
   FechaDocumento?: string;
   FechaEjecucion?: string;
@@ -21,7 +22,7 @@ export interface Tarea{
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;
-  IdDocumento?: string;
+  IdSolicitud?: string;
   IdTercero?: string;
   IdTerceroDestino?: string;
   IdTransaccion?: string;
@@ -37,6 +38,5 @@ export interface Tarea{
   Cantidades?: string;
   Embalaje?: string;
   Material?: string;
-  Solicitud?: string;
   Tratamiento?: string;
 }

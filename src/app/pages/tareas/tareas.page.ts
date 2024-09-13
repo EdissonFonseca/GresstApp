@@ -118,7 +118,7 @@ export class TareasPage implements OnInit {
         case Estado.Aprobado:
           transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
           transaccion.Peso = (transaccion.Peso ?? 0) + (tarea.Peso ?? 0);
-          transaccion.Volumen = (transaccion.Cantidad ?? 0) + (tarea.Volumen ?? 0);
+          transaccion.Volumen = (transaccion.Volumen ?? 0) + (tarea.Volumen ?? 0);
           transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
           if (!esNuevo)
             transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { StorageService } from 'src/app/services/storage.service';
 import { NavController } from '@ionic/angular';
-import { Router } from '@angular/router';
+import { NavigationExtras, Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { Globales } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
@@ -66,9 +66,21 @@ export class MenuComponent  implements OnInit {
     this.router.navigate([page]);
   }
 
-  async reiniciar() {
-    this.storage.clear();
-    this.navCtrl.navigateRoot('/login');
+  async sincronizarMaestros() {
+    const navigationExtras: NavigationExtras = {
+      queryParams: {
+        Title: 'Datos Maestros'
+      }
+    }
+    this.navCtrl.navigateForward('/sincronizacion', navigationExtras);
+  }
+  async sincronizarTransacciones() {
+    const navigationExtras: NavigationExtras = {
+      queryParams: {
+        Title: 'Transacciones'
+      }
+    }
+    this.navCtrl.navigateForward('/sincronizacion', navigationExtras);
   }
 
   close() {

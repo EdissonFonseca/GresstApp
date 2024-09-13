@@ -46,7 +46,7 @@ export class LoginPage implements OnInit {
 
           this.globales.hideLoading();
 
-          this.navCtrl.navigateRoot('/home?refresh=true');
+          this.navCtrl.navigateRoot('/home');
 
         } else {
           this.globales.hideLoading();

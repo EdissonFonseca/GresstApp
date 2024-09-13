@@ -4,27 +4,27 @@
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
-  <ion-list *ngFor="let actividad of actividades" inset="true">
-    <ion-item lines="none" (click)="navigateToTarget(actividad.IdActividad)">
+  <ion-list *ngFor="let actividad of actividades" inset="true" lines="none">
+    <ion-item lines="none" (click)="navigateToTarget(actividad.IdActividad)" lines="none">
       <ion-icon slot="start" size="large" [color]="getColorEstado(actividad.IdEstado)" [src]="actividad.Icono"></ion-icon>
         {{ actividad.Titulo }}
     </ion-item >
     <ion-item *ngIf="formatJornada(actividad.IdActividad) != ''" lines="none">
       {{ formatJornada(actividad.IdActividad) }}
     </ion-item >
-    <ion-item (click)="navigateToTarget(actividad.IdActividad)" lines="full">
+    <ion-item (click)="navigateToTarget(actividad.IdActividad)" lines="none">
       <ion-chip slot="start">
         {{ actividad.Accion }}
       </ion-chip>
-      <ion-badge slo="end" *ngIf="actividad.Cantidades" size="small" color="light"> {{ actividad.Cantidades }} </ion-badge>
   </ion-item>
   <ion-item lines="none" >
     <ion-chip slot="start" color="light" (click)="navigateToTarget(actividad.IdActividad)">
-      <ion-icon name="location"></ion-icon>
+      <ion-icon name="trash-bin-outline" color="medium"></ion-icon>
       <ion-badge color="success"> {{ actividad.ItemsAprobados }} </ion-badge>
       <ion-badge color="warning"> {{ actividad.ItemsPendientes }} </ion-badge>
       <ion-badge color="danger"> {{ actividad.ItemsRechazados }} </ion-badge>
     </ion-chip>
+    <ion-badge slot="end" *ngIf="actividad.Cantidades" size="small" color="light"> {{ actividad.Cantidades }} </ion-badge>
   </ion-item>
 </ion-list>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="permiteAgregar">

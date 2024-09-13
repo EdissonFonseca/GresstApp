@@ -10,39 +10,37 @@
 </ion-header>
 <ion-content color="light">
   <form [formGroup]="frmActivity" >
-    <ion-segment Value="Produce">
-      <ion-segment-button *ngIf="showProduce"n value="Produce" (click)="changeService('11')">
-        <ion-icon src="../../../assets/icon/factory.svg"></ion-icon>
-        Producción
-      </ion-segment-button>
-      <ion-segment-button *ngIf="showTransport" value="Transport" (click)="changeService('8')">
-        <ion-icon src="../../../assets/icon/truck.svg"></ion-icon>
-        Transporte
-      </ion-segment-button>
-      <ion-segment-button *ngIf="showCollect" value="Receive" (click)="changeService('13')">
-        <ion-icon src="../../../assets/icon/trolley.svg"></ion-icon>
-        Recorrido
-      </ion-segment-button>
-    </ion-segment>
+    <ion-item *ngIf="showProduce && showTransport && showCollect">
+      <ion-segment Value="Produce">
+        <ion-segment-button *ngIf="showProduce"n value="Produce" (click)="changeService('11')">
+          <ion-icon src="../../../assets/icon/factory.svg"></ion-icon>
+          Producción
+        </ion-segment-button>
+        <ion-segment-button *ngIf="showTransport" value="Transport" (click)="changeService('8')">
+          <ion-icon src="../../../assets/icon/truck.svg"></ion-icon>
+          Transporte
+        </ion-segment-button>
+        <ion-segment-button *ngIf="showCollect" value="Receive" (click)="changeService('13')">
+          <ion-icon src="../../../assets/icon/trolley.svg"></ion-icon>
+          Recorrido
+        </ion-segment-button>
+      </ion-segment>
+      </ion-item>
     <ion-list inset="true">
-      <ion-item *ngIf="serviceId == '8'">
+      <ion-item *ngIf="idServicio == '8'">
         <ion-note slot="start">Vehículo</ion-note>
         <ion-label>{{ recurso }}</ion-label>
         <ion-button color="light" (click)="selectVehicle()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="serviceId == '11'">
+      <ion-item *ngIf="idServicio == '11'">
         <ion-note slot="start">Depósito</ion-note>
         <ion-label>{{ recurso }}</ion-label>
         <ion-button color="light" (click)="selectTarget()">...</ion-button>
       </ion-item>
-      <ion-item *ngIf="serviceId=='11'">
+      <ion-item *ngIf="idServicio=='11'">
         <ion-note slot="start">Depósito</ion-note>
         <ion-label>{{ recurso }}</ion-label>
         <ion-button color="light" (click)="selectSource()">...</ion-button>
-      </ion-item>
-      <ion-item>
-        <ion-note slot="start">Descripción</ion-note>
-        <ion-textarea formControlName="Description"></ion-textarea>
       </ion-item>
     </ion-list>
     <ion-button expand="full" (click)="confirm()">Iniciar</ion-button>

@@ -79,7 +79,7 @@ export class TransactionsService {
       const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
 
       const formData = new FormData();
-      formData.append('IdSolicitud', (tarea.IdDocumento ?? "").toString());
+      formData.append('IdSolicitud', (tarea.IdSolicitud ?? "").toString());
       formData.append('Item', (tarea.Item ?? "").toString());
 
       for (const [index, photo] of tarea.Fotos.entries()) {
@@ -165,6 +165,32 @@ export class TransactionsService {
       }
     } else {
       return false;
+    }
+  }
+
+  async createActividad(actividad: Actividad): Promise<boolean> {
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200 || response.status == 201) { //Ok
+        console.log(response.status);
+        console.log(response.data);
+        console.log(response.data.IdOrden);
+        actividad.CRUD = null;
+        actividad.CRUDDate = null;
+        actividad.IdOrden = response.data.IdOrden;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
     }
   }
 

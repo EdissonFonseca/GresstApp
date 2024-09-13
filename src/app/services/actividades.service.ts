@@ -57,8 +57,11 @@ export class ActividadesService {
 
   // #region Create Methods
   async create(actividad: Actividad) {
+    const now = new Date();
     const actividades: Actividad[] = await this.storage.get('Actividades');
 
+    actividad.CRUD = CRUDOperacion.Create;
+    actividad.CRUDDate = now;
     actividades.push(actividad);
     await this.storage.set('Actividades', actividades);
     await this.synchronizationService.uploadTransactions();

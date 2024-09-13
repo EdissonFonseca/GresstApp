@@ -37,7 +37,6 @@ export enum Permisos{
   AppServicio = "AppServicio",
   AppTercero = "AppTercero",
   AppVehiculo = "AppVehiculo",
-  AppActividad = "AppActividad",
   AppAcopio = "AppAcopio",
   AppAgrupacion = "AppAgrupacion",
   AppAlmacenamiento = "AppAlmacenamiento",

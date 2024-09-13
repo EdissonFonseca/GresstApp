@@ -84,7 +84,7 @@ export class TransaccionesService {
       transaccion.ItemsPendientes = resumen.pendientes;
       transaccion.ItemsRechazados = resumen.rechazados;
       transaccion.Cantidades = resumen.resumen;
-      transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
+      transaccion.Titulo = `${transaccion.Solicitud}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
     return transacciones;

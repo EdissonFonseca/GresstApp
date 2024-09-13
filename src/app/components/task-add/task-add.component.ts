@@ -237,7 +237,7 @@ export class TaskAddComponent  implements OnInit {
    async takePhoto() {
     const image = await Camera.getPhoto({
       quality: 90,
-      allowEditing: true,
+      allowEditing: false,
       resultType: CameraResultType.Uri,
       source: CameraSource.Camera,
     });

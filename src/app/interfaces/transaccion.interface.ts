@@ -3,12 +3,13 @@ export interface Transaccion {
 
   CRUD?: string | null;
   CRUDDate?: Date | null;
+  Solicitud?: string | null;
   EntradaSalida: string;
   FechaEjecucion?: string;
   FechaProgramada?: string;
   Firma?: Blob | null;
   FirmaUrl?: string | null;
-  IdDocumento?: string | null;
+  IdOrden?: string | null;
   IdEstado: string;
   IdDeposito?: string;
   IdTercero?: string;
@@ -16,10 +17,12 @@ export interface Transaccion {
   IdServicio: string;
   IdentificacionResponsable?: string;
   Kilometraje?: number;
+  CargoResponsable?: string;
   NombreResponsable?: string;
   NumeroTransaccion?: string;
   Observaciones?: string;
   Punto?: string;
+  Solicitudes?: string;
   Soporte?: string;
   Tercero?: string;
   Ubicacion?: string;

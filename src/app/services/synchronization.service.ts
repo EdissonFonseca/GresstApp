@@ -6,7 +6,6 @@ import { CRUDOperacion } from './constants.service';
 import { AuthorizationService } from './authorization.service';
 import { TransactionsService } from './transactions.service';
 import { Embalaje } from '../interfaces/embalaje.interface';
-import { Insumo } from '../interfaces/insumo.interface';
 import { Material } from '../interfaces/material.interface';
 import { Punto } from '../interfaces/punto.interface';
 import { Servicio } from '../interfaces/servicio.interface';
@@ -41,58 +40,61 @@ export class SynchronizationService {
       console.log('Subiendo datos maestros ...');
       await this.uploadMasterData();
 
-      console.log('Subiendo transacciones ...');
-      await this.uploadTransactions();
-
       var materiales: Material[] = await this.storage.get('Materiales');
       if (!materiales || materiales.length == 0) {
         console.log('Descargando datos maestros ...');
-        this.downloadMasterData();
+        await this.downloadMasterData();
       }
 
-      var actividades: Actividad[] = await this.storage.get('Actividades');
-      if (!actividades || actividades.length == 0) {
-          console.log('Descargando transacciones ...');
-          this.downloadTransactions();
-      }
+      await this.refreshTransactions();
 
-      var inventario: Residuo[] = await this.storage.get('Inventario');
-      if (!inventario || inventario.length == 0) {
-          console.log('Descargando inventario ...');
-          this.downloadInventory();
-      }
     } catch (error){
       console.log(error);
       throw (error);
     }
   }
 
-  async refresh() {
+  async refreshMasterData() {
     try {
       console.log('Subiendo datos maestros ...');
-      this.uploadMasterData();
+      await this.uploadMasterData();
 
-      console.log('Subiendo transacciones ...');
-      this.uploadTransactions();
-
-      console.log('Limpiando storage ...');
-      this.storage.clear();
+      console.log('Borrando datos maestros locales ...');
+      await this.storage.remove('Embalajes');
+      await this.storage.remove('Insumos');
+      await this.storage.remove('Materiales');
+      await this.storage.remove('Puntos');
+      await this.storage.remove('Servicios');
+      await this.storage.remove('Terceros');
+      await this.storage.remove('Tratamientos');
+      await this.storage.remove('Vehiculos');
 
       console.log('Descargando autorizaciones ...');
-      this.downloadAuthorizations();
-
+      await this.downloadAuthorizations();
       console.log('Descargando datos maestros ...');
-      this.downloadMasterData();
+      await this.downloadMasterData();
 
-      console.log('Descargando transacciones ...');
-      this.downloadTransactions();
-
-      console.log('Descargando inventario ...');
-      this.downloadInventory();
     } catch (error){
       console.log(error);
       throw (error);
     }
+  }
+
+  async refreshTransactions() {
+    console.log('Subiendo transacciones ...');
+    await this.uploadTransactions();
+
+    console.log('Borrando transacciones locales ...');
+    await this.storage.remove('Actividades');
+
+    console.log('Borrando inventario local ...');
+    await this.storage.remove('Inventario');
+
+    console.log('Descargando inventario ...');
+    await this.downloadInventory();
+
+    console.log('Descargando transacciones ...');
+    await this.downloadTransactions();
   }
 
   async downloadAuthorizations() {
@@ -100,9 +102,10 @@ export class SynchronizationService {
       if (!await this.authenticationService.validateToken())
         await this.authenticationService.reconnect();
 
+      await this.storage.remove('Cuenta');
+
       var data = await this.authorizationService.get();
       await this.storage.set('Cuenta', data);
-
       this.globales.unidadCantidad = data.UnidadCantidad;
       this.globales.unidadPeso = data.UnidadPeso;
       this.globales.unidadVolumen = data.UnidadVolumen;
@@ -121,7 +124,6 @@ export class SynchronizationService {
 
       var inventarios : Residuo[] = await this.inventoryService.get();
       await this.storage.set('Inventario', inventarios);
-      console.log(inventarios);
     } catch (error)  {
       console.log(error);
       throw (error);
@@ -136,8 +138,8 @@ export class SynchronizationService {
       var embalajes : Embalaje[] = await this.masterdataService.getEmbalajes();
       await this.storage.set('Embalajes', embalajes);
 
-      var insumos : Insumo[] = await this.masterdataService.getInsumos();
-      await this.storage.set('Insumos', insumos);
+      //var insumos : Insumo[] = await this.masterdataService.getInsumos();
+      //await this.storage.set('Insumos', insumos);
 
       var materiales: Material[] = await this.masterdataService.getMateriales();
       await this.storage.set('Materiales', materiales);
@@ -179,7 +181,7 @@ export class SynchronizationService {
 
   async uploadMasterData() {
     let embalajes: Embalaje[] = await this.storage.get('Embalajes');
-    let insumos: Insumo[] = await this.storage.get('Insumos');
+    //let insumos: Insumo[] = await this.storage.get('Insumos');
     let materiales: Material[] = await this.storage.get('Materiales');
     let puntos: Punto[] = await this.storage.get('Puntos');
     let terceros: Tercero[] = await this.storage.get('Terceros');
@@ -192,22 +194,21 @@ export class SynchronizationService {
       if (embalajes) {
         const embalajesCrear = embalajes.filter(x => x.CRUD == CRUDOperacion.Create);
         embalajesCrear.forEach(async(embalaje) => {
-          console.log(embalaje);
           await this.masterdataService.postEmbalaje(embalaje);
           embalaje.CRUD = null;
           embalaje.CRUDDate = null;
         });
       }
 
-      if (insumos) {
-        const insumosCrear = insumos.filter(x => x.CRUD == CRUDOperacion.Create);
-        insumosCrear.forEach(async(insumo) => {
-          console.log(insumo);
-          await this.masterdataService.postInsumo(insumo);
-          insumo.CRUD = null;
-          insumo.CRUDDate = null;
-        });
-      }
+      // if (insumos) {
+      //   const insumosCrear = insumos.filter(x => x.CRUD == CRUDOperacion.Create);
+      //   insumosCrear.forEach(async(insumo) => {
+      //     console.log(insumo);
+      //     await this.masterdataService.postInsumo(insumo);
+      //     insumo.CRUD = null;
+      //     insumo.CRUDDate = null;
+      //   });
+      // }
 
       if (tratamientos) {
         const tratamientosCrear = tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
@@ -290,8 +291,13 @@ export class SynchronizationService {
             }
           }
 
-          if (actividad.CRUD == CRUDOperacion.Update) {
+          if (actividad.CRUD == CRUDOperacion.Create) {
             console.log(actividad);
+            if (await this.transactionsService.createActividad(actividad)) {
+              actividad.CRUD = null;
+              actividad.CRUDDate = null;
+            }
+          } else if (actividad.CRUD == CRUDOperacion.Update) {
             if (await this.transactionsService.patchActividad(actividad)) {
               actividad.CRUD = null;
               actividad.CRUDDate = null;

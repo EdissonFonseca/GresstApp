@@ -39,17 +39,15 @@ export class TransaccionesPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    this.actividad = await this.actividadesService.get(this.idActividad);
+  }
 
+  async ionViewWillEnter() {
+    this.actividad = await this.actividadesService.get(this.idActividad);
     if (this.actividad) {
-      console.log(this.actividad);
       this.proceso = await this.globales.getNombreServicio(this.actividad.IdServicio);
       this.actividad.Icono = this.globales.servicios.find((servicio) => this.actividad?.IdServicio == servicio.IdServicio)?.Icono ||'';
       this.showAdd = this.actividad.IdEstado == Estado.Pendiente;
     }
-  }
-
-  async ionViewWillEnter() {
     this.transacciones = await this.transaccionesService.list(this.idActividad);
   }
 
@@ -60,18 +58,16 @@ export class TransaccionesPage implements OnInit {
     this.transacciones = puntosList.filter((trx) => trx.Titulo.toLowerCase().indexOf(query) > -1);
   }
 
+  goBack() {
+    this.navCtrl.navigateBack('/home/actividades').then(() => {window.location.reload();});
+  }
+
   getColorEstado(idEstado: string): string {
     return this.globales.getColorEstado(idEstado);
   }
 
   getImagen(idProceso: string) {
     return this.globales.getImagen(idProceso);
-  }
-
-  goBack() {
-    this.router.navigateByUrl('/actividades', { skipLocationChange: true }).then(() => {
-      this.router.navigate(['/home']);
-    });
   }
 
   navigateToTareas(idTransaccion: string){

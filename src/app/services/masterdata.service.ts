@@ -163,7 +163,7 @@ export class MasterDataService {
 
   async getVehiculos(): Promise<any>{
     const headers = { 'Authorization': `Bearer ${this.globales.token}` };
-    const options = { url: `${this.vehiculosUrl}/get`, headers };
+    const options = { url: `${this.vehiculosUrl}/getautorizados`, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.get(options);

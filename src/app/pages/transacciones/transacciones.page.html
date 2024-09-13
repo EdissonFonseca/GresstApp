@@ -16,24 +16,26 @@
   <ion-toolbar >
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
-  <ion-item lines="none" color="light">
-    <ion-avatar slot="start">
-      <ion-icon size="large" [color]="getColorEstado(actividad?.IdEstado ?? '')" [src]="actividad?.Icono"></ion-icon>
-    </ion-avatar>
-      {{ actividad?.Titulo }}
-      <ion-buttons slot="end">
-        <ion-button fill="solid" shape="round" color="success" size="large" (click)="openApproveActividad()" *ngIf="actividad?.IdEstado=='P'">
-          <ion-icon name="checkmark"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-  </ion-item>
-  <ion-item lines="inset" color="light" >
-    <ion-icon name="trash-bin" color="light"></ion-icon>
-    <ion-badge color="success"> {{ actividad?.ItemsAprobados }} </ion-badge>
-    <ion-badge color="warning"> {{ actividad?.ItemsPendientes }} </ion-badge>
-    <ion-badge color="danger"> {{ actividad?.ItemsRechazados }} </ion-badge>
-    <ion-badge slot="end" size="small" color="light" *ngIf="actividad?.Cantidades != ''"> {{ actividad?.Cantidades ?? '' }} </ion-badge>
-  </ion-item>
+  <ion-list lines="full">
+    <ion-item lines="none" color="light">
+      <ion-avatar slot="start">
+        <ion-icon size="large" [color]="getColorEstado(actividad?.IdEstado ?? '')" [src]="actividad?.Icono"></ion-icon>
+      </ion-avatar>
+        {{ actividad?.Titulo }}
+        <ion-buttons slot="end">
+          <ion-button fill="solid" shape="round" color="success" size="large" (click)="openApproveActividad()" *ngIf="actividad?.IdEstado=='P'">
+            <ion-icon name="checkmark"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+    </ion-item>
+    <ion-item lines="full" color="light">
+      <ion-icon name="trash-bin-outline" color="medium" size="small"></ion-icon>
+      <ion-badge color="success"> {{ actividad?.ItemsAprobados }} </ion-badge>
+      <ion-badge color="warning"> {{ actividad?.ItemsPendientes }} </ion-badge>
+      <ion-badge color="danger"> {{ actividad?.ItemsRechazados }} </ion-badge>
+      <ion-badge slot="end" size="small" color="light" *ngIf="actividad?.Cantidades != ''"> {{ actividad?.Cantidades ?? '' }} </ion-badge>
+    </ion-item>
+    </ion-list>
 </ion-header>
 <ion-content [fullscreen]="true" color="light">
   <ion-list *ngFor="let transaccion of transacciones" inset="true">
@@ -44,7 +46,7 @@
     <ion-item *ngIf="transaccion.Ubicacion" lines="none" (click)="navigateToTareas(transaccion.IdTransaccion)">
       {{ transaccion.Ubicacion }}
     </ion-item>
-    <ion-item lines="full" (click)="navigateToTareas(transaccion.IdTransaccion)" >
+    <ion-item lines="none" (click)="navigateToTareas(transaccion.IdTransaccion)" >
       <ion-chip slot="start" *ngIf="transaccion.IdEstado == 'P'" >
         <ion-label>{{transaccion.Accion}}</ion-label>
       </ion-chip>
@@ -52,7 +54,7 @@
   </ion-item>
   <ion-item lines="inset" (click)="navigateToTareas(transaccion.IdTransaccion)" >
     <ion-chip color="light" slot="start" >
-      <ion-icon name="trash-bin"></ion-icon>
+      <ion-icon name="trash-bin-outline" color="medium"></ion-icon>
       <ion-badge color="success"> {{ transaccion.ItemsAprobados }} </ion-badge>
       <ion-badge color="warning"> {{ transaccion.ItemsPendientes }} </ion-badge>
       <ion-badge color="danger"> {{ transaccion.ItemsRechazados }} </ion-badge>

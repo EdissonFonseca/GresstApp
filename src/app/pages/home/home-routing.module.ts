@@ -4,14 +4,9 @@ import { HomePage } from './home.page';
 
 const routes: Routes = [
   {
-    path: 'home',
+    path: '',
     component: HomePage,
     children: [
-      {
-        path: '',
-        redirectTo: 'home/actividades',
-        pathMatch: 'full'
-      },
       {
         path: 'actividades',
         loadChildren: () => import('../actividades/actividades.module').then(m => m.ActividadesPageModule)
@@ -24,11 +19,16 @@ const routes: Routes = [
         path: 'banco',
         loadChildren: () => import('../banco/banco.module').then(m => m.BolsaPageModule)
       },
+      {
+        path: '',
+        redirectTo: 'actividades',
+        pathMatch: 'full'
+      },
     ]
   },
   {
     path: '',
-    redirectTo: 'home/actividades',
+    redirectTo: 'actividades',
     pathMatch: 'full'
   }];
 

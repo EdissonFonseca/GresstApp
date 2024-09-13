@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
-import { ModalController, NavController } from '@ionic/angular';
+import { NavigationExtras } from '@angular/router';
+import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -17,20 +17,35 @@ export class ActividadesPage implements OnInit {
   permiteAgregar: boolean = true;
 
   constructor(
-    private route: ActivatedRoute,
     private navCtrl: NavController,
     private globales: Globales,
     private actividadesService: ActividadesService,
-    private modalCtrl: ModalController ) {
+    private modalCtrl: ModalController,
+    private actionSheet: ActionSheetController
+    ) {
   }
 
   async ngOnInit() {
-    this.route.queryParams.subscribe(params => {});
-    var cuenta = await this.globales.getCuenta();
+    this.permiteAgregar = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppAgrupacion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppAlmacenamiento))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppAprovechamiento))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppDisposicion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppEntrega))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppGeneracion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppPerdida))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppRecepcion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppRecoleccion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppTransferencia))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppTransformacion))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppTraslado))?.includes(CRUDOperacion.Create)
+      || (await this.globales.getPermiso(Permisos.AppTratamiento))?.includes(CRUDOperacion.Create)
+      ;
+  }
 
-    if (!cuenta) return;
-
-    this.permiteAgregar = (await this.globales.getPermiso(Permisos.AppActividad))?.includes(CRUDOperacion.Create);
+  async ionViewWillEnter() {
+    this.actividades = await this.actividadesService.list();
   }
 
   async handleInput(event: any) {
@@ -38,10 +53,6 @@ export class ActividadesPage implements OnInit {
 
     const actividadesList = await this.actividadesService.list();
     this.actividades = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
-  }
-
-  async ionViewWillEnter() {
-    this.actividades = await this.actividadesService.list();
   }
 
   async navigateToTarget(idActividad: string){
@@ -53,12 +64,9 @@ export class ActividadesPage implements OnInit {
       case TipoServicio.Transporte:
         if (actividad.NavegarPorTransaccion) {
           const navigationExtras: NavigationExtras = {
-            queryParams: {
-              IdActividad: idActividad,
-              Mode: 'T',
-            }
+            queryParams: { IdActividad: idActividad, Mode: 'T'}
           }
-            this.navCtrl.navigateForward('/transacciones', navigationExtras);
+          this.navCtrl.navigateForward('/transacciones', navigationExtras);
         } else {
           const navigationExtras: NavigationExtras = {
             queryParams: {
@@ -82,9 +90,42 @@ export class ActividadesPage implements OnInit {
   }
 
   async openAddActivity(){
+    const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
+
+    const acopio = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
+    if (acopio) {
+      var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Acopio);
+      if (servicio)
+        actionSheetDict[TipoServicio.Acopio] = {icon: servicio.Icono , name: servicio.Nombre};
+    }
+
+    const transporte = (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
+    if (transporte) {
+      var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Transporte);
+      if (servicio)
+        actionSheetDict[TipoServicio.Transporte] = {icon: servicio.Icono , name: servicio.Nombre};
+    }
+
+    const buttons = Object.keys(actionSheetDict).map(key => ({
+      text: actionSheetDict[key].name,
+      icon: actionSheetDict[key].icon,
+      handler: async() => await this.presentModal(key)
+    }));
+
+    const actionSheet = await this.actionSheet.create({
+      header: 'Servicios',
+      buttons
+    });
+
+    await actionSheet.present();
+  }
+
+  async presentModal(key: string){
     const modal =  await this.modalCtrl.create({
       component: ActivityAddComponent,
-      componentProps: {},
+      componentProps: {
+        IdServicio: key
+      },
     });
     await modal.present();
 

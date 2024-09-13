@@ -16,7 +16,10 @@ export interface Actividad{
   FechaInicio: string;
   FirmaUrl?: string | null;
   Firma?: Blob | null;
-  IdDocumento?: string | null;
+  IdOrden?: string | null;
+  Orden?: string | null;
+  IdResponsable?: string;
+  CargoResponsable?: string;
   IdentificacionResponsable?: string;
   IdEstado: string;
   IdServicio: string;
