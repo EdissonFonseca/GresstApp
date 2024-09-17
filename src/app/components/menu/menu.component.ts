@@ -88,8 +88,7 @@ export class MenuComponent  implements OnInit {
   }
 
   async logout() {
-    await this.storage.remove('Login');
-    await this.storage.remove('Token');
+    await this.storage.clear();
     this.navCtrl.navigateRoot('/login');
   }
 

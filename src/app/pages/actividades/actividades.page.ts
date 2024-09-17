@@ -132,8 +132,7 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data) {
       this.actividades = await this.actividadesService.list();
-      this.permiteAgregar = false;
-      }
+    }
   }
 
   getColorEstado(idEstado: string): string {
@@ -149,10 +148,10 @@ export class ActividadesPage implements OnInit {
 
     if (actividad.FechaInicio){
       const fechaInicio = new Date(actividad.FechaInicio);
-      const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDay());
+      const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
       if (actividad.FechaFin) {
         const fechaFin = new Date(actividad.FechaFin);
-        const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDay());
+        const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
         if (diaInicio == hoy && diaFin == hoy){
           jornada = 'Todo el dia';
         } else if (diaInicio < hoy){

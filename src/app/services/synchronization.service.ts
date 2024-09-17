@@ -264,17 +264,26 @@ export class SynchronizationService {
     try {
       if (actividades) {
         for (const actividad of actividades) {
+
+          if (actividad.CRUD == CRUDOperacion.Create) {
+            if (await this.transactionsService.postActividad(actividad)) {
+            }
+          }
+
+          for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
+            if (transaccion.CRUD === CRUDOperacion.Create) {
+              if (await this.transactionsService.postTransaccion(transaccion)) {
+              }
+            }
+          }
+
           for (const tarea of actividad.Tareas.filter((tarea) => tarea.CRUD != null)) {
             if (tarea.CRUD === CRUDOperacion.Create) {
               if (await this.transactionsService.postTarea(tarea)) {
-                tarea.CRUD = null;
-                tarea.CRUDDate = null;
                 await this.transactionsService.uploadFotosTarea(tarea);
               }
             } else {
               if (await this.transactionsService.patchTarea(tarea)) {
-                tarea.CRUD = null;
-                tarea.CRUDDate = null;
                 await this.transactionsService.uploadFotosTarea(tarea);
               }
             }
@@ -282,25 +291,14 @@ export class SynchronizationService {
 
           for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Update) {
-              console.log(transaccion);
               if (await this.transactionsService.patchTransaccion(transaccion)) {
-                transaccion.CRUD = null;
-                transaccion.CRUDDate = null;
                 await this.transactionsService.uploadFirmaTransaccion(transaccion);
               }
             }
           }
 
-          if (actividad.CRUD == CRUDOperacion.Create) {
-            console.log(actividad);
-            if (await this.transactionsService.createActividad(actividad)) {
-              actividad.CRUD = null;
-              actividad.CRUDDate = null;
-            }
-          } else if (actividad.CRUD == CRUDOperacion.Update) {
+          if (actividad.CRUD == CRUDOperacion.Update) {
             if (await this.transactionsService.patchActividad(actividad)) {
-              actividad.CRUD = null;
-              actividad.CRUDDate = null;
               await this.transactionsService.uploadFirmaActividad(actividad);
             }
           }

@@ -53,7 +53,7 @@ export class Globales {
 
   today(): Date {
     const ahora = new Date();
-    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDay());
+    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDate());
 
     return hoy;
   }

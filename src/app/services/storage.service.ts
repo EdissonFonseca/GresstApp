@@ -24,4 +24,5 @@ export class StorageService {
   async clear() {
     await this.storage.clear();
   }
+
 }

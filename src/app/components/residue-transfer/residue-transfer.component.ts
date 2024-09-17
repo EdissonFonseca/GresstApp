@@ -73,7 +73,7 @@ export class ResidueTransferComponent  implements OnInit {
     let transaccion: Transaccion | undefined = undefined;
     const now = new Date();
     const isoDate = now.toISOString();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const isoToday = today.toISOString();
 
     if (!this.residue) return;

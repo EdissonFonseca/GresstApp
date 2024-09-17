@@ -13,6 +13,8 @@ export interface Transaccion {
   IdEstado: string;
   IdDeposito?: string;
   IdTercero?: string;
+  IdTerceroDestino?: string;
+  IdDepositoDestino?:string;
   IdRecurso: string;
   IdServicio: string;
   IdentificacionResponsable?: string;

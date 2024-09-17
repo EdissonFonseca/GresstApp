@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
+import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Globales } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
@@ -23,7 +24,19 @@ export class LoginPage implements OnInit {
     private globales: Globales,
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    var loggedUser = await this.storage.get('Login');
+    if (loggedUser) {
+      const data = await this.storage.get('Cuenta');
+      this.globales.unidadCantidad = data.UnidadCantidad;
+      this.globales.unidadPeso = data.UnidadPeso;
+      this.globales.unidadVolumen = data.UnidadVolumen;
+      this.globales.mostrarIntroduccion = data.mostrarIntroduccion;
+      this.globales.permisos = data.Permisos;
+      const token = await this.storage.get('Token');
+      this.globales.token = token;
+      this.navCtrl.navigateRoot('/home');
+    }
   }
 
   async login(){
@@ -33,13 +46,13 @@ export class LoginPage implements OnInit {
     }
 
     try {
-
-      if (await this.authenticationService.ping()){
+      if (await this.authenticationService.ping()) {
         this.globales.showLoading('Conectando ...');
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
+          await this.storage.set('Token', token);
           this.globales.token = token;
 
           await this.synchronizationService.reload();
@@ -48,17 +61,6 @@ export class LoginPage implements OnInit {
 
           this.navCtrl.navigateRoot('/home');
 
-        } else {
-          this.globales.hideLoading();
-          await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
-        }
-      } else {
-        const savedLogin = await this.storage.get('Login');
-        const savedPassword = await this.storage.get('Password');
-        if (this.login == savedLogin && this.password == savedPassword){
-          this.globales.hideLoading();
-          this.globales.presentToast('Trabajando en modo desconectado', "middle");
-          this.navCtrl.navigateRoot('/home');
         } else {
           this.globales.hideLoading();
           await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);

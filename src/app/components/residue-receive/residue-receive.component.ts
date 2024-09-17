@@ -90,7 +90,7 @@ export class ResidueReceiveComponent implements OnInit {
     const data = this.formData.value;
     const now = new Date();
     const isoDate = now.toISOString();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDay());
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const isoToday = today.toISOString();
 
     if (this.fecha == null){
@@ -142,7 +142,7 @@ export class ResidueReceiveComponent implements OnInit {
     if (!actividad)
     {
       const ahora = new Date();
-      const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDay());
+      const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDate());
       if (this.fecha >= hoy){
         actividad = {
           IdActividad: this.globales.newId(),

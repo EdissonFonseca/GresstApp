@@ -38,8 +38,13 @@ export class TransactionsService {
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 201) { //Created
-        return response.data;
+      if (response.status == 200 || response.status == 201) { //Created
+        tarea.CRUD = null;
+        tarea.CRUDDate = null;
+        tarea.IdSolicitud =  response.data.IdSolicitud;
+        tarea.Item = response.data.Item;
+        tarea.Solicitud = response.data.Solicitud;
+        return true;
       } else {
         throw false;
       }
@@ -114,6 +119,30 @@ export class TransactionsService {
     }
   }
 
+  async postTransaccion(transaccion: Transaccion): Promise<boolean> {
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 201 || response.status == 200) { //Ok
+        transaccion.IdTransaccion =  response.data.IdTransaccion;
+        transaccion.IdOrden = response.data.IdOrden;
+        transaccion.CRUD = null;
+        transaccion.CRUDDate = null;
+        return true;
+      } else {
+        throw false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers };
@@ -121,8 +150,8 @@ export class TransactionsService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
-        transaccion.CRUD = undefined;
-        transaccion.CRUDDate = undefined;
+        transaccion.CRUD = null;
+        transaccion.CRUDDate = null;
         return true;
       } else {
         throw false;
@@ -168,19 +197,19 @@ export class TransactionsService {
     }
   }
 
-  async createActividad(actividad: Actividad): Promise<boolean> {
+  async postActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Ok
-        console.log(response.status);
-        console.log(response.data);
-        console.log(response.data.IdOrden);
         actividad.CRUD = null;
         actividad.CRUDDate = null;
         actividad.IdOrden = response.data.IdOrden;
+        actividad.IdActividad = response.data.IdActividad;
+        actividad.Orden = response.data.Orden;
+        console.log(actividad);
         return true;
       } else {
         throw false;
@@ -222,9 +251,7 @@ export class TransactionsService {
     if (actividad.Firma)
     {
       const formData = new FormData();
-      formData.append('IdServicio', (actividad.IdServicio ?? "").toString());
-      formData.append('IdRecurso', (actividad.IdRecurso ?? "").toString());
-      formData.append('Fecha', (actividad.FechaInicio ?? "").toString());
+      formData.append('IdOrden', (actividad.IdOrden ?? "").toString());
       formData.append('Signature', actividad.Firma, 'signature.png');
       const options = { url: `${this.transactionsUrl}/uploadfirmaactividad`, data:formData, headers };
       try{
@@ -245,4 +272,5 @@ export class TransactionsService {
       return false;
     }
   }
+
 }

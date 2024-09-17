@@ -136,6 +136,7 @@ export class TransaccionesService {
   }
 
   async create(idActividad: string, transaccion: Transaccion) {
+    console.log(idActividad);
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad = actividades.find(x => x.IdActividad == idActividad);
     if (actividad) {

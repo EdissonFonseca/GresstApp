@@ -39,6 +39,7 @@ export class TransaccionesPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
+    console.log(this.idActividad);
   }
 
   async ionViewWillEnter() {
