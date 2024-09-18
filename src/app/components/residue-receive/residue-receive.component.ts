@@ -176,7 +176,6 @@ export class ResidueReceiveComponent implements OnInit {
             IdEstado: Estado.Aprobado,
             Titulo: this.propietario,
             IdTercero: this.idPropietario,
-            Firma: new Blob(),
           }
           await this.transaccionesService.create(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;
@@ -193,7 +192,6 @@ export class ResidueReceiveComponent implements OnInit {
             Titulo: this.puntoRecoleccion,
             IdTercero: this.idPropietario,
             IdDeposito: this.idPuntoRecoleccion,
-            Firma: new Blob(),
           }
           await this.transaccionesService.create(actividad.IdActividad, transaccion);
           idTransaccion = transaccion.IdTransaccion;

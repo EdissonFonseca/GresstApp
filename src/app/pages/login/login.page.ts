@@ -46,8 +46,9 @@ export class LoginPage implements OnInit {
     }
 
     try {
+      this.globales.showLoading('Conectando ...');
+
       if (await this.authenticationService.ping()) {
-        this.globales.showLoading('Conectando ...');
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
           await this.storage.set('Login', this.username);
@@ -75,6 +76,7 @@ export class LoginPage implements OnInit {
         this.globales.presentAlert('Error','Unknown error', `${error}`);
       }
     }
+    this.globales.hideLoading();
   }
 
   async goPassword(){

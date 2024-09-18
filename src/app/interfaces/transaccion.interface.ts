@@ -3,12 +3,9 @@ export interface Transaccion {
 
   CRUD?: string | null;
   CRUDDate?: Date | null;
-  Solicitud?: string | null;
   EntradaSalida: string;
   FechaEjecucion?: string;
   FechaProgramada?: string;
-  Firma?: Blob | null;
-  FirmaUrl?: string | null;
   IdOrden?: string | null;
   IdEstado: string;
   IdDeposito?: string;
@@ -17,15 +14,15 @@ export interface Transaccion {
   IdDepositoDestino?:string;
   IdRecurso: string;
   IdServicio: string;
-  IdentificacionResponsable?: string;
   Kilometraje?: number;
-  CargoResponsable?: string;
-  NombreResponsable?: string;
-  NumeroTransaccion?: string;
+  ResponsableCargo?: string;
+  ResponsableFirma?: string | null;
+  ResponsableIdentificacion?: string;
+  ResponsableNombre?: string;
+  ResponsableObservaciones?: string;
   Observaciones?: string;
   Punto?: string;
   Solicitudes?: string;
-  Soporte?: string;
   Tercero?: string;
   Ubicacion?: string;
 

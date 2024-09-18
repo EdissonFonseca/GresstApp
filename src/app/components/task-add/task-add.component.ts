@@ -42,7 +42,6 @@ export class TaskAddComponent  implements OnInit {
   idVehiculo: string = '';
   material: string = '';
   medicion: string = '';
-  photo: string = '';
   proceso: string = '';
   propietario: string = '';
   puntoEntrada : string = '';
@@ -58,7 +57,8 @@ export class TaskAddComponent  implements OnInit {
   unidadCantidad: string = '';
   unidadPeso: string = 'kg';
   unidadVolumen: string = '';
-  fotos: Photo[] = [];
+  //fotos: Photo[] = [];
+  fotos: string[] = [];
   imageUrl: string = '';
 
   constructor(
@@ -238,12 +238,18 @@ export class TaskAddComponent  implements OnInit {
     const image = await Camera.getPhoto({
       quality: 90,
       allowEditing: false,
-      resultType: CameraResultType.Uri,
+      resultType: CameraResultType.Base64, // CameraResultType.Uri == Este es para blob, el otro es para serializarlo
       source: CameraSource.Camera,
     });
-    this.fotos.push(image);
-    this.imageUrl = image.dataUrl ?? '';
+    const base64Image = `data:image/jpeg;base64,${image.base64String}`;
+    this.fotos.push('data:image/jpeg;base64,' + image.base64String);
+    //this.fotos.push(image);
+    //this.imageUrl = image.dataUrl ?? '';
   };
+
+  deletePhoto(index: number) {
+    this.fotos.splice(index, 1);
+  }
 
   cancel() {
     this.modalCtrl.dismiss(null);

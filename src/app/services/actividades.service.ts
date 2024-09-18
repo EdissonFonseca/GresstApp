@@ -76,10 +76,11 @@ export class ActividadesService {
       current.CRUD = CRUDOperacion.Update;
       current.CRUDDate = now;
       current.IdEstado = actividad.IdEstado;
-      current.IdentificacionResponsable = actividad.IdentificacionResponsable;
-      current.NombreResponsable = actividad.NombreResponsable;
+      current.ResponsableCargo = actividad.ResponsableCargo;
+      current.ResponsableFirma = actividad.ResponsableFirma;
+      current.ResponsableIdentificacion = actividad.ResponsableIdentificacion;
+      current.ResponsableNombre = actividad.ResponsableNombre;
       current.Observaciones = actividad.Observaciones;
-      current.Firma = actividad.Firma;
 
       const tareas = current.Tareas.filter(x => x.IdEstado == Estado.Pendiente && x.CRUD == null);
       tareas.forEach(x => {

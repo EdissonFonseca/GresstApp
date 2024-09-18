@@ -43,10 +43,9 @@ export class TransactionsService {
         tarea.CRUDDate = null;
         tarea.IdSolicitud =  response.data.IdSolicitud;
         tarea.Item = response.data.Item;
-        tarea.Solicitud = response.data.Solicitud;
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -79,46 +78,6 @@ export class TransactionsService {
     }
   }
 
-  async uploadFotosTarea(tarea: Tarea): Promise<boolean> {
-    if (tarea.Fotos && tarea.Fotos.length > 0) {
-      const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-
-      const formData = new FormData();
-      formData.append('IdSolicitud', (tarea.IdSolicitud ?? "").toString());
-      formData.append('Item', (tarea.Item ?? "").toString());
-
-      for (const [index, photo] of tarea.Fotos.entries()) {
-        if (photo.webPath) {
-            try {
-                const response = await fetch(photo.webPath);
-                if (response.ok) {
-                    const blob = await response.blob();
-                    formData.append(`photos`, blob, `photo${index + 1}.jpg`);
-                }
-            } catch {
-            }
-        }
-      }
-      const options = { url: `${this.transactionsUrl}/uploadfotostarea`, data:formData, headers };
-      try{
-        const response: HttpResponse = await CapacitorHttp.post(options);
-        if (response.status == 200) { //Ok
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Request error: ${error.message}`);
-        } else {
-          throw new Error(`Unknown error: ${error}`);
-        }
-      }
-    } else {
-      return true;
-    }
-  }
-
   async postTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers };
@@ -132,7 +91,7 @@ export class TransactionsService {
         transaccion.CRUDDate = null;
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -149,12 +108,12 @@ export class TransactionsService {
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status == 200) { //Ok OR Created
         transaccion.CRUD = null;
         transaccion.CRUDDate = null;
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -162,38 +121,6 @@ export class TransactionsService {
       } else {
         throw new Error(`Unknown error: ${error}`);
       }
-    }
-  }
-
-  async uploadFirmaTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-
-    if (transaccion.Firma)
-    {
-      const formData = new FormData();
-      formData.append('IdServicio', (transaccion.IdServicio ?? "").toString());
-      formData.append('IdRecurso', (transaccion.IdRecurso ?? "").toString());
-      formData.append('IdTercero', (transaccion.IdTercero ?? "").toString());
-      formData.append('IdPunto', (transaccion.IdDeposito ?? "").toString());
-      formData.append('Fecha', (transaccion.FechaProgramada ?? "").toString());
-      formData.append('Signature', transaccion.Firma, 'signature.png');
-      const options = { url: `${this.transactionsUrl}/uploadfirmatransaccion`, data:formData, headers };
-      try{
-        const response: HttpResponse = await CapacitorHttp.post(options);
-        if (response.status == 200) { //Ok
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Request error: ${error.message}`);
-        } else {
-          throw new Error(`Unknown error: ${error}`);
-        }
-      }
-    } else {
-      return false;
     }
   }
 
@@ -209,10 +136,9 @@ export class TransactionsService {
         actividad.IdOrden = response.data.IdOrden;
         actividad.IdActividad = response.data.IdActividad;
         actividad.Orden = response.data.Orden;
-        console.log(actividad);
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -234,7 +160,7 @@ export class TransactionsService {
         actividad.CRUDDate = null;
         return true;
       } else {
-        throw false;
+        return false;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -242,34 +168,6 @@ export class TransactionsService {
       } else {
         throw new Error(`Unknown error: ${error}`);
       }
-    }
-  }
-
-  async uploadFirmaActividad(actividad: Actividad): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-
-    if (actividad.Firma)
-    {
-      const formData = new FormData();
-      formData.append('IdOrden', (actividad.IdOrden ?? "").toString());
-      formData.append('Signature', actividad.Firma, 'signature.png');
-      const options = { url: `${this.transactionsUrl}/uploadfirmaactividad`, data:formData, headers };
-      try{
-        const response: HttpResponse = await CapacitorHttp.post(options);
-        if (response.status == 200) { //Ok
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new Error(`Request error: ${error.message}`);
-        } else {
-          throw new Error(`Unknown error: ${error}`);
-        }
-      }
-    } else {
-      return false;
     }
   }
 

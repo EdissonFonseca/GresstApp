@@ -46,13 +46,13 @@ export class TransactionApproveComponent  implements OnInit {
     this.frmTransaccion = this.formBuilder.group({
       Identificacion: '',
       Nombre: '',
+      Cargo: '',
       Observaciones: [],
     });
   }
 
   async ngOnInit() {
     this.transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
-    console.log(this.transaccion);
 
     if (this.transaccion && this.transaccion.IdTercero && this.transaccion.IdDeposito)
     {
@@ -112,23 +112,24 @@ export class TransactionApproveComponent  implements OnInit {
 
     transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
     if (transaccion) { //Si hay transaccion
-      const firmaBlob = this.getSignature();
+      const firma = this.getSignature();
+      console.log(firma);
 
       transaccion.IdEstado = Estado.Aprobado;
       transaccion.CRUD = CRUDOperacion.Update;
       transaccion.CRUDDate = now;
-      transaccion.IdentificacionResponsable = data.Identificacion;
-      transaccion.NombreResponsable = data.Nombre;
+      transaccion.ResponsableCargo = data.Cargo;
+      transaccion.ResponsableIdentificacion = data.Identificacion;
+      transaccion.ResponsableNombre = data.Nombre;
       transaccion.Observaciones = data.Observaciones;
-      transaccion.Firma = firmaBlob;
-      transaccion.FirmaUrl = firmaBlob != null ?  "firma.png": null;
+      transaccion.ResponsableFirma = firma;
       this.transaccionesService.update(this.idActividad, transaccion);
     }
     this.globales.presentToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 
-  getSignature(): Blob | null{
+  getSignature(): string | null {
     const context = this.canvas.getContext('2d');
     const canvasWidth = this.canvas.width;
     const canvasHeight = this.canvas.height;
@@ -141,14 +142,7 @@ export class TransactionApproveComponent  implements OnInit {
     }
 
     const signatureData = this.canvas.toDataURL();
-    const signature = signatureData.replace('data:image/png;base64,', '');
-    const byteString = atob(signature);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < byteString.length; i++) {
-        uint8Array[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([uint8Array], { type: 'image/png' });
-    return blob;
+    return signatureData;
   }
+
 }

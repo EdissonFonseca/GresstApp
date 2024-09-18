@@ -57,12 +57,24 @@
       </ion-item>
     </ion-list>
     <ion-item color="light">
-      <img [src]="photo" *ngIf="photo">
-      <ion-button (click)="takePhoto()" color="light">
+      <ion-button expand="full" (click)="takePhoto()" color="secondary">
         <ion-icon name="camera-outline"></ion-icon>
         Foto
       </ion-button>
+      <ion-badge slot="end" color="secondary">{{ fotos.length }}</ion-badge>
     </ion-item>
+    <ion-item>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6" *ngFor="let foto of fotos; let i = index">
+            <ion-card>
+              <img [src]="'data:image/jpeg;base64,' + foto" />
+              <ion-button color="danger" (click)="deletePhoto(i)">Eliminar</ion-button>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      </ion-item>
     <ion-button type="submit" size="medium" expand="full" (click)="submit()">Confirmar</ion-button>
   </form>
 </ion-content>

@@ -29,7 +29,6 @@ export class TransaccionesService {
     let operacion: string = '';
     let ubicacion: string = '';
     const actividades: Actividad[] = await this.storage.get('Actividades');
-    const cuenta: Cuenta = await this.storage.get('Cuenta');
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
     const transacciones: Transaccion[] = actividad.Transacciones;
     const puntos = await this.puntosService.list();
@@ -84,7 +83,7 @@ export class TransaccionesService {
       transaccion.ItemsPendientes = resumen.pendientes;
       transaccion.ItemsRechazados = resumen.rechazados;
       transaccion.Cantidades = resumen.resumen;
-      transaccion.Titulo = `${transaccion.Solicitud}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
+      transaccion.Titulo = `${transaccion.Solicitudes}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
     return transacciones;
@@ -157,11 +156,11 @@ export class TransaccionesService {
         current.CRUD = CRUDOperacion.Update;
         current.CRUDDate = now;
         current.IdEstado = transaccion.IdEstado;
-        current.IdentificacionResponsable = transaccion.IdentificacionResponsable;
-        current.NombreResponsable = transaccion.NombreResponsable;
+        current.ResponsableCargo = transaccion.ResponsableCargo;
+        current.ResponsableFirma = transaccion.ResponsableFirma;
+        current.ResponsableIdentificacion = transaccion.ResponsableIdentificacion;
+        current.ResponsableNombre = transaccion.ResponsableNombre;
         current.Observaciones = transaccion.Observaciones;
-        current.Firma = transaccion.Firma;
-        current.FirmaUrl = transaccion.FirmaUrl;
 
         const tareas = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
         tareas.forEach(x => {

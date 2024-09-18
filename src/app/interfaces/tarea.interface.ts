@@ -9,20 +9,20 @@ export interface Tarea{
   CRUDDate?: Date | null;
   Solicitud?: string | null;
   EntradaSalida: string;
-  FechaDocumento?: string;
+  FechaSolicitud?: string;
   FechaEjecucion?: string;
   FechaSistema: string;
   FechaProgramada?: string;
   IdEmbalaje?: string;
   IdEstado: string;
-  Item?: number;
+  Item?: number | null;
   IdMaterial: string;
   IdDeposito?: string;
   IdDepositoDestino?: string;
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;
-  IdSolicitud?: string;
+  IdSolicitud?: number | null;
   IdTercero?: string;
   IdTerceroDestino?: string;
   IdTransaccion?: string;
@@ -32,7 +32,7 @@ export interface Tarea{
   Peso?: number | null;
   Valor?: number;
   Volumen?: number;
-  Fotos: Photo[];
+  Fotos: string[];
 
   Accion?: string;
   Cantidades?: string;

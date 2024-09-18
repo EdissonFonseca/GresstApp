@@ -1,8 +1,8 @@
 {
   "name": "gresstapp",
-  "version": "0.1.6",
-  "author": "Ionic Framework",
-  "homepage": "https://ionicframework.com/",
+  "version": "0.2.2",
+  "author": "Gresst SAS - Edisson Fonseca",
+  "homepage": "https://gresst.com/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -22,8 +22,9 @@
     "@angular/platform-browser-dynamic": "^17.0.2",
     "@angular/router": "^17.0.2",
     "@capacitor/android": "^6.1.2",
-    "@capacitor/camera": "^5.0.9",
+    "@capacitor/camera": "^6.0.2",
     "@capacitor/core": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1",
     "@capacitor/geolocation": "^5.0.7",
     "@capacitor/google-maps": "^5.4.1",
     "@capacitor/ios": "^6.1.2",

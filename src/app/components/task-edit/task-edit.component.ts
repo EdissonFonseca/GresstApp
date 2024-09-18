@@ -6,7 +6,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 import { MaterialesService } from 'src/app/services/materiales.service';
@@ -52,7 +52,7 @@ export class TaskEditComponent  implements OnInit {
   targetId: string = '';
   treatmentId: string = '';
   treatment: string = '';
-  fotos: Photo[] = [];
+  fotos: string[] = []; //Photo[] = [];
   imageUrl: string = '';
 
   constructor(
@@ -387,16 +387,26 @@ export class TaskEditComponent  implements OnInit {
    }
 
   async takePhoto() {
-    const image = await Camera.getPhoto({
-      quality: 90,
-      allowEditing: false,
-      resultType: CameraResultType.Uri,
-      source: CameraSource.Camera,
-    });
-    this.fotos.push(image);
-    this.imageUrl = image.dataUrl ?? '';
-  };
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+      });
 
-  toggleShowDetails() {
-    this.showDetails = !this.showDetails;
-  }}
+      if (image.base64String) {
+        const base64Image = `data:image/jpeg;base64,${image.base64String}`;
+        this.fotos.push(base64Image);
+      } else {
+        console.error('No se recibió una cadena Base64 de la imagen.');
+      }
+    } catch (error) {
+      console.error('Error al tomar la foto:', error);
+    }
+  }
+
+  deletePhoto(index: number) {
+    this.fotos.splice(index, 1);
+  }
+}

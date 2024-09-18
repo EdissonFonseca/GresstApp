@@ -51,6 +51,10 @@
     <ion-note slot="start">Identificación</ion-note>
     <ion-input formControlName="Identificacion" aria-label="Identificación" ></ion-input>
   </ion-item>
+  <ion-item *ngIf="showPin">
+    <ion-note slot="start">Cargo</ion-note>
+    <ion-input formControlName="Cargo" aria-label="Cargo" ></ion-input>
+  </ion-item>
   <ion-item *ngIf="showNotes">
     <ion-note slot="start">Observaciones</ion-note>
     <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>

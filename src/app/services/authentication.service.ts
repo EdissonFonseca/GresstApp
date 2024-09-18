@@ -62,11 +62,11 @@ export class AuthenticationService {
         this.globales.token = response.data;
         return response.data;
       } else {
-        throw new Error(`Usuario no autorizado`);
+        throw new Error(`Usuario o clave incorrecta`);
       }
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Request error: ${error.message}`);
+        throw new Error(`Usuario o clave incorrecta`);
       } else {
         throw new Error(`Unknown error: ${error}`);
       }
@@ -85,7 +85,7 @@ export class AuthenticationService {
         this.globales.token = response.data;
         return response.data;
       } else {
-        throw new Error(`Usuario no autorizado`);
+        throw new Error(`Usuario o clave incorrecta`);
       }
     } catch (error) {
       if (error instanceof Error) {

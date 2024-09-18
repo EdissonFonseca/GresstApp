@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
+import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 
 @Component({
@@ -40,6 +40,7 @@ export class ActivityApproveComponent  implements OnInit {
       Identificacion: '',
       Nombre: '',
       Observaciones: [],
+      Cargo: '',
     });
   }
 
@@ -96,19 +97,19 @@ export class ActivityApproveComponent  implements OnInit {
 
     if (!actividad) return;
 
-    const firmaBlob = this.getSignature();
+    const firma = this.getSignature();
     actividad.IdEstado = Estado.Aprobado;
-    actividad.IdentificacionResponsable = data.Identificacion;
-    actividad.NombreResponsable = data.Nombre;
+    actividad.ResponsableCargo = data.Cargo;
+    actividad.ResponsableIdentificacion = data.Identificacion;
+    actividad.ResponsableNombre = data.Nombre;
     actividad.Observaciones = data.Observaciones;
-    actividad.FirmaUrl = firmaBlob != null ? "firma.png": null;
-    actividad.Firma = firmaBlob;
+    actividad.ResponsableFirma = firma;
     this.actividadesService.update(actividad);
     this.globales.presentToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 
-  getSignature(): Blob | null{
+  getSignature(): string | null {
     const context = this.canvas.getContext('2d');
     const canvasWidth = this.canvas.width;
     const canvasHeight = this.canvas.height;
@@ -121,14 +122,7 @@ export class ActivityApproveComponent  implements OnInit {
     }
 
     const signatureData = this.canvas.toDataURL();
-    const signature = signatureData.replace('data:image/png;base64,', '');
-    const byteString = atob(signature);
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < byteString.length; i++) {
-        uint8Array[i] = byteString.charCodeAt(i);
-    }
-    const blob = new Blob([uint8Array], { type: 'image/png' });
-    return blob;
+    return signatureData;
   }
+
 }

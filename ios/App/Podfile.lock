@@ -1,9 +1,11 @@
 PODS:
-  - Capacitor (5.7.3):
+  - Capacitor (6.1.2):
     - CapacitorCordova
-  - CapacitorCamera (5.0.9):
+  - CapacitorCamera (6.0.2):
     - Capacitor
-  - CapacitorCordova (5.7.3)
+  - CapacitorCordova (6.1.2)
+  - CapacitorFilesystem (6.0.1):
+    - Capacitor
   - CapacitorGeolocation (5.0.7):
     - Capacitor
   - CapacitorGoogleMaps (5.4.1):
@@ -39,6 +41,7 @@ DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
   - "CapacitorCamera (from `../../node_modules/@capacitor/camera`)"
   - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorFilesystem (from `../../node_modules/@capacitor/filesystem`)"
   - "CapacitorGeolocation (from `../../node_modules/@capacitor/geolocation`)"
   - "CapacitorGoogleMaps (from `../../node_modules/@capacitor/google-maps`)"
 
@@ -54,20 +57,23 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/camera"
   CapacitorCordova:
     :path: "../../node_modules/@capacitor/ios"
+  CapacitorFilesystem:
+    :path: "../../node_modules/@capacitor/filesystem"
   CapacitorGeolocation:
     :path: "../../node_modules/@capacitor/geolocation"
   CapacitorGoogleMaps:
     :path: "../../node_modules/@capacitor/google-maps"
 
 SPEC CHECKSUMS:
-  Capacitor: 7b5eb47c6125e9b58a3e3cd02fe366fc58adc89c
-  CapacitorCamera: 4892c5c392f60039d853dde78bc50ba19fbd113e
-  CapacitorCordova: a377c52a28dbb3b895c0f71187f7b1777fee69db
+  Capacitor: 679f9673fdf30597493a6362a5d5bf233d46abc2
+  CapacitorCamera: ed022171dbf3853e68eec877b4d78995378af6b7
+  CapacitorCordova: f48c89f96c319101cd2f0ce8a2b7449b5fb8b3dd
+  CapacitorFilesystem: 37fb3aa5c945b4539ab11c74a5c57925a302bf24
   CapacitorGeolocation: 918a292459542bcce98433f9e7c7909f8c72838a
   CapacitorGoogleMaps: 7764613bb8eab28f290c1ca76b6ff4ee32d3c50f
   Google-Maps-iOS-Utils: f77eab4c4326d7e6a277f8e23a0232402731913a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
 
-PODFILE CHECKSUM: 0df6b4f36a933198d869f4b88642613ee9f618db
+PODFILE CHECKSUM: 529eb6116f28182efc51bbdedbc70319b458a5ec
 
 COCOAPODS: 1.15.2

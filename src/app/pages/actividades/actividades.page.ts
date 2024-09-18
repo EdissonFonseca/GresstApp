@@ -26,7 +26,8 @@ export class ActividadesPage implements OnInit {
   }
 
   async ngOnInit() {
-    this.permiteAgregar = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
+    this.permiteAgregar = (
+          await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
       || (await this.globales.getPermiso(Permisos.AppAgrupacion))?.includes(CRUDOperacion.Create)
       || (await this.globales.getPermiso(Permisos.AppAlmacenamiento))?.includes(CRUDOperacion.Create)
       || (await this.globales.getPermiso(Permisos.AppAprovechamiento))?.includes(CRUDOperacion.Create)
