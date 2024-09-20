@@ -57,9 +57,9 @@ export class TaskAddComponent  implements OnInit {
   unidadCantidad: string = '';
   unidadPeso: string = 'kg';
   unidadVolumen: string = '';
-  //fotos: Photo[] = [];
   fotos: string[] = [];
   imageUrl: string = '';
+  fotosPorMaterial: number = 2;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -91,6 +91,7 @@ export class TaskAddComponent  implements OnInit {
     this.unidadCantidad = this.globales.unidadCantidad ?? '';
     this.unidadPeso = this.globales.unidadPeso ?? '';
     this.unidadVolumen = this.globales.unidadVolumen ?? '';
+    this.fotosPorMaterial = this.globales.fotosPorMaterial ?? 2;
     const actividad = await this.actividadesService.get(this.idActividad);
     if (actividad)
     {
@@ -235,17 +236,24 @@ export class TaskAddComponent  implements OnInit {
    }
 
    async takePhoto() {
-    const image = await Camera.getPhoto({
-      quality: 90,
-      allowEditing: false,
-      resultType: CameraResultType.Base64, // CameraResultType.Uri == Este es para blob, el otro es para serializarlo
-      source: CameraSource.Camera,
-    });
-    const base64Image = `data:image/jpeg;base64,${image.base64String}`;
-    this.fotos.push('data:image/jpeg;base64,' + image.base64String);
-    //this.fotos.push(image);
-    //this.imageUrl = image.dataUrl ?? '';
-  };
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+      });
+
+      if (image.base64String) {
+        const base64Image = `data:image/jpeg;base64,${image.base64String}`;
+        this.fotos.push(base64Image);
+      } else {
+        console.error('No se recibió una cadena Base64 de la imagen.');
+      }
+    } catch (error) {
+      console.error('Error al tomar la foto:', error);
+    }
+  }
 
   deletePhoto(index: number) {
     this.fotos.splice(index, 1);

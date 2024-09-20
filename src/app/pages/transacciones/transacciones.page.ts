@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
-import { IonModal, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetController, IonModal, ModalController, NavController } from '@ionic/angular';
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -8,6 +8,7 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { Estado } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
+import { environment } from '../../../environments/environment';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -32,14 +33,13 @@ export class TransaccionesPage implements OnInit {
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
     private modalCtrl: ModalController,
-    private router: Router,
+    private actionSheet: ActionSheetController,
   ) {}
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.idActividad = params["IdActividad"]
     });
-    console.log(this.idActividad);
   }
 
   async ionViewWillEnter() {
@@ -91,6 +91,37 @@ export class TransaccionesPage implements OnInit {
     this.navCtrl.navigateForward('/ruta', navigationExtras);
   }
 
+  async showSupports() {
+    var cuenta = await this.globales.getCuenta();
+    const baseUrl = `${environment.filesUrl}/Cuentas/${cuenta.IdPersona}/Soportes/Ordenes/${this.actividad?.IdOrden}/`;
+    const documentsArray = this.actividad?.Soporte?.split(';');
+
+    console.log(baseUrl);
+    // Verificar si documentsArray es válido
+    const buttons = documentsArray && documentsArray.length > 0
+      ? documentsArray.map(doc => ({
+          text: `${doc}`,
+          icon: 'document',
+          handler: () => {
+            const fullUrl = `${baseUrl}${doc}`;
+            window.open(fullUrl, '_blank');
+          }
+        }))
+      : [{
+          text: 'No hay documentos disponibles',
+          icon: 'alert',
+          handler: () => {
+            console.log('Sin documentos para mostrar');
+          }
+        }];
+
+    const actionSheet = await this.actionSheet.create({
+      header: 'Documentos',
+      buttons
+    });
+
+    await actionSheet.present();
+  }
 
   async openAddTarea() {
     const origen: string = 'Transacciones';

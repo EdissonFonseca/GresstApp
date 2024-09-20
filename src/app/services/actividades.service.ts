@@ -81,6 +81,9 @@ export class ActividadesService {
       current.ResponsableIdentificacion = actividad.ResponsableIdentificacion;
       current.ResponsableNombre = actividad.ResponsableNombre;
       current.Observaciones = actividad.Observaciones;
+      current.Kilometraje = actividad.Kilometraje;
+      current.CantidadCombustible = actividad.CantidadCombustible;
+      current.CostoCombustible = actividad.CostoCombustible;
 
       const tareas = current.Tareas.filter(x => x.IdEstado == Estado.Pendiente && x.CRUD == null);
       tareas.forEach(x => {

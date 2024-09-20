@@ -161,6 +161,9 @@ export class TransaccionesService {
         current.ResponsableIdentificacion = transaccion.ResponsableIdentificacion;
         current.ResponsableNombre = transaccion.ResponsableNombre;
         current.Observaciones = transaccion.Observaciones;
+        current.CantidadCombustible = transaccion.CantidadCombustible;
+        current.CostoCombustible = transaccion.CostoCombustible;
+        current.Kilometraje = transaccion.Kilometraje;
 
         const tareas = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
         tareas.forEach(x => {

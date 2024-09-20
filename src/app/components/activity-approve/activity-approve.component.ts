@@ -13,14 +13,21 @@ import { Globales } from 'src/app/services/globales.service';
 })
 export class ActivityApproveComponent  implements OnInit {
   @Input() title: string='Aprobar actividad';
+  @Input() showFuel: boolean = true;
+  @Input() showMileage: boolean = true;
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
+  @Input() showCost: boolean = false;
+  @Input() showPosition: boolean = true;
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
   frmActividad: FormGroup;
   idActividad: string = '';
   actividad: Actividad | undefined = undefined;
+  unidadKilometraje: string = '';
+  unidadCombustible: string = '';
+  moneda: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -41,10 +48,17 @@ export class ActivityApproveComponent  implements OnInit {
       Nombre: '',
       Observaciones: [],
       Cargo: '',
+      Kilometraje: null,
+      CantidadCombustible: null,
+      CostoCombustible: null,
     });
   }
 
   async ngOnInit() {
+    this.unidadCombustible = this.globales.unidadCombustible;
+    this.unidadKilometraje = this.globales.unidadKilometraje;
+    this.moneda = this.globales.moneda;
+
     this.actividad = await this.actividadesService.get(this.idActividad);
   }
 
@@ -99,6 +113,9 @@ export class ActivityApproveComponent  implements OnInit {
 
     const firma = this.getSignature();
     actividad.IdEstado = Estado.Aprobado;
+    actividad.CantidadCombustible = data.CantidadCombustible;
+    actividad.CostoCombustible = data.CostoCombustible;
+    actividad.Kilometraje = data.Kilometraje;
     actividad.ResponsableCargo = data.Cargo;
     actividad.ResponsableIdentificacion = data.Identificacion;
     actividad.ResponsableNombre = data.Nombre;

@@ -6,4 +6,5 @@ export interface Cuenta {
   IdPersona: string;
   Nombre: string;
   NombreUsuario: string;
+  Permisos: string[];
 }

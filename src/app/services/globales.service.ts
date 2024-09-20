@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
-import { Estado, TipoServicio, EntradaSalida } from 'src/app/services/constants.service';
+import { Estado, TipoServicio, EntradaSalida, Permisos, CRUDOperacion } from 'src/app/services/constants.service';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
 import { Tarea } from '../interfaces/tarea.interface';
@@ -33,10 +33,14 @@ export class Globales {
     {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
   public token: string = '';
+  public moneda: string = '$';
   public mostrarIntroduccion: boolean = false;
   public unidadCantidad: string = 'un';
+  public unidadCombustible: string = 'gl';
+  public unidadKilometraje: string = 'km';
   public unidadPeso: string = 'kg';
   public unidadVolumen: string = 'lt';
+  public fotosPorMaterial: number = 2;
   public permisos:  {[key: string]: string | null;} = {};
 
   constructor(
@@ -273,6 +277,25 @@ export class Globales {
       procesoNombre = proceso.Nombre;
 
     return procesoNombre;
+  }
+
+  allowAddActivity(): boolean {
+    return (
+          this.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppAgrupacion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppAlmacenamiento))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppAprovechamiento))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppDisposicion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppEntrega))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppGeneracion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppPerdida))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppRecepcion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppRecoleccion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppTransferencia))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppTransformacion))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppTraslado))?.includes(CRUDOperacion.Create)
+      || (this.getPermiso(Permisos.AppTratamiento))?.includes(CRUDOperacion.Create);
   }
 
   getPermiso(idOpcion: string): string {

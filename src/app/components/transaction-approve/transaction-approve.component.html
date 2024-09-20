@@ -2,17 +2,19 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="cancel()" color="medium">
-        Cancelar
+        <ion-icon name="close-circle"></ion-icon>
+        Salir
       </ion-button>
     </ion-buttons>
     <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="confirm()">Confirmar</ion-button>
+      <ion-button [strong]="true" (click)="confirm()" color="success">
+        <ion-icon name="checkmark-circle"></ion-icon>Confirmar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content>
-  <ion-item>
+<ion-content color="light">
+  <ion-item color="light">
     <ion-icon name="location-outline" color="warning"></ion-icon>
     <ion-title>
       <ion-label class="ion-text-wrap">
@@ -34,35 +36,42 @@
       (touchend)="endDrawing()">
     </canvas>
   </div>
-  <ion-item *ngIf="showSignPad">
+  <ion-item *ngIf="showSignPad" color="light">
     <ion-note slo="start">
-      Firma Responsable Entrega
+      Firma
     </ion-note>
     <ion-button (click)="clear()" slot="end" fill="clear">
       <ion-label>Borrar Firma</ion-label>
     </ion-button>
   </ion-item>
   <form [formGroup]="frmTransaccion">
+    <ion-list inset="true">
       <ion-item *ngIf="showName">
-      <ion-note slot="start">Nombre</ion-note>
-      <ion-input formControlName="Nombre" aria-label="Nombre" ></ion-input>
-    </ion-item>
-    <ion-item *ngIf="showPin">
-      <ion-note slot="start">Identificación</ion-note>
-      <ion-input formControlName="Identificacion" aria-label="Identificación" ></ion-input>
-    </ion-item>
-    <ion-item *ngIf="showPin">
-      <ion-note slot="start">Cargo</ion-note>
-      <ion-input formControlName="Cargo" aria-label="Cargo" ></ion-input>
-    </ion-item>
+        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" aria-label="Nombre" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showPin">
+        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion" aria-label="Identificación" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showPosition">
+        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo" aria-label="Cargo" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showMileage">
+        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" aria-label="Kilometraje" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showFuel">
+        <ion-input label="Marcador Combustible ({{unidadCombustible}})" labelPlacement="floating" formControlName="CantidadCombustible" aria-label="Cantidad" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showCost">
+        <ion-input label="{{moneda}}" labelPlacement="floating" formControlName="CostoCombustible" aria-label="Costo" ></ion-input>
+      </ion-item>
       <ion-item *ngIf="showNotes">
-      <ion-note slot="start">Observaciones</ion-note>
-      <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
-    </ion-item>
+        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
+      </ion-item>
+    </ion-list>
   </form>
 </ion-content>
 <ion-footer>
   <ion-note>
-    Se marcaran {{ transaccion?.ItemsPendientes }} items que estan penddientes como no recibidos
+    Se marcarán {{ transaccion?.ItemsPendientes }} items que estan penddientes como no recibidos
   </ion-note>
 </ion-footer>

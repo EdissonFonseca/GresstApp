@@ -2,16 +2,20 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="cancel()" color="medium">
-        Cancelar
+        <ion-icon name="close-circle"></ion-icon>
+        Salir
       </ion-button>
     </ion-buttons>
     <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="confirm()">Confirmar</ion-button>
+      <ion-button [strong]="true" (click)="confirm()" color="success">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        Confirmar
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-item>
+<ion-item color="light">
   <ion-title>
     <ion-icon slot="start" size="large" [color]="getColorEstado(actividad?.IdEstado ?? '')" [src]="actividad?.Icono"></ion-icon>
     <ion-label class="ion-text-wrap">
@@ -26,7 +30,7 @@
   <ion-badge color="danger"> {{ actividad?.ItemsRechazados }} </ion-badge>
   <ion-badge slot="end" size="small" color="light" *ngIf="actividad?.Cantidades != ''"> {{ actividad?.Cantidades ?? '' }} </ion-badge>
 </ion-item>
-<ion-content>
+<ion-content color="light">
   <div class="signature-container" >
     <canvas #canvas
       (touchstart)="startDrawing($event)"
@@ -34,7 +38,7 @@
       (touchend)="endDrawing()">
     </canvas>
   </div>
-  <ion-item *ngIf="showSignPad">
+  <ion-item *ngIf="showSignPad" color="light">
     <ion-label>
       Firma Receptor
     </ion-label>
@@ -43,21 +47,28 @@
     </ion-button>
   </ion-item>
   <form [formGroup]="frmActividad">
-    <ion-item *ngIf="showName">
-    <ion-note slot="start">Nombre</ion-note>
-    <ion-input formControlName="Nombre" aria-label="Nombre" ></ion-input>
-  </ion-item>
-  <ion-item *ngIf="showPin">
-    <ion-note slot="start">Identificación</ion-note>
-    <ion-input formControlName="Identificacion" aria-label="Identificación" ></ion-input>
-  </ion-item>
-  <ion-item *ngIf="showPin">
-    <ion-note slot="start">Cargo</ion-note>
-    <ion-input formControlName="Cargo" aria-label="Cargo" ></ion-input>
-  </ion-item>
-  <ion-item *ngIf="showNotes">
-    <ion-note slot="start">Observaciones</ion-note>
-    <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
-  </ion-item>
-</form>
+    <ion-list inset="true">
+      <ion-item *ngIf="showName">
+        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" aria-label="Nombre" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showPin">
+        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion" aria-label="Identificación" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showPin">
+        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo" aria-label="Cargo" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showMileage">
+        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" aria-label="Kilometraje" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showFuel">
+        <ion-input label="Marcador Combustible ({{unidadCombustible}})" labelPlacement="floating" formControlName="CantidadCombustible" aria-label="Cantidad" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showCost">
+        <ion-input label="Costo Combustible {{moneda}}" labelPlacement="floating" formControlName="CostoCombustible" aria-label="Costo" ></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showNotes">
+        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
+      </ion-item>
+    </ion-list>
+  </form>
 </ion-content>

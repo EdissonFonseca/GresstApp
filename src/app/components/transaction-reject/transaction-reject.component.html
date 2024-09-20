@@ -1,10 +1,15 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()" color="medium">Cancelar
+      <ion-icon name="close-circle"></ion-icon>
+      <ion-button (click)="cancel()" color="medium">Salir
       </ion-button>
     </ion-buttons>
-    <ion-title>Rechazar Recepción</ion-title>
+    <ion-title></ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" (click)="reject()" color="danger">
+        <ion-icon name="remove-circle"></ion-icon>Rechazar</ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 <ion-content color="light">
@@ -29,7 +34,6 @@
         <ion-textarea formControlName="Observaciones" aria-label="Observaciones"></ion-textarea>
       </ion-item>
     </ion-list>
-    <ion-button expand="full" (click)="reject()">Rechazar</ion-button>
   </form>
 </ion-content>
 <ion-footer>

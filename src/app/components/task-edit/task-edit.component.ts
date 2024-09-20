@@ -52,6 +52,7 @@ export class TaskEditComponent  implements OnInit {
   targetId: string = '';
   treatmentId: string = '';
   treatment: string = '';
+  fotosPorMaterial: number = 2;
   fotos: string[] = []; //Photo[] = [];
   imageUrl: string = '';
 
@@ -94,6 +95,7 @@ export class TaskEditComponent  implements OnInit {
     let peso: number | null = null;
     let volumen: number | null = null;
 
+    this.fotosPorMaterial = this.globales.fotosPorMaterial;
     this.task = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
@@ -345,7 +347,7 @@ export class TaskEditComponent  implements OnInit {
    * Retornar a la página inicial
    */
   cancel() {
-    this.modalCtrl.dismiss(null);
+    this.modalCtrl.dismiss();
   }
 
   /**

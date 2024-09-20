@@ -111,6 +111,10 @@ export class SynchronizationService {
       this.globales.unidadVolumen = data.UnidadVolumen;
       this.globales.mostrarIntroduccion = data.mostrarIntroduccion;
       this.globales.permisos = data.Permisos;
+      this.globales.fotosPorMaterial = data.FotosMaterial ?? 2;
+      this.globales.unidadCombustible = data.UnidadCombustible;
+      this.globales.unidadKilometraje = data.UnidadKilometraje;
+      this.globales.moneda = data.Moneda;
     } catch (error) {
       console.log(error);
       throw (error);

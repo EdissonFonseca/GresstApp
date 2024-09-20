@@ -2,12 +2,13 @@
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="cancel()" color="medium">
-          Cancelar
+          Salir
       </ion-button>
     </ion-buttons>
     <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="reject()">Rechazar</ion-button>
+      <ion-button [strong]="true" (click)="reject()" color="danger">
+        <ion-icon name="remove-circle"></ion-icon>Rechazar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

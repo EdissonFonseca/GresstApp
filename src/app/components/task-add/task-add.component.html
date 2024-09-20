@@ -1,9 +1,17 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()" color="medium"> Cancelar</ion-button>
+      <ion-button (click)="cancel()" color="medium">
+        <ion-icon name="close-circle"></ion-icon>
+        Salir</ion-button>
     </ion-buttons>
-    <ion-title>Agregar</ion-title>
+    <ion-title></ion-title>
+    <ion-buttons slot="end">
+      <ion-button [strong]="true" (click)="submit()" color="success">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        Confirmar
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -55,26 +63,25 @@
         <ion-note slot="start">Notas</ion-note>
         <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>
-    </ion-list>
-    <ion-item color="light">
-      <ion-button expand="full" (click)="takePhoto()" color="secondary">
-        <ion-icon name="camera-outline"></ion-icon>
-        Foto
-      </ion-button>
-      <ion-badge slot="end" color="secondary">{{ fotos.length }}</ion-badge>
-    </ion-item>
-    <ion-item>
-      <ion-grid>
-        <ion-row>
-          <ion-col size="6" *ngFor="let foto of fotos; let i = index">
-            <ion-card>
-              <img [src]="'data:image/jpeg;base64,' + foto" />
-              <ion-button color="danger" (click)="deletePhoto(i)">Eliminar</ion-button>
-            </ion-card>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+      <ion-item lines="none" color="light">
+        <ion-button expand="full" (click)="takePhoto()" color="secondary" *ngIf="fotosPorMaterial > fotos.length">
+          <ion-icon name="camera-outline"></ion-icon>
+          Foto
+        </ion-button>
+        <ion-badge slot="end" color="secondary">{{ fotos.length }}</ion-badge>
       </ion-item>
-    <ion-button type="submit" size="medium" expand="full" (click)="submit()">Confirmar</ion-button>
+      <ion-item>
+        <ion-grid>
+          <ion-row>
+            <ion-col size="6" *ngFor="let foto of fotos; let i = index">
+              <ion-card>
+                <img [src]="foto"/>
+                <ion-button color="danger" (click)="deletePhoto(i)">Eliminar</ion-button>
+              </ion-card>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-item>
+    </ion-list>
   </form>
 </ion-content>

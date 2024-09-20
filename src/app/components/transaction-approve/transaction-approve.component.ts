@@ -15,14 +15,21 @@ import { TransaccionesService } from 'src/app/services/transacciones.service';
   styleUrls: ['./transaction-approve.component.scss'],
 })
 export class TransactionApproveComponent  implements OnInit {
+  @Input() showFuel: boolean = true;
+  @Input() showMileage: boolean = true;
   @Input() showName: boolean = true;
-  @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
+  @Input() showPin: boolean = true;
+  @Input() showCost: boolean = false;
+  @Input() showPosition: boolean = true;
   @Input() showSignPad: boolean = true;
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
   frmTransaccion: FormGroup;
   idActividad: string = '';
   idTransaccion: string = '';
+  unidadKilometraje: string = '';
+  unidadCombustible: string = '';
+  moneda: string = '';
   transaccion: Transaccion | undefined;
   title: string = '';
   private canvas: any;
@@ -47,11 +54,17 @@ export class TransactionApproveComponent  implements OnInit {
       Identificacion: '',
       Nombre: '',
       Cargo: '',
+      Kilometraje: null,
+      CantidadCombustible: null,
+      CostoCombustible: null,
       Observaciones: [],
     });
   }
 
   async ngOnInit() {
+    this.unidadCombustible = this.globales.unidadCombustible;
+    this.unidadKilometraje = this.globales.unidadKilometraje;
+    this.moneda = this.globales.moneda;
     this.transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
 
     if (this.transaccion && this.transaccion.IdTercero && this.transaccion.IdDeposito)
@@ -116,8 +129,9 @@ export class TransactionApproveComponent  implements OnInit {
       console.log(firma);
 
       transaccion.IdEstado = Estado.Aprobado;
-      transaccion.CRUD = CRUDOperacion.Update;
-      transaccion.CRUDDate = now;
+      transaccion.CantidadCombustible = data.CantidadCombustible;
+      transaccion.CostoCombustible = data.CostoCombustible;
+      transaccion.Kilometraje = data.Kilometraje;
       transaccion.ResponsableCargo = data.Cargo;
       transaccion.ResponsableIdentificacion = data.Identificacion;
       transaccion.ResponsableNombre = data.Nombre;

@@ -25,24 +25,8 @@ export class ActividadesPage implements OnInit {
     ) {
   }
 
-  async ngOnInit() {
-    this.permiteAgregar = (
-          await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppAgrupacion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppAlmacenamiento))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppAprovechamiento))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppDisposicion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppEntrega))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppGeneracion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppPerdida))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppRecepcion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppRecoleccion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppTransferencia))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppTransformacion))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppTraslado))?.includes(CRUDOperacion.Create)
-      || (await this.globales.getPermiso(Permisos.AppTratamiento))?.includes(CRUDOperacion.Create)
-      ;
+  ngOnInit() {
+    this.permiteAgregar = this.globales.allowAddActivity();
   }
 
   async ionViewWillEnter() {
@@ -93,14 +77,14 @@ export class ActividadesPage implements OnInit {
   async openAddActivity(){
     const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
-    const acopio = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
+    const acopio = (this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
     if (acopio) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Acopio);
       if (servicio)
         actionSheetDict[TipoServicio.Acopio] = {icon: servicio.Icono , name: servicio.Nombre};
     }
 
-    const transporte = (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
+    const transporte = (this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
     if (transporte) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Transporte);
       if (servicio)

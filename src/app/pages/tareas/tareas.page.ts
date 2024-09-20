@@ -188,8 +188,8 @@ export class TareasPage implements OnInit {
     {
       card.IdEstado = data.IdEstado;
       card.Cantidades = await this.globales.getResumenCantidadesTarea(data.Cantidad, data.Peso, data.Volumen);
+      this.updateTransaccion(data, false);
     }
-    this.updateTransaccion(data, false);
   }
 
   async openApproveTransaccion(id: string){

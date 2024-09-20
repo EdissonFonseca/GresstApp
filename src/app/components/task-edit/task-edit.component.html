@@ -1,13 +1,26 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()" color="medium">Cancelar
+      <ion-button (click)="cancel()" color="medium">
+        <ion-icon name="close-circle"></ion-icon>
+        Salir
+        </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="confirm()" color="success">
+        <ion-icon name="bag-add"></ion-icon>
+        Recibido
+      </ion-button>
+      <ion-button (click)="reject()" color="danger">
+        <ion-icon name="bag-remove"></ion-icon>No recibido
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ task?.Solicitud }}</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content color="light">
+  <ion-item color="light">
+    <ion-title>{{ task?.Solicitud }}</ion-title>
+  </ion-item>
   <form [formGroup]="frmTarea">
     <ion-list color="light">
       <ion-item color="light" lines="none" *ngIf="point != ''">
@@ -54,7 +67,7 @@
         <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
       </ion-item>
       <ion-item lines="none" color="light">
-        <ion-button expand="full" (click)="takePhoto()" color="secondary">
+        <ion-button expand="full" (click)="takePhoto()" color="secondary" *ngIf="fotosPorMaterial > fotos.length">
           <ion-icon name="camera-outline"></ion-icon>
           Foto
         </ion-button>
@@ -71,12 +84,8 @@
             </ion-col>
           </ion-row>
         </ion-grid>
-        </ion-item>
-      </ion-list>
-    <ion-item>
-      <ion-button slot="start" (click)="confirm()" color="success" size="default" fill="solid">Confirmar</ion-button>
-      <ion-button slot="end" (click)="reject()" color="danger" size="default" fill="solid">Rechazar</ion-button>
-    </ion-item>
+      </ion-item>
+    </ion-list>
   </form>
 </ion-content>
 <ion-footer>

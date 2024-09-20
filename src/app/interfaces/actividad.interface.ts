@@ -7,6 +7,8 @@ import { Transaccion } from "./transaccion.interface";
 export interface Actividad{
   IdActividad: string;
 
+  CantidadCombustible?: number | null;
+  CostoCombustible?: number | null;
   CRUD?: string | null;
   CRUDDate?: Date | null;
   Costos?: Costo[];
@@ -21,6 +23,7 @@ export interface Actividad{
   IdServicio: string;
   IdRecurso: string;
   Insumos?: Insumo[];
+  Kilometraje?: number | null;
   NavegarPorTransaccion: boolean;
   ResponsableCargo?: string;
   ResponsableFirma?: string | null;
