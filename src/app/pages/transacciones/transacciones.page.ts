@@ -93,7 +93,7 @@ export class TransaccionesPage implements OnInit {
 
   async showSupports() {
     var cuenta = await this.globales.getCuenta();
-    const baseUrl = `${environment.filesUrl}/Cuentas/${cuenta.IdPersona}/Soportes/Ordenes/${this.actividad?.IdOrden}/`;
+    const baseUrl = `${environment.filesUrl}/Cuentas/${cuenta.IdPersonaCuenta}/Soportes/Ordenes/${this.actividad?.IdOrden}/`;
     const documentsArray = this.actividad?.Soporte?.split(';');
 
     console.log(baseUrl);

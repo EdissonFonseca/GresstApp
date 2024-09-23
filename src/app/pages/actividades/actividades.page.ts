@@ -25,8 +25,8 @@ export class ActividadesPage implements OnInit {
     ) {
   }
 
-  ngOnInit() {
-    this.permiteAgregar = this.globales.allowAddActivity();
+  async ngOnInit() {
+    this.permiteAgregar = await this.globales.allowAddActivity();
   }
 
   async ionViewWillEnter() {
@@ -77,14 +77,14 @@ export class ActividadesPage implements OnInit {
   async openAddActivity(){
     const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
-    const acopio = (this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
+    const acopio = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
     if (acopio) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Acopio);
       if (servicio)
         actionSheetDict[TipoServicio.Acopio] = {icon: servicio.Icono , name: servicio.Nombre};
     }
 
-    const transporte = (this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
+    const transporte = (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
     if (transporte) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Transporte);
       if (servicio)

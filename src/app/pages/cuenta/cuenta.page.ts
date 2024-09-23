@@ -29,8 +29,8 @@ export class CuentaPage implements OnInit {
     this.cuenta = await this.storage.get('Cuenta');
 
     this.formData.patchValue({
-      Nombre: this.cuenta?.Nombre,
-      Identificacion: this.cuenta?.Identificacion
+      Nombre: this.cuenta?.NombreCuenta,
+      Identificacion: this.cuenta?.IdPersonaCuenta
     });
   }
 

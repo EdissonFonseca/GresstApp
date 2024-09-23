@@ -173,7 +173,6 @@ export class ResidueTransferComponent  implements OnInit {
   }
 
   async selectPoint() {
-    const idTercero = await this.globales.getIdPersona();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {

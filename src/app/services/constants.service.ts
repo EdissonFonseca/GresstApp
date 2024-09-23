@@ -23,6 +23,15 @@ export enum Estado{
   Rechazado = "R",
   Inactivo = "I"
 };
+export enum Parametros {
+  FotosPorMaterial = "FotosPorMaterial",
+  Moneda = "Moneda",
+  UnidadCantidad = "UnidadCantidad",
+  UnidadCombustible = "UnidadCombustible",
+  UnidadKilometraje = "UnidadKilometraje",
+  UnidadPeso = "UnidadPeso",
+  UnidadVolumen = "UnidadVolumen",
+}
 export enum Permisos{
   App = "App",
   AppCertificado = "AppCertificado",

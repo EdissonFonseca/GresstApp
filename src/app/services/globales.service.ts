@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
-import { Estado, TipoServicio, EntradaSalida, Permisos, CRUDOperacion } from 'src/app/services/constants.service';
+import { Estado, TipoServicio, EntradaSalida, Parametros, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
 import { Tarea } from '../interfaces/tarea.interface';
@@ -33,15 +33,14 @@ export class Globales {
     {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
   public token: string = '';
+  public fotosPorMaterial: number = 2;
   public moneda: string = '$';
-  public mostrarIntroduccion: boolean = false;
+  // public mostrarIntroduccion: boolean = false;
   public unidadCantidad: string = 'un';
   public unidadCombustible: string = 'gl';
   public unidadKilometraje: string = 'km';
   public unidadPeso: string = 'kg';
   public unidadVolumen: string = 'lt';
-  public fotosPorMaterial: number = 2;
-  public permisos:  {[key: string]: string | null;} = {};
 
   constructor(
     private storage: StorageService,
@@ -73,6 +72,18 @@ export class Globales {
     );
   }
 
+  async initGlobales() {
+    const data: Cuenta = await this.storage.get('Cuenta');
+    this.fotosPorMaterial = Number(data.Parametros[Parametros.FotosPorMaterial] ?? "2");
+    this.moneda = data.Parametros[Parametros.Moneda];
+    this.token = await this.storage.get('Token');
+    this.unidadCantidad = data.Parametros[Parametros.UnidadCantidad];
+    this.unidadCombustible = data.Parametros[Parametros.UnidadCombustible];
+    this.unidadKilometraje = data.Parametros[Parametros.UnidadKilometraje];
+    this.unidadPeso = data.Parametros[Parametros.UnidadPeso];
+    this.unidadVolumen = data.Parametros[Parametros.UnidadVolumen];
+  }
+
   getResumenCantidadesResiduo(tipoMedicion: string | null, tipoCaptura: string | null, cantidad: number,  peso: number, volumen: number): string {
     let resumen: string = '';
     if (tipoMedicion == null || tipoMedicion == 'C' || tipoCaptura == 'C') {
@@ -100,7 +111,6 @@ export class Globales {
   }
 
   getResumenCantidadesTarea(cantidad: number,  peso: number, volumen: number): string {
-
     let resumen: string = '';
     if (cantidad > 0){
       resumen += `${cantidad} ${this.unidadCantidad}`;
@@ -255,7 +265,7 @@ export class Globales {
 
   async getIdPersona(): Promise<string | null> {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
-    return cuenta.Identificacion;
+    return cuenta.IdPersonaUsuario;
   }
 
   getImagen(id: string): string{
@@ -279,40 +289,37 @@ export class Globales {
     return procesoNombre;
   }
 
-  allowAddActivity(): boolean {
+  async allowAddActivity(): Promise<boolean> {
+    const cuenta: Cuenta  = await this.storage.get('Cuenta');
+
     return (
-          this.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppAgrupacion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppAlmacenamiento))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppAprovechamiento))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppDisposicion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppEntrega))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppGeneracion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppPerdida))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppRecepcion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppRecoleccion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppTransferencia))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppTransformacion))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppTraslado))?.includes(CRUDOperacion.Create)
-      || (this.getPermiso(Permisos.AppTratamiento))?.includes(CRUDOperacion.Create);
+      cuenta.Permisos[Permisos.AppAcopio]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppAgrupacion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppAlmacenamiento]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppAprovechamiento]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppDisposicion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppEntrega]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppGeneracion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppPerdida]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppRecepcion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppRecoleccion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppTransferencia]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppTransformacion]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppTransporte]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppTraslado]?.includes(CRUDOperacion.Create) ||
+      cuenta.Permisos[Permisos.AppTratamiento]?.includes(CRUDOperacion.Create)
+    );
   }
 
-  getPermiso(idOpcion: string): string {
-    try {
-      if (this.permisos) {
-        let permiso = this.permisos[idOpcion] || '';
-        if (permiso == null)
-          permiso = '';
-        return permiso;
-      } else {
-        return '';
-      }
-    } catch {
-      return '';
-    }
+  async getParametro(idParametro: string): Promise<string> {
+    const cuenta: Cuenta  = await this.storage.get('Cuenta');
+    return cuenta?.Parametros[idParametro] || '';
   }
 
+  async getPermiso(idOpcion: string):  Promise<string> {
+    const cuenta: Cuenta  = await this.storage.get('Cuenta');
+    return cuenta?.Permisos[idOpcion] || '';
+  }
   // #endregion
 
   // #region Update Methods

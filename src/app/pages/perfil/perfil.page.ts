@@ -35,7 +35,7 @@ export class PerfilPage implements OnInit {
 
     this.formData.patchValue({
       Nombre: this.cuenta?.NombreUsuario,
-      Correo: this.cuenta?.CorreoUsuario
+      Correo: this.cuenta?.LoginUsuario
     });
   }
 

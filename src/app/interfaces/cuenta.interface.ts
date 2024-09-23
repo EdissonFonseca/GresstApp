@@ -1,10 +1,13 @@
 export interface Cuenta {
   IdCuenta: string;
 
-  CorreoUsuario: string;
-  Identificacion: string;
-  IdPersona: string;
-  Nombre: string;
+  IdPersonaCuenta: string;
+  IdPersonaUsuario: string;
+  IdUsuario: string;
+  LoginUsuario: string;
+  NombreCuenta: string;
   NombreUsuario: string;
-  Permisos: string[];
+
+  Permisos: Record<string,string>;
+  Parametros: Record<string,string>;
 }

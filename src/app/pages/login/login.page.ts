@@ -26,15 +26,9 @@ export class LoginPage implements OnInit {
 
   async ngOnInit() {
     var loggedUser = await this.storage.get('Login');
+
     if (loggedUser) {
-      const data = await this.storage.get('Cuenta');
-      this.globales.unidadCantidad = data.UnidadCantidad;
-      this.globales.unidadPeso = data.UnidadPeso;
-      this.globales.unidadVolumen = data.UnidadVolumen;
-      this.globales.mostrarIntroduccion = data.mostrarIntroduccion;
-      this.globales.permisos = data.Permisos;
-      const token = await this.storage.get('Token');
-      this.globales.token = token;
+      this.globales.initGlobales();
       this.navCtrl.navigateRoot('/home');
     }
   }
@@ -54,8 +48,6 @@ export class LoginPage implements OnInit {
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
-          this.globales.token = token;
-
           await this.synchronizationService.reload();
 
           this.globales.hideLoading();
