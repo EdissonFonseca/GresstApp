@@ -111,9 +111,10 @@ export class TareasPage implements OnInit {
     }
   }
 
-  async updateTransaccion(tarea: Tarea, esNuevo: boolean){
+  async updateVistaTransaccion(tarea: Tarea, esNuevo: boolean){
     const transaccion = this.transacciones.find(x => x.IdTransaccion == tarea.IdTransaccion);
     if (transaccion){
+      console.log(transaccion);
       switch(tarea.IdEstado){
         case Estado.Aprobado:
           transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
@@ -155,7 +156,7 @@ export class TareasPage implements OnInit {
         }
       }
       this.tareas.push(data);
-      this.updateTransaccion(data, true);
+      this.updateVistaTransaccion(data, true);
     }
   }
 
@@ -188,7 +189,7 @@ export class TareasPage implements OnInit {
     {
       card.IdEstado = data.IdEstado;
       card.Cantidades = await this.globales.getResumenCantidadesTarea(data.Cantidad, data.Peso, data.Volumen);
-      this.updateTransaccion(data, false);
+      this.updateVistaTransaccion(data, false);
     }
   }
 

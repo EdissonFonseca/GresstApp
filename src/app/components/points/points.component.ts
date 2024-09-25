@@ -93,7 +93,7 @@ export class PointsComponent  implements OnInit, OnChanges {
     else
       this.selectedName = `${tercero} - ${nombre}`;
     this.selectedOwner = idTercero;
-    const data = {id: this.selectedValue, name: this.selectedName, owner: this.selectedOwner};
+    const data = {id: this.selectedValue, name: this.selectedName, owner: this.selectedOwner, ownerName: tercero};
     this.modalCtrl.dismiss(data);
   }
 

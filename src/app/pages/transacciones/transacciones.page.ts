@@ -137,11 +137,15 @@ export class TransaccionesPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     if (data) {
+      //Viene una tarea, no una transaccion
       const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
       if (!transaccion) {
           const newTransaccion = await this.transaccionesService.get(this.idActividad, data.IdTransaccion);
           if (newTransaccion)
-              this.transacciones.push(newTransaccion);
+          {
+            console.log(newTransaccion);
+            this.transacciones.push(newTransaccion);
+          }
       } else {
         transaccion.Cantidad += data.Cantidad;
         transaccion.Peso += data.Peso;

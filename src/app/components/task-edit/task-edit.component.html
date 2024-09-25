@@ -7,12 +7,12 @@
         </ion-button>
     </ion-buttons>
     <ion-buttons slot="end">
+      <ion-button (click)="reject()" color="danger">
+        <ion-icon name="bag-remove"></ion-icon>No recibido
+      </ion-button>
       <ion-button (click)="confirm()" color="success">
         <ion-icon name="bag-add"></ion-icon>
         Recibido
-      </ion-button>
-      <ion-button (click)="reject()" color="danger">
-        <ion-icon name="bag-remove"></ion-icon>No recibido
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { CRUDOperacion, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
@@ -22,6 +22,10 @@ export class ActivityAddComponent  implements OnInit {
   idServicio: string = '';
   idRecurso: string ='';
   recurso: string = '';
+  unidadKilometraje: string = '';
+  unidadCombustible: string = '';
+  showFuel: boolean = true;
+  showMileage: boolean = true;
   showTransport: boolean = false;
   showCollect: boolean = false;
   showProduce: boolean = false;
@@ -44,6 +48,8 @@ export class ActivityAddComponent  implements OnInit {
     if (this.idServicio == TipoServicio.Transporte) {
       this.showTransport = true;
     }
+    this.unidadCombustible = this.globales.unidadCombustible;
+    this.unidadKilometraje = this.globales.unidadKilometraje;
   }
 
   async confirm() {

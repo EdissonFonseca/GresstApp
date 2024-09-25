@@ -48,7 +48,9 @@ export class TaskAddComponent  implements OnInit {
   puntoSalida : string = '';
   residuo: string = '';
   idTerceroEntrada: string ='';
+  terceroEntrada: string = '';
   idTerceroSalida: string ='';
+  terceroSalida: string = '';
   solicitarPunto: boolean = false;
   solicitarPropietario: boolean = false;
   solicitarEmbalaje: boolean = false;
@@ -179,6 +181,7 @@ export class TaskAddComponent  implements OnInit {
         this.idPuntoEntrada  = data.data.id;
         this.puntoEntrada = data.data.name;
         this.idTerceroEntrada = data.data.owner;
+        this.terceroEntrada = data.data.ownerName;
       }
     });
   }
@@ -198,6 +201,7 @@ export class TaskAddComponent  implements OnInit {
         this.idPuntoSalida  = data.data.id;
         this.puntoSalida = data.data.name;
         this.idTerceroSalida = data.data.owner;
+        this.terceroSalida = data.data.ownerName;
       }
     });
   }
@@ -277,7 +281,7 @@ export class TaskAddComponent  implements OnInit {
     idTransaccion = this.idTransaccion;
     const data = this.formData.value;
     if (actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte || actividad.IdServicio === TipoServicio.Recepcion){
-            const residuo: Residuo = {
+      const residuo: Residuo = {
         IdResiduo: this.globales.newId(),
         IdMaterial: this.idMaterial,
         IdPropietario: this.idTerceroEntrada,
@@ -319,7 +323,10 @@ export class TaskAddComponent  implements OnInit {
               ItemsAprobados: 1,
               ItemsPendientes: 0,
               ItemsRechazados: 0,
-              Titulo: this.puntoEntrada,
+              Punto: this.puntoEntrada,
+              Tercero: this.terceroEntrada,
+              Titulo: 'Nueva - ' + this.puntoEntrada ?? this.terceroEntrada,
+              Solicitudes: 'Nueva',
               Icono: 'location',
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,

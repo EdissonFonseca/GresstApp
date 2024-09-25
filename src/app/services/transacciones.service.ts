@@ -105,7 +105,8 @@ export class TransaccionesService {
       transaccion.ItemsPendientes = resumen.pendientes;
       transaccion.ItemsRechazados = resumen.rechazados;
       transaccion.Cantidades = resumen.resumen;
-      transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
+      if (transaccion.Titulo == '' || transaccion.Titulo == undefined)
+        transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
     }
 
     return transaccion;
@@ -135,7 +136,6 @@ export class TransaccionesService {
   }
 
   async create(idActividad: string, transaccion: Transaccion) {
-    console.log(idActividad);
     const actividades: Actividad[] = await this.storage.get('Actividades');
     const actividad = actividades.find(x => x.IdActividad == idActividad);
     if (actividad) {

@@ -42,6 +42,12 @@
         <ion-label>{{ recurso }}</ion-label>
         <ion-button color="light" (click)="selectSource()">...</ion-button>
       </ion-item>
+      <ion-item *ngIf="showMileage && idServicio == '8'">
+        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" aria-label="Kilometraje" type="number"></ion-input>
+      </ion-item>
+      <ion-item *ngIf="showFuel && idServicio == '8'">
+        <ion-input label="Marcador Combustible ({{unidadCombustible}})" labelPlacement="floating" formControlName="CantidadCombustible" aria-label="Cantidad" type="number"></ion-input>
+      </ion-item>
     </ion-list>
     <ion-button expand="full" (click)="confirm()">Iniciar</ion-button>
   </form>

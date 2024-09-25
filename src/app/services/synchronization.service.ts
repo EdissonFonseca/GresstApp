@@ -262,10 +262,8 @@ export class SynchronizationService {
         for (const actividad of actividades) {
 
           if (actividad.CRUD == CRUDOperacion.Create) {
-            console.log('Post actividad');
             if (await this.transactionsService.postActividad(actividad)) {
               this.storage.set('Actividades', actividades);
-              console.log('Actividad posted');
             } else {
               return;
             }
@@ -273,10 +271,8 @@ export class SynchronizationService {
 
           for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Create) {
-              console.log('Post transaccion');
               if (await this.transactionsService.postTransaccion(transaccion)) {
                 this.storage.set('Actividades', actividades);
-                console.log('Transaccion posted');
               } else {
                 return;
               }
@@ -285,18 +281,14 @@ export class SynchronizationService {
 
           for (const tarea of actividad.Tareas.filter((tarea) => tarea.CRUD != null)) {
             if (tarea.CRUD === CRUDOperacion.Create) {
-              console.log('Post tarea');
               if (await this.transactionsService.postTarea(tarea)) {
                 this.storage.set('Actividades', actividades);
-                console.log('Tarea posted');
               } else {
                 return;
               }
             } else {
-              console.log('Patch tarea');
               if (await this.transactionsService.patchTarea(tarea)){
                 this.storage.set('Actividades', actividades);
-                console.log('Tarea patched');
               } else {
                 return;
               }
@@ -316,10 +308,8 @@ export class SynchronizationService {
           }
 
           if (actividad.CRUD == CRUDOperacion.Update) {
-            console.log('Patch actividad');
             if (await this.transactionsService.patchActividad(actividad)) {
               this.storage.set('Actividades', actividades);
-              console.log('Actividad  patched');
             } else {
               return;
             }

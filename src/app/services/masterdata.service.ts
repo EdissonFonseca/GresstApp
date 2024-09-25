@@ -112,7 +112,7 @@ export class MasterDataService {
       } else {
         throw new Error('Request error');
       }
-    } catch{
+    } catch {
     }
   }
 
