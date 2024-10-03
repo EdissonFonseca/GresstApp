@@ -316,6 +316,8 @@
   "java.configuration.updateBuildConfiguration": "interactive",
   "cSpell.ignoreWords": [
     "Abrir",
+    "Aceptar",
+    "Actualizando",
     "Agrupacion",
     "Autorizando",
     "Bienvenido",
@@ -347,7 +349,9 @@
     "GresstApp",
     "Guardar",
     "Identificación",
+    "Información",
     "Informarción",
+    "Iniciado",
     "Iniciar",
     "Interno",
     "Introduccion",

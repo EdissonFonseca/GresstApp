@@ -86,7 +86,7 @@ export class TransactionRejectComponent  implements OnInit {
         transaccion.CRUDDate = now;
         transaccion.Observaciones = data.Observaciones;
         transaccion.IdEstado = Estado.Rechazado;
-        transaccion.FechaEjecucion = isoDate;
+        transaccion.FechaInicial = isoDate;
         this.transaccionesService.update(this.activityId, transaccion);
         this.modalCtrl.dismiss(transaccion);
       }

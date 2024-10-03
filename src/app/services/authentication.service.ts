@@ -33,9 +33,12 @@ export class AuthenticationService {
   async validateToken(): Promise<boolean>{
     if (this.globales.token == '') return false;
 
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    // const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    // const options = { url: `${this.authenticationUrl}/validatetoken`, headers };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
     const options = { url: `${this.authenticationUrl}/validatetoken`, headers };
 
+    console.log(options);
     try{
       const response: HttpResponse = await CapacitorHttp.get(options);
       if (response.status == 200) {
@@ -83,6 +86,7 @@ export class AuthenticationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
         this.globales.token = response.data;
+        await this.storage.set('Token', response.data);
         return response.data;
       } else {
         throw new Error(`Usuario no autorizado`);

@@ -330,8 +330,8 @@ export class TaskAddComponent  implements OnInit {
               Icono: 'location',
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
-              FechaProgramada: isoDate,
-              FechaEjecucion: isoDate,
+              FechaInicial: isoDate,
+              FechaFinal: isoDate,
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
               Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
             };
@@ -345,7 +345,7 @@ export class TaskAddComponent  implements OnInit {
               transaccionActual.Volumen = data.Volumen;
               await this.transaccionesService.update(this.idActividad, transaccionActual);
               idTransaccion = transaccionActual.IdTransaccion;
-              fecha = transaccionActual.FechaProgramada ?? isoDate;
+              fecha = transaccionActual.FechaInicial ?? isoDate;
             } else {
               this.globales.presentToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
               return;
@@ -385,7 +385,7 @@ export class TaskAddComponent  implements OnInit {
             transaccionActual.Volumen = data.Volumen;
             await this.transaccionesService.update(this.idActividad, transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
-            fecha = transaccionActual.FechaProgramada ?? isoDate;
+            fecha = transaccionActual.FechaInicial ?? isoDate;
           }
         }
       } else {
@@ -417,7 +417,6 @@ export class TaskAddComponent  implements OnInit {
         Cantidad: data.Cantidad,
         Peso: data.Peso,
         Volumen: data.Volumen,
-        CantidadEmbalaje: data.CantidadEmbalaje,
         IdEmbalaje: data.IdEmbalaje,
         FechaProgramada: fecha,
         FechaEjecucion: isoDate,

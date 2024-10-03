@@ -146,6 +146,7 @@ export class TareasPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     if (data) {
+      await this.globales.showLoading('Actualizando información');
       if (data.IdTransaccion) {
         const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
         if (!transaccion) {
@@ -157,6 +158,7 @@ export class TareasPage implements OnInit {
       }
       this.tareas.push(data);
       this.updateVistaTransaccion(data, true);
+      await this.globales.hideLoading();
     }
   }
 
@@ -168,6 +170,7 @@ export class TareasPage implements OnInit {
    async openEditTarea(idTransaccion: string, idTarea: string) {
     const card = this.tareas.find(x => x.IdTarea == idTarea);
     if (!card) return;
+
     if (card.IdEstado != Estado.Pendiente && card.IdEstado != Estado.Inactivo) return;
 
     const modal =   await this.modalCtrl.create({
@@ -184,33 +187,42 @@ export class TareasPage implements OnInit {
 
     await modal.present();
 
-    const { data } = await modal.onDidDismiss();
+    const { data }  = await modal.onDidDismiss();
     if (data)
     {
+      await this.globales.showLoading('Actualizando información');
       card.IdEstado = data.IdEstado;
       card.Cantidades = await this.globales.getResumenCantidadesTarea(data.Cantidad, data.Peso, data.Volumen);
       this.updateVistaTransaccion(data, false);
+      await this.globales.hideLoading();
     }
   }
 
   async openApproveTransaccion(id: string){
-    const modal =   await this.modalCtrl.create({
-      component: TransactionApproveComponent,
-      componentProps: {
-        ActivityId: this.idActividad,
-        TransactionId: id,
-      },
-    });
-    await modal.present();
+    try {
+      const modal =   await this.modalCtrl.create({
+        component: TransactionApproveComponent,
+        componentProps: {
+          ActivityId: this.idActividad,
+          TransactionId: id,
+        },
+      });
+      await modal.present();
 
-    const { data } = await modal.onDidDismiss();
-    if (data != null) {
-      const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
-      if (transaccion){
-        transaccion.IdEstado = Estado.Aprobado;
-        this.showAdd = false;
+      const { data } = await modal.onDidDismiss();
+      if (data != null) {
+        await this.globales.showLoading('Actualizando información');
+        const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
+        if (transaccion){
+          transaccion.IdEstado = Estado.Aprobado;
+          this.showAdd = false;
+        }
+        await this.globales.hideLoading();
       }
+    } catch {
+      await this.globales.hideLoading();
     }
+
   }
 
   async openRejectTransaccion(id: string){
@@ -228,10 +240,12 @@ export class TareasPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null)
     {
+      await this.globales.showLoading('Actualizando información');
       const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
       if (transaccion) {
         transaccion.IdEstado = Estado.Rechazado;
       }
+      await this.globales.hideLoading();
     }
   }
 }

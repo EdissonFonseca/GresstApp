@@ -1,6 +1,7 @@
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
+import { Geolocation } from '@capacitor/geolocation';
 
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
 import { Estado, TipoServicio, EntradaSalida, Parametros, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
@@ -289,6 +290,17 @@ export class Globales {
     return procesoNombre;
   }
 
+  async getCurrentPosition(): Promise<[number, number]> {
+    try {
+      const coordinates = await Geolocation.getCurrentPosition();
+      const latitude = coordinates.coords.latitude;
+      const longitude = coordinates.coords.longitude;
+      return [latitude, longitude]; // Return tuple [latitude, longitude]
+    } catch (error) {
+      console.error('Error getting location', error);
+      throw error; // Re-throw the error for handling it in the component
+    }
+  }
   async allowAddActivity(): Promise<boolean> {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
 

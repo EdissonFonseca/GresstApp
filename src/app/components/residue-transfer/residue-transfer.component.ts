@@ -84,7 +84,7 @@ export class ResidueTransferComponent  implements OnInit {
         actividad = await this.actividadesService.getByServicio(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto){
-            actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: isoToday};
+            actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicial: isoToday};
             await this.actividadesService.create(actividad);
           }
         }
@@ -107,7 +107,7 @@ export class ResidueTransferComponent  implements OnInit {
       } else {
         actividad = await this.actividadesService.getByServicio(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
         if (!actividad){
-          actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicio: isoToday};
+          actividad = {IdActividad: this.globales.newId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicial: isoToday};
           actividad.CRUD = CRUDOperacion.Create;
           await this.actividadesService.create(actividad);
         }

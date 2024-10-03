@@ -6,8 +6,8 @@ export interface Transaccion {
   CRUD?: string | null;
   CRUDDate?: Date | null;
   EntradaSalida: string;
-  FechaEjecucion?: string;
-  FechaProgramada?: string;
+  FechaInicial?: string;
+  FechaFinal?: string;
   IdOrden?: string | null;
   IdEstado: string;
   IdDeposito?: string;
@@ -17,6 +17,8 @@ export interface Transaccion {
   IdRecurso: string;
   IdServicio: string;
   Kilometraje?: number;
+  Latitud?: number;
+  Longitud?: number;
   ResponsableCargo?: string;
   ResponsableFirma?: string | null;
   ResponsableIdentificacion?: string;

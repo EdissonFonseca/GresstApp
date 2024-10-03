@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
-import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -15,12 +15,15 @@ import { Globales } from 'src/app/services/globales.service';
 export class ActividadesPage implements OnInit {
   actividades: Actividad[] = [];
   permiteAgregar: boolean = true;
+  cantidadCombustible: number | null = null;
+  kilometraje: number | null = null;
 
   constructor(
     private navCtrl: NavController,
     private globales: Globales,
     private actividadesService: ActividadesService,
     private modalCtrl: ModalController,
+    private alertCtrl: AlertController,
     private actionSheet: ActionSheetController
     ) {
   }
@@ -40,6 +43,45 @@ export class ActividadesPage implements OnInit {
     this.actividades = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
   }
 
+  async presentAlertPrompt(): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      const alert = await this.alertCtrl.create({
+        header: 'Datos del vehiculo',
+        inputs: [
+          {
+            name: 'kilometraje',
+            type: 'number',
+            placeholder: 'Kilometraje',
+          },
+          {
+            name: 'cantidadCombustible',
+            type: 'number',
+            placeholder: 'Cantidad de Combustible',
+          }
+        ],
+        buttons: [
+          {
+            text: 'Aceptar',
+            handler: (data) => {
+              this.kilometraje = data.kilometraje;
+              this.cantidadCombustible = data.cantidadCombustible;
+              resolve(true);
+            }
+          },
+          {
+            text: 'Cancelar',
+            role: 'cancel',
+            handler: () => {
+              resolve(false);
+            }
+          }
+        ]
+      });
+
+      await alert.present();
+    });
+  }
+
   async navigateToTarget(idActividad: string){
     const actividad: Actividad = await this.actividadesService.get(idActividad);
 
@@ -47,6 +89,19 @@ export class ActividadesPage implements OnInit {
     {
       case TipoServicio.Recoleccion:
       case TipoServicio.Transporte:
+        console.log(actividad);
+        if (!(actividad.Iniciado ?? false)) {
+          const result = await this.presentAlertPrompt();
+          if (result) {
+            actividad.KilometrajeInicial = this.kilometraje;
+            actividad.CantidadCombustibleInicial = this.cantidadCombustible;
+          } else {
+            return;
+          }
+          actividad.Iniciado = true;
+          await this.actividadesService.updateInicio(actividad);
+        }
+
         if (actividad.NavegarPorTransaccion) {
           const navigationExtras: NavigationExtras = {
             queryParams: { IdActividad: idActividad, Mode: 'T'}
@@ -61,6 +116,7 @@ export class ActividadesPage implements OnInit {
           }
             this.navCtrl.navigateForward('/tareas', navigationExtras);
         }
+        //this.globales.hideLoading();
         break;
       default:
         const navigationExtrasD: NavigationExtras = {
@@ -116,7 +172,9 @@ export class ActividadesPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     if (data) {
+      await this.globales.showLoading('Actualizando información');
       this.actividades = await this.actividadesService.list();
+      await this.globales.hideLoading();
     }
   }
 
@@ -131,11 +189,11 @@ export class ActividadesPage implements OnInit {
 
     if (!actividad) return;
 
-    if (actividad.FechaInicio){
-      const fechaInicio = new Date(actividad.FechaInicio);
+    if (actividad.FechaInicial){
+      const fechaInicio = new Date(actividad.FechaInicial);
       const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-      if (actividad.FechaFin) {
-        const fechaFin = new Date(actividad.FechaFin);
+      if (actividad.FechaFinal) {
+        const fechaFin = new Date(actividad.FechaFinal);
         const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
         if (diaInicio == hoy && diaFin == hoy){
           jornada = 'Todo el dia';

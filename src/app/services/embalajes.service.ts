@@ -15,9 +15,8 @@ export class EmbalajesService {
 
   async get(idEmbalaje: string): Promise<Embalaje | undefined> {
     const embalajes: Embalaje[] = await this.storage.get('Embalajes');
-
     if (embalajes) {
-      const embalaje = embalajes.find((embalaje) => embalaje.IdEmbalaje === idEmbalaje);
+      const embalaje = embalajes.find((embalaje) => embalaje.IdEmbalaje == idEmbalaje);
       return embalaje || undefined;
     }
 

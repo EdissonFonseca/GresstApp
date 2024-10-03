@@ -138,6 +138,7 @@ export class TransaccionesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data) {
       //Viene una tarea, no una transaccion
+      await this.globales.showLoading('Actualizando información');
       const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
       if (!transaccion) {
           const newTransaccion = await this.transaccionesService.get(this.idActividad, data.IdTransaccion);
@@ -153,6 +154,7 @@ export class TransaccionesPage implements OnInit {
         transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
         transaccion.Cantidades = await this.globales.getResumenCantidadesTarea(transaccion.Cantidad ?? 0, transaccion.Peso ?? 0, transaccion.Volumen ?? 0);
       }
+      await this.globales.hideLoading();
     }
   }
 
@@ -174,8 +176,10 @@ export class TransaccionesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data != null && this.actividad)
     {
-       this.actividad.IdEstado = Estado.Aprobado;
-       this.showAdd = false;
+      await this.globales.showLoading('Actualizando información');
+      this.actividad.IdEstado = Estado.Aprobado;
+      this.showAdd = false;
+      await this.globales.hideLoading();
     }
   }
 }

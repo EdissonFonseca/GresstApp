@@ -113,9 +113,8 @@ export class ActivityApproveComponent  implements OnInit {
 
     const firma = this.getSignature();
     actividad.IdEstado = Estado.Aprobado;
-    actividad.CantidadCombustible = data.CantidadCombustible;
-    actividad.CostoCombustible = data.CostoCombustible;
-    actividad.Kilometraje = data.Kilometraje;
+    actividad.CantidadCombustibleFinal = data.CantidadCombustible;
+    actividad.KilometrajeFinal = data.Kilometraje;
     actividad.ResponsableCargo = data.Cargo;
     actividad.ResponsableIdentificacion = data.Identificacion;
     actividad.ResponsableNombre = data.Nombre;

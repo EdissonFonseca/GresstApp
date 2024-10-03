@@ -81,9 +81,10 @@ export class ActividadesService {
       current.ResponsableIdentificacion = actividad.ResponsableIdentificacion;
       current.ResponsableNombre = actividad.ResponsableNombre;
       current.Observaciones = actividad.Observaciones;
-      current.Kilometraje = actividad.Kilometraje;
-      current.CantidadCombustible = actividad.CantidadCombustible;
-      current.CostoCombustible = actividad.CostoCombustible;
+      current.KilometrajeInicial = actividad.KilometrajeInicial;
+      current.KilometrajeFinal = actividad.KilometrajeFinal;
+      current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
+      current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
 
       const tareas = current.Tareas.filter(x => x.IdEstado == Estado.Pendiente && x.CRUD == null);
       tareas.forEach(x => {
@@ -98,6 +99,23 @@ export class ActividadesService {
         x.CRUD = CRUDOperacion.Update,
         x.CRUDDate = now
       });
+
+      await this.storage.set("Actividades", actividades);
+      await this.synchronizationService.uploadTransactions();
+    }
+  }
+
+  async updateInicio(actividad: Actividad) {
+    const now = new Date();
+    const actividades: Actividad[] = await this.storage.get('Actividades');
+    const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
+    if (current)
+    {
+      current.CRUD = CRUDOperacion.Read;
+      current.CRUDDate = now;
+      current.IdEstado = actividad.IdEstado;
+      current.KilometrajeInicial = actividad.KilometrajeInicial;
+      current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
       await this.storage.set("Actividades", actividades);
       await this.synchronizationService.uploadTransactions();

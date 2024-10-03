@@ -104,7 +104,7 @@ export class TareasService {
             {
               const embalajeData = embalajes.find((x) => x.IdEmbalaje == tarea.IdEmbalaje);
               if (embalajeData)
-                embalaje = `- (${tarea.CantidadEmbalaje ?? ''} ${embalajeData.Nombre}`;
+                embalaje = `- (${tarea.Cantidad ?? ''} ${embalajeData.Nombre}`;
             }
 
             switch(actividad.IdServicio){
@@ -277,10 +277,10 @@ export class TareasService {
         tareaUpdate.CRUD = CRUDOperacion.Update;
         tareaUpdate.CRUDDate = now;
         tareaUpdate.Cantidad = tarea.Cantidad;
-        tareaUpdate.CantidadEmbalaje = tarea.CantidadEmbalaje;
         tareaUpdate.IdEmbalaje = tarea.IdEmbalaje;
         tareaUpdate.IdTratamiento = tarea.IdTratamiento;
         tareaUpdate.Peso = tarea.Peso;
+        tareaUpdate.Volumen = tarea.Volumen;
         tareaUpdate.Valor = tarea.Valor;
         tareaUpdate.Observaciones = tarea.Observaciones;
         tareaUpdate.IdEstado = tarea.IdEstado;

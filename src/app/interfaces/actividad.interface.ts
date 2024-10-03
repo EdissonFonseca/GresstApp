@@ -7,15 +7,15 @@ import { Transaccion } from "./transaccion.interface";
 export interface Actividad{
   IdActividad: string;
 
-  CantidadCombustible?: number | null;
-  CostoCombustible?: number | null;
+  CantidadCombustibleInicial?: number | null;
+  CantidadCombustibleFinal?: number | null;
   CRUD?: string | null;
   CRUDDate?: Date | null;
   Costos?: Costo[];
   Origen?: Punto;
   Destino?: Punto;
-  FechaFin?: string | null;
-  FechaInicio: string;
+  FechaFinal?: string | null;
+  FechaInicial?: string | null;
   IdOrden?: string | null;
   Orden?: string | null;
   IdResponsable?: string;
@@ -23,7 +23,8 @@ export interface Actividad{
   IdServicio: string;
   IdRecurso: string;
   Insumos?: Insumo[];
-  Kilometraje?: number | null;
+  KilometrajeInicial?: number | null;
+  KilometrajeFinal?: number | null;
   NavegarPorTransaccion: boolean;
   ResponsableCargo?: string;
   ResponsableFirma?: string | null;
@@ -37,9 +38,11 @@ export interface Actividad{
   Transacciones: Transaccion[];
 
   Accion?: string;
+  Cantidades?: string;
   Icono?: string;
+  Iniciado?: boolean;
   ItemsAprobados?: number;
   ItemsPendientes?: number;
   ItemsRechazados?: number;
-  Cantidades?: string;
+  PrimerIngreso?: boolean;
 }

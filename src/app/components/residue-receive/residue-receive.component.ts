@@ -150,7 +150,7 @@ export class ResidueReceiveComponent implements OnInit {
           IdServicio: this.serviceId,
           IdRecurso: idRecurso,
           NavegarPorTransaccion: false,
-          FechaInicio: isoToday,
+          FechaInicial: isoToday,
           Titulo: titulo,
           Tareas: [],
           Transacciones: []

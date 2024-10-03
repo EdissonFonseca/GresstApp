@@ -44,7 +44,7 @@
       </ion-item>
       <ion-item *ngIf="medicion == 'P' || captura == 'P'">
         <ion-note slot="start">{{unidadPeso}}</ion-note>
-        <ion-input slot="end" type="number" labelPlacement="fixed" linputmode="numeric" formControlName="Peso" [readonly]="captura != 'P'"></ion-input>
+        <ion-input slot="end" type="number" labelPlacement="fixed" inputmode="numeric" formControlName="Peso" [readonly]="captura != 'P'"></ion-input>
       </ion-item>
       <ion-item *ngIf="medicion == 'V' || captura == 'V'">
         <ion-note slot="start">{{unidadVolumen}}</ion-note>
@@ -54,10 +54,6 @@
         <ion-note slot="start">Embalaje</ion-note>
         <ion-label>{{ embalaje }}</ion-label>
         <ion-button color="light" (click)="selectEmbalaje()">...</ion-button>
-      </ion-item>
-      <ion-item *ngIf="solicitarEmbalaje">
-        <ion-note slot="start">Cant Emb</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="CantidadEmbalaje"></ion-input>
       </ion-item>
       <ion-item>
         <ion-note slot="start">Notas</ion-note>

@@ -4,7 +4,6 @@ export interface Tarea{
   IdTarea: string;
 
   Cantidad?: number;
-  CantidadEmbalaje?: number;
   CRUD?: string | null;
   CRUDDate?: Date | null;
   Solicitud?: string | null;

@@ -261,9 +261,17 @@ export class SynchronizationService {
       if (actividades) {
         for (const actividad of actividades) {
 
+          if (actividad.CRUD == CRUDOperacion.Read) {
+            if (await this.transactionsService.postActividadInicio(actividad)) {
+              await this.storage.set('Actividades', actividades);
+            } else {
+              return;
+            }
+          }
+
           if (actividad.CRUD == CRUDOperacion.Create) {
             if (await this.transactionsService.postActividad(actividad)) {
-              this.storage.set('Actividades', actividades);
+              await this.storage.set('Actividades', actividades);
             } else {
               return;
             }
@@ -272,7 +280,7 @@ export class SynchronizationService {
           for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Create) {
               if (await this.transactionsService.postTransaccion(transaccion)) {
-                this.storage.set('Actividades', actividades);
+                await this.storage.set('Actividades', actividades);
               } else {
                 return;
               }
@@ -282,13 +290,13 @@ export class SynchronizationService {
           for (const tarea of actividad.Tareas.filter((tarea) => tarea.CRUD != null)) {
             if (tarea.CRUD === CRUDOperacion.Create) {
               if (await this.transactionsService.postTarea(tarea)) {
-                this.storage.set('Actividades', actividades);
+                await this.storage.set('Actividades', actividades);
               } else {
                 return;
               }
             } else {
               if (await this.transactionsService.patchTarea(tarea)){
-                this.storage.set('Actividades', actividades);
+                await this.storage.set('Actividades', actividades);
               } else {
                 return;
               }
@@ -297,10 +305,8 @@ export class SynchronizationService {
 
           for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Update) {
-              console.log('Patch transaccion');
               if (await this.transactionsService.patchTransaccion(transaccion)) {
-                this.storage.set('Actividades', actividades);
-                console.log('Transaccion patched');
+                await this.storage.set('Actividades', actividades);
               } else {
                 return;
               }
@@ -316,11 +322,10 @@ export class SynchronizationService {
           }
         }
       }
-      this.storage.set('Actividades', actividades);
+      await this.storage.set('Actividades', actividades);
     } catch (error) {
       console.log(error);
       throw(error);
     }
   }
-
 }

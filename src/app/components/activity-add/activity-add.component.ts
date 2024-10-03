@@ -79,7 +79,7 @@ export class ActivityAddComponent  implements OnInit {
       IdServicio: this.idServicio,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
-      FechaInicio: isoToday,
+      FechaInicial: isoToday,
       IdEstado: Estado.Pendiente,
       NavegarPorTransaccion: true,
       Transacciones: [],

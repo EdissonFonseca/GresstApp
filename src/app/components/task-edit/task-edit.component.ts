@@ -16,6 +16,7 @@ import { TercerosService } from 'src/app/services/terceros.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { PackagesComponent } from '../packages/packages.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
+import { EmbalajesService } from 'src/app/services/embalajes.service';
 
 @Component({
   selector: 'app-task-edit',
@@ -61,6 +62,7 @@ export class TaskEditComponent  implements OnInit {
     private navParams: NavParams,
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
+    private embalajesService: EmbalajesService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
     private inventarioService: InventarioService,
@@ -79,7 +81,6 @@ export class TaskEditComponent  implements OnInit {
     this.frmTarea = this.formBuilder.group({
       Cantidad: [],
       Peso: [],
-      CantidadEmbalaje: [],
       IdEmbalaje: [],
       Observaciones: [],
       Valor: [],
@@ -122,6 +123,13 @@ export class TaskEditComponent  implements OnInit {
         this.stakeholderId = solicitante?.IdPersona ?? '';
       }
 
+      if (this.task.IdEmbalaje) {
+        const embalaje = await this.embalajesService.get(this.task.IdEmbalaje);
+        console.log(embalaje);
+        this.packageId = this.task.IdEmbalaje;
+        this.package = embalaje?.Nombre ?? '';
+      }
+
       if (this.inputOutput == EntradaSalida.Salida) {
         const residuo = await this.inventarioService.getResiduo(this.residueId);
         if (residuo) {
@@ -134,7 +142,7 @@ export class TaskEditComponent  implements OnInit {
       this.frmTarea.patchValue({
         Cantidad: cantidad,
         Peso: peso,
-        CantidadEmbalaje: this.task?.CantidadEmbalaje,
+        volumen: volumen,
         IdEmbalaje: this.task?.IdEmbalaje,
       });
     } else {
@@ -143,6 +151,7 @@ export class TaskEditComponent  implements OnInit {
       let terceroNombre: string = '';
       let terceroId: string = '';
       let puntoId: string = '';
+      let embalajeId: string = '';
 
       if (this.transactionId) {
         const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
@@ -173,6 +182,11 @@ export class TaskEditComponent  implements OnInit {
         volumen = residuo.Volumen ?? 0;
       }
 
+      if (this.packageId) {
+        const embalaje = await this.embalajesService.get(this.packageId);
+        this.package = embalaje?.Nombre ?? '';
+      }
+
       this.material = materialNombre;
       this.point = puntoNombre;
       this.pointId = puntoId;
@@ -181,6 +195,8 @@ export class TaskEditComponent  implements OnInit {
       this.frmTarea.patchValue({
         Cantidad: cantidad,
         Peso: peso,
+        volumen: volumen,
+        IdEmbalaje: embalajeId,
       });
     }
   }
@@ -204,7 +220,6 @@ export class TaskEditComponent  implements OnInit {
     tarea = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (tarea) { //Si hay tarea
       tarea.Cantidad = data.Cantidad;
-      tarea.CantidadEmbalaje = data.CantidadEmbalaje;
       tarea.FechaEjecucion = isoDate;
       tarea.IdEmbalaje = data.IdEmbalaje;
       tarea.IdEstado = Estado.Aprobado;
@@ -287,7 +302,6 @@ export class TaskEditComponent  implements OnInit {
             FechaSistema: isoDate,
             IdRecurso: actividad.IdRecurso,
             IdServicio: actividad.IdServicio,
-            CantidadEmbalaje: data.CantidadEmbalaje,
             IdEmbalaje: data.IdEmbalaje,
             Observaciones: data.Observaciones,
             EntradaSalida: EntradaSalida.Entrada,
@@ -310,7 +324,6 @@ export class TaskEditComponent  implements OnInit {
               IdServicio: actividad.IdServicio,
               Peso: data.Peso,
               Volumen: data.Volumen,
-              CantidadEmbalaje: data.CantidadEmbalaje,
               IdEmbalaje: data.IdEmbalaje,
               Observaciones: data.Observaciones,
               EntradaSalida: EntradaSalida.Entrada,
