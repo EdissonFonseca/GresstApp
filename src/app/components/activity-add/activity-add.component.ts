@@ -55,6 +55,7 @@ export class ActivityAddComponent  implements OnInit {
   async confirm() {
     const recurso: string = this.frmActivity.get('recurso')?.value;
     const now = new Date();
+    const isoDate = now.toISOString();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const isoToday = today.toISOString();
     let titulo: string = '';
@@ -79,11 +80,10 @@ export class ActivityAddComponent  implements OnInit {
       IdServicio: this.idServicio,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
-      FechaInicial: isoToday,
+      FechaInicial: isoDate,
+      FechaOrden: isoToday,
       IdEstado: Estado.Pendiente,
       NavegarPorTransaccion: true,
-      Transacciones: [],
-      Tareas: []
     };
     await this.actividadesService.create(actividad);
 

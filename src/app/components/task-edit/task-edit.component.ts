@@ -292,14 +292,16 @@ export class TaskEditComponent  implements OnInit {
           };
           await this.inventarioService.createResiduo(residuo);
           tarea = {
+            IdActividad: this.activityId,
+            IdTransaccion: this.transactionId,
             IdTarea: this.globales.newId(),
+
             IdMaterial: this.materialId,
             IdResiduo: residuo.IdResiduo,
-            IdTransaccion: this.transactionId,
             Cantidad: data.Cantidad,
             Peso: data.Peso,
             Volumen: data.Volumen,
-            FechaSistema: isoDate,
+            FechaEjecucion: isoDate,
             IdRecurso: actividad.IdRecurso,
             IdServicio: actividad.IdServicio,
             IdEmbalaje: data.IdEmbalaje,
@@ -314,12 +316,14 @@ export class TaskEditComponent  implements OnInit {
           const residuo = await this.inventarioService.getResiduo(this.residueId);
           if (residuo) {
             tarea = {
+              IdActividad: this.activityId,
+              IdTransaccion: this.transactionId,
               IdTarea: this.globales.newId(),
+
               IdMaterial: this.materialId,
               IdResiduo: residuo.IdResiduo,
-              IdTransaccion: this.transactionId,
               Cantidad: data.Cantidad,
-              FechaSistema: isoDate,
+              FechaEjecucion: isoDate,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
               Peso: data.Peso,

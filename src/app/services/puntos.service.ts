@@ -3,6 +3,8 @@ import { StorageService } from './storage.service';
 import { Actividad } from '../interfaces/actividad.interface';
 import { Punto } from '../interfaces/punto.interface';
 import { Estado } from './constants.service';
+import { Transaction } from '../interfaces/transaction.interface';
+import { Tarea } from '../interfaces/tarea.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -31,11 +33,12 @@ export class PuntosService {
 
   async getPuntosFromTareas(idActividad: string){
     let puntos: Punto[] = await this.storage.get('Puntos');
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    if (actividad.Tareas)
+    const transaction: Transaction = await this.storage.get('Transaction');
+    const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
+
+    if (transaction && tareas)
     {
-      const tareasPuntos = actividad.Tareas.filter((x) => x.IdDeposito != null);
+      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null);
       const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdDeposito ?? '');
       puntos = puntos.filter((punto) => idsPuntos.includes(punto.IdDeposito));
     }
@@ -44,11 +47,12 @@ export class PuntosService {
 
   async getPuntosFromTareasPendientes(idActividad: string){
     let puntos: Punto[] = await this.storage.get('Puntos');
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    if (actividad.Tareas)
+    const transaction: Transaction = await this.storage.get('Transaction');
+    const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
+
+    if (transaction && tareas)
     {
-      const tareasPuntos = actividad.Tareas.filter((x) => x.IdDeposito != null && x.IdEstado == Estado.Pendiente);
+      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null && x.IdEstado == Estado.Pendiente);
       const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdDeposito ?? '');
       puntos = puntos.filter((punto) => idsPuntos.includes(punto.IdDeposito));
     }

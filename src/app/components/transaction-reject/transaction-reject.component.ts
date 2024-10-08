@@ -82,8 +82,6 @@ export class TransactionRejectComponent  implements OnInit {
       if (transaccion)
       {
         console.log(transaccion);
-        transaccion.CRUD = CRUDOperacion.Update;
-        transaccion.CRUDDate = now;
         transaccion.Observaciones = data.Observaciones;
         transaccion.IdEstado = Estado.Rechazado;
         transaccion.FechaInicial = isoDate;

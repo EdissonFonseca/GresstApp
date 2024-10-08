@@ -16,6 +16,7 @@ import { Residuo } from '../interfaces/residuo.interface';
 import { InventoryService } from './inventory.service';
 import { Globales } from './globales.service';
 import { AuthenticationService } from './authentication.service';
+import { Transaction } from '../interfaces/transaction.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -166,8 +167,8 @@ export class SynchronizationService {
       if (!await this.authenticationService.validateToken())
         await this.authenticationService.reconnect();
 
-      var actividades : Actividad[] = await this.transactionsService.get();
-      await this.storage.set('Actividades', actividades);
+      var transaction: Transaction = await this.transactionsService.get();
+      await this.storage.set('Transaction', transaction);
 
     } catch(error) {
       console.log(error);
@@ -252,77 +253,72 @@ export class SynchronizationService {
   }
 
   async uploadTransactions() {
-    let actividades: Actividad[] = await this.storage.get('Actividades');
+    let transaction: Transaction = await this.storage.get('Transaction');
 
     if (!await this.authenticationService.validateToken())
       await this.authenticationService.reconnect();
 
     try {
-      if (actividades) {
-        for (const actividad of actividades) {
+      if (transaction) {
+        for (const actividad of transaction.Actividades) {
 
           if (actividad.CRUD == CRUDOperacion.Read) {
-            if (await this.transactionsService.postActividadInicio(actividad)) {
-              await this.storage.set('Actividades', actividades);
-            } else {
+            if (!await this.transactionsService.postActividadInicio(actividad)) {
+              await this.storage.set('Transaction', transaction);
               return;
             }
           }
 
           if (actividad.CRUD == CRUDOperacion.Create) {
-            if (await this.transactionsService.postActividad(actividad)) {
-              await this.storage.set('Actividades', actividades);
-            } else {
+            if (!await this.transactionsService.postActividad(actividad)) {
+              await this.storage.set('Transaction', transaction);
               return;
             }
           }
 
-          for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
+          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Create) {
-              if (await this.transactionsService.postTransaccion(transaccion)) {
-                await this.storage.set('Actividades', actividades);
-              } else {
+              if (!await this.transactionsService.postTransaccion(transaccion)) {
+                await this.storage.set('Transaction', transaction);
                 return;
               }
             }
           }
 
-          for (const tarea of actividad.Tareas.filter((tarea) => tarea.CRUD != null)) {
+          for (const tarea of transaction.Tareas.filter((tarea) => tarea.CRUD != null)) {
             if (tarea.CRUD === CRUDOperacion.Create) {
-              if (await this.transactionsService.postTarea(tarea)) {
-                await this.storage.set('Actividades', actividades);
-              } else {
+              if (!await this.transactionsService.postTarea(tarea)) {
+                await this.storage.set('Transaction', transaction);
                 return;
               }
             } else {
-              if (await this.transactionsService.patchTarea(tarea)){
-                await this.storage.set('Actividades', actividades);
-              } else {
+              if (!await this.transactionsService.patchTarea(tarea)){
+                await this.storage.set('Transaction', transaction);
                 return;
               }
             }
           }
 
-          for (const transaccion of actividad.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
+          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
             if (transaccion.CRUD === CRUDOperacion.Update) {
-              if (await this.transactionsService.patchTransaccion(transaccion)) {
-                await this.storage.set('Actividades', actividades);
-              } else {
+              if (!await this.transactionsService.patchTransaccion(transaccion)) {
+                await this.storage.set('Transaction', transaction);
                 return;
               }
             }
           }
 
           if (actividad.CRUD == CRUDOperacion.Update) {
-            if (await this.transactionsService.patchActividad(actividad)) {
-              this.storage.set('Actividades', actividades);
-            } else {
+            if (!await this.transactionsService.patchActividad(actividad)) {
+              this.storage.set('Transaction', transaction);
               return;
             }
           }
         }
       }
-      await this.storage.set('Actividades', actividades);
+
+      await this.storage.set('Transaction', transaction);
+
     } catch (error) {
       console.log(error);
       throw(error);

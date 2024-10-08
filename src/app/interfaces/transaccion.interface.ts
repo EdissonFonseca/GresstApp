@@ -1,10 +1,10 @@
 export interface Transaccion {
+  IdActividad: string;
   IdTransaccion: string;
 
   CantidadCombustible?: number | null;
   CostoCombustible?: number | null;
   CRUD?: string | null;
-  CRUDDate?: Date | null;
   EntradaSalida: string;
   FechaInicial?: string;
   FechaFinal?: string;

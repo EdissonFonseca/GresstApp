@@ -118,7 +118,7 @@ export class ActivityApproveComponent  implements OnInit {
     actividad.ResponsableCargo = data.Cargo;
     actividad.ResponsableIdentificacion = data.Identificacion;
     actividad.ResponsableNombre = data.Nombre;
-    actividad.Observaciones = data.Observaciones;
+    actividad.ResponsableObservaciones = data.Observaciones;
     actividad.ResponsableFirma = firma;
     this.actividadesService.update(actividad);
     this.globales.presentToast('Actividad aprobada', "top");

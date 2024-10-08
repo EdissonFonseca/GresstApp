@@ -3,13 +3,13 @@ import { StorageService } from './storage.service';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { TareasService } from './tareas.service';
-import { Cuenta } from '../interfaces/cuenta.interface';
 import { Tarea } from '../interfaces/tarea.interface';
 import { CRUDOperacion, EntradaSalida, Estado } from './constants.service';
 import { Globales } from './globales.service';
 import { PuntosService } from './puntos.service';
 import { TercerosService } from './terceros.service';
 import { SynchronizationService } from './synchronization.service';
+import { Transaction } from '../interfaces/transaction.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -28,9 +28,8 @@ export class TransaccionesService {
     let nombre: string = '';
     let operacion: string = '';
     let ubicacion: string = '';
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    const transacciones: Transaccion[] = actividad.Transacciones;
+    const transaction: Transaction = await this.storage.get('Transaction');
+    const transacciones: Transaccion[] = transaction.Transacciones.filter((x) => x.IdActividad == idActividad);
     const puntos = await this.puntosService.list();
     const terceros = await this.tercerosService.list();
     const tareas: Tarea[] = await this.tareasService.list(idActividad);
@@ -90,13 +89,12 @@ export class TransaccionesService {
   }
 
   async get(idActividad: string, idTransaccion: string) {
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
+    const transaction: Transaction = await this.storage.get('Transaction');
     let transaccion: Transaccion | undefined;
 
-    if (actividad){
-      transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion)!;
-      const tareas = actividad.Tareas.filter(x => x.IdTransaccion == idTransaccion);
+    if (transaction){
+      transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion)!;
+      const tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
       const resumen = this.globales.getResumen(tareas);
       transaccion.Cantidad = resumen.cantidad;
       transaccion.Peso = resumen.peso;
@@ -113,49 +111,48 @@ export class TransaccionesService {
   }
 
   async getByPunto(idActividad: string, idPunto: string) {
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
+    const transaction: Transaction = await this.storage.get('Transaction');
     let transaccion: Transaccion | undefined;
 
-    if (actividad) {
-      transaccion = actividad.Transacciones.find(x => x.IdDeposito == idPunto)!;
+    if (transaction) {
+      transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdDeposito == idPunto)!;
     }
     return transaccion;
   }
 
   async getByTercero(idActividad: string, idTercero: string) {
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
+    const transaction: Transaction = await this.storage.get('Transaction');
     let transaccion: Transaccion | undefined = undefined;
 
-    if (actividad)
+    if (transaction)
     {
-      transaccion = actividad.Transacciones.find(x => x.IdTercero == idTercero)!;
+      transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTercero == idTercero)!;
     }
     return transaccion;
   }
 
   async create(idActividad: string, transaccion: Transaccion) {
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad = actividades.find(x => x.IdActividad == idActividad);
-    if (actividad) {
-      actividad.Transacciones.push(transaccion);
-      await this.storage.set('Actividades', actividades);
+    const transaction: Transaction = await this.storage.get('Transaction');
+
+    if (transaction) {
+      transaction.Transacciones.push(transaccion);
+      await this.storage.set('Transaction', transaction);
       await this.synchronizationService.uploadTransactions();
     }
   }
 
   async update(idActividad: string, transaccion: Transaccion) {
-    const now = new Date();
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    if (actividad)
+    const now = new Date().toISOString();
+    const transaction: Transaction = await this.storage.get('Transaction');
+
+    if (transaction)
     {
-      const current = actividad.Transacciones.find((trx) => trx.IdTransaccion == transaccion.IdTransaccion);
+      const current = transaction.Transacciones.find((trx) => trx.IdActividad == idActividad && trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
         current.CRUD = CRUDOperacion.Update;
-        current.CRUDDate = now;
         current.IdEstado = transaccion.IdEstado;
+        current.FechaInicial = now;
+        current.FechaFinal = now;
         current.ResponsableCargo = transaccion.ResponsableCargo;
         current.ResponsableFirma = transaccion.ResponsableFirma;
         current.ResponsableIdentificacion = transaccion.ResponsableIdentificacion;
@@ -165,14 +162,13 @@ export class TransaccionesService {
         current.CostoCombustible = transaccion.CostoCombustible;
         current.Kilometraje = transaccion.Kilometraje;
 
-        const tareas = actividad.Tareas.filter(x => x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+        const tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
         tareas.forEach(x => {
           x.IdEstado = Estado.Rechazado,
-          x.CRUD = CRUDOperacion.Update,
-          x.CRUDDate = now
+          x.CRUD = CRUDOperacion.Update
         });
 
-        await this.storage.set("Actividades", actividades);
+        await this.storage.set("Transaction", transaction);
         await this.synchronizationService.uploadTransactions();
       }
     }

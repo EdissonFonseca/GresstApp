@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Actividad } from '../interfaces/actividad.interface';
-import { Cuenta } from '../interfaces/cuenta.interface';
 import { CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
 import { Globales } from './globales.service';
 import { InventarioService } from './inventario.service';
@@ -11,6 +10,7 @@ import { MaterialesService } from './materiales.service';
 import { TratamientosService } from './tratamientos.service';
 import { EmbalajesService } from './embalajes.service';
 import { PuntosService } from './puntos.service';
+import { Transaction } from '../interfaces/transaction.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -37,11 +37,11 @@ export class TareasService {
   }
 
   async list(idActividad: string): Promise<Tarea[]>{
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
+    const transaction: Transaction = await this.storage.get('Transaction');
     const materiales = await this.materialesService.list();
     const tratamientos = await this.tratamientosService.list();
-    const tareas: Tarea[] = actividad.Tareas;
+    const actividad: Actividad | undefined = transaction.Actividades.find((x) => x.IdActividad == idActividad);
+    const tareas: Tarea[] = transaction.Tareas.filter((tarea) => tarea.IdActividad == idActividad);
 
     tareas.forEach((tarea) => {
       const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
@@ -55,7 +55,7 @@ export class TareasService {
               tarea.Tratamiento = tratamientoItem.Nombre;
           }
       }
-      tarea.IdServicio = actividad.IdServicio;
+      tarea.IdServicio = actividad?.IdServicio ?? '';
     });
 
     return tareas;
@@ -67,21 +67,19 @@ export class TareasService {
     let crear: boolean;
     let embalaje: string;
     let accion: string;
-    const now = new Date();
-    const isoDate = now.toISOString();
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-
+    const now = new Date().toISOString();
+    const transaction: Transaction = await this.storage.get('Transaction');
+    const actividad: Actividad | undefined = transaction.Actividades.find((item) => item.IdActividad == idActividad)!;
     const materiales = await this.materialesService.list();
     const tratamientos = await this.tratamientosService.list();
     const embalajes = await this.embalajesService.list();
 
-    if (actividad)
+    if (transaction)
     {
       if (idTransaccion)
-        tareas = actividad.Tareas.filter(x => x.IdTransaccion == idTransaccion);
+        tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
       else
-        tareas = actividad.Tareas;
+        tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad);
 
       if (tareas.length > 0){
         tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo)?.forEach(async (tarea) => {
@@ -154,7 +152,7 @@ export class TareasService {
       }
       if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
         const puntos = await this.puntosService.list();
-        var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
+        var transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdDeposito)
         {
           var punto = await this.puntosService.get(transaccion.IdDeposito);
@@ -166,17 +164,18 @@ export class TareasService {
 
                 if (material){
                   const tarea: Tarea = {
+                    IdActividad: idActividad,
+                    IdTransaccion: idTransaccion,
                     IdTarea: this.globales.newId(),
+
                     IdMaterial: material.IdMaterial,
                     Accion: 'Recoger',
-                    FechaSistema : isoDate,
+                    FechaEjecucion : now,
                     IdRecurso: actividad.IdRecurso,
                     IdServicio: actividad.IdServicio,
-                    IdTransaccion: idTransaccion,
                     IdEstado: Estado.Inactivo,
                     EntradaSalida: EntradaSalida.Salida,
                     Material: material.Nombre,
-                    CRUDDate: new Date(),
                     Fotos: []
                   };
                   tareas.push(tarea);
@@ -187,7 +186,7 @@ export class TareasService {
         }
       }
       if (actividad.IdServicio === TipoServicio.Transporte) {
-        var transaccion = actividad.Transacciones.find(x => x.IdTransaccion == idTransaccion);
+        var transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
 
         if (transaccion && transaccion.EntradaSalida != EntradaSalida.Entrada){
           const residuos = (await this.inventarioService.list()).filter(x => x.IdVehiculo == actividad.IdRecurso);
@@ -220,13 +219,15 @@ export class TareasService {
                   tarea.Accion = 'Entregar';
               } else {
                 const tarea: Tarea = {
+                  IdActividad: idActividad,
+                  IdTransaccion: idTransaccion,
                   IdTarea: this.globales.newId(),
+
                   IdMaterial: material.IdMaterial,
                   IdResiduo: residuo.IdResiduo,
                   Accion: 'Entregar',
-                  IdTransaccion: idTransaccion,
                   IdEstado: Estado.Inactivo,
-                  FechaSistema: isoDate,
+                  FechaEjecucion: now,
                   IdRecurso: actividad.IdRecurso,
                   IdServicio: actividad.IdServicio,
                   EntradaSalida: EntradaSalida.Salida,
@@ -235,7 +236,6 @@ export class TareasService {
                   Peso: residuo.Peso,
                   Volumen: residuo.Volumen,
                   Material: material.Nombre,
-                  CRUDDate: new Date(),
                   Fotos: []
                 };
                 tareas.push(tarea);
@@ -249,33 +249,31 @@ export class TareasService {
   }
 
   async create(idActividad: string, tarea: Tarea) {
-    const now = new Date();
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad = actividades.find(x => x.IdActividad == idActividad);
-    if (actividad){
+    const transaction: Transaction = await this.storage.get('Transaction');
+
+    if (transaction){
+      tarea.IdActividad = idActividad;
       tarea.CRUD = CRUDOperacion.Create;
-      tarea.CRUDDate = now;
-      actividad.Tareas.push(tarea);
-      await this.storage.set('Actividades', actividades);
+      transaction.Tareas.push(tarea);
+      await this.storage.set('Transaction', transaction);
       await this.synchronizationService.uploadTransactions();
     }
   }
 
   async update(idActividad: string, idTransaccion: string, tarea: Tarea) {
-    const now = new Date();
+    const now = new Date().toISOString();
     let tareaUpdate: Tarea | undefined = undefined;
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-    if (actividad)
+    const transaction: Transaction = await this.storage.get('Transaction');
+
+    if (transaction)
     {
       if (tarea.Item == null)
-        tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.IdMaterial == tarea.IdMaterial);
+        tareaUpdate = transaction.Tareas.find((t) => t.IdActividad == idActividad && t.IdTransaccion == idTransaccion && t.IdMaterial == tarea.IdMaterial);
       else
-        tareaUpdate = actividad.Tareas.find((t) => t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
+        tareaUpdate = transaction.Tareas.find((t) => t.IdActividad == idActividad && t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
       if (tareaUpdate)
       {
         tareaUpdate.CRUD = CRUDOperacion.Update;
-        tareaUpdate.CRUDDate = now;
         tareaUpdate.Cantidad = tarea.Cantidad;
         tareaUpdate.IdEmbalaje = tarea.IdEmbalaje;
         tareaUpdate.IdTratamiento = tarea.IdTratamiento;
@@ -285,7 +283,8 @@ export class TareasService {
         tareaUpdate.Observaciones = tarea.Observaciones;
         tareaUpdate.IdEstado = tarea.IdEstado;
         tareaUpdate.Fotos = tarea.Fotos;
-        await this.storage.set("Actividades", actividades);
+        tareaUpdate.FechaEjecucion = now;
+        await this.storage.set("Transaction", transaction);
         await this.synchronizationService.uploadTransactions();
       }
     }

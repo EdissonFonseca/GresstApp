@@ -8,6 +8,7 @@ export interface Cuenta {
   NombreCuenta: string;
   NombreUsuario: string;
 
-  Permisos: Record<string,string>;
+  Ajustes: Record<string,string>;
   Parametros: Record<string,string>;
+  Permisos: Record<string,string>;
 }

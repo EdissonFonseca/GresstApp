@@ -6,6 +6,7 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
+import { TareasService } from 'src/app/services/tareas.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -24,6 +25,7 @@ export class PuntoNuevoPage implements OnInit {
     private navCtrl: NavController,
     private transaccionesService: TransaccionesService,
     private puntosService: PuntosService,
+    private tareasService: TareasService,
     private globales: Globales,
   ) {
   }
@@ -49,9 +51,8 @@ export class PuntoNuevoPage implements OnInit {
   }
 
    async confirm(){
-
-
     const transaccion: Transaccion = {
+        IdActividad:'',
         IdTransaccion: this.globales.newId(),
         EntradaSalida: EntradaSalida.Entrada,
         IdRecurso: "",

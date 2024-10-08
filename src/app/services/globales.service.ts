@@ -290,7 +290,7 @@ export class Globales {
     return procesoNombre;
   }
 
-  async getCurrentPosition(): Promise<[number, number]> {
+  async getCurrentPosition(): Promise<[number | null, number | null]> {
     try {
       const coordinates = await Geolocation.getCurrentPosition();
       const latitude = coordinates.coords.latitude;
@@ -298,9 +298,10 @@ export class Globales {
       return [latitude, longitude]; // Return tuple [latitude, longitude]
     } catch (error) {
       console.error('Error getting location', error);
-      throw error; // Re-throw the error for handling it in the component
+      return [null, null]; // Return [null, null] in case of error
     }
   }
+
   async allowAddActivity(): Promise<boolean> {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
 

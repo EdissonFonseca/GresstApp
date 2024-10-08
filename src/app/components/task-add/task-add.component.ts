@@ -310,7 +310,9 @@ export class TaskAddComponent  implements OnInit {
           const transaccionActual = await this.transaccionesService.getByPunto(this.idActividad, this.idPuntoEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
+              IdActividad: this.idActividad,
               IdTransaccion: this.globales.newId(),
+
               IdEstado: Estado.Pendiente,
               EntradaSalida: EntradaSalida.Entrada,
               IdTercero: this.idTerceroEntrada,
@@ -325,7 +327,7 @@ export class TaskAddComponent  implements OnInit {
               ItemsRechazados: 0,
               Punto: this.puntoEntrada,
               Tercero: this.terceroEntrada,
-              Titulo: 'Nueva - ' + this.puntoEntrada ?? this.terceroEntrada,
+              Titulo: 'Nueva - ' + (this.puntoEntrada ?? '') + (this.terceroEntrada ?? ''),
               Solicitudes: 'Nueva',
               Icono: 'location',
               IdRecurso: actividad.IdRecurso,
@@ -355,7 +357,9 @@ export class TaskAddComponent  implements OnInit {
           const transaccionActual = await this.transaccionesService.getByTercero(this.idActividad, this.idTerceroEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
+              IdActividad: this.idActividad,
               IdTransaccion: this.globales.newId(),
+
               IdEstado: Estado.Pendiente,
               EntradaSalida: EntradaSalida.Entrada,
               IdTercero: this.idTerceroEntrada,
@@ -397,7 +401,10 @@ export class TaskAddComponent  implements OnInit {
     if (idResiduo != null)
     {
       tarea = {
+        IdActividad: this.idActividad,
+        IdTransaccion: idTransaccion,
         IdTarea: this.globales.newId(),
+
         IdMaterial: this.idMaterial,
         Material : this.material,
         IdResiduo: idResiduo,
@@ -406,20 +413,16 @@ export class TaskAddComponent  implements OnInit {
         IdDepositoDestino: this.idPuntoSalida,
         IdTerceroDestino: this.idTerceroSalida,
         Accion: 'Recoger',
-        CRUD: CRUDOperacion.Create,
-        CRUDDate: now,
         EntradaSalida: EntradaSalida.Entrada,
         IdServicio: actividad.IdServicio,
-        IdTransaccion: idTransaccion,
         IdEstado: Estado.Aprobado,
         IdRecurso: actividad.IdRecurso,
-        FechaSistema: isoDate,
+        FechaEjecucion: isoDate,
         Cantidad: data.Cantidad,
         Peso: data.Peso,
         Volumen: data.Volumen,
         IdEmbalaje: data.IdEmbalaje,
         FechaProgramada: fecha,
-        FechaEjecucion: isoDate,
         Fotos: this.fotos,
         Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0,  data.Peso ?? 0, data.Volumen ?? 0),
       };

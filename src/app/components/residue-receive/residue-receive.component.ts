@@ -150,10 +150,9 @@ export class ResidueReceiveComponent implements OnInit {
           IdServicio: this.serviceId,
           IdRecurso: idRecurso,
           NavegarPorTransaccion: false,
-          FechaInicial: isoToday,
+          FechaInicial: isoDate,
+          FechaOrden: isoToday,
           Titulo: titulo,
-          Tareas: [],
-          Transacciones: []
         };
         await this.actividadesService.create(actividad);
       } else {
@@ -169,7 +168,9 @@ export class ResidueReceiveComponent implements OnInit {
         transaccion = await this.transaccionesService.getByTercero(actividad.IdActividad, this.idPropietario);
         if (!transaccion) {
           transaccion = {
+            IdActividad: actividad.IdActividad,
             IdTransaccion: this.globales.newId(),
+
             IdServicio: actividad.IdServicio,
             IdRecurso: actividad.IdRecurso,
             EntradaSalida: EntradaSalida.Entrada,
@@ -184,7 +185,9 @@ export class ResidueReceiveComponent implements OnInit {
         transaccion = await this.transaccionesService.getByPunto(actividad.IdActividad, this.idPuntoRecoleccion);
         if (!transaccion) {
           transaccion = {
+            IdActividad: actividad.IdActividad,
             IdTransaccion: this.globales.newId(),
+
             IdEstado: Estado.Aprobado,
             EntradaSalida: EntradaSalida.Entrada,
             IdRecurso: actividad.IdRecurso,
@@ -198,14 +201,16 @@ export class ResidueReceiveComponent implements OnInit {
         }
       }
       tarea = {
-        IdTarea: this.globales.newId(),
+        IdActividad: actividad.IdActividad,
         IdTransaccion: idTransaccion,
+        IdTarea: this.globales.newId(),
+
         IdServicio: this.serviceId,
         IdEstado: Estado.Aprobado,
         IdMaterial: this.idMaterial,
         IdResiduo: residuo.IdResiduo,
         IdRecurso: actividad.IdRecurso,
-        FechaSistema: isoDate,
+        FechaEjecucion: isoDate,
         EntradaSalida: EntradaSalida.Entrada,
         Cantidad: residuo.Cantidad,
         Peso: residuo.Peso,

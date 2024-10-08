@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { PointsComponent } from '../points/points.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
-import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -63,7 +61,6 @@ export class ResidueDismissComponent  implements OnInit {
 
   async confirm() {
     let actividad: Actividad | undefined = undefined;
-    let transaccion: Transaccion | undefined = undefined;
     const now = new Date();
     const isoDate = now.toISOString();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -74,19 +71,21 @@ export class ResidueDismissComponent  implements OnInit {
     const personId = await this.globales.getIdPersona();
     actividad = await this.actividadesService.getByServicio(this.serviceId, this.pointId);
     if (!actividad) {
-      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, Transacciones: [], Tareas: [], FechaInicial: isoToday};
+      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
       await this.actividadesService.create(actividad);
     }
     if (actividad) {
       const tarea: Tarea = {
           IdTarea: this.globales.newId(),
+          IdActividad: actividad.IdActividad,
+
           IdMaterial: this.residue.IdMaterial,
           IdResiduo: this.residue.IdResiduo,
           IdDeposito: this.pointId,
           IdTercero: this.stakeholderId,
           IdEstado: Estado.Aprobado,
           IdRecurso: actividad.IdRecurso,
-          FechaSistema: isoDate,
+          FechaEjecucion: isoDate,
           CRUD: CRUDOperacion.Create,
           EntradaSalida: EntradaSalida.Salida,
           Cantidad: this.residue.Cantidad,

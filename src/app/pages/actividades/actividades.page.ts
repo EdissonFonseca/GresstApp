@@ -52,19 +52,23 @@ export class ActividadesPage implements OnInit {
             name: 'kilometraje',
             type: 'number',
             placeholder: 'Kilometraje',
+            value: this.kilometraje ? Math.floor(this.kilometraje) : 0,
+            min: 0,
           },
           {
             name: 'cantidadCombustible',
             type: 'number',
             placeholder: 'Cantidad de Combustible',
+            value: this.cantidadCombustible ? this.cantidadCombustible.toFixed(2).toString() : '0.00',
+            min: 0,
           }
         ],
         buttons: [
           {
             text: 'Aceptar',
             handler: (data) => {
-              this.kilometraje = data.kilometraje;
-              this.cantidadCombustible = data.cantidadCombustible;
+              this.kilometraje = parseInt(data.kilometraje, 10);
+              this.cantidadCombustible = parseFloat(parseFloat(data.cantidadCombustible).toFixed(2));
               resolve(true);
             }
           },
@@ -90,7 +94,7 @@ export class ActividadesPage implements OnInit {
       case TipoServicio.Recoleccion:
       case TipoServicio.Transporte:
         console.log(actividad);
-        if (!(actividad.Iniciado ?? false)) {
+        if (!(actividad.FechaInicial ?? false)) {
           const result = await this.presentAlertPrompt();
           if (result) {
             actividad.KilometrajeInicial = this.kilometraje;
@@ -98,7 +102,6 @@ export class ActividadesPage implements OnInit {
           } else {
             return;
           }
-          actividad.Iniciado = true;
           await this.actividadesService.updateInicio(actividad);
         }
 

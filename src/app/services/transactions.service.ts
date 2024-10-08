@@ -5,6 +5,7 @@ import { Tarea } from '../interfaces/tarea.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { Globales } from './globales.service';
+import { AppConfig } from './constants.service';
 
 @Injectable({
   providedIn: 'root',
@@ -34,13 +35,13 @@ export class TransactionsService {
 
   async postTarea(tarea: Tarea): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers };
+    const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(tarea);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Created
         tarea.CRUD = null;
-        tarea.CRUDDate = null;
         tarea.IdSolicitud =  response.data.IdSolicitud;
         tarea.Item = response.data.Item;
         return true;
@@ -58,13 +59,13 @@ export class TransactionsService {
 
   async patchTarea(tarea: Tarea): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers };
+    const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(tarea);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
         tarea.CRUD = null;
-        tarea.CRUDDate = null;
         return true;
       } else {
         return false;
@@ -80,15 +81,15 @@ export class TransactionsService {
 
   async postTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers };
+    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(transaccion);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201 || response.status == 200) { //Ok
         transaccion.IdTransaccion =  response.data.IdTransaccion;
         transaccion.IdOrden = response.data.IdOrden;
         transaccion.CRUD = null;
-        transaccion.CRUDDate = null;
         return true;
       } else {
         return false;
@@ -104,13 +105,13 @@ export class TransactionsService {
 
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers };
+    const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(transaccion);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok OR Created
         transaccion.CRUD = null;
-        transaccion.CRUDDate = null;
         return true;
       } else {
         return false;
@@ -126,13 +127,13 @@ export class TransactionsService {
 
   async postActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers };
+    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Ok
         actividad.CRUD = null;
-        actividad.CRUDDate = null;
         actividad.IdOrden = response.data.IdOrden;
         actividad.IdActividad = response.data.IdActividad;
         actividad.Orden = response.data.Orden;
@@ -151,13 +152,13 @@ export class TransactionsService {
 
   async patchActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers };
+    const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
         actividad.CRUD = null;
-        actividad.CRUDDate = null;
         return true;
       } else {
         return false;
@@ -173,13 +174,13 @@ export class TransactionsService {
 
   async postActividadInicio(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividadInicio`, data:actividad, headers };
+    const options = { url: `${this.transactionsUrl}/updateactividadInicio`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
         actividad.CRUD = null;
-        actividad.CRUDDate = null;
         return true;
       } else {
         return false;

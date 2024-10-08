@@ -1,48 +1,43 @@
-import { Costo } from "./costo.interface";
-import { Insumo } from "./insumo.interface";
+import { Consumo } from "./consumo.interface";
 import { Punto } from "./punto.interface";
-import { Tarea } from "./tarea.interface";
-import { Transaccion } from "./transaccion.interface";
 
 export interface Actividad{
   IdActividad: string;
 
   CantidadCombustibleInicial?: number | null;
   CantidadCombustibleFinal?: number | null;
-  CRUD?: string | null;
-  CRUDDate?: Date | null;
-  Costos?: Costo[];
-  Origen?: Punto;
+  Consumos?: Consumo[];
   Destino?: Punto;
   FechaFinal?: string | null;
   FechaInicial?: string | null;
-  IdOrden?: string | null;
-  Orden?: string | null;
-  IdResponsable?: string;
+  FechaOrden: string | null;
   IdEstado: string;
+  IdOrden?: string | null;
   IdServicio: string;
   IdRecurso: string;
-  Insumos?: Insumo[];
-  KilometrajeInicial?: number | null;
   KilometrajeFinal?: number | null;
+  KilometrajeInicial?: number | null;
+  LatitudFinal?: number | null,
+  LongitudFinal?: number | null,
+  LatitudInicial?: number | null,
+  LongitudInicial?: number | null,
   NavegarPorTransaccion: boolean;
+  Orden?: string | null;
+  Origen?: Punto;
   ResponsableCargo?: string;
   ResponsableFirma?: string | null;
   ResponsableIdentificacion?: string;
   ResponsableNombre?: string;
   ResponsableObservaciones?: string;
-  Observaciones?: string;
   Soporte?: string;
-  Tareas: Tarea[];
   Titulo: string;
-  Transacciones: Transaccion[];
 
   Accion?: string;
   Cantidades?: string;
   Icono?: string;
-  Iniciado?: boolean;
   ItemsAprobados?: number;
   ItemsPendientes?: number;
   ItemsRechazados?: number;
-  PrimerIngreso?: boolean;
+
+  CRUD?: string | null;
 }
