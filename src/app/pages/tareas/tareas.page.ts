@@ -210,17 +210,13 @@ export class TareasPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data != null) {
-        await this.globales.showLoading('Actualizando información');
         const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
         if (transaccion){
           transaccion.IdEstado = Estado.Aprobado;
           this.showAdd = false;
         }
-        await this.globales.hideLoading();
       }
-    } catch {
-      await this.globales.hideLoading();
-    }
+    } catch {}
 
   }
 

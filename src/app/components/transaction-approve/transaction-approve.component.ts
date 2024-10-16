@@ -120,6 +120,7 @@ export class TransactionApproveComponent  implements OnInit {
 
     if (!actividad) return;
 
+    await this.globales.showLoading('Enviando información');
     transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
     if (transaccion) { //Si hay transaccion
       const firma = this.getSignature();
@@ -135,6 +136,7 @@ export class TransactionApproveComponent  implements OnInit {
       transaccion.ResponsableObservaciones  = data.Observaciones;
       await this.transaccionesService.update(transaccion);
     }
+    this.globales.hideLoading();
     this.globales.presentToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }

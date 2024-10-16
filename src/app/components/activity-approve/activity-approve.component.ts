@@ -106,6 +106,7 @@ export class ActivityApproveComponent  implements OnInit {
 
     if (!this.frmActividad.valid) return;
 
+    await this.globales.showLoading('Enviando información');
     const data = this.frmActividad.value;
     const actividad = await this.actividadesService.get(this.idActividad);
 
@@ -121,6 +122,7 @@ export class ActivityApproveComponent  implements OnInit {
     actividad.ResponsableObservaciones = data.Observaciones;
     actividad.ResponsableFirma = firma;
     this.actividadesService.update(actividad);
+    this.globales.hideLoading();
     this.globales.presentToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }

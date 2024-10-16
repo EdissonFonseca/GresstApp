@@ -87,8 +87,7 @@ export class ActividadesService {
     const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
-    const actividades = transaction.Actividades;
-    const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
+    const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
     {
       current.CRUD = CRUDOperacion.Update;
