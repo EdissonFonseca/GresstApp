@@ -338,14 +338,14 @@ export class TaskAddComponent  implements OnInit {
               Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
             };
             fecha = isoDate;
-            await this.transaccionesService.create(this.idActividad, transaccion);
+            await this.transaccionesService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
           } else {
             if (transaccionActual.IdEstado == Estado.Pendiente) {
               transaccionActual.Cantidad = data.Cantidad;
               transaccionActual.Peso = data.Peso;
               transaccionActual.Volumen = data.Volumen;
-              await this.transaccionesService.update(this.idActividad, transaccionActual);
+              await this.transaccionesService.update(transaccionActual);
               idTransaccion = transaccionActual.IdTransaccion;
               fecha = transaccionActual.FechaInicial ?? isoDate;
             } else {
@@ -379,7 +379,7 @@ export class TaskAddComponent  implements OnInit {
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
               Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
             };
-            await this.transaccionesService.create(this.idActividad, transaccion);
+            await this.transaccionesService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
             fecha = isoDate;
           } else {
@@ -387,7 +387,7 @@ export class TaskAddComponent  implements OnInit {
             transaccionActual.Cantidad = data.Cantidad;
             transaccionActual.Peso = data.Peso;
             transaccionActual.Volumen = data.Volumen;
-            await this.transaccionesService.update(this.idActividad, transaccionActual);
+            await this.transaccionesService.update(transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaInicial ?? isoDate;
           }
@@ -418,6 +418,7 @@ export class TaskAddComponent  implements OnInit {
         IdEstado: Estado.Aprobado,
         IdRecurso: actividad.IdRecurso,
         FechaEjecucion: isoDate,
+        FechaSolicitud: isoDate,
         Cantidad: data.Cantidad,
         Peso: data.Peso,
         Volumen: data.Volumen,

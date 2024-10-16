@@ -131,40 +131,50 @@ export class TransaccionesService {
     return transaccion;
   }
 
-  async create(idActividad: string, transaccion: Transaccion) {
+  async create(transaccion: Transaccion) {
+    const now = new Date().toISOString();
+    const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction) {
+      transaccion.FechaInicial = now;
+      transaccion.CRUD = CRUDOperacion.Create;
+      transaccion.Longitud = longitud;
+      transaccion.Latitud = latitud;
       transaction.Transacciones.push(transaccion);
       await this.storage.set('Transaction', transaction);
       await this.synchronizationService.uploadTransactions();
     }
   }
 
-  async update(idActividad: string, transaccion: Transaccion) {
+  async update(transaccion: Transaccion) {
     const now = new Date().toISOString();
+    const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction)
     {
-      const current = transaction.Transacciones.find((trx) => trx.IdActividad == idActividad && trx.IdTransaccion == transaccion.IdTransaccion);
+      const current = transaction.Transacciones.find((trx) => trx.IdActividad == transaccion.IdActividad && trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
         current.CRUD = CRUDOperacion.Update;
         current.IdEstado = transaccion.IdEstado;
-        current.FechaInicial = now;
+        if (current.FechaInicial == null) current.FechaInicial = now;
         current.FechaFinal = now;
         current.ResponsableCargo = transaccion.ResponsableCargo;
         current.ResponsableFirma = transaccion.ResponsableFirma;
         current.ResponsableIdentificacion = transaccion.ResponsableIdentificacion;
         current.ResponsableNombre = transaccion.ResponsableNombre;
-        current.Observaciones = transaccion.Observaciones;
+        current.ResponsableObservaciones = transaccion.ResponsableObservaciones;
         current.CantidadCombustible = transaccion.CantidadCombustible;
         current.CostoCombustible = transaccion.CostoCombustible;
         current.Kilometraje = transaccion.Kilometraje;
+        current.Latitud = latitud;
+        current.Longitud = longitud;
 
-        const tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+        const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
         tareas.forEach(x => {
           x.IdEstado = Estado.Rechazado,
+          x.FechaEjecucion = now,
           x.CRUD = CRUDOperacion.Update
         });
 

@@ -178,7 +178,7 @@ export class ResidueReceiveComponent implements OnInit {
             Titulo: this.propietario,
             IdTercero: this.idPropietario,
           }
-          await this.transaccionesService.create(actividad.IdActividad, transaccion);
+          await this.transaccionesService.create(transaccion);
           idTransaccion = transaccion.IdTransaccion;
         }
       } else if (this.serviceId == TipoServicio.Recoleccion || this.serviceId == TipoServicio.Transporte) {
@@ -196,7 +196,7 @@ export class ResidueReceiveComponent implements OnInit {
             IdTercero: this.idPropietario,
             IdDeposito: this.idPuntoRecoleccion,
           }
-          await this.transaccionesService.create(actividad.IdActividad, transaccion);
+          await this.transaccionesService.create(transaccion);
           idTransaccion = transaccion.IdTransaccion;
         }
       }

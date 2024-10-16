@@ -103,7 +103,7 @@ export class ResidueTransferComponent  implements OnInit {
               CRUD: CRUDOperacion.Create,
               Titulo: '' // TODO
             };
-            await this.transaccionesService.create(actividad.IdActividad, transaccion);
+            await this.transaccionesService.create(transaccion);
           }
         }
       } else {
@@ -129,7 +129,7 @@ export class ResidueTransferComponent  implements OnInit {
               CRUD: CRUDOperacion.Create,
               Titulo: '' // TODO
             };
-            await this.transaccionesService.create(actividad.IdActividad, transaccion);
+            await this.transaccionesService.create(transaccion);
           }
         }
       }

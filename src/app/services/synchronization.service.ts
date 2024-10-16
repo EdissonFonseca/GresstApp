@@ -276,12 +276,10 @@ export class SynchronizationService {
             }
           }
 
-          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
-            if (transaccion.CRUD === CRUDOperacion.Create) {
-              if (!await this.transactionsService.postTransaccion(transaccion)) {
-                await this.storage.set('Transaction', transaction);
-                return;
-              }
+          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD == CRUDOperacion.Create)) {
+            if (!await this.transactionsService.postTransaccion(transaccion)) {
+              await this.storage.set('Transaction', transaction);
+              return;
             }
           }
 
@@ -299,12 +297,10 @@ export class SynchronizationService {
             }
           }
 
-          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null)) {
-            if (transaccion.CRUD === CRUDOperacion.Update) {
-              if (!await this.transactionsService.patchTransaccion(transaccion)) {
-                await this.storage.set('Transaction', transaction);
-                return;
-              }
+          for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD == CRUDOperacion.Update)) {
+            if (!await this.transactionsService.patchTransaccion(transaccion)) {
+              await this.storage.set('Transaction', transaction);
+              return;
             }
           }
 

@@ -37,7 +37,6 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log(tarea);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Created
@@ -61,7 +60,6 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log(tarea);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
@@ -83,7 +81,6 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log(transaccion);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201 || response.status == 200) { //Ok
@@ -107,10 +104,9 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log(transaccion);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok OR Created
+      if (response.status == 200) { //Ok
         transaccion.CRUD = null;
         return true;
       } else {
@@ -129,6 +125,7 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log('PostActividad');
     console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -154,6 +151,7 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
+    console.log('PatchActividad');
     console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -176,7 +174,6 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updateactividadInicio`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok

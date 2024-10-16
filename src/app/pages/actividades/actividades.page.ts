@@ -54,6 +54,9 @@ export class ActividadesPage implements OnInit {
             placeholder: 'Kilometraje',
             value: this.kilometraje ? Math.floor(this.kilometraje) : 0,
             min: 0,
+            attributes: {
+              'aria-label': 'Kilometraje'
+            }
           },
           {
             name: 'cantidadCombustible',
@@ -61,6 +64,9 @@ export class ActividadesPage implements OnInit {
             placeholder: 'Cantidad de Combustible',
             value: this.cantidadCombustible ? this.cantidadCombustible.toFixed(2).toString() : '0.00',
             min: 0,
+            attributes: {
+              'aria-label': 'Kilometraje'
+            }
           }
         ],
         buttons: [
@@ -93,8 +99,7 @@ export class ActividadesPage implements OnInit {
     {
       case TipoServicio.Recoleccion:
       case TipoServicio.Transporte:
-        console.log(actividad);
-        if (!(actividad.FechaInicial ?? false)) {
+        if (actividad.FechaInicial == null) {
           const result = await this.presentAlertPrompt();
           if (result) {
             actividad.KilometrajeInicial = this.kilometraje;
@@ -102,7 +107,9 @@ export class ActividadesPage implements OnInit {
           } else {
             return;
           }
+          await this.globales.showLoading('Actualizando datos');
           await this.actividadesService.updateInicio(actividad);
+          this.globales.hideLoading();
         }
 
         if (actividad.NavegarPorTransaccion) {

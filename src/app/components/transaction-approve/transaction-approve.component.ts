@@ -114,9 +114,6 @@ export class TransactionApproveComponent  implements OnInit {
   }
 
   async confirm() {
-    const now = new Date();
-    const isoDate = now.toISOString();
-
     let transaccion: Transaccion | undefined;
     const data = this.frmTransaccion.value;
     const actividad = await this.actividadesService.get(this.idActividad);
@@ -126,18 +123,17 @@ export class TransactionApproveComponent  implements OnInit {
     transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
     if (transaccion) { //Si hay transaccion
       const firma = this.getSignature();
-      console.log(firma);
 
       transaccion.IdEstado = Estado.Aprobado;
       transaccion.CantidadCombustible = data.CantidadCombustible;
       transaccion.CostoCombustible = data.CostoCombustible;
       transaccion.Kilometraje = data.Kilometraje;
       transaccion.ResponsableCargo = data.Cargo;
+      transaccion.ResponsableFirma = firma;
       transaccion.ResponsableIdentificacion = data.Identificacion;
       transaccion.ResponsableNombre = data.Nombre;
-      transaccion.Observaciones = data.Observaciones;
-      transaccion.ResponsableFirma = firma;
-      this.transaccionesService.update(this.idActividad, transaccion);
+      transaccion.ResponsableObservaciones  = data.Observaciones;
+      await this.transaccionesService.update(transaccion);
     }
     this.globales.presentToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);

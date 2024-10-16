@@ -13,13 +13,13 @@ export interface Actividad{
   FechaOrden: string | null;
   IdEstado: string;
   IdOrden?: string | null;
-  IdServicio: string;
   IdRecurso: string;
+  IdServicio: string;
   KilometrajeFinal?: number | null;
   KilometrajeInicial?: number | null;
   LatitudFinal?: number | null,
-  LongitudFinal?: number | null,
   LatitudInicial?: number | null,
+  LongitudFinal?: number | null,
   LongitudInicial?: number | null,
   NavegarPorTransaccion: boolean;
   Orden?: string | null;
@@ -34,10 +34,9 @@ export interface Actividad{
 
   Accion?: string;
   Cantidades?: string;
+  CRUD?: string | null;
   Icono?: string;
   ItemsAprobados?: number;
   ItemsPendientes?: number;
   ItemsRechazados?: number;
-
-  CRUD?: string | null;
 }

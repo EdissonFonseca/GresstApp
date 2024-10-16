@@ -71,21 +71,16 @@ export class TransactionRejectComponent  implements OnInit {
   }
 
   async reject() {
-    const now = new Date();
-    const isoDate = now.toISOString();
-
     if (this.frmTransaction.valid)
     {
-      console.log('Reject');
       const data = this.frmTransaction.value;
       const transaccion = await this.transaccionesService.get(this.activityId, this.transactionId);
       if (transaccion)
       {
         console.log(transaccion);
-        transaccion.Observaciones = data.Observaciones;
+        transaccion.ResponsableObservaciones  = data.Observaciones;
         transaccion.IdEstado = Estado.Rechazado;
-        transaccion.FechaInicial = isoDate;
-        this.transaccionesService.update(this.activityId, transaccion);
+        this.transaccionesService.update(transaccion);
         this.modalCtrl.dismiss(transaccion);
       }
     }

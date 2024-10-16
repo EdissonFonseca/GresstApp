@@ -125,7 +125,6 @@ export class TaskEditComponent  implements OnInit {
 
       if (this.task.IdEmbalaje) {
         const embalaje = await this.embalajesService.get(this.task.IdEmbalaje);
-        console.log(embalaje);
         this.packageId = this.task.IdEmbalaje;
         this.package = embalaje?.Nombre ?? '';
       }

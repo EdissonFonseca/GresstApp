@@ -114,7 +114,6 @@ export class TareasPage implements OnInit {
   async updateVistaTransaccion(tarea: Tarea, esNuevo: boolean){
     const transaccion = this.transacciones.find(x => x.IdTransaccion == tarea.IdTransaccion);
     if (transaccion){
-      console.log(transaccion);
       switch(tarea.IdEstado){
         case Estado.Aprobado:
           transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);

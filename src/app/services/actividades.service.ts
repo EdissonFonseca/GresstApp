@@ -77,7 +77,6 @@ export class ActividadesService {
     actividad.LatitudInicial = latitud;
     actividad.LatitudInicial = longitud;
 
-    console.log(actividad);
     transaction.Actividades.push(actividad);
     await this.storage.set('Transaction', transaction);
     await this.synchronizationService.uploadTransactions();
@@ -113,6 +112,7 @@ export class ActividadesService {
 
       const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == Estado.Pendiente && x.CRUD == null);
       transacciones.forEach(x => {
+        x.FechaInicial = now,
         x.IdEstado = Estado.Rechazado,
         x.CRUD = CRUDOperacion.Update
       });
@@ -136,9 +136,8 @@ export class ActividadesService {
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
       current.LatitudInicial = latitud;
-      current.LatitudInicial = longitud;
+      current.LongitudInicial = longitud;
 
-      console.log(current);
       await this.storage.set("Transaction", transaction);
       await this.synchronizationService.uploadTransactions();
     }

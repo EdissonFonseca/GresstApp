@@ -6,7 +6,6 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
 import { Globales } from 'src/app/services/globales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
-import { TareasService } from 'src/app/services/tareas.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -16,7 +15,7 @@ import { TransaccionesService } from 'src/app/services/transacciones.service';
 })
 export class PuntoNuevoPage implements OnInit {
   puntos: Punto[] = [];
-  idTarea: string = '';
+  idActividad: string = '';
   idPunto: string = '';
   punto: string = '';
 
@@ -25,14 +24,13 @@ export class PuntoNuevoPage implements OnInit {
     private navCtrl: NavController,
     private transaccionesService: TransaccionesService,
     private puntosService: PuntosService,
-    private tareasService: TareasService,
     private globales: Globales,
   ) {
   }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      this.idTarea= params["IdTarea"]
+      this.idActividad= params["IdActividad"]
     });
     this.idPunto = '';
     this.puntos = (await this.puntosService.list());
@@ -52,7 +50,7 @@ export class PuntoNuevoPage implements OnInit {
 
    async confirm(){
     const transaccion: Transaccion = {
-        IdActividad:'',
+        IdActividad:this.idActividad,
         IdTransaccion: this.globales.newId(),
         EntradaSalida: EntradaSalida.Entrada,
         IdRecurso: "",
@@ -60,11 +58,11 @@ export class PuntoNuevoPage implements OnInit {
         IdEstado: Estado.Pendiente,
         Titulo: '' // TODO
       };
-    await this.transaccionesService.create(this.idTarea, transaccion);
+    await this.transaccionesService.create(transaccion);
 
     const navigationExtras: NavigationExtras = {
       queryParams: {
-        IdTarea: this.idTarea
+        IdActividad: this.idActividad
       }
     };
     this.navCtrl.navigateForward('/ruta', navigationExtras);

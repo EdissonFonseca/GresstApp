@@ -6,18 +6,16 @@ export interface Tarea{
   IdTarea: string;
 
   Cantidad?: number;
-  CRUD?: string | null;
-  Solicitud?: string | null;
   EntradaSalida: string;
-  FechaSolicitud?: string;
   FechaEjecucion?: string;
   FechaProgramada?: string;
-  IdEmbalaje?: string;
-  IdEstado: string;
-  Item?: number | null;
-  IdMaterial: string;
+  FechaSolicitud?: string;
+  Fotos: string[];
   IdDeposito?: string;
   IdDepositoDestino?: string;
+  IdEmbalaje?: string;
+  IdEstado: string;
+  IdMaterial: string;
   IdRecurso: string;
   IdResiduo?: string;
   IdServicio: string;
@@ -25,16 +23,18 @@ export interface Tarea{
   IdTercero?: string;
   IdTerceroDestino?: string;
   IdTratamiento?: string;
-  Imagen?: string | null;
+  Item?: number | null;
   Observaciones?: string;
   Peso?: number | null;
+  Solicitud?: string | null;
   Valor?: number;
   Volumen?: number;
-  Fotos: string[];
 
   Accion?: string;
   Cantidades?: string;
+  CRUD?: string | null;
   Embalaje?: string;
+  Imagen?: string | null;
   Material?: string;
   Tratamiento?: string;
 }

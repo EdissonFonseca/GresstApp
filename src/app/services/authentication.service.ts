@@ -61,6 +61,7 @@ export class AuthenticationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
         this.globales.token = response.data;
+        await this.storage.set('Token', response.data);
         return response.data;
       } else {
         throw new Error(`Usuario no autorizado`);
@@ -80,6 +81,7 @@ export class AuthenticationService {
     const data = {Username: username, Password: password};
     const options = {url: `${this.authenticationUrl}/authenticate`, data: data, headers: { 'Content-Type': 'application/json' }, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout};
 
+    console.log('Reconnect');
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
