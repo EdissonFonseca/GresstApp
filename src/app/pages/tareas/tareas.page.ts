@@ -6,7 +6,7 @@ import { Globales } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
-import { ModalController, NavController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
