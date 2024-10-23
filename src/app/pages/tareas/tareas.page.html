@@ -5,7 +5,7 @@
     </ion-buttons>
   </ion-toolbar>
   <ion-item color="medium">
-    <app-card [card]="activity()" [showAction]="false"></app-card>
+    <app-card [card]="activity()" [allowApprove]="false" [allowNavigate]="false"></app-card>
   </ion-item>
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
@@ -13,7 +13,7 @@
 </ion-header>
 <ion-content [fullscreen]="true" color="light">
   <ion-item-group *ngFor="let transaction of transactions()">
-    <app-card [card]="transaction" [showAction]="false" (approve)="openApproveTransaccion($event)" (reject)="openRejectTransaccion($event)" ></app-card>
+    <app-card [card]="transaction" [allowApprove]="true" [allowNavigate]="false" (approve)="openApproveTransaccion($event)" (reject)="openRejectTransaccion($event)" ></app-card>
     <app-card-list [cards]="filterTareas(transaction.id)" (edit)="openEditTarea($event)"></app-card-list>
   </ion-item-group>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">

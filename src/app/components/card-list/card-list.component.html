@@ -1,3 +1,3 @@
 <ion-list *ngFor="let card of cards" inset="true">
-  <app-card [card]="card" (edit)="onEdit(card)" (approve)="onApprove(card.id)" (reject)="onReject(card.id)"></app-card>
+  <app-card [card]="card" [allowApprove]="false" (edit)="onEdit(card)" (approve)="onApprove(card.id)" (reject)="onReject(card.id)"></app-card>
 </ion-list>

@@ -1,6 +1,5 @@
 import { Component, EventEmitter, inject, Input, OnInit, output, Output, SimpleChanges } from '@angular/core';
 import { Card } from '@app/interfaces/card';
-import { Estado } from '@app/services/constants.service';
 import { GlobalesService } from '@app/services/globales.service';
 
 @Component({
@@ -10,7 +9,8 @@ import { GlobalesService } from '@app/services/globales.service';
 })
 export class CardComponent  implements OnInit {
   @Input() card!: Card;
-  @Input() showAction: boolean = true;
+  @Input() allowNavigate: boolean = true;
+  @Input() allowApprove: boolean = true;
   @Output() edit = new EventEmitter<Card>();
   @Output() approve = new EventEmitter<string>();
   @Output() reject = new EventEmitter<string>();

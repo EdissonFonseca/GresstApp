@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
 import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/card.service';
@@ -15,7 +15,7 @@ import { GlobalesService } from 'src/app/services/globales.service';
   styleUrls: ['./actividades.page.scss'],
 })
 export class ActividadesPage implements OnInit {
-  activities: Card[] = [];
+  activities = signal<Card[]>([]);
   showAdd: boolean = true;
   cantidadCombustible: number | null = null;
   kilometraje: number | null = null;
@@ -37,8 +37,8 @@ export class ActividadesPage implements OnInit {
 
   async ionViewWillEnter() {
     let actividadesList = await this.actividadesService.list();
-    this.activities = await this.cardService.mapActividades(actividadesList);
-    this.cardService.setActivities(this.activities);
+    const mappedActivities = await this.cardService.mapActividades(actividadesList);
+    this.activities.set(mappedActivities);
   }
 
   async handleInput(event: any) {
@@ -46,7 +46,8 @@ export class ActividadesPage implements OnInit {
 
     let actividadesList = await this.actividadesService.list();
     actividadesList = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
-    this.activities = await this.cardService.mapActividades(actividadesList);
+    const mappedActivities = await this.cardService.mapActividades(actividadesList);
+    this.activities.set(mappedActivities);
   }
 
   async presentAlertPrompt(): Promise<boolean> {
@@ -141,27 +142,27 @@ export class ActividadesPage implements OnInit {
     }
   }
 
-  async openAddActivity(){
+  async openAddActivity() {
     const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
     const acopio = (await this.globales.getPermiso(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
     if (acopio) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Acopio);
       if (servicio)
-        actionSheetDict[TipoServicio.Acopio] = {icon: servicio.Icono , name: servicio.Nombre};
+        actionSheetDict[TipoServicio.Acopio] = { icon: servicio.Icono, name: servicio.Nombre };
     }
 
     const transporte = (await this.globales.getPermiso(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
     if (transporte) {
       var servicio = this.globales.servicios.find(x => x.IdServicio == TipoServicio.Transporte);
       if (servicio)
-        actionSheetDict[TipoServicio.Transporte] = {icon: servicio.Icono , name: servicio.Nombre};
+        actionSheetDict[TipoServicio.Transporte] = { icon: servicio.Icono, name: servicio.Nombre };
     }
 
     const buttons = Object.keys(actionSheetDict).map(key => ({
       text: actionSheetDict[key].name,
       icon: actionSheetDict[key].icon,
-      handler: async() => await this.presentModal(key)
+      handler: async () => await this.presentModal(key)
     }));
 
     const actionSheet = await this.actionSheet.create({
@@ -172,23 +173,28 @@ export class ActividadesPage implements OnInit {
     await actionSheet.present();
   }
 
-  async presentModal(key: string){
-    const modal =  await this.modalCtrl.create({
+  async presentModal(key: string) {
+    const modal = await this.modalCtrl.create({
       component: ActivityAddComponent,
       componentProps: {
         IdServicio: key
       },
     });
+
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
     if (data) {
       await this.globales.showLoading('Actualizando información');
+
       let actividadesList = await this.actividadesService.list();
-      this.activities = await this.cardService.mapActividades(actividadesList);
+      const mappedActivities = await this.cardService.mapActividades(actividadesList);
+      this.activities.set(mappedActivities);
+
       await this.globales.hideLoading();
     }
   }
+
 
   getColorEstado(idEstado: string): string {
     return this.globales.getColorEstado(idEstado);

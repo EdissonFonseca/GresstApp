@@ -197,7 +197,6 @@ export class CardService {
     return tasks;
   }
 
-
   mapTarea(tarea: Tarea): Card {
     const card: Card = {
       id: tarea.IdTarea,
@@ -243,5 +242,7 @@ export class CardService {
     card.showApprove = card.type !== 'task' && card.status === Estado.Pendiente && (card.successItems ?? 0) > 0;
     card.showItems = card.type !== 'task';
     card.showSummary = card.status !== Estado.Rechazado;
+    if (card.status !== Estado.Pendiente)
+      card.actionName = "Ver";
   }
 }

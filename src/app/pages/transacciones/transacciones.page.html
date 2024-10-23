@@ -4,7 +4,7 @@
       <ion-back-button (click)="goBack()"></ion-back-button>
     </ion-buttons>
     <ion-title>
-      {{ activity.title }}
+      {{ activity().title }}
     </ion-title>
     <ion-buttons slot="end">
       <ion-button  *ngIf="showSupport" (click)="showSupports()">
@@ -18,10 +18,10 @@
   <ion-toolbar >
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
-    <app-card [card]="activity" [showAction]="false" (approve)="openApproveActividad()"></app-card>
+    <app-card [card]="activity()" [allowNavigate]="false" [allowApprove]="true" (approve)="openApproveActividad()"></app-card>
 </ion-header>
 <ion-content [fullscreen]="true" color="light">
-  <app-card-list [cards]="transactions" (edit)="navigateToTareas($event)" ></app-card-list>
+  <app-card-list [cards]="transactions()" (edit)="navigateToTareas($event)" ></app-card-list>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
     <ion-fab-button (click)="openAddTarea()">
       <ion-icon name="add"></ion-icon>

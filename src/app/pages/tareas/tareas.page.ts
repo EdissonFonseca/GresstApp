@@ -45,7 +45,6 @@ export class TareasPage implements OnInit {
     if (nav?.extras.state){
       const newActivity = nav.extras.state['activity'];
       if (newActivity){
-        newActivity.iconSource = this.globales.servicios.find(x => x.IdServicio === newActivity.IdServicio)?.Icono || '';
         this.activity.set(newActivity);
       }
     }
@@ -241,13 +240,36 @@ export class TareasPage implements OnInit {
       const { data } = await modal.onDidDismiss();
       if (data != null) {
         await this.globales.showLoading('Actualizando información');
+
+        const pendientes = this.tasks().filter(x => x.parentId == id && x.status == Estado.Pendiente).length;
+
         this.transactions.update(transactions => {
           const transaccion = transactions.find(x => x.id == id);
           if (transaccion) {
             transaccion.status = Estado.Aprobado;
+            transaccion.rejectedItems = (transaccion.rejectedItems ?? 0) + (transaccion.pendingItems ?? 0);
+            transaccion.pendingItems = 0;
             this.cardService.updateVisibleProperties(transaccion);
           }
           return transactions;
+        });
+
+        this.tasks.update(tasks => {
+          const filteredTasks = tasks.filter(x => x.parentId == id && x.status == Estado.Pendiente);
+          filteredTasks.forEach(task => {
+            task.status = Estado.Rechazado;
+            this.cardService.updateVisibleProperties(task);
+          });
+          return tasks;
+        });
+
+        this.activity.update(activity => {
+          if (activity) {
+            activity.pendingItems = (activity.pendingItems ?? 0) - pendientes > 0? (activity.pendingItems ?? 0) - pendientes: 0;
+            activity.rejectedItems = (activity.rejectedItems ?? 0) + pendientes;
+          }
+          this.cardService.updateVisibleProperties(activity);
+          return activity;
         });
       }
       await this.globales.hideLoading();
@@ -277,15 +299,39 @@ export class TareasPage implements OnInit {
     if (data != null)
     {
       await this.globales.showLoading('Actualizando información');
+
+      const pendientes = this.tasks().filter(x => x.parentId == id && x.status == Estado.Pendiente).length;
+
       this.transactions.update(transactions => {
         const transaccion = transactions.find(x => x.id == id);
         if (transaccion) {
-          transaccion.status = Estado.Rechazado;
+          transaccion.status = Estado.Aprobado;
+          transaccion.rejectedItems = (transaccion.rejectedItems ?? 0) + (transaccion.pendingItems ?? 0);
+          transaccion.pendingItems = 0;
           this.cardService.updateVisibleProperties(transaccion);
         }
         return transactions;
       });
+
+      this.tasks.update(tasks => {
+        const filteredTasks = tasks.filter(x => x.parentId == id && x.status == Estado.Pendiente);
+        filteredTasks.forEach(task => {
+          task.status = Estado.Rechazado;
+          this.cardService.updateVisibleProperties(task);
+        });
+        return tasks;
+      });
+
+      this.activity.update(activity => {
+        if (activity) {
+          activity.pendingItems = (activity.pendingItems ?? 0) - pendientes > 0? (activity.pendingItems ?? 0) - pendientes: 0;
+          activity.rejectedItems = (activity.rejectedItems ?? 0) + pendientes;
+        }
+        this.cardService.updateVisibleProperties(activity);
+        return activity;
+      });
+
+      await this.globales.hideLoading();
     }
-    await this.globales.hideLoading();
   }
 }

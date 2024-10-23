@@ -1,10 +1,10 @@
 <ion-item lines="none" class="transparent-item">
   <ion-icon slot="start" size="large" [name]="card.iconName ? card.iconName : null" [src]="!card.iconName ? card.iconSource : null" [color]="card.color"></ion-icon>
     {{ card.title }}
-  <ion-button fill="solid" slot="end" shape="round" color="success" size="small" *ngIf="card.showApprove" (click)="onApprove(card.id)" >
+  <ion-button fill="solid" slot="end" shape="round" color="success" size="small" *ngIf="allowApprove && card.showApprove" (click)="onApprove(card.id)" >
     <ion-icon name="checkmark"></ion-icon>
   </ion-button>
-  <ion-button fill="solid" slot="end" shape="round" color="danger" size="small" *ngIf="card.showReject" (click)="onReject(card.id)" >
+  <ion-button fill="solid" slot="end" shape="round" color="danger" size="small" *ngIf="allowApprove && card.showReject" (click)="onReject(card.id)" >
     <ion-icon name="remove"></ion-icon>
   </ion-button>
 </ion-item>
@@ -15,9 +15,9 @@
     <ion-badge color="warning"> {{ card.pendingItems }} </ion-badge>
     <ion-badge color="danger"> {{ card.rejectedItems }} </ion-badge>
   </div>
-  <ion-badge slot="end" size="small" color="light" *ngIf="card.summary != ''"> {{ card.summary }} </ion-badge>
+  <ion-badge slot="end" size="small" color="light" *ngIf="card.showSummary && card.summary != ''"> {{ card.summary }} </ion-badge>
 </ion-item>
-<ion-item lines="none"  class="transparent-item">
+<ion-item lines="none" *ngIf="allowNavigate"  class="transparent-item">
   <ion-button slot="start" [color]="card.color" (click)="onEdit(card)" shape="round">
     {{ card.actionName }}
   </ion-button>

@@ -4,7 +4,7 @@
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
-  <app-card-list [cards]="activities" (edit)="navigateToTarget($event)"></app-card-list>
+  <app-card-list [cards]="activities()" (edit)="navigateToTarget($event)"></app-card-list>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
     <ion-fab-button (click)="openAddActivity()" >
       <ion-icon name="add"></ion-icon>
