@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { CRUDOperacion, Estado } from 'src/app/services/constants.service';
+import { Estado } from 'src/app/services/constants.service';
 import { PuntosService } from 'src/app/services/puntos.service';
 import { TercerosService } from 'src/app/services/terceros.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';

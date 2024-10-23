@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { Servicio } from '../interfaces/servicio.interface';
 
 @Injectable({
@@ -9,7 +9,7 @@ import { Servicio } from '../interfaces/servicio.interface';
 export class ServiciosService {
   constructor(
     private storage: StorageService,
-    private globales: Globales,
+    private globales: GlobalesService,
   ) {}
 
   async get(idServicio: string): Promise<Servicio | undefined> {

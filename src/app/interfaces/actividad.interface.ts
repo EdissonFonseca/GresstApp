@@ -33,10 +33,6 @@ export interface Actividad{
   Titulo: string;
 
   Accion?: string;
-  Cantidades?: string;
   CRUD?: string | null;
   Icono?: string;
-  ItemsAprobados?: number;
-  ItemsPendientes?: number;
-  ItemsRechazados?: number;
 }

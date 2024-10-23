@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
 import { MasterDataService } from './masterdata.service';
 import { CRUDOperacion } from './constants.service';
@@ -14,7 +13,7 @@ import { Tratamiento } from '../interfaces/tratamiento.interface';
 import { Vehiculo } from '../interfaces/vehiculo.interface';
 import { Residuo } from '../interfaces/residuo.interface';
 import { InventoryService } from './inventory.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { AuthenticationService } from './authentication.service';
 import { Transaction } from '../interfaces/transaction.interface';
 
@@ -24,7 +23,7 @@ import { Transaction } from '../interfaces/transaction.interface';
 export class SynchronizationService {
   constructor(
     private storage: StorageService,
-    private globales: Globales,
+    private globales: GlobalesService,
     private authenticationService: AuthenticationService,
     private authorizationService: AuthorizationService,
     private inventoryService: InventoryService,

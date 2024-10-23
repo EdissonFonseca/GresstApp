@@ -3,7 +3,7 @@ import { StorageService } from 'src/app/services/storage.service';
 import { NavController } from '@ionic/angular';
 import { NavigationExtras, Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
 import { environment } from '../../../environments/environment';
 
@@ -33,7 +33,7 @@ export class MenuComponent  implements OnInit {
     private navCtrl: NavController,
     private router: Router,
     private menuCtrl: MenuController,
-    private globales: Globales
+    private globales: GlobalesService
   ) { }
 
   async ngOnInit() {

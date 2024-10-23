@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { StorageService } from './storage.service';
 import { AppConfig } from './constants.service';
 
@@ -12,7 +12,7 @@ export class AuthenticationService {
   private authenticationUrl =  `${environment.apiUrl}/authentication`;
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private storage: StorageService,
   ) {}
 
@@ -53,7 +53,7 @@ export class AuthenticationService {
     }
   }
 
-  async login(username: string, password:string): Promise<any>{
+  async login(username: string, password:string): Promise<string>{
     const data = {Username: username, Password: password};
     const options = {url: `${this.authenticationUrl}/authenticate`, data: data, headers: { 'Content-Type': 'application/json' }, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout};
 
@@ -61,17 +61,12 @@ export class AuthenticationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
         this.globales.token = response.data;
-        await this.storage.set('Token', response.data);
         return response.data;
-      } else {
-        throw new Error(`Usuario no autorizado`);
       }
+      throw new Error(`Usuario no autorizado`);
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Usuario o clave incorrecta`);
-      } else {
-        throw new Error(`Unknown error: ${error}`);
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error durante el inicio de sesión: ${errorMessage}`);
     }
   }
 

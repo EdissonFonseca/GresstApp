@@ -30,13 +30,6 @@ export interface Transaccion {
   Ubicacion?: string;
 
   Accion?: string;
-  Cantidad?: number;
-  Cantidades?: string;
   CRUD?: string | null;
   Icono?: string;
-  ItemsAprobados?: number;
-  ItemsPendientes?: number;
-  ItemsRechazados?: number;
-  Peso?: number;
-  Volumen?: number;
 }

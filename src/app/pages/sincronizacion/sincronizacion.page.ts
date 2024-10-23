@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NavController } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { SynchronizationService } from 'src/app/services/synchronization.service';
 
 @Component({
@@ -16,7 +16,7 @@ export class SincronizacionPage implements OnInit {
     private navCtrl: NavController,
     private route: ActivatedRoute,
     private synchronizationService: SynchronizationService,
-    private globales: Globales,
+    private globales: GlobalesService,
     private router: Router,
   ) { }
 

@@ -5,7 +5,7 @@ import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { EmbalajesService } from 'src/app/services/embalajes.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 
 @Component({
   selector: 'app-packages',
@@ -24,7 +24,7 @@ export class PackagesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: Globales,
+    private globales: GlobalesService,
     private embalajesService: EmbalajesService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,

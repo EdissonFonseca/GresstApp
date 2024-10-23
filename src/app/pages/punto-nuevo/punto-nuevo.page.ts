@@ -4,7 +4,7 @@ import { NavController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
@@ -24,7 +24,7 @@ export class PuntoNuevoPage implements OnInit {
     private navCtrl: NavController,
     private transaccionesService: TransaccionesService,
     private puntosService: PuntosService,
-    private globales: Globales,
+    private globales: GlobalesService,
   ) {
   }
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class RegistroClavePage implements OnInit {
     private authenticationService: AuthenticationService,
     private navCtrl: NavController,
     private storage: StorageService,
-    private globales: Globales
+    private globales: GlobalesService
 ) { }
 
   ngOnInit() {

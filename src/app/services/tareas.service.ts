@@ -3,7 +3,7 @@ import { StorageService } from './storage.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { InventarioService } from './inventario.service';
 import { SynchronizationService } from './synchronization.service';
 import { MaterialesService } from './materiales.service';
@@ -11,6 +11,7 @@ import { TratamientosService } from './tratamientos.service';
 import { EmbalajesService } from './embalajes.service';
 import { PuntosService } from './puntos.service';
 import { Transaction } from '../interfaces/transaction.interface';
+import { TercerosService } from './terceros.service';
 
 @Injectable({
   providedIn: 'root',
@@ -24,7 +25,8 @@ export class TareasService {
     private tratamientosService: TratamientosService,
     private embalajesService: EmbalajesService,
     private puntosService: PuntosService,
-    private globales: Globales
+    private tercerosService: TercerosService,
+    private globales: GlobalesService
   ) {}
 
   async get(idActividad: string, idTransaccion: string, idTarea: string): Promise<Tarea | undefined> {
@@ -36,12 +38,15 @@ export class TareasService {
     return tarea;
   }
 
-  async list(idActividad: string): Promise<Tarea[]>{
+  async list(idActividad: string, idTransaccion?: string | null): Promise<Tarea[]>{
     const transaction: Transaction = await this.storage.get('Transaction');
     const materiales = await this.materialesService.list();
     const tratamientos = await this.tratamientosService.list();
     const actividad: Actividad | undefined = transaction.Actividades.find((x) => x.IdActividad == idActividad);
-    const tareas: Tarea[] = transaction.Tareas.filter((tarea) => tarea.IdActividad == idActividad);
+    let tareas: Tarea[] = transaction.Tareas.filter((tarea) => tarea.IdActividad == idActividad);
+
+    if (idTransaccion)
+      tareas = tareas.filter((tarea) => tarea.IdTransaccion == idTransaccion);
 
     tareas.forEach((tarea) => {
       const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
@@ -61,10 +66,8 @@ export class TareasService {
     return tareas;
   }
 
-  async listSugeridas(idActividad: string, idTransaccion: string){
+  async listSugeridas(idActividad: string, idTransaccion?: string | null){
     let tareas: Tarea[] = [];
-    let validarInventario: boolean;
-    let crear: boolean;
     let embalaje: string;
     let accion: string;
     const now = new Date().toISOString();
@@ -73,6 +76,8 @@ export class TareasService {
     const materiales = await this.materialesService.list();
     const tratamientos = await this.tratamientosService.list();
     const embalajes = await this.embalajesService.list();
+    const puntos = await this.puntosService.list();
+    const terceros = await this.tercerosService.list();
 
     if (transaction)
     {
@@ -86,66 +91,63 @@ export class TareasService {
           tarea.IdServicio = actividad.IdServicio;
           const material = materiales.find((x) => x.IdMaterial == tarea.IdMaterial);
           let resumen: string = '';
-          accion = '';
-          validarInventario = false;
-          crear = true;
+          accion = 'Ver';
 
           if (material){
             tarea.Material = material.Nombre;
-            if (tarea.IdTratamiento != null)
-            {
+            if (tarea.IdTratamiento != null) {
               const tratamientoItem = tratamientos.find((x) => x.IdTratamiento == tarea.IdTratamiento);
               if (tratamientoItem)
                 tarea.Tratamiento = tratamientoItem.Nombre;
             }
-            if (tarea.IdEmbalaje)
-            {
+            if (tarea.IdEmbalaje) {
               const embalajeData = embalajes.find((x) => x.IdEmbalaje == tarea.IdEmbalaje);
               if (embalajeData)
                 embalaje = `- (${tarea.Cantidad ?? ''} ${embalajeData.Nombre}`;
             }
-
-            switch(actividad.IdServicio){
-              case TipoServicio.Recoleccion:
-              case TipoServicio.Transporte:
-                if (tarea.EntradaSalida != 'E')
-                  validarInventario = true;
-                break;
-              default:
-                validarInventario = true;
-                break;
-            }
-            resumen = await this.globales.getResumenCantidadesResiduo(material.TipoMedicion, material.TipoCaptura, tarea.Cantidad ?? 0, tarea.Peso?? 0, tarea.Volumen ?? 0);
-            switch(tarea.IdServicio){
-              case TipoServicio.Almacenamiento:
-                accion = 'Almacenar';
-                break;
-              case TipoServicio.Disposicion:
-                accion = tarea.Tratamiento ?? 'Disponer';
-                break;
-              case TipoServicio.Recepcion:
-                accion = 'Recibir';
-                break;
-                case TipoServicio.Generacion:
-                  accion = 'Generar';
-                  break;
-              case TipoServicio.Recoleccion:
-              case TipoServicio.Transporte:
-                if (tarea.EntradaSalida == 'E'){
-                  accion = 'Recoger';
-                } else {
-                  accion = 'Entregar';
+            if (tarea.IdDepositoDestino) {
+              const deposito = puntos.find((x) => x.IdDeposito == tarea.IdDepositoDestino);
+              if (deposito) {
+                if (deposito.IdPersona != null){
+                  const tercero = terceros.find((x) => x.IdPersona == deposito.IdPersona);
+                  tarea.DepositoDestino = `${tercero?.Nombre} - ${deposito.Nombre}`;
+                  } else {
+                  tarea.DepositoDestino = `${deposito.Nombre}`;
                 }
-                break;
-               case TipoServicio.Entrega:
-                accion = 'Entregar';
-                break;
-               case TipoServicio.Tratamiento:
-                accion = tarea.Tratamiento ?? 'Transformar';
-                break;
+              }
+            }
+
+            if (tarea.IdEstado == Estado.Pendiente){
+              switch(tarea.IdServicio) {
+                case TipoServicio.Almacenamiento:
+                  accion = 'Almacenar';
+                  break;
+                case TipoServicio.Disposicion:
+                  accion = tarea.Tratamiento ?? 'Disponer';
+                  break;
+                case TipoServicio.Recepcion:
+                  accion = 'Recibir';
+                  break;
+                  case TipoServicio.Generacion:
+                    accion = 'Generar';
+                    break;
+                case TipoServicio.Recoleccion:
+                case TipoServicio.Transporte:
+                  if (tarea.EntradaSalida == 'E'){
+                    accion = 'Recoger';
+                  } else {
+                    accion = 'Entregar';
+                  }
+                  break;
+                case TipoServicio.Entrega:
+                  accion = 'Entregar';
+                  break;
+                case TipoServicio.Tratamiento:
+                  accion = tarea.Tratamiento ?? 'Transformar';
+                  break;
+              }
             }
             tarea.Accion = accion;
-            tarea.Cantidades = resumen;
             tarea.Embalaje = embalaje;
           }
         });
@@ -193,7 +195,6 @@ export class TareasService {
           residuos.forEach((residuo) => {
             const material = materiales.find((x) => x.IdMaterial == residuo.IdMaterial);
             let embalaje: string = '';
-            let cantidades = '';
 
             if (material){
               if (residuo.IdEmbalaje)
@@ -202,17 +203,12 @@ export class TareasService {
                 if (embalajeData)
                   embalaje = `- (${residuo.CantidadEmbalaje ?? ''} ${embalajeData.Nombre}`;
               }
-              if (material.TipoMedicion == TipoMedicion.Cantidad)
-                cantidades = `${residuo.Cantidad ?? 0} Un ${embalaje}`;
-              else
-                cantidades = `${residuo.Peso ?? 0} Kg ${embalaje}`;
 
               const tarea = tareas.find(x => x.IdMaterial == residuo.IdMaterial && x.EntradaSalida == EntradaSalida.Salida);
               if (tarea) {
                   tarea.IdResiduo = residuo.IdResiduo;
-                  tarea.IdTransaccion = idTransaccion;
+                  tarea.IdTransaccion = idTransaccion ?? undefined;
                   tarea.Material = material.Nombre;
-                  tarea.Cantidades = cantidades;
                   tarea.Cantidad = residuo.Cantidad;
                   tarea.Peso = residuo.Peso;
                   tarea.Volumen = residuo.Volumen;
@@ -220,7 +216,7 @@ export class TareasService {
               } else {
                 const tarea: Tarea = {
                   IdActividad: idActividad,
-                  IdTransaccion: idTransaccion,
+                  IdTransaccion: idTransaccion ?? undefined,
                   IdTarea: this.globales.newId(),
 
                   IdMaterial: material.IdMaterial,
@@ -231,7 +227,6 @@ export class TareasService {
                   IdRecurso: actividad.IdRecurso,
                   IdServicio: actividad.IdServicio,
                   EntradaSalida: EntradaSalida.Salida,
-                  Cantidades: cantidades,
                   Cantidad: residuo.Cantidad,
                   Peso: residuo.Peso,
                   Volumen: residuo.Volumen,

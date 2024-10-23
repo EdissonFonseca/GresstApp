@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Interlocutor } from 'src/app/interfaces/interlocutor.interface';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class ChatInterlocutoresPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
-    private globales: Globales,
+    private globales: GlobalesService,
     private masterdataService: MasterDataService,
   ) {
 

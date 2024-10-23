@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { PointsComponent } from '../points/points.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TareasService } from 'src/app/services/tareas.service';
@@ -40,7 +39,7 @@ export class ResidueDismissComponent  implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private navParams: NavParams,
-    private globales: Globales,
+    private globales: GlobalesService,
     private actividadesService: ActividadesService,
     private tareasService: TareasService,
     private inventarioService: InventarioService,
@@ -93,7 +92,6 @@ export class ResidueDismissComponent  implements OnInit {
           Volumen: this.residue.Volumen,
           IdServicio: actividad.IdServicio,
           Fotos: [],
-          Cantidades: await this.globales.getResumenCantidadesTarea(this.residue.Cantidad ?? 0, this.residue.Peso ?? 0, this.residue.Volumen ?? 0),
         };
       await this.tareasService.create(actividad.IdActividad, tarea);
     }

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GoogleMap } from '@capacitor/google-maps';
 import { Geolocation } from '@capacitor/geolocation';
-import { ModalController, NavController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { LocationComponent } from 'src/app/components/location/location.component';
 import { ActivatedRoute } from '@angular/router';
 import { Punto } from 'src/app/interfaces/punto.interface';

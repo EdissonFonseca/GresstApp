@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Material } from 'src/app/interfaces/material.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
@@ -26,7 +26,7 @@ export class MaterialsComponent  implements OnInit {
   enableNew: boolean = false;
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private materialesService: MaterialesService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,

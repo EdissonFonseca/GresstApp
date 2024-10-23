@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Insumo } from 'src/app/interfaces/insumo.interface';
 import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { InsumosService } from 'src/app/services/insumos.service';
 
 @Component({
@@ -24,7 +24,7 @@ export class SuppliesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: Globales,
+    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private insumosService: InsumosService,

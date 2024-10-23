@@ -24,10 +24,10 @@
   </ion-item>
   <ion-item lines="inset" color="light" >
     <ion-icon name="trash-bin" color="light"></ion-icon>
-    <ion-badge color="success"> {{ transaccion?.ItemsAprobados }} </ion-badge>
-    <ion-badge color="warning"> {{ transaccion?.ItemsPendientes }} </ion-badge>
-    <ion-badge color="danger"> {{ transaccion?.ItemsRechazados }} </ion-badge>
-    <ion-badge slot="end" size="small" color="light" *ngIf="transaccion?.Cantidades != ''"> {{ transaccion?.Cantidades ?? '' }} </ion-badge>
+    <ion-badge color="success"> {{ itemsAprobados }} </ion-badge>
+    <ion-badge color="warning"> {{ itemsPendientes }} </ion-badge>
+    <ion-badge color="danger"> {{ itemsRechazados }} </ion-badge>
+    <ion-badge slot="end" size="small" color="light" *ngIf="resumen != ''"> {{ resumen }} </ion-badge>
   </ion-item>
   <div class="signature-container" >
     <canvas #canvas
@@ -69,6 +69,6 @@
 </ion-content>
 <ion-footer>
   <ion-note>
-    Se marcarán {{ transaccion?.ItemsPendientes }} items que estan penddientes como no recibidos
+    Se marcarán {{ itemsPendientes }} items que estan penddientes como no recibidos
   </ion-note>
 </ion-footer>

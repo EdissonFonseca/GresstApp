@@ -6,6 +6,8 @@ export interface Tarea{
   IdTarea: string;
 
   Cantidad?: number;
+  Deposito?: string;
+  DepositoDestino?: string;
   EntradaSalida: string;
   FechaEjecucion?: string;
   FechaProgramada?: string;
@@ -31,10 +33,8 @@ export interface Tarea{
   Volumen?: number;
 
   Accion?: string;
-  Cantidades?: string;
   CRUD?: string | null;
   Embalaje?: string;
-  Imagen?: string | null;
   Material?: string;
   Tratamiento?: string;
 }

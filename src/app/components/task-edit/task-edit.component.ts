@@ -7,7 +7,7 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 import { MaterialesService } from 'src/app/services/materiales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
@@ -40,10 +40,13 @@ export class TaskEditComponent  implements OnInit {
   packageId: string = '';
   photo!: SafeResourceUrl;
   point: string = '';
+  pointTarget: string = '';
   pointId: string = '';
   residueId: string = '';
   stakeholder: string = '';
   stakeholderId: string = '';
+  stakeholderTarget: string = '';
+  status: string = '';
   showDetails: boolean = false;
   showTratamiento: boolean = false;
   task: Tarea | undefined = undefined;
@@ -69,7 +72,7 @@ export class TaskEditComponent  implements OnInit {
     private materialesService: MaterialesService,
     private puntosService: PuntosService,
     private tercerosService: TercerosService,
-    private globales: Globales,
+    private globales: GlobalesService,
   ) {
     this.activityId = this.navParams.get("ActivityId");
     this.transactionId = this.navParams.get("TransactionId");
@@ -100,9 +103,11 @@ export class TaskEditComponent  implements OnInit {
     this.task = await this.tareasService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
+      this.status = this.task.IdEstado;
       cantidad = this.task.Cantidad ?? 0;
       peso = this.task.Peso ?? 0;
       volumen = this.task.Volumen ?? 0;
+      this.fotos= this.task.Fotos ?? [];
 
       const materialItem = await this.materialesService.get(this.task.IdMaterial);
       if (materialItem) {
@@ -117,10 +122,24 @@ export class TaskEditComponent  implements OnInit {
         this.pointId = puntoItem?.IdDeposito ?? '';
       }
 
+      if (this.task.IdDepositoDestino) {
+        const puntoItem = await this.puntosService.get(this.task.IdDepositoDestino);
+        this.pointTarget = puntoItem?.Nombre ?? '';
+        if (puntoItem?.IdPersona) {
+          const tercero = await this.tercerosService.get(puntoItem.IdPersona);
+          this.stakeholderTarget = tercero?.Nombre ?? '';
+        }
+      }
+
       if (this.task.IdTercero) {
         const solicitante = await this.tercerosService.get(this.task.IdTercero);
         this.stakeholder = solicitante?.Nombre ?? '';
         this.stakeholderId = solicitante?.IdPersona ?? '';
+      }
+
+      if (this.task.IdTerceroDestino) {
+        const tercero = await this.tercerosService.get(this.task.IdTerceroDestino);
+        this.stakeholderTarget = tercero?.Nombre ?? '';
       }
 
       if (this.task.IdEmbalaje) {
@@ -225,7 +244,6 @@ export class TaskEditComponent  implements OnInit {
       tarea.Observaciones = data.Observaciones;
       tarea.Peso = data.Peso;
       tarea.Volumen = data.Volumen;
-      tarea.Cantidades = await this.globales.getResumenCantidadesTarea(tarea.Cantidad ?? 0, tarea.Peso ?? 0, tarea.Volumen ?? 0);
       tarea.Valor = data.Valor;
       tarea.Fotos = this.fotos;
       this.tareasService.update(this.activityId, this.transactionId, tarea);
@@ -308,7 +326,6 @@ export class TaskEditComponent  implements OnInit {
             EntradaSalida: EntradaSalida.Entrada,
             IdEstado: Estado.Aprobado,
             Fotos: this.fotos,
-            Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
           };
           await this.tareasService.create(this.activityId, tarea);
         } else { //No hay tarea -> Salida

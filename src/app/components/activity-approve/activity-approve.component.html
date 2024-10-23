@@ -25,10 +25,10 @@
 </ion-item>
 <ion-item lines="inset" color="light" >
   <ion-icon name="trash-bin-outline" color="medium"></ion-icon>
-  <ion-badge color="success"> {{ actividad?.ItemsAprobados }} </ion-badge>
-  <ion-badge color="warning"> {{ actividad?.ItemsPendientes }} </ion-badge>
-  <ion-badge color="danger"> {{ actividad?.ItemsRechazados }} </ion-badge>
-  <ion-badge slot="end" size="small" color="light" *ngIf="actividad?.Cantidades != ''"> {{ actividad?.Cantidades ?? '' }} </ion-badge>
+  <ion-badge color="success"> {{ itemsAprobados }} </ion-badge>
+  <ion-badge color="warning"> {{ itemsPendientes }} </ion-badge>
+  <ion-badge color="danger"> {{ itemsRechazados }} </ion-badge>
+  <ion-badge slot="end" size="small" color="light" *ngIf="resumen!= ''"> {{ resumen }} </ion-badge>
 </ion-item>
 <ion-content color="light">
   <div class="signature-container" >

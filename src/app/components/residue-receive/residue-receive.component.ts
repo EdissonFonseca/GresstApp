@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PackagesComponent } from '../packages/packages.component';
 import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
@@ -51,7 +51,7 @@ export class ResidueReceiveComponent implements OnInit {
 
   constructor (
     private formBuilder: FormBuilder,
-    private globales: Globales,
+    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private sanitizer: DomSanitizer,
     private actividadesService: ActividadesService,

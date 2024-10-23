@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MenuController, NavController } from '@ionic/angular';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { MailService } from 'src/app/services/mail.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -17,7 +17,7 @@ export class ContrasenaCorreoPage implements OnInit {
   constructor(
     private authenticationService: AuthenticationService,
     private menuCtrl: MenuController,
-    private globales: Globales,
+    private globales: GlobalesService,
     private mailService: MailService,
     private storage: StorageService,
     private navCtrl: NavController,

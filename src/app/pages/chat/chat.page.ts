@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Mensaje } from 'src/app/interfaces/mensaje.interface';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { MasterDataService } from 'src/app/services/masterdata.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class ChatPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales:Globales,
+    private globales:GlobalesService,
     private masterdataService: MasterDataService
   ) { }
 

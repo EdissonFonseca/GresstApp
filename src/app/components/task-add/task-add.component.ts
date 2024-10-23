@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, NavigationExtras } from '@angular/router';
-import { ModalController, NavController } from '@ionic/angular';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { ModalController } from '@ionic/angular';
 import { ClienteProveedorInterno, CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { PackagesComponent } from '../packages/packages.component';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PointsComponent } from '../points/points.component';
@@ -17,6 +17,7 @@ import { TareasService } from 'src/app/services/tareas.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { InventarioService } from 'src/app/services/inventario.service';
+import { NavParams } from '@ionic/angular';
 
 @Component({
   selector: 'app-task-add',
@@ -66,10 +67,11 @@ export class TaskAddComponent  implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private route: ActivatedRoute,
-    private globales: Globales,
+    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
+    private navParams: NavParams,
     private tareasService: TareasService,
     private inventarioService: InventarioService,
   ) {
@@ -86,18 +88,18 @@ export class TaskAddComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.route.queryParams.subscribe(params => {
-      this.idActividad = params["IdActividad"],
-      this.idTransaccion = params["IdTransaccion"]
-    });
+    this.idActividad = this.navParams.get("IdActividad");
+    this.idTransaccion = this.navParams.get("IdTransaccion");
     this.unidadCantidad = this.globales.unidadCantidad ?? '';
     this.unidadPeso = this.globales.unidadPeso ?? '';
     this.unidadVolumen = this.globales.unidadVolumen ?? '';
     this.fotosPorMaterial = this.globales.fotosPorMaterial ?? 2;
+
     const actividad = await this.actividadesService.get(this.idActividad);
     if (actividad)
     {
       this.proceso = this.globales.getNombreServicio(actividad.IdServicio);
+      console.log(this.proceso);
       if (actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) {
         this.solicitarEmbalaje = true;
         this.idVehiculo = actividad.IdRecurso ?? '';
@@ -319,12 +321,6 @@ export class TaskAddComponent  implements OnInit {
               IdDeposito: this.idPuntoEntrada,
               IdDepositoDestino: this.idPuntoSalida,
               IdTerceroDestino: this.idTerceroSalida,
-              Cantidad: data.Cantidad,
-              Peso: data.Peso,
-              Volumen: data.Volumen,
-              ItemsAprobados: 1,
-              ItemsPendientes: 0,
-              ItemsRechazados: 0,
               Punto: this.puntoEntrada,
               Tercero: this.terceroEntrada,
               Titulo: 'Nueva - ' + (this.puntoEntrada ?? '') + (this.terceroEntrada ?? ''),
@@ -335,16 +331,12 @@ export class TaskAddComponent  implements OnInit {
               FechaInicial: isoDate,
               FechaFinal: isoDate,
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
-              Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
             };
             fecha = isoDate;
             await this.transaccionesService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
           } else {
             if (transaccionActual.IdEstado == Estado.Pendiente) {
-              transaccionActual.Cantidad = data.Cantidad;
-              transaccionActual.Peso = data.Peso;
-              transaccionActual.Volumen = data.Volumen;
               await this.transaccionesService.update(transaccionActual);
               idTransaccion = transaccionActual.IdTransaccion;
               fecha = transaccionActual.FechaInicial ?? isoDate;
@@ -368,25 +360,15 @@ export class TaskAddComponent  implements OnInit {
               IdDeposito: this.idPuntoEntrada,
               IdDepositoDestino: this.idPuntoSalida,
               IdTerceroDestino: this.idTerceroSalida,
-              Cantidad: data.Cantidad,
-              Peso: data.Peso,
-              Volumen: data.Volumen,
-              ItemsAprobados: 1,
-              ItemsPendientes: 0,
-              ItemsRechazados: 0,
               Titulo: this.propietario,
               Icono: 'person',
               Accion: this.globales.getAccionEntradaSalida(EntradaSalida.Transferencia),
-              Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0, data.Peso ?? 0, data.Volumen ?? 0),
             };
             await this.transaccionesService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
             fecha = isoDate;
           } else {
             transaccionActual.CRUD = CRUDOperacion.Update;
-            transaccionActual.Cantidad = data.Cantidad;
-            transaccionActual.Peso = data.Peso;
-            transaccionActual.Volumen = data.Volumen;
             await this.transaccionesService.update(transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaInicial ?? isoDate;
@@ -412,7 +394,7 @@ export class TaskAddComponent  implements OnInit {
         IdTercero: this.idTerceroEntrada,
         IdDepositoDestino: this.idPuntoSalida,
         IdTerceroDestino: this.idTerceroSalida,
-        Accion: 'Recoger',
+        Accion: 'Ver',
         EntradaSalida: EntradaSalida.Entrada,
         IdServicio: actividad.IdServicio,
         IdEstado: Estado.Aprobado,
@@ -425,10 +407,10 @@ export class TaskAddComponent  implements OnInit {
         IdEmbalaje: data.IdEmbalaje,
         FechaProgramada: fecha,
         Fotos: this.fotos,
-        Cantidades: await this.globales.getResumenCantidadesTarea(data.Cantidad ?? 0,  data.Peso ?? 0, data.Volumen ?? 0),
       };
       await this.tareasService.create(this.idActividad, tarea);
     }
+    console.log(tarea);
     this.modalCtrl.dismiss(tarea);
   }
 }

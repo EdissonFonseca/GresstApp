@@ -2,17 +2,15 @@ import { AlertController, LoadingController, ToastController } from '@ionic/angu
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Geolocation } from '@capacitor/geolocation';
-
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
 import { Estado, TipoServicio, EntradaSalida, Parametros, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
-import { Tarea } from '../interfaces/tarea.interface';
 
 @Injectable({
   providedIn: 'root',
 })
-export class Globales {
+export class GlobalesService {
   estados: { IdEstado: string, Nombre: string, Color: string }[]  = [
     {IdEstado: Estado.Aprobado, Nombre:'Aprobado', Color:'success'},
     {IdEstado: Estado.Pendiente, Nombre:'Pendiente',Color:'warning'},
@@ -36,7 +34,8 @@ export class Globales {
   public token: string = '';
   public fotosPorMaterial: number = 2;
   public moneda: string = '$';
-  // public mostrarIntroduccion: boolean = false;
+  public kilometraje: number = 0;
+  public combustible: number = 0;
   public unidadCantidad: string = 'un';
   public unidadCombustible: string = 'gl';
   public unidadKilometraje: string = 'km';
@@ -85,143 +84,6 @@ export class Globales {
     this.unidadVolumen = data.Parametros[Parametros.UnidadVolumen];
   }
 
-  getResumenCantidadesResiduo(tipoMedicion: string | null, tipoCaptura: string | null, cantidad: number,  peso: number, volumen: number): string {
-    let resumen: string = '';
-    if (tipoMedicion == null || tipoMedicion == 'C' || tipoCaptura == 'C') {
-      if (cantidad > 0){
-        resumen += `${cantidad} ${this.unidadCantidad}`;
-      }
-    }
-    if (tipoMedicion == null || tipoMedicion == 'P' || tipoCaptura == 'P'){
-      if (peso > 0){
-        if (resumen != '')
-          resumen += `/${peso} ${this.unidadPeso}`;
-        else
-          resumen = `${peso} ${this.unidadPeso}`;
-      }
-    }
-    if (tipoMedicion == null || tipoMedicion == 'V' || tipoCaptura == 'V') {
-      if (volumen > 0){
-        if (resumen != '')
-          resumen += `/${volumen} ${this.unidadVolumen}`;
-        else
-          resumen = `${volumen} ${this.unidadVolumen}`;
-      }
-    }
-    return resumen;
-  }
-
-  getResumenCantidadesTarea(cantidad: number,  peso: number, volumen: number): string {
-    let resumen: string = '';
-    if (cantidad > 0){
-      resumen += `${cantidad} ${this.unidadCantidad}`;
-    }
-    if (peso > 0){
-      if (resumen != '')
-        resumen += `/${peso} ${this.unidadPeso}`;
-      else
-        resumen = `${peso} ${this.unidadPeso}`;
-    }
-    if (volumen > 0){
-      if (resumen != '')
-        resumen += `/${volumen} ${this.unidadVolumen}`;
-      else
-        resumen = `${volumen} ${this.unidadVolumen}`;
-    }
-    return resumen;
-  }
-
-  getContadorEstadosItems(tareas: Tarea[]): { aprobados: number; pendientes: number; rechazados: number } {
-      const resultado = tareas.reduce(
-        (acumulador, tarea) => {
-          if (tarea.IdEstado === Estado.Aprobado) {
-            acumulador.aprobados += 1;
-          } else if (tarea.IdEstado === Estado.Pendiente) {
-            acumulador.pendientes += 1;
-          } else if (tarea.IdEstado === Estado.Rechazado) {
-            acumulador.rechazados += 1;
-          }
-          return acumulador;
-        },
-        { aprobados: 0, pendientes: 0, rechazados: 0 }
-      );
-      return resultado;
-  }
-
-  getSumatoriaCantidades(tareas: Tarea[]): { cantidad: number; peso: number; volumen: number } {
-    const resultado = tareas.reduce(
-      (acumulador, tarea) => {
-        if (tarea.IdEstado === Estado.Aprobado) {
-          acumulador.cantidad += tarea.Cantidad ?? 0;
-          acumulador.peso += tarea.Peso ?? 0;
-          acumulador.volumen += tarea.Volumen ?? 0;
-        }
-        return acumulador;
-      },
-      { cantidad: 0, peso: 0, volumen: 0 }
-    );
-    return resultado;
-  }
-
-  getResumen(tareas: Tarea[]): {
-    resumen: string;
-    aprobados: number;
-    pendientes: number;
-    rechazados: number;
-    cantidad: number;
-    peso: number;
-    volumen: number;
-  } {
-    const estados = { aprobados: 0, pendientes: 0, rechazados: 0 };
-    const sumatoria = { cantidad: 0, peso: 0, volumen: 0 };
-    let resumen = '';
-
-    tareas.forEach(tarea => {
-      // Contador de estados
-      if (tarea.IdEstado === Estado.Aprobado) {
-        estados.aprobados += 1;
-      } else if (tarea.IdEstado === Estado.Pendiente) {
-        estados.pendientes += 1;
-      } else if (tarea.IdEstado === Estado.Rechazado) {
-        estados.rechazados += 1;
-      }
-
-      if (tarea.IdEstado === Estado.Aprobado) {
-        sumatoria.cantidad += tarea.Cantidad ?? 0;
-        sumatoria.peso += tarea.Peso ?? 0;
-        sumatoria.volumen += tarea.Volumen ?? 0;
-      }
-    });
-
-    if (sumatoria.cantidad > 0) {
-      resumen += `${sumatoria.cantidad} ${this.unidadCantidad}`;
-    }
-    if (sumatoria.peso > 0) {
-      if (resumen !== '') {
-        resumen += `/${sumatoria.peso} ${this.unidadPeso}`;
-      } else {
-        resumen = `${sumatoria.peso} ${this.unidadPeso}`;
-      }
-    }
-    if (sumatoria.volumen > 0) {
-      if (resumen !== '') {
-        resumen += `/${sumatoria.volumen} ${this.unidadVolumen}`;
-      } else {
-        resumen = `${sumatoria.volumen} ${this.unidadVolumen}`;
-      }
-    }
-
-    return {
-      resumen: resumen,
-      aprobados: estados.aprobados,
-      pendientes: estados.pendientes,
-      rechazados: estados.rechazados,
-      cantidad: sumatoria.cantidad,
-      peso: sumatoria.peso,
-      volumen: sumatoria.volumen
-    };
-  }
-
   getAccionEntradaSalida(entradaSalida: string): string {
     let accion: string = '';
 
@@ -238,6 +100,26 @@ export class Globales {
         break;
     }
     return accion;
+  }
+
+  getResumenCantidades(cantidad?: number | null, peso?: number | null, volumen?: number | null): string {
+    let resumen: string = '';
+    if ((cantidad ?? 0) > 0){
+      resumen += `${cantidad} ${this.unidadCantidad}`;
+    }
+    if ((peso ?? 0) > 0){
+      if (resumen != '')
+        resumen += `/${peso} ${this.unidadPeso}`;
+      else
+        resumen = `${peso} ${this.unidadPeso}`;
+    }
+    if ((volumen ?? 0) > 0){
+      if (resumen != '')
+        resumen += `/${volumen} ${this.unidadVolumen}`;
+      else
+        resumen = `${volumen} ${this.unidadVolumen}`;
+    }
+    return resumen;
   }
 
   async allowServicio(idServicio: string): Promise<boolean> {

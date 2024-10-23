@@ -3,7 +3,7 @@ import { NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Banco } from 'src/app/interfaces/banco.interface';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { InventoryService } from 'src/app/services/inventory.service';
 import { StorageService } from 'src/app/services/storage.service';
 
@@ -20,7 +20,7 @@ export class BancoPage implements OnInit {
     private navCtrl: NavController,
     private inventoryService: InventoryService,
     private authenticationService: AuthenticationService,
-    private globales: Globales
+    private globales: GlobalesService
   ) {
   }
 

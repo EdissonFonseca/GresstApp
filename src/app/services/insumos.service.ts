@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { CRUDOperacion, Estado } from './constants.service';
+import { CRUDOperacion } from './constants.service';
 import { Insumo } from '../interfaces/insumo.interface';
 import { MasterDataService } from './masterdata.service';
 

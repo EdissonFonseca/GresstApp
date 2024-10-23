@@ -4,7 +4,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { Estado } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 
 @Component({
   selector: 'app-activity-approve',
@@ -28,6 +28,10 @@ export class ActivityApproveComponent  implements OnInit {
   unidadKilometraje: string = '';
   unidadCombustible: string = '';
   moneda: string = '';
+  itemsAprobados: number = 0;
+  itemsPendientes: number = 0;
+  itemsRechazados: number = 0;
+  resumen: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -37,7 +41,7 @@ export class ActivityApproveComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private navParams: NavParams,
     private renderer: Renderer2,
-    private globales: Globales,
+    private globales: GlobalesService,
     private actividadesService: ActividadesService,
     private modalCtrl:ModalController
   ) {

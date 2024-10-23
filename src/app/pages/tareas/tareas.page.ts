@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, signal, Signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
-import { Estado, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { Estado } from 'src/app/services/constants.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
-import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ModalController } from '@ionic/angular';
 import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
-import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { TareasService } from 'src/app/services/tareas.service';
 import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.component';
+import { Card } from '@app/interfaces/card';
+import { CardService } from '@app/services/card.service';
 
 @Component({
   selector: 'app-tareas',
@@ -19,23 +18,19 @@ import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.compon
   styleUrls: ['./tareas.page.scss'],
 })
 export class TareasPage implements OnInit {
-  transacciones: Transaccion[] = [];
-  tareas: Tarea[] = [];
-  titulo: string = '';
-  idActividad: string = '';
-  actividad: string = '';
-  idEstadoActividad: string = '';
-  imagenActividad: string = '';
-  idTransaccion: string = '';
-  showDelivery: boolean = true;
+  activity = signal<Card>({id:'', title: '', status: Estado.Pendiente, type:'activity'});
+  transactions = signal<Card[]>([]);
+  tasks = signal<Card[]>([]);
+  transactionId: string = '';
   showAdd: boolean = true;
   mode: string = 'A';
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private route: ActivatedRoute,
+    private router: Router,
     private modalCtrl: ModalController,
-    private actividadesService: ActividadesService,
+    private cardService: CardService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
   ) {
@@ -43,144 +38,128 @@ export class TareasPage implements OnInit {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      this.idActividad=  params["IdActividad"],
-      this.idTransaccion = params["IdTransaccion"],
-      this.mode = params["Mode"]
+      this.mode = params['Mode'],
+      this.transactionId = params['TransactionId']
     });
-    const actividad = await this.actividadesService.get(this.idActividad);
-    if (actividad){
-      this.showDelivery = actividad.IdServicio == TipoServicio.Transporte || actividad.IdServicio == TipoServicio.Recoleccion;
-      this.actividad = actividad.Titulo ?? '';
-      this.titulo = await this.globales.getNombreServicio(actividad.IdServicio);
-      this.idEstadoActividad = actividad.IdEstado!;
-      this.imagenActividad = this.globales.servicios.find(x => x.IdServicio == actividad.IdServicio)?.Icono!;
-    }
-  }
-
-  filterTareas(idTransaccion: string) {
-    if (idTransaccion)
-      return this.tareas.filter(x => x.IdTransaccion == idTransaccion);
-    else
-      return this.tareas.filter(x => !x.IdTransaccion);
-  }
-
-  getColorEstado(idEstado: string): string {
-    return this.globales.getColorEstado(idEstado);
-  }
-
-  async ionViewWillEnter(){
-    if (this.mode == "T") {
-      const transacciones = await this.transaccionesService.list(this.idActividad);
-      if (this.idTransaccion)
-        this.transacciones = transacciones.filter(x => x.IdTransaccion == this.idTransaccion);
-      else
-        this.transacciones = transacciones;
-    } else {
-      this.transacciones = await this.transaccionesService.list(this.idActividad);
-    }
-    this.tareas = await this.tareasService.listSugeridas(this.idActividad, this.idTransaccion);
-    if (this.transacciones.length == 1)
-    {
-      const transaccion = this.transacciones[0];
-      this.showAdd = transaccion.IdEstado == Estado.Pendiente;
-    }
-  }
-
-  async handleInput(event: any){
-    const query = event.target.value.toLowerCase();
-    let transaccionesList = await this.transaccionesService.list(this.idActividad);
-    const tareasList = await this.tareasService.listSugeridas(this.idActividad, this.idTransaccion);
-
-    if (this.idTransaccion)
-    {
-      transaccionesList = await this.transaccionesService.list(this.idActividad);
-      if (transaccionesList)
-        transaccionesList = transaccionesList.filter(x => x.IdTransaccion == this.idTransaccion);
-    }
-    else
-    {
-      transaccionesList = await this.transaccionesService.list(this.idActividad);
-    }
-    const transaccionesFilter = transaccionesList.filter(trx => trx.Punto ?? trx.Tercero ?? ''.toLowerCase().indexOf(query) > -1);
-    if (transaccionesFilter.length == 0){
-      this.transacciones = transaccionesList;
-      this.tareas = tareasList.filter((tarea) => tarea.Material ?? ''.toLowerCase().indexOf(query) > -1);
-    } else {
-      this.transacciones = transaccionesFilter;
-      this.tareas = tareasList;
-    }
-  }
-
-  async updateVistaTransaccion(tarea: Tarea, esNuevo: boolean){
-    const transaccion = this.transacciones.find(x => x.IdTransaccion == tarea.IdTransaccion);
-    if (transaccion){
-      switch(tarea.IdEstado){
-        case Estado.Aprobado:
-          transaccion.Cantidad = (transaccion.Cantidad ?? 0) + (tarea.Cantidad ?? 0);
-          transaccion.Peso = (transaccion.Peso ?? 0) + (tarea.Peso ?? 0);
-          transaccion.Volumen = (transaccion.Volumen ?? 0) + (tarea.Volumen ?? 0);
-          transaccion.ItemsAprobados = (transaccion.ItemsAprobados ?? 0) + 1;
-          if (!esNuevo)
-            transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
-          break;
-        case Estado.Rechazado:
-          transaccion.ItemsRechazados = (transaccion.ItemsRechazados ?? 0) + 1;
-          transaccion.ItemsPendientes = (transaccion.ItemsPendientes ?? 0) - 1;
-          break;
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras.state){
+      const newActivity = nav.extras.state['activity'];
+      if (newActivity){
+        newActivity.iconSource = this.globales.servicios.find(x => x.IdServicio === newActivity.IdServicio)?.Icono || '';
+        this.activity.set(newActivity);
       }
-      transaccion.Cantidades = await this.globales.getResumenCantidadesTarea(transaccion.Cantidad ?? 0, transaccion.Peso ?? 0, transaccion.Volumen ?? 0);
     }
+  }
+
+  async ionViewWillEnter() {
+    let transacciones = await this.transaccionesService.list(this.activity().id);
+    if (this.transactionId) {
+      transacciones = transacciones.filter(x => x.IdTransaccion == this.transactionId);
+    }
+    const mappedTransactions = await this.cardService.mapTransacciones(transacciones);
+    const tareas = await this.tareasService.listSugeridas(this.activity().id);
+    const mappedTasks = this.cardService.mapTareas(tareas);
+
+    this.transactions.set(mappedTransactions);
+    this.tasks.set(mappedTasks);
+  }
+
+  filterTareas(transactionId: string): Card[] {
+    return this.tasks().filter(x => x.parentId == transactionId);
+  }
+
+  async handleInput(event: any) {
+    const query = event.target.value.toLowerCase();
+    let transaccionesList = await this.transaccionesService.list(this.activity().id);
+    const tareasList = await this.tareasService.listSugeridas(this.activity().id, this.transactionId);
+    if (this.transactionId) {
+      transaccionesList = transaccionesList.filter(x => x.IdTransaccion === this.transactionId);
+    }
+    const transaccionesFilter = transaccionesList.filter(trx =>
+      (trx.Punto?.toLowerCase().includes(query) ||
+       trx.Tercero?.toLowerCase().includes(query))
+    );
+    this.transactions.set(transaccionesFilter.length > 0
+      ? await this.cardService.mapTransacciones(transaccionesFilter)
+      : await this.cardService.mapTransacciones(transaccionesList)
+    );
+
+    this.tasks.set(await this.cardService.mapTareas(
+      tareasList.filter(tarea => tarea.Material?.toLowerCase().includes(query))
+    ));
   }
 
   async openAddTarea() {
-    const modal =   await this.modalCtrl.create({
-      component: TaskAddComponent,
-      componentProps: {
-        IdActividad: this.idActividad,
-        IdTransaccion: this.idTransaccion,
-      },
+    console.log(this.activity().id);
+    const modal = await this.modalCtrl.create({
+        component: TaskAddComponent,
+        componentProps: {
+            IdActividad: this.activity().id,
+            IdTransaccion: this.transactionId,
+        },
     });
 
     await modal.present();
 
     const { data } = await modal.onDidDismiss();
     if (data) {
-      await this.globales.showLoading('Actualizando información');
-      if (data.IdTransaccion) {
-        const transaccion = this.transacciones.find(x => x.IdTransaccion == data.IdTransaccion);
-        if (!transaccion) {
-          const transaccionGlobal = await this.transaccionesService.get(this.idActividad, data.IdTransaccion);
-          if (transaccionGlobal) {
-            this.transacciones.push(transaccionGlobal);
-          }
+        await this.globales.showLoading('Actualizando información');
+
+        if (data.IdTransaccion) {
+            const transaccion = this.transactions().find(x => x.id == data.IdTransaccion);
+            if (!transaccion) {
+                const transaccionGlobal = await this.transaccionesService.get(this.activity().id, data.IdTransaccion);
+                if (transaccionGlobal) {
+                    const transaction = await this.cardService.mapTransaccion(transaccionGlobal);
+                    this.transactions().push(transaction);
+                }
+            } else {
+                this.transactions.update(transactions => {
+                    const transactionToUpdate = transactions.find(t => t.id === data.IdTransaccion);
+                    if (transactionToUpdate) {
+                      transactionToUpdate.status = Estado.Aprobado;
+                      transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
+                      transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
+                      transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
+                      transactionToUpdate.volume = (transactionToUpdate.volume ?? 0) + (data.Volumen ?? 0);
+                      this.cardService.updateVisibleProperties(transactionToUpdate);
+                    }
+                    return transactions;
+                });
+            }
         }
-      }
-      this.tareas.push(data);
-      this.updateVistaTransaccion(data, true);
-      await this.globales.hideLoading();
+
+        var task = await this.cardService.mapTarea(data);
+        this.tasks().push(task);
+
+        this.activity.update(activity => {
+            if (activity) {
+              activity.status = Estado.Aprobado;
+              activity.successItems = (activity.successItems ?? 0) + 1;
+              activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
+              activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
+              activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
+            }
+            this.cardService.updateVisibleProperties(activity);
+            return activity;
+        });
+
+        await this.globales.hideLoading();
     }
   }
 
-   /**
-   * Abre popup para aprobar tarea. El componente modifica la tarea con el estado y retorna los datos a esta pagina
-   * @param idTransaccion
-   * @param idTarea
-   */
-   async openEditTarea(idTransaccion: string, idTarea: string) {
-    const card = this.tareas.find(x => x.IdTarea == idTarea);
-    if (!card) return;
-
-    if (card.IdEstado != Estado.Pendiente && card.IdEstado != Estado.Inactivo) return;
+  async openEditTarea(task: Card) {
+    const currentActivity = this.activity();
+    if (!currentActivity) {
+      return;
+    }
 
     const modal =   await this.modalCtrl.create({
       component: TaskEditComponent,
       componentProps: {
-        ActivityId: this.idActividad,
-        TransactionId: idTransaccion,
-        TaskId: idTarea,
-        MaterialId: card.IdMaterial,
-        ResidueId: card.IdResiduo,
-        InputOutput: card.EntradaSalida
+        ActivityId: currentActivity.id,
+        TransactionId: task.parentId,
+        TaskId: task.id,
       },
     });
 
@@ -190,19 +169,70 @@ export class TareasPage implements OnInit {
     if (data)
     {
       await this.globales.showLoading('Actualizando información');
-      card.IdEstado = data.IdEstado;
-      card.Cantidades = await this.globales.getResumenCantidadesTarea(data.Cantidad, data.Peso, data.Volumen);
-      this.updateVistaTransaccion(data, false);
+
+      this.tasks.update(tasks => {
+        const taskToUpdate = tasks.find(t => t.id === task.id);
+        if (taskToUpdate) {
+          taskToUpdate.status = data.IdEstado;
+          if (data.IdEstado == Estado.Aprobado) {
+            taskToUpdate.quantity = data.Cantidad;
+            taskToUpdate.weight = data.Peso;
+            taskToUpdate.volume = data.Volumen;
+          }
+          this.cardService.updateVisibleProperties(taskToUpdate);
+        }
+        return tasks;
+      });
+
+      if (task.parentId != null) {
+        this.transactions.update(transactions => {
+          const transactionToUpdate = transactions.find(t => t.id === task.parentId);
+          if (transactionToUpdate) {
+            transactionToUpdate.pendingItems = (transactionToUpdate.pendingItems ?? 0) - 1;
+            if (data.IdEstado === Estado.Aprobado) {
+              transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
+              transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
+              transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
+              transactionToUpdate.volume = (transactionToUpdate.volume ?? 0) + (data.Volumen ?? 0);
+            } else if (data.IdEstado === Estado.Rechazado) {
+              transactionToUpdate.rejectedItems = (transactionToUpdate.rejectedItems ?? 0) + 1;
+            }
+            this.cardService.updateVisibleProperties(transactionToUpdate);
+          }
+          return transactions;
+        });
+      }
+
+      this.activity.update(activity => {
+        if (activity) {
+          activity.pendingItems = (activity.pendingItems ?? 0) - 1;
+          if (data.IdEstado === Estado.Aprobado) {
+              activity.successItems = (activity.successItems ?? 0) + 1;
+              activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
+              activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
+              activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
+          } else if (data.IdEstado === Estado.Rechazado) {
+              activity.rejectedItems = (activity.rejectedItems ?? 0) + 1;
+          }
+        }
+        this.cardService.updateVisibleProperties(activity);
+        return activity;
+      });
+
       await this.globales.hideLoading();
     }
   }
 
   async openApproveTransaccion(id: string){
+    const currentActivity = this.activity();
+    if (!currentActivity) {
+      return;
+    }
     try {
       const modal =   await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          ActivityId: this.idActividad,
+          ActivityId: currentActivity.id,
           TransactionId: id,
         },
       });
@@ -210,23 +240,34 @@ export class TareasPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data != null) {
-        const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
-        if (transaccion){
-          transaccion.IdEstado = Estado.Aprobado;
-          this.showAdd = false;
-        }
+        await this.globales.showLoading('Actualizando información');
+        this.transactions.update(transactions => {
+          const transaccion = transactions.find(x => x.id == id);
+          if (transaccion) {
+            transaccion.status = Estado.Aprobado;
+            this.cardService.updateVisibleProperties(transaccion);
+          }
+          return transactions;
+        });
       }
-    } catch {}
-
+      await this.globales.hideLoading();
+    } catch (error) {
+      console.error(error);
+      await this.globales.hideLoading();
+    }
   }
 
-  async openRejectTransaccion(id: string){
+  async openRejectTransaccion(id: string) {
+    const currentActivity = this.activity();
+    if (!currentActivity) {
+      return;
+    }
+
     const modal =   await this.modalCtrl.create({
       component: TransactionRejectComponent,
       componentProps: {
-        ActivityId: this.idActividad,
-        TransactionId: this.idTransaccion,
-        TaskId: id,
+        ActivityId: currentActivity.id,
+        TransactionId: id,
       },
     });
 
@@ -236,11 +277,15 @@ export class TareasPage implements OnInit {
     if (data != null)
     {
       await this.globales.showLoading('Actualizando información');
-      const transaccion = await this.transacciones.find(x => x.IdTransaccion == this.idTransaccion);
-      if (transaccion) {
-        transaccion.IdEstado = Estado.Rechazado;
-      }
-      await this.globales.hideLoading();
+      this.transactions.update(transactions => {
+        const transaccion = transactions.find(x => x.id == id);
+        if (transaccion) {
+          transaccion.status = Estado.Rechazado;
+          this.cardService.updateVisibleProperties(transaccion);
+        }
+        return transactions;
+      });
     }
+    await this.globales.hideLoading();
   }
 }

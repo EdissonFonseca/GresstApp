@@ -5,8 +5,7 @@ import { Embalaje } from '../interfaces/embalaje.interface';
 import { Material } from '../interfaces/material.interface';
 import { Insumo } from '../interfaces/insumo.interface';
 import { Tercero } from '../interfaces/tercero.interface';
-import { StorageService } from './storage.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +22,7 @@ export class MasterDataService {
   private vehiculosUrl = `${environment.apiUrl}/vehiculos`;
 
   constructor(
-    private globales: Globales
+    private globales: GlobalesService
   ) {}
 
  async getEmbalajes(): Promise<any>{

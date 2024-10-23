@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { Servicio } from 'src/app/interfaces/servicio.interface';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { ServiciosService } from 'src/app/services/servicios.service';
 
 @Component({
@@ -18,7 +18,7 @@ export class ServicesComponent  implements OnInit {
   items: { id: string, name: string; selected: boolean }[] = [];
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private serviciosService: ServiciosService,
     private toastCtrl: ToastController
   ) { }

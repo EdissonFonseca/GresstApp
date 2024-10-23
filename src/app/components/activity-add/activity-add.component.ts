@@ -2,12 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Estado, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-activity-add',
@@ -33,7 +32,7 @@ export class ActivityAddComponent  implements OnInit {
 
   constructor(
     private modalCtrl: ModalController,
-    private globales: Globales,
+    private globales: GlobalesService,
     private navParams: NavParams,
     private actividadesService: ActividadesService,
     private formBuilder: FormBuilder,

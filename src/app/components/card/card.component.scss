@@ -1,0 +1,33 @@
+.transparent-item {
+  background: transparent !important;
+  --ion-background-color: transparent;
+  --background: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.transparent-item ion-icon,
+.transparent-item ion-button,
+.transparent-item ion-label {
+  --background: transparent !important;
+  --ion-background-color: transparent !important;
+  background: transparent !important;
+}
+
+.transparent-item p {
+  color: var(--ion-text-color, #000);
+}
+
+.transparent-item ion-item {
+  --background: transparent !important;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card {
+  width: 100%;
+}

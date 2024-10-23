@@ -3,7 +3,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { PuntosService } from 'src/app/services/puntos.service';
 import { TercerosService } from 'src/app/services/terceros.service';
 
@@ -27,7 +27,7 @@ export class PointsComponent  implements OnInit, OnChanges {
   enableNew: boolean = false;
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private puntosService: PuntosService,
     private tercerosService: TercerosService,
     private modalCtrl: ModalController,

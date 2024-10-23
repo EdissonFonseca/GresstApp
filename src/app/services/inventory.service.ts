@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,7 @@ export class InventoryService {
   private inventoryUrl = `${environment.apiUrl}/appinventory`;
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
   ) {}
 
   async getBanco(): Promise<any>{

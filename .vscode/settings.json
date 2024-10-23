@@ -363,6 +363,7 @@
     "Longitud",
     "Marcador",
     "Mensaje",
+    "Modificado",
     "Nueva",
     "Numero",
     "Ocurrió",
@@ -424,8 +425,10 @@
     "createtransaccion",
     "depositos",
     "desconectado",
+    "desconocido",
     "direcciones",
     "disponibles",
+    "edisoft",
     "encuentra",
     "enviará",
     "envía",
@@ -466,6 +469,8 @@
     "sincronizacion",
     "sincronizada",
     "sincronizados",
+    "testpassword",
+    "testuser",
     "tomadas",
     "tomar",
     "transacción",
@@ -477,6 +482,7 @@
     "uploadfirmaactividad",
     "uploadfirmatransaccion",
     "uploadfotostarea",
-    "validatetoken"
+    "validatetoken",
+    "wrongpassword"
   ]
 }

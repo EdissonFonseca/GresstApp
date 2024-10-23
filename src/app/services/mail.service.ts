@@ -1,4 +1,3 @@
-import { Storage } from "@ionic/storage-angular";
 import { Injectable } from "@angular/core";
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { environment } from '../../environments/environment';

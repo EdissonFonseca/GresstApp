@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController, NavController, ToastController } from '@ionic/angular';
+import { CRUDOperacion, Permisos } from '@app/services/constants.service';
+import { ModalController, NavController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
-import { ClienteProveedorInterno, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { TercerosService } from 'src/app/services/terceros.service';
 
 @Component({
@@ -22,7 +22,7 @@ export class StakeholdersComponent  implements OnInit {
   showNew: boolean = false;
 
   constructor(
-    private globales: Globales,
+    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private tercerosService: TercerosService,

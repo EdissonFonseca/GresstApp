@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class PerfilPage implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private globales: Globales,
+    private globales: GlobalesService,
     private authenticationService: AuthenticationService,
     private storage: StorageService
   ) {

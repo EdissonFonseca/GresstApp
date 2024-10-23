@@ -7,7 +7,7 @@ import { CRUDOperacion, TipoServicio } from "./constants.service";
 import { MaterialesService } from "./materiales.service";
 import { TercerosService } from "./terceros.service";
 import { PuntosService } from "./puntos.service";
-import { Globales } from "./globales.service";
+import { GlobalesService } from "./globales.service";
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,7 @@ import { Globales } from "./globales.service";
 export class InventarioService {
   constructor(
     private storage: StorageService,
-    private globales: Globales,
+    private globales: GlobalesService,
     private materialesService: MaterialesService,
     private tercerosService: TercerosService,
     private puntosService: PuntosService

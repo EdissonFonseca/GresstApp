@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
-import { Actividad } from '../interfaces/actividad.interface';
 import { Punto } from '../interfaces/punto.interface';
 import { Estado } from './constants.service';
 import { Transaction } from '../interfaces/transaction.interface';

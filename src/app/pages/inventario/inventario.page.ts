@@ -3,7 +3,7 @@ import { ActionSheetButton, ActionSheetController, ActionSheetOptions, MenuContr
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { ResidueMoveComponent } from 'src/app/components/residue-move/residue-move.component';
 import { ResidueDismissComponent } from 'src/app/components/residue-dismiss/residue-dismiss.component';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { ResidueTransformComponent } from 'src/app/components/residue-transform/residue-transform.component';
 import { ResiduePublishComponent } from 'src/app/components/residue-publish/residue-publish.component';
 import { ResidueReceiveComponent } from 'src/app/components/residue-receive/residue-receive.component';
@@ -26,7 +26,7 @@ export class InventarioPage implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private menuCtrl: MenuController,
-    private globales: Globales,
+    private globales: GlobalesService,
     private inventarioService: InventarioService,
     private materialesService: MaterialesService,
     private actionSheetCtrl: ActionSheetController,

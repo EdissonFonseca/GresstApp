@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { TipoServicio } from 'src/app/services/constants.service';
@@ -35,7 +35,7 @@ export class ResidueTransformComponent  implements OnInit {
     private modalCtrl: ModalController,
     private navParams: NavParams,
     private inventarioService: InventarioService,
-    private globales: Globales
+    private globales: GlobalesService
   ) {
     this.residueId = this.navParams.get("ResidueId");
     this.frm = this.formBuilder.group({

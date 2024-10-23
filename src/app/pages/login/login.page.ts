@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
-import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { StorageService } from 'src/app/services/storage.service';
 import { SynchronizationService } from 'src/app/services/synchronization.service';
 
@@ -21,16 +20,16 @@ export class LoginPage implements OnInit {
     private synchronizationService: SynchronizationService,
     private navCtrl: NavController,
     private storage: StorageService,
-    private globales: Globales,
+    private globales: GlobalesService,
   ) { }
 
   async ngOnInit() {
-    var loggedUser = await this.storage.get('Login');
+    // var loggedUser = await this.storage.get('Login');
 
-    if (loggedUser) {
-      this.globales.initGlobales();
-      this.navCtrl.navigateRoot('/home');
-    }
+    // if (loggedUser) {
+    //   this.globales.initGlobales();
+    //   this.navCtrl.navigateRoot('/home');
+    // }
   }
 
   async login(){

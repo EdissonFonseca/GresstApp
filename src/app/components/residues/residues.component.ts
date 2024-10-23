@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 
 @Component({
@@ -19,7 +19,7 @@ export class ResiduesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: Globales,
+    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private inventarioService: InventarioService,
   ) { }

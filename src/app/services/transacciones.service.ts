@@ -1,11 +1,10 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { Transaccion } from '../interfaces/transaccion.interface';
-import { Actividad } from '../interfaces/actividad.interface';
 import { TareasService } from './tareas.service';
 import { Tarea } from '../interfaces/tarea.interface';
 import { CRUDOperacion, EntradaSalida, Estado } from './constants.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { PuntosService } from './puntos.service';
 import { TercerosService } from './terceros.service';
 import { SynchronizationService } from './synchronization.service';
@@ -21,8 +20,31 @@ export class TransaccionesService {
     private puntosService: PuntosService,
     private tercerosService: TercerosService,
     private synchronizationService: SynchronizationService,
-    private globales: Globales
+    private globales: GlobalesService
   ) {}
+
+  async getSummary(idActividad: string, idTransaccion: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso: number; volumen:number }> {
+    const tareas = await this.tareasService.list(idActividad, idTransaccion);
+
+    const resultado = tareas.reduce(
+      (acumulador, tarea) => {
+        if (tarea.IdEstado === Estado.Aprobado) {
+          acumulador.aprobados += 1;
+          acumulador.cantidad += tarea.Cantidad ?? 0;
+          acumulador.peso += tarea.Peso ?? 0;
+          acumulador.volumen += tarea.Volumen ?? 0;
+            } else if (tarea.IdEstado === Estado.Pendiente) {
+          acumulador.pendientes += 1;
+        } else if (tarea.IdEstado === Estado.Rechazado) {
+          acumulador.rechazados += 1;
+        }
+        return acumulador;
+      },
+      { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
+    );
+
+    return resultado;
+  }
 
   async list(idActividad: string){
     let nombre: string = '';
@@ -73,15 +95,7 @@ export class TransaccionesService {
           transaccion.Icono = 'person';
         }
       }
-      const resumen = this.globales.getResumen(tareas2);
       transaccion.Accion = this.globales.getAccionEntradaSalida(operacion ?? '');
-      transaccion.Cantidad = resumen.cantidad;
-      transaccion.Peso = resumen.peso;
-      transaccion.Volumen = resumen.volumen;
-      transaccion.ItemsAprobados = resumen.aprobados;
-      transaccion.ItemsPendientes = resumen.pendientes;
-      transaccion.ItemsRechazados = resumen.rechazados;
-      transaccion.Cantidades = resumen.resumen;
       transaccion.Titulo = `${transaccion.Solicitudes}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
@@ -94,15 +108,6 @@ export class TransaccionesService {
 
     if (transaction){
       transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion)!;
-      const tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
-      const resumen = this.globales.getResumen(tareas);
-      transaccion.Cantidad = resumen.cantidad;
-      transaccion.Peso = resumen.peso;
-      transaccion.Volumen = resumen.volumen;
-      transaccion.ItemsAprobados = resumen.aprobados;
-      transaccion.ItemsPendientes = resumen.pendientes;
-      transaccion.ItemsRechazados = resumen.rechazados;
-      transaccion.Cantidades = resumen.resumen;
       if (transaccion.Titulo == '' || transaccion.Titulo == undefined)
         transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
     }

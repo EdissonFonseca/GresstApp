@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { PointsComponent } from '../points/points.component';
-import { Globales } from 'src/app/services/globales.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Material } from 'src/app/interfaces/material.interface';
-import { Cuenta } from 'src/app/interfaces/cuenta.interface';
 import { InventarioService } from 'src/app/services/inventario.service';
 import { MaterialesService } from 'src/app/services/materiales.service';
 
@@ -34,7 +33,7 @@ export class ResidueMoveComponent  implements OnInit {
     private modalCtrl: ModalController,
     private inventarioService: InventarioService,
     private materialesService: MaterialesService,
-    private globales: Globales
+    private globales: GlobalesService
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }

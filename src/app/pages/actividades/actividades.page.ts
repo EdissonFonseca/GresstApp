@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
+import { Card } from '@app/interfaces/card';
+import { CardService } from '@app/services/card.service';
 import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { CRUDOperacion, Estado, Permisos, TipoServicio } from 'src/app/services/constants.service';
-import { Globales } from 'src/app/services/globales.service';
+import { CRUDOperacion, Permisos, TipoServicio } from 'src/app/services/constants.service';
+import { GlobalesService } from 'src/app/services/globales.service';
 
 @Component({
   selector: 'app-actividades',
@@ -13,15 +15,16 @@ import { Globales } from 'src/app/services/globales.service';
   styleUrls: ['./actividades.page.scss'],
 })
 export class ActividadesPage implements OnInit {
-  actividades: Actividad[] = [];
-  permiteAgregar: boolean = true;
+  activities: Card[] = [];
+  showAdd: boolean = true;
   cantidadCombustible: number | null = null;
   kilometraje: number | null = null;
 
   constructor(
     private navCtrl: NavController,
-    private globales: Globales,
+    private globales: GlobalesService,
     private actividadesService: ActividadesService,
+    private cardService: CardService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
     private actionSheet: ActionSheetController
@@ -29,18 +32,21 @@ export class ActividadesPage implements OnInit {
   }
 
   async ngOnInit() {
-    this.permiteAgregar = await this.globales.allowAddActivity();
+    this.showAdd = await this.globales.allowAddActivity();
   }
 
   async ionViewWillEnter() {
-    this.actividades = await this.actividadesService.list();
+    let actividadesList = await this.actividadesService.list();
+    this.activities = await this.cardService.mapActividades(actividadesList);
+    this.cardService.setActivities(this.activities);
   }
 
   async handleInput(event: any) {
     const query = event.target.value.toLowerCase();
 
-    const actividadesList = await this.actividadesService.list();
-    this.actividades = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
+    let actividadesList = await this.actividadesService.list();
+    actividadesList = actividadesList.filter((actividad) => actividad.Titulo.toLowerCase().indexOf(query) > -1);
+    this.activities = await this.cardService.mapActividades(actividadesList);
   }
 
   async presentAlertPrompt(): Promise<boolean> {
@@ -92,8 +98,8 @@ export class ActividadesPage implements OnInit {
     });
   }
 
-  async navigateToTarget(idActividad: string){
-    const actividad: Actividad = await this.actividadesService.get(idActividad);
+  async navigateToTarget(activity: Card) {
+    const actividad: Actividad = await this.actividadesService.get(activity.id);
 
     switch(actividad.IdServicio)
     {
@@ -114,27 +120,22 @@ export class ActividadesPage implements OnInit {
 
         if (actividad.NavegarPorTransaccion) {
           const navigationExtras: NavigationExtras = {
-            queryParams: { IdActividad: idActividad, Mode: 'T'}
-          }
+            state: { activity: activity}
+          };
           this.navCtrl.navigateForward('/transacciones', navigationExtras);
         } else {
           const navigationExtras: NavigationExtras = {
-            queryParams: {
-              IdActividad: idActividad,
-              Mode: 'A',
-            }
-          }
-            this.navCtrl.navigateForward('/tareas', navigationExtras);
+            queryParams: { Mode:'A' },
+            state: { activity: activity}
+          };
+          this.navCtrl.navigateForward('/tareas', navigationExtras);
         }
-        //this.globales.hideLoading();
         break;
       default:
         const navigationExtrasD: NavigationExtras = {
-          queryParams: {
-            IdActividad: idActividad,
-            Mode: 'A',
-          }
-        }
+          queryParams: { Mode:'T' },
+          state: { activity: activity}
+      };
         this.navCtrl.navigateForward('/tareas', navigationExtrasD);
         break;
     }
@@ -183,7 +184,8 @@ export class ActividadesPage implements OnInit {
     const { data } = await modal.onDidDismiss();
     if (data) {
       await this.globales.showLoading('Actualizando información');
-      this.actividades = await this.actividadesService.list();
+      let actividadesList = await this.actividadesService.list();
+      this.activities = await this.cardService.mapActividades(actividadesList);
       await this.globales.hideLoading();
     }
   }
@@ -192,28 +194,4 @@ export class ActividadesPage implements OnInit {
     return this.globales.getColorEstado(idEstado);
   }
 
-  formatJornada(idActividad: string) {
-    let jornada: string = '';
-    const hoy = this.globales.today();
-    const actividad = this.actividades.find(x => x.IdActividad == idActividad);
-
-    if (!actividad) return;
-
-    if (actividad.FechaInicial){
-      const fechaInicio = new Date(actividad.FechaInicial);
-      const diaInicio = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), fechaInicio.getDate());
-      if (actividad.FechaFinal) {
-        const fechaFin = new Date(actividad.FechaFinal);
-        const diaFin = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-        if (diaInicio == hoy && diaFin == hoy){
-          jornada = 'Todo el dia';
-        } else if (diaInicio < hoy){
-          jornada = ""; //format(fechaInicio, 'dd/MM/yyyy') + '-'+format(fechaFin, 'dd/MM/yyyy');
-        } else {
-          jornada = ""; //format(fechaInicio, 'hh:mm') + '-'+format(fechaFin, 'hh:mm');
-        }
-      }
-    }
-    return jornada;
-  }
 }

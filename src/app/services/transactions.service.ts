@@ -4,7 +4,7 @@ import { environment } from '../../environments/environment';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { AppConfig } from './constants.service';
 
 @Injectable({
@@ -14,7 +14,7 @@ export class TransactionsService {
   private transactionsUrl = `${environment.apiUrl}/apptransactions`;
 
   constructor(
-    private globales: Globales
+    private globales: GlobalesService
   ) {}
 
   async get(): Promise<any>{

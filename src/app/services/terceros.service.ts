@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from './storage.service';
 import { Tercero } from '../interfaces/tercero.interface';
-import { CRUDOperacion, Estado } from './constants.service';
+import { CRUDOperacion } from './constants.service';
 import { MasterDataService } from './masterdata.service';
 import { Punto } from '../interfaces/punto.interface';
 

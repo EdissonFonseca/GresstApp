@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
-import { Globales } from './globales.service';
+import { GlobalesService } from './globales.service';
 import { SynchronizationService } from './synchronization.service';
 import { CRUDOperacion, Estado } from './constants.service';
 import { Transaction } from '../interfaces/transaction.interface';
+import { TareasService } from './tareas.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,9 +13,33 @@ import { Transaction } from '../interfaces/transaction.interface';
 export class ActividadesService {
   constructor(
     private storage: StorageService,
-    private globales: Globales,
+    private globales: GlobalesService,
+    private tareasService: TareasService,
     private synchronizationService: SynchronizationService,
   ) {}
+
+  async getSummary(idActividad: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso:number; volumen:number; }> {
+    const tareas = await this.tareasService.list(idActividad);
+
+    const resultado = tareas.reduce(
+      (acumulador, tarea) => {
+        if (tarea.IdEstado === Estado.Aprobado) {
+          acumulador.aprobados += 1;
+          acumulador.cantidad += tarea.Cantidad ?? 0;
+          acumulador.peso += tarea.Peso ?? 0;
+          acumulador.volumen += tarea.Volumen ?? 0;
+        } else if (tarea.IdEstado === Estado.Pendiente) {
+          acumulador.pendientes += 1;
+        } else if (tarea.IdEstado === Estado.Rechazado) {
+          acumulador.rechazados += 1;
+        }
+        return acumulador;
+      },
+      { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
+    );
+
+    return resultado;
+  }
 
   async list(): Promise<Actividad[]> {
     const transaction: Transaction = await this.storage.get('Transaction');
@@ -24,14 +49,6 @@ export class ActividadesService {
 
     actividades = transaction.Actividades;
     actividades.forEach((actividad) => {
-
-      const tareas = transaction.Tareas.filter((tarea) => tarea.IdActividad == actividad.IdActividad);
-      var resumen = this.globales.getResumen(tareas);
-
-      actividad.ItemsAprobados = resumen.aprobados;
-      actividad.ItemsPendientes = resumen.pendientes;
-      actividad.ItemsRechazados = resumen.rechazados;
-      actividad.Cantidades = resumen.resumen;
       actividad.Icono = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Icono ||'';
       actividad.Accion = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Nombre || '';
     });
@@ -46,13 +63,6 @@ export class ActividadesService {
     actividades = transaction.Actividades;
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
 
-    const tareas = transaction.Tareas.filter((tarea) => tarea.IdActividad == idActividad);
-    var resumen = this.globales.getResumen(tareas);
-
-    actividad.ItemsAprobados = resumen.aprobados;
-    actividad.ItemsPendientes = resumen.pendientes;
-    actividad.ItemsRechazados = resumen.rechazados;
-    actividad.Cantidades = resumen.resumen;
     actividad.Icono = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Icono ||'';
     actividad.Accion = this.globales.servicios.find((servicio) => actividad.IdServicio == servicio.IdServicio)?.Nombre || '';
 
