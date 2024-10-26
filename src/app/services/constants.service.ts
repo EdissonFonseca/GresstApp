@@ -2,6 +2,9 @@ export const AppConfig = {
   connectionTimeout: 5000,
   readTimeout: 10000
 };
+export enum Ajustes {
+  SolicitarKilometraje = "SolicitarKilometraje",
+}
 export enum ClienteProveedorInterno {
   Cliente = "C",
   Proveedor = "P",

@@ -7,7 +7,6 @@ import { CRUDOperacion, EntradaSalida, Estado } from './constants.service';
 import { GlobalesService } from './globales.service';
 import { PuntosService } from './puntos.service';
 import { TercerosService } from './terceros.service';
-import { SynchronizationService } from './synchronization.service';
 import { Transaction } from '../interfaces/transaction.interface';
 
 @Injectable({
@@ -19,7 +18,6 @@ export class TransaccionesService {
     private tareasService: TareasService,
     private puntosService: PuntosService,
     private tercerosService: TercerosService,
-    private synchronizationService: SynchronizationService,
     private globales: GlobalesService
   ) {}
 
@@ -138,23 +136,18 @@ export class TransaccionesService {
 
   async create(transaccion: Transaccion) {
     const now = new Date().toISOString();
-    const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction) {
       transaccion.FechaInicial = now;
       transaccion.CRUD = CRUDOperacion.Create;
-      transaccion.Longitud = longitud;
-      transaccion.Latitud = latitud;
       transaction.Transacciones.push(transaccion);
       await this.storage.set('Transaction', transaction);
-      await this.synchronizationService.uploadTransactions();
     }
   }
 
   async update(transaccion: Transaccion) {
     const now = new Date().toISOString();
-    const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction)
@@ -173,8 +166,6 @@ export class TransaccionesService {
         current.CantidadCombustible = transaccion.CantidadCombustible;
         current.CostoCombustible = transaccion.CostoCombustible;
         current.Kilometraje = transaccion.Kilometraje;
-        current.Latitud = latitud;
-        current.Longitud = longitud;
 
         const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
         tareas.forEach(x => {
@@ -184,7 +175,6 @@ export class TransaccionesService {
         });
 
         await this.storage.set("Transaction", transaction);
-        await this.synchronizationService.uploadTransactions();
       }
     }
   }

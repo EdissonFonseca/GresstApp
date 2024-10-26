@@ -24,12 +24,12 @@ export class LoginPage implements OnInit {
   ) { }
 
   async ngOnInit() {
-    // var loggedUser = await this.storage.get('Login');
+    var loggedUser = await this.storage.get('Login');
 
-    // if (loggedUser) {
-    //   this.globales.initGlobales();
-    //   this.navCtrl.navigateRoot('/home');
-    // }
+    if (loggedUser) {
+      this.globales.initGlobales();
+      this.navCtrl.navigateRoot('/home');
+    }
   }
 
   async login(){
@@ -48,7 +48,7 @@ export class LoginPage implements OnInit {
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
           await this.synchronizationService.reload();
-
+          this.globales.initGlobales();
           this.globales.hideLoading();
 
           this.navCtrl.navigateRoot('/home');
@@ -58,6 +58,7 @@ export class LoginPage implements OnInit {
           await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
         }
       }
+
     } catch (error) {
       this.globales.hideLoading();
       if (error instanceof Error){

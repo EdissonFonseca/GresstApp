@@ -3,10 +3,13 @@
     <ion-buttons slot="start">
       <ion-back-button></ion-back-button>
     </ion-buttons>
+    <ion-title>
+      {{ activity().title }}
+    </ion-title>
   </ion-toolbar>
-  <ion-item color="medium">
+  <!-- <ion-item color="medium">
     <app-card [card]="activity()" [allowApprove]="false" [allowNavigate]="false"></app-card>
-  </ion-item>
+  </ion-item> -->
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>

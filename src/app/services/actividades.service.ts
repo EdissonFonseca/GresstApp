@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Actividad } from '../interfaces/actividad.interface';
 import { StorageService } from './storage.service';
 import { GlobalesService } from './globales.service';
-import { SynchronizationService } from './synchronization.service';
 import { CRUDOperacion, Estado } from './constants.service';
 import { Transaction } from '../interfaces/transaction.interface';
 import { TareasService } from './tareas.service';
@@ -15,7 +14,6 @@ export class ActividadesService {
     private storage: StorageService,
     private globales: GlobalesService,
     private tareasService: TareasService,
-    private synchronizationService: SynchronizationService,
   ) {}
 
   async getSummary(idActividad: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso:number; volumen:number; }> {
@@ -89,12 +87,10 @@ export class ActividadesService {
 
     transaction.Actividades.push(actividad);
     await this.storage.set('Transaction', transaction);
-    await this.synchronizationService.uploadTransactions();
   }
 
   async update(actividad: Actividad) {
-    const now = new Date().toISOString();;
-    const [latitud, longitud] = await this.globales.getCurrentPosition();
+    const now = new Date().toISOString();
     const transaction: Transaction = await this.storage.get('Transaction');
 
     const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
@@ -105,8 +101,6 @@ export class ActividadesService {
       current.IdEstado = actividad.IdEstado;
       current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
       current.KilometrajeFinal = actividad.KilometrajeFinal;
-      current.LatitudFinal = latitud;
-      current.LongitudFinal = longitud;
       current.ResponsableCargo = actividad.ResponsableCargo;
       current.ResponsableFirma = actividad.ResponsableFirma;
       current.ResponsableIdentificacion = actividad.ResponsableIdentificacion;
@@ -127,13 +121,11 @@ export class ActividadesService {
       });
 
       await this.storage.set("Transaction", transaction);
-      await this.synchronizationService.uploadTransactions();
     }
   }
 
   async updateInicio(actividad: Actividad) {
     const now = new Date().toISOString();
-    const [latitud, longitud] = await this.globales.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
     const actividades = transaction.Actividades;
     const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
@@ -144,11 +136,8 @@ export class ActividadesService {
       current.IdEstado = actividad.IdEstado;
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
-      current.LatitudInicial = latitud;
-      current.LongitudInicial = longitud;
 
       await this.storage.set("Transaction", transaction);
-      await this.synchronizationService.uploadTransactions();
     }
   }
 }

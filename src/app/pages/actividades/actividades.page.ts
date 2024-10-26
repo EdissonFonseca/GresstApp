@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
 import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/card.service';
+import { SynchronizationService } from '@app/services/synchronization.service';
 import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -25,6 +26,7 @@ export class ActividadesPage implements OnInit {
     private globales: GlobalesService,
     private actividadesService: ActividadesService,
     private cardService: CardService,
+    private synchronizationService: SynchronizationService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
     private actionSheet: ActionSheetController
@@ -50,10 +52,10 @@ export class ActividadesPage implements OnInit {
     this.activities.set(mappedActivities);
   }
 
-  async presentAlertPrompt(): Promise<boolean> {
+  async requestMileagePrompt(): Promise<boolean> {
     return new Promise(async (resolve) => {
       const alert = await this.alertCtrl.create({
-        header: 'Datos del vehiculo',
+        header: 'Kilometraje inicial',
         inputs: [
           {
             name: 'kilometraje',
@@ -65,23 +67,12 @@ export class ActividadesPage implements OnInit {
               'aria-label': 'Kilometraje'
             }
           },
-          {
-            name: 'cantidadCombustible',
-            type: 'number',
-            placeholder: 'Cantidad de Combustible',
-            value: this.cantidadCombustible ? this.cantidadCombustible.toFixed(2).toString() : '0.00',
-            min: 0,
-            attributes: {
-              'aria-label': 'Kilometraje'
-            }
-          }
         ],
         buttons: [
           {
             text: 'Aceptar',
             handler: (data) => {
               this.kilometraje = parseInt(data.kilometraje, 10);
-              this.cantidadCombustible = parseFloat(parseFloat(data.cantidadCombustible).toFixed(2));
               resolve(true);
             }
           },
@@ -107,22 +98,23 @@ export class ActividadesPage implements OnInit {
       case TipoServicio.Recoleccion:
       case TipoServicio.Transporte:
         if (actividad.FechaInicial == null) {
-          const result = await this.presentAlertPrompt();
-          if (result) {
-            actividad.KilometrajeInicial = this.kilometraje;
-            actividad.CantidadCombustibleInicial = this.cantidadCombustible;
-          } else {
-            return;
+          if (this.globales.solicitarKilometraje) {
+            const result = await this.requestMileagePrompt();
+            if (result) {
+              actividad.KilometrajeInicial = this.kilometraje;
+            } else {
+              return;
+            }
           }
-          await this.globales.showLoading('Actualizando datos');
+          await this.globales.showLoading('Iniciando ruta');
           await this.actividadesService.updateInicio(actividad);
           this.globales.hideLoading();
+          //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+          this.synchronizationService.uploadTransactions();
         }
 
         if (actividad.NavegarPorTransaccion) {
-          const navigationExtras: NavigationExtras = {
-            state: { activity: activity}
-          };
+          const navigationExtras: NavigationExtras = { state: { activity: activity} };
           this.navCtrl.navigateForward('/transacciones', navigationExtras);
         } else {
           const navigationExtras: NavigationExtras = {
@@ -131,6 +123,7 @@ export class ActividadesPage implements OnInit {
           };
           this.navCtrl.navigateForward('/tareas', navigationExtras);
         }
+
         break;
       default:
         const navigationExtrasD: NavigationExtras = {
@@ -192,6 +185,9 @@ export class ActividadesPage implements OnInit {
       this.activities.set(mappedActivities);
 
       await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
     }
   }
 

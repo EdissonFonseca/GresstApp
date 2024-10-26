@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid';
 import { Geolocation } from '@capacitor/geolocation';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface'
-import { Estado, TipoServicio, EntradaSalida, Parametros, CRUDOperacion, Permisos } from 'src/app/services/constants.service';
+import { Ajustes, CRUDOperacion, Estado, EntradaSalida, Parametros, Permisos, TipoServicio } from 'src/app/services/constants.service';
 import { StorageService } from './storage.service';
 import { Servicio } from '../interfaces/servicio.interface';
 
@@ -41,6 +41,7 @@ export class GlobalesService {
   public unidadKilometraje: string = 'km';
   public unidadPeso: string = 'kg';
   public unidadVolumen: string = 'lt';
+  public solicitarKilometraje: boolean = false;
 
   constructor(
     private storage: StorageService,
@@ -82,6 +83,10 @@ export class GlobalesService {
     this.unidadKilometraje = data.Parametros[Parametros.UnidadKilometraje];
     this.unidadPeso = data.Parametros[Parametros.UnidadPeso];
     this.unidadVolumen = data.Parametros[Parametros.UnidadVolumen];
+
+    var solicitar = data.Ajustes[Ajustes.SolicitarKilometraje];
+    if (solicitar?.toLowerCase() ?? "false" != "false")
+      this.solicitarKilometraje = true;
   }
 
   getAccionEntradaSalida(entradaSalida: string): string {
@@ -206,6 +211,11 @@ export class GlobalesService {
     );
   }
 
+  async getAjuste(idAjuste: string):  Promise<string> {
+    const cuenta: Cuenta  = await this.storage.get('Cuenta');
+    return cuenta?.Ajustes[idAjuste] || '';
+  }
+
   async getParametro(idParametro: string): Promise<string> {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
     return cuenta?.Parametros[idParametro] || '';
@@ -215,6 +225,7 @@ export class GlobalesService {
     const cuenta: Cuenta  = await this.storage.get('Cuenta');
     return cuenta?.Permisos[idOpcion] || '';
   }
+
   // #endregion
 
   // #region Update Methods

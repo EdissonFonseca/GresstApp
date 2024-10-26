@@ -11,6 +11,7 @@ import { TareasService } from 'src/app/services/tareas.service';
 import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.component';
 import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/card.service';
+import { SynchronizationService } from '@app/services/synchronization.service';
 
 @Component({
   selector: 'app-tareas',
@@ -22,6 +23,7 @@ export class TareasPage implements OnInit {
   transactions = signal<Card[]>([]);
   tasks = signal<Card[]>([]);
   transactionId: string = '';
+  title: string = '';
   showAdd: boolean = true;
   mode: string = 'A';
 
@@ -33,6 +35,7 @@ export class TareasPage implements OnInit {
     private cardService: CardService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
+    private synchronizationService: SynchronizationService,
   ) {
   }
 
@@ -45,6 +48,7 @@ export class TareasPage implements OnInit {
     if (nav?.extras.state){
       const newActivity = nav.extras.state['activity'];
       if (newActivity){
+        this.title = newActivity.title;
         this.activity.set(newActivity);
       }
     }
@@ -54,6 +58,11 @@ export class TareasPage implements OnInit {
     let transacciones = await this.transaccionesService.list(this.activity().id);
     if (this.transactionId) {
       transacciones = transacciones.filter(x => x.IdTransaccion == this.transactionId);
+      const transaccion = transacciones[0];
+      if (transaccion)
+        this.showAdd = transaccion.IdEstado == Estado.Pendiente;
+    } else {
+      this.showAdd = this.activity().status == Estado.Pendiente;
     }
     const mappedTransactions = await this.cardService.mapTransacciones(transacciones);
     const tareas = await this.tareasService.listSugeridas(this.activity().id);
@@ -142,8 +151,10 @@ export class TareasPage implements OnInit {
             this.cardService.updateVisibleProperties(activity);
             return activity;
         });
-
         await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
     }
   }
 
@@ -219,6 +230,9 @@ export class TareasPage implements OnInit {
       });
 
       await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
     }
   }
 
@@ -272,7 +286,13 @@ export class TareasPage implements OnInit {
           return activity;
         });
       }
+
+      this.showAdd = false;
       await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
+
     } catch (error) {
       console.error(error);
       await this.globales.hideLoading();
@@ -331,7 +351,12 @@ export class TareasPage implements OnInit {
         return activity;
       });
 
+      this.showAdd = false;
       await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
+
     }
   }
 }

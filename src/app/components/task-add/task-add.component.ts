@@ -410,7 +410,6 @@ export class TaskAddComponent  implements OnInit {
       };
       await this.tareasService.create(this.idActividad, tarea);
     }
-    console.log(tarea);
     this.modalCtrl.dismiss(tarea);
   }
 }

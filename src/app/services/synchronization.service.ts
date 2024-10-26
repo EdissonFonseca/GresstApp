@@ -106,7 +106,6 @@ export class SynchronizationService {
 
       var data = await this.authorizationService.get();
       await this.storage.set('Cuenta', data);
-      this.globales.initGlobales();
     } catch (error) {
       console.log(error);
       throw (error);
@@ -262,6 +261,11 @@ export class SynchronizationService {
         for (const actividad of transaction.Actividades) {
 
           if (actividad.CRUD == CRUDOperacion.Read) {
+            if (actividad.LongitudInicial){
+              const [latitud, longitud] = await this.globales.getCurrentPosition();
+              actividad.LatitudInicial = latitud;
+              actividad.LongitudInicial = longitud;
+            }
             if (!await this.transactionsService.postActividadInicio(actividad)) {
               await this.storage.set('Transaction', transaction);
               return;
@@ -269,6 +273,11 @@ export class SynchronizationService {
           }
 
           if (actividad.CRUD == CRUDOperacion.Create) {
+            if (actividad.LongitudInicial){
+              const [latitud, longitud] = await this.globales.getCurrentPosition();
+              actividad.LatitudInicial = latitud;
+              actividad.LongitudInicial = longitud;
+            }
             if (!await this.transactionsService.postActividad(actividad)) {
               await this.storage.set('Transaction', transaction);
               return;
@@ -276,6 +285,11 @@ export class SynchronizationService {
           }
 
           for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD == CRUDOperacion.Create)) {
+            if (transaccion.Latitud){
+              const [latitud, longitud] = await this.globales.getCurrentPosition();
+              transaccion.Latitud = latitud;
+              transaccion.Longitud = longitud;
+            }
             if (!await this.transactionsService.postTransaccion(transaccion)) {
               await this.storage.set('Transaction', transaction);
               return;
@@ -297,6 +311,11 @@ export class SynchronizationService {
           }
 
           for (const transaccion of transaction.Transacciones.filter((transaccion) => transaccion.CRUD == CRUDOperacion.Update)) {
+            if (transaccion.Latitud){
+              const [latitud, longitud] = await this.globales.getCurrentPosition();
+              transaccion.Latitud = latitud;
+              transaccion.Longitud = longitud;
+            }
             if (!await this.transactionsService.patchTransaccion(transaccion)) {
               await this.storage.set('Transaction', transaction);
               return;
@@ -304,6 +323,11 @@ export class SynchronizationService {
           }
 
           if (actividad.CRUD == CRUDOperacion.Update) {
+            if (actividad.LongitudFinal){
+              const [latitud, longitud] = await this.globales.getCurrentPosition();
+              actividad.LatitudFinal = latitud;
+              actividad.LongitudFinal = longitud;
+            }
             if (!await this.transactionsService.patchActividad(actividad)) {
               this.storage.set('Transaction', transaction);
               return;

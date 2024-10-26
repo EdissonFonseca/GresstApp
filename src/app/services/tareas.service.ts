@@ -5,7 +5,6 @@ import { Actividad } from '../interfaces/actividad.interface';
 import { CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from './constants.service';
 import { GlobalesService } from './globales.service';
 import { InventarioService } from './inventario.service';
-import { SynchronizationService } from './synchronization.service';
 import { MaterialesService } from './materiales.service';
 import { TratamientosService } from './tratamientos.service';
 import { EmbalajesService } from './embalajes.service';
@@ -20,7 +19,6 @@ export class TareasService {
   constructor(
     private storage: StorageService,
     private inventarioService: InventarioService,
-    private synchronizationService: SynchronizationService,
     private materialesService: MaterialesService,
     private tratamientosService: TratamientosService,
     private embalajesService: EmbalajesService,
@@ -251,7 +249,6 @@ export class TareasService {
       tarea.CRUD = CRUDOperacion.Create;
       transaction.Tareas.push(tarea);
       await this.storage.set('Transaction', transaction);
-      await this.synchronizationService.uploadTransactions();
     }
   }
 
@@ -280,7 +277,6 @@ export class TareasService {
         tareaUpdate.Fotos = tarea.Fotos;
         tareaUpdate.FechaEjecucion = now;
         await this.storage.set("Transaction", transaction);
-        await this.synchronizationService.uploadTransactions();
       }
     }
   }

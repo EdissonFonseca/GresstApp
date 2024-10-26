@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, NavigationExtras } from '@angular/router';
+import { SynchronizationService } from '@app/services/synchronization.service';
 import { NavController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
@@ -24,6 +25,7 @@ export class PuntoNuevoPage implements OnInit {
     private navCtrl: NavController,
     private transaccionesService: TransaccionesService,
     private puntosService: PuntosService,
+    private synchronizationService: SynchronizationService,
     private globales: GlobalesService,
   ) {
   }
@@ -60,11 +62,16 @@ export class PuntoNuevoPage implements OnInit {
       };
     await this.transaccionesService.create(transaccion);
 
+    //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+    this.synchronizationService.uploadTransactions();
+
     const navigationExtras: NavigationExtras = {
       queryParams: {
         IdActividad: this.idActividad
       }
     };
     this.navCtrl.navigateForward('/ruta', navigationExtras);
+
+
   }
 }

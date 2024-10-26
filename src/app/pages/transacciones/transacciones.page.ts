@@ -10,6 +10,7 @@ import { environment } from '../../../environments/environment';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/card.service';
+import { SynchronizationService } from '@app/services/synchronization.service';
 
 @Component({
   selector: 'app-transacciones',
@@ -30,6 +31,7 @@ export class TransaccionesPage implements OnInit {
     private actividadesService: ActividadesService,
     private cardService: CardService,
     private transaccionesService: TransaccionesService,
+    private synchronizationService: SynchronizationService,
     private modalCtrl: ModalController,
     private actionSheet: ActionSheetController,
   ) {}
@@ -165,6 +167,9 @@ export class TransaccionesPage implements OnInit {
       });
 
       await this.globales.hideLoading();
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
     }
   }
 
@@ -204,6 +209,9 @@ export class TransaccionesPage implements OnInit {
       });
 
       this.showAdd = false;
+
+      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
+      this.synchronizationService.uploadTransactions();
     }
   }
 

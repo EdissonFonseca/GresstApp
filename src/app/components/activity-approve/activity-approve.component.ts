@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -52,9 +52,7 @@ export class ActivityApproveComponent  implements OnInit {
       Nombre: '',
       Observaciones: [],
       Cargo: '',
-      Kilometraje: null,
-      CantidadCombustible: null,
-      CostoCombustible: null,
+      Kilometraje: [null, [Validators.required, Validators.min(1), Validators.pattern("^[0-9]*$")]],
     });
   }
 
@@ -62,6 +60,7 @@ export class ActivityApproveComponent  implements OnInit {
     this.unidadCombustible = this.globales.unidadCombustible;
     this.unidadKilometraje = this.globales.unidadKilometraje;
     this.moneda = this.globales.moneda;
+    this.showMileage = this.globales.solicitarKilometraje;
 
     this.actividad = await this.actividadesService.get(this.idActividad);
   }
@@ -108,8 +107,6 @@ export class ActivityApproveComponent  implements OnInit {
     const now = new Date();
     const isoDate = now.toISOString();
 
-    if (!this.frmActividad.valid) return;
-
     await this.globales.showLoading('Enviando información');
     const data = this.frmActividad.value;
     const actividad = await this.actividadesService.get(this.idActividad);
@@ -118,7 +115,6 @@ export class ActivityApproveComponent  implements OnInit {
 
     const firma = this.getSignature();
     actividad.IdEstado = Estado.Aprobado;
-    actividad.CantidadCombustibleFinal = data.CantidadCombustible;
     actividad.KilometrajeFinal = data.Kilometraje;
     actividad.ResponsableCargo = data.Cargo;
     actividad.ResponsableIdentificacion = data.Identificacion;

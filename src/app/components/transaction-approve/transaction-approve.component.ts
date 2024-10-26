@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -58,9 +58,7 @@ export class TransactionApproveComponent  implements OnInit {
       Identificacion: '',
       Nombre: '',
       Cargo: '',
-      Kilometraje: null,
-      CantidadCombustible: null,
-      CostoCombustible: null,
+      Kilometraje: [null, [Validators.required, Validators.min(1), Validators.pattern("^[0-9]*$")]],
       Observaciones: [],
     });
   }
@@ -69,6 +67,7 @@ export class TransactionApproveComponent  implements OnInit {
     this.unidadCombustible = this.globales.unidadCombustible;
     this.unidadKilometraje = this.globales.unidadKilometraje;
     this.moneda = this.globales.moneda;
+    this.showMileage = this.globales.solicitarKilometraje;
     this.transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
 
     if (this.transaccion && this.transaccion.IdTercero && this.transaccion.IdDeposito)
@@ -130,8 +129,6 @@ export class TransactionApproveComponent  implements OnInit {
       const firma = this.getSignature();
 
       transaccion.IdEstado = Estado.Aprobado;
-      transaccion.CantidadCombustible = data.CantidadCombustible;
-      transaccion.CostoCombustible = data.CostoCombustible;
       transaccion.Kilometraje = data.Kilometraje;
       transaccion.ResponsableCargo = data.Cargo;
       transaccion.ResponsableFirma = firma;
