@@ -121,6 +121,27 @@ export class TransactionsService {
     }
   }
 
+  async emitCertificate(transaccion: Transaccion): Promise<boolean> {
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.transactionsUrl}/emitircertificado`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) { //Ok
+        transaccion.CRUD = null;
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
+
   async postActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };

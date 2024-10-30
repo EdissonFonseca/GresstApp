@@ -27,6 +27,7 @@ export class LoginPage implements OnInit {
     var loggedUser = await this.storage.get('Login');
 
     if (loggedUser) {
+      this.synchronizationService.reload();
       this.globales.initGlobales();
       this.navCtrl.navigateRoot('/home');
     }
@@ -44,11 +45,12 @@ export class LoginPage implements OnInit {
       if (await this.authenticationService.ping()) {
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
+          await this.synchronizationService.load();
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
-          await this.synchronizationService.reload();
           this.globales.initGlobales();
+
           this.globales.hideLoading();
 
           this.navCtrl.navigateRoot('/home');

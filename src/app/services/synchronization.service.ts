@@ -31,72 +31,6 @@ export class SynchronizationService {
     private transactionsService: TransactionsService,
   ) {}
 
-  async reload()
-  {
-    try {
-      console.log('Autorizando ...');
-      await this.downloadAuthorizations();
-
-      console.log('Subiendo datos maestros ...');
-      await this.uploadMasterData();
-
-      var materiales: Material[] = await this.storage.get('Materiales');
-      if (!materiales || materiales.length == 0) {
-        console.log('Descargando datos maestros ...');
-        await this.downloadMasterData();
-      }
-
-      await this.refreshTransactions();
-
-    } catch (error){
-      console.log(error);
-      throw (error);
-    }
-  }
-
-  async refreshMasterData() {
-    try {
-      console.log('Subiendo datos maestros ...');
-      await this.uploadMasterData();
-
-      console.log('Borrando datos maestros locales ...');
-      await this.storage.remove('Embalajes');
-      await this.storage.remove('Insumos');
-      await this.storage.remove('Materiales');
-      await this.storage.remove('Puntos');
-      await this.storage.remove('Servicios');
-      await this.storage.remove('Terceros');
-      await this.storage.remove('Tratamientos');
-      await this.storage.remove('Vehiculos');
-
-      console.log('Descargando autorizaciones ...');
-      await this.downloadAuthorizations();
-      console.log('Descargando datos maestros ...');
-      await this.downloadMasterData();
-
-    } catch (error){
-      console.log(error);
-      throw (error);
-    }
-  }
-
-  async refreshTransactions() {
-    console.log('Subiendo transacciones ...');
-    await this.uploadTransactions();
-
-    console.log('Borrando transacciones locales ...');
-    await this.storage.remove('Actividades');
-
-    console.log('Borrando inventario local ...');
-    await this.storage.remove('Inventario');
-
-    console.log('Descargando inventario ...');
-    await this.downloadInventory();
-
-    console.log('Descargando transacciones ...');
-    await this.downloadTransactions();
-  }
-
   async downloadAuthorizations() {
     try {
       if (!await this.authenticationService.validateToken())
@@ -174,7 +108,7 @@ export class SynchronizationService {
     }
   }
 
-  async uploadMasterData() {
+  async uploadMasterData(): Promise<boolean> {
     let embalajes: Embalaje[] = await this.storage.get('Embalajes');
     //let insumos: Insumo[] = await this.storage.get('Insumos');
     let materiales: Material[] = await this.storage.get('Materiales');
@@ -244,13 +178,14 @@ export class SynchronizationService {
           punto.CRUDDate = null;
         });
       }
+      return true;
     } catch (error) {
       console.log(error);
-      throw(error);
+      return false;
     }
   }
 
-  async uploadTransactions() {
+  async uploadTransactions(): Promise<boolean> {
     let transaction: Transaction = await this.storage.get('Transaction');
 
     if (!await this.authenticationService.validateToken())
@@ -268,7 +203,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postActividadInicio(actividad)) {
               await this.storage.set('Transaction', transaction);
-              return;
+              return false;
             }
           }
 
@@ -280,7 +215,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postActividad(actividad)) {
               await this.storage.set('Transaction', transaction);
-              return;
+              return false;
             }
           }
 
@@ -292,7 +227,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postTransaccion(transaccion)) {
               await this.storage.set('Transaction', transaction);
-              return;
+              return false;
             }
           }
 
@@ -300,12 +235,12 @@ export class SynchronizationService {
             if (tarea.CRUD === CRUDOperacion.Create) {
               if (!await this.transactionsService.postTarea(tarea)) {
                 await this.storage.set('Transaction', transaction);
-                return;
+                return false;
               }
             } else {
               if (!await this.transactionsService.patchTarea(tarea)){
                 await this.storage.set('Transaction', transaction);
-                return;
+                return false;
               }
             }
           }
@@ -316,9 +251,11 @@ export class SynchronizationService {
               transaccion.Latitud = latitud;
               transaccion.Longitud = longitud;
             }
-            if (!await this.transactionsService.patchTransaccion(transaccion)) {
+            if (await this.transactionsService.patchTransaccion(transaccion)) {
+              await this.transactionsService.emitCertificate(transaccion);
+            } else {
               await this.storage.set('Transaction', transaction);
-              return;
+              return false;
             }
           }
 
@@ -330,17 +267,71 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.patchActividad(actividad)) {
               this.storage.set('Transaction', transaction);
-              return;
+              return false;
             }
           }
         }
       }
 
       await this.storage.set('Transaction', transaction);
+      return true;
 
     } catch (error) {
       console.log(error);
-      throw(error);
+      return false;
+    }
+  }
+
+  async load()
+  {
+    try {
+      this.storage.clear();
+
+      console.log('Descargando autorizaciones ...');
+      await this.downloadAuthorizations();
+
+      console.log('Descargando datos maestros ...');
+      await this.downloadMasterData();
+
+      console.log('Descargando inventario ...');
+      await this.downloadInventory();
+
+      console.log('Descargando transacciones ...');
+      await this.downloadTransactions();
+
+    } catch (error){
+      console.log(error);
+      throw (error);
+    }
+  }
+
+  async reload()
+  {
+    const user = await this.storage.get('Login');
+    const password = await this.storage.get('Password');
+    const token = await this.storage.get('Token');
+
+    try {
+      console.log('Subiendo datos maestros ...');
+      if (await this.uploadMasterData())
+      {
+        console.log('Subiendo transacciones ...');
+        if (await this.uploadTransactions()) {
+          this.load();
+        }
+      }
+      await this.storage.set('Login', user);
+      await this.storage.set('Password', password);
+      await this.storage.set('Token', token);
+
+    } catch (error){
+      console.log(error);
+
+      await this.storage.set('Login', user);
+      await this.storage.set('Password', password);
+      await this.storage.set('Token', token);
+
+      throw (error);
     }
   }
 }

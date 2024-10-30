@@ -66,21 +66,8 @@ export class MenuComponent  implements OnInit {
     this.router.navigate([page]);
   }
 
-  async sincronizarMaestros() {
-    const navigationExtras: NavigationExtras = {
-      queryParams: {
-        Title: 'Datos Maestros'
-      }
-    }
-    this.navCtrl.navigateForward('/sincronizacion', navigationExtras);
-  }
-  async sincronizarTransacciones() {
-    const navigationExtras: NavigationExtras = {
-      queryParams: {
-        Title: 'Transacciones'
-      }
-    }
-    this.navCtrl.navigateForward('/sincronizacion', navigationExtras);
+  async sincronizar() {
+    this.navCtrl.navigateForward('/sincronizacion');
   }
 
   close() {
