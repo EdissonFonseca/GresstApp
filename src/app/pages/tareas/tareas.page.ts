@@ -5,7 +5,6 @@ import { Estado } from 'src/app/services/constants.service';
 import { GlobalesService } from 'src/app/services/globales.service';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
-import { TransactionRejectComponent } from 'src/app/components/transaction-reject/transaction-reject.component';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { TareasService } from 'src/app/services/tareas.service';
 import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.component';
@@ -241,12 +240,19 @@ export class TareasPage implements OnInit {
     if (!currentActivity) {
       return;
     }
+
+    const currentTransaction = this.transactions().find(x => x.id == id);
+    if (!currentTransaction){
+      return;
+    }
+
     try {
       const modal =   await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          ActivityId: currentActivity.id,
-          TransactionId: id,
+          activityId: currentActivity.id,
+          transaction: currentTransaction,
+          approveOrReject: 'approve',
         },
       });
       await modal.present();
@@ -305,11 +311,17 @@ export class TareasPage implements OnInit {
       return;
     }
 
+    const currentTransaction = this.transactions().find(x => x.id == id);
+    if (!currentTransaction){
+      return;
+    }
+
     const modal =   await this.modalCtrl.create({
-      component: TransactionRejectComponent,
+      component: TransactionApproveComponent,
       componentProps: {
-        ActivityId: currentActivity.id,
-        TransactionId: id,
+        activityId: currentActivity.id,
+        transaction: currentTransaction,
+        approveOrReject: 'reject',
       },
     });
 

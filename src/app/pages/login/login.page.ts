@@ -27,7 +27,10 @@ export class LoginPage implements OnInit {
     var loggedUser = await this.storage.get('Login');
 
     if (loggedUser) {
-      this.synchronizationService.reload();
+      this.globales.showLoading('Reconectando ...');
+      if (await this.authenticationService.ping()) {
+        this.synchronizationService.reload();
+      }
       this.globales.initGlobales();
       this.navCtrl.navigateRoot('/home');
     }

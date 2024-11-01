@@ -8,27 +8,20 @@
     </ion-buttons>
     <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="confirm()" color="success">
+      <ion-button *ngIf="approveOrReject=='approve'" [strong]="true" (click)="confirm()" color="success">
         <ion-icon name="checkmark-circle"></ion-icon>
         Confirmar
       </ion-button>
+      <ion-button *ngIf="approveOrReject=='reject'" [strong]="true" (click)="reject()" color="danger">
+        <ion-icon name="remove-circle"></ion-icon>
+        Rechazar
+      </ion-button>
+    </ion-buttons>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 <ion-item color="light">
-  <ion-title>
-    <ion-icon slot="start" size="large" [color]="getColorEstado(actividad?.IdEstado ?? '')" [src]="actividad?.Icono"></ion-icon>
-    <ion-label class="ion-text-wrap">
-      {{ title }}
-    </ion-label>
-  </ion-title>
-</ion-item>
-<ion-item lines="inset" color="light" >
-  <ion-icon name="trash-bin-outline" color="medium"></ion-icon>
-  <ion-badge color="success"> {{ itemsAprobados }} </ion-badge>
-  <ion-badge color="warning"> {{ itemsPendientes }} </ion-badge>
-  <ion-badge color="danger"> {{ itemsRechazados }} </ion-badge>
-  <ion-badge slot="end" size="small" color="light" *ngIf="resumen!= ''"> {{ resumen }} </ion-badge>
+  <app-card [card]="activity" [allowApprove]="false" [allowNavigate]="false"></app-card>
 </ion-item>
 <ion-content color="light">
   <div class="signature-container" >
@@ -66,3 +59,8 @@
     </ion-list>
   </form>
 </ion-content>
+<ion-footer>
+  <ion-note>
+    Se marcarán {{ activity.pendingItems }} items que están pendientes como no recibidos
+  </ion-note>
+</ion-footer>

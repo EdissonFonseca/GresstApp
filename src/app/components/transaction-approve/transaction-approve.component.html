@@ -8,26 +8,16 @@
     </ion-buttons>
     <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="confirm()" color="success">
+      <ion-button *ngIf="approveOrReject=='approve'" [strong]="true" (click)="confirm()" color="success">
         <ion-icon name="checkmark-circle"></ion-icon>Confirmar</ion-button>
+      <ion-button *ngIf="approveOrReject=='reject'" [strong]="true" (click)="reject()" color="danger">
+        <ion-icon name="remove-circle"></ion-icon>Rechazar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 <ion-content color="light">
   <ion-item color="light">
-    <ion-icon name="location-outline" color="warning"></ion-icon>
-    <ion-title>
-      <ion-label class="ion-text-wrap">
-        {{ title }}
-      </ion-label>
-    </ion-title>
-  </ion-item>
-  <ion-item lines="inset" color="light" >
-    <ion-icon name="trash-bin" color="light"></ion-icon>
-    <ion-badge color="success"> {{ itemsAprobados }} </ion-badge>
-    <ion-badge color="warning"> {{ itemsPendientes }} </ion-badge>
-    <ion-badge color="danger"> {{ itemsRechazados }} </ion-badge>
-    <ion-badge slot="end" size="small" color="light" *ngIf="resumen != ''"> {{ resumen }} </ion-badge>
+    <app-card [card]="transaction" [allowApprove]="false" [allowNavigate]="false"></app-card>
   </ion-item>
   <div class="signature-container" >
     <canvas #canvas
@@ -66,6 +56,6 @@
 </ion-content>
 <ion-footer>
   <ion-note>
-    Se marcarán {{ itemsPendientes }} items que estan penddientes como no recibidos
+    Se marcarán {{ transaction.pendingItems }} items que están pendientes como no recibidos
   </ion-note>
 </ion-footer>

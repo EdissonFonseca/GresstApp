@@ -1,12 +1,11 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
+import { Card } from '@app/interfaces/card';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { ActividadesService } from 'src/app/services/actividades.service';
 import { Estado } from 'src/app/services/constants.service';
 import { GlobalesService } from 'src/app/services/globales.service';
-import { PuntosService } from 'src/app/services/puntos.service';
-import { TercerosService } from 'src/app/services/terceros.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 
 @Component({
@@ -15,27 +14,17 @@ import { TransaccionesService } from 'src/app/services/transacciones.service';
   styleUrls: ['./transaction-approve.component.scss'],
 })
 export class TransactionApproveComponent  implements OnInit {
-  @Input() showFuel: boolean = true;
   @Input() showMileage: boolean = true;
   @Input() showName: boolean = true;
   @Input() showNotes: boolean = true;
-  @Input() showPin: boolean = true;
-  @Input() showCost: boolean = false;
   @Input() showPosition: boolean = true;
+  @Input() showPin: boolean = true;
   @Input() showSignPad: boolean = true;
+  @Input() approveOrReject: string = 'approve';
+  @Input() transaction: Card = { id:'', title:'', status:'', type:''};
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
   frmTransaccion: FormGroup;
-  idActividad: string = '';
-  idTransaccion: string = '';
   unidadKilometraje: string = '';
-  unidadCombustible: string = '';
-  moneda: string = '';
-  transaccion: Transaccion | undefined;
-  title: string = '';
-  itemsAprobados: number = 0;
-  itemsPendientes: number = 0;
-  itemsRechazados: number = 0;
-  resumen: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -43,17 +32,11 @@ export class TransactionApproveComponent  implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private navParams: NavParams,
     private renderer: Renderer2,
     private globales: GlobalesService,
     private modalCtrl:ModalController,
-    private puntosService: PuntosService,
-    private tercerosService: TercerosService,
-    private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService
   ) {
-    this.idActividad = this.navParams.get("ActivityId");
-    this.idTransaccion = this.navParams.get("TransactionId");
     this.frmTransaccion = this.formBuilder.group({
       Identificacion: '',
       Nombre: '',
@@ -64,22 +47,8 @@ export class TransactionApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadCombustible = this.globales.unidadCombustible;
     this.unidadKilometraje = this.globales.unidadKilometraje;
-    this.moneda = this.globales.moneda;
     this.showMileage = this.globales.solicitarKilometraje;
-    this.transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
-
-    if (this.transaccion && this.transaccion.IdTercero && this.transaccion.IdDeposito)
-    {
-      const tercero = await this.tercerosService.get(this.transaccion.IdTercero);
-      if (tercero)
-        this.title = tercero.Nombre;
-
-      const punto = await this.puntosService.get(this.transaccion.IdDeposito);
-      if (punto)
-        this.title +=  ` - ${punto.Nombre}`;
-    }
   }
 
   ngAfterViewInit() {}
@@ -116,32 +85,6 @@ export class TransactionApproveComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  async confirm() {
-    let transaccion: Transaccion | undefined;
-    const data = this.frmTransaccion.value;
-    const actividad = await this.actividadesService.get(this.idActividad);
-
-    if (!actividad) return;
-
-    await this.globales.showLoading('Enviando información');
-    transaccion = await this.transaccionesService.get(this.idActividad, this.idTransaccion);
-    if (transaccion) { //Si hay transaccion
-      const firma = this.getSignature();
-
-      transaccion.IdEstado = Estado.Aprobado;
-      transaccion.Kilometraje = data.Kilometraje;
-      transaccion.ResponsableCargo = data.Cargo;
-      transaccion.ResponsableFirma = firma;
-      transaccion.ResponsableIdentificacion = data.Identificacion;
-      transaccion.ResponsableNombre = data.Nombre;
-      transaccion.ResponsableObservaciones  = data.Observaciones;
-      await this.transaccionesService.update(transaccion);
-    }
-    this.globales.hideLoading();
-    this.globales.presentToast('Transaccion aprobada', "top");
-    this.modalCtrl.dismiss(transaccion);
-  }
-
   getSignature(): string | null {
     const context = this.canvas.getContext('2d');
     const canvasWidth = this.canvas.width;
@@ -158,4 +101,45 @@ export class TransactionApproveComponent  implements OnInit {
     return signatureData;
   }
 
+  async getFormData(): Promise<Transaccion | undefined>{
+    let transaccion: Transaccion | undefined;
+
+    const data = this.frmTransaccion.value;
+    transaccion = await this.transaccionesService.get(this.transaction?.parentId ?? '', this.transaction?.id ?? '');
+    if (transaccion) { //Si hay transaccion
+      const firma = this.getSignature();
+
+      transaccion.Kilometraje = data.Kilometraje;
+      transaccion.ResponsableCargo = data.Cargo;
+      transaccion.ResponsableFirma = firma;
+      transaccion.ResponsableIdentificacion = data.Identificacion;
+      transaccion.ResponsableNombre = data.Nombre;
+      transaccion.ResponsableObservaciones  = data.Observaciones;
+    }
+    return transaccion;
+   }
+
+  async confirm() {
+    var transaccion = await this.getFormData();
+    if (!transaccion) return;
+
+    await this.globales.showLoading('Enviando información');
+    transaccion.IdEstado = Estado.Aprobado;
+    await this.transaccionesService.update(transaccion);
+    this.globales.hideLoading();
+    this.globales.presentToast('Transaccion aprobada', "top");
+    this.modalCtrl.dismiss(transaccion);
+  }
+
+  async reject() {
+    var transaccion = await this.getFormData();
+    if (!transaccion) return;
+
+    await this.globales.showLoading('Enviando información');
+    transaccion.IdEstado = Estado.Rechazado;
+    await this.transaccionesService.update(transaccion);
+    this.globales.hideLoading();
+    this.globales.presentToast('Transaccion rechazada', "top");
+    this.modalCtrl.dismiss(transaccion);
+  }
 }

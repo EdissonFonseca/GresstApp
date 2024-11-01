@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Card } from '@app/interfaces/card';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -12,26 +13,16 @@ import { GlobalesService } from 'src/app/services/globales.service';
   styleUrls: ['./activity-approve.component.scss'],
 })
 export class ActivityApproveComponent  implements OnInit {
-  @Input() title: string='Aprobar actividad';
-  @Input() showFuel: boolean = true;
   @Input() showMileage: boolean = true;
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
-  @Input() showCost: boolean = false;
-  @Input() showPosition: boolean = true;
+  @Input() approveOrReject: string = 'approve';
+  @Input() activity!: Card;
   @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
   frmActividad: FormGroup;
-  idActividad: string = '';
-  actividad: Actividad | undefined = undefined;
   unidadKilometraje: string = '';
-  unidadCombustible: string = '';
-  moneda: string = '';
-  itemsAprobados: number = 0;
-  itemsPendientes: number = 0;
-  itemsRechazados: number = 0;
-  resumen: string = '';
   private canvas: any;
   private ctx: any;
   private drawing: boolean = false;
@@ -39,14 +30,11 @@ export class ActivityApproveComponent  implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private navParams: NavParams,
     private renderer: Renderer2,
     private globales: GlobalesService,
     private actividadesService: ActividadesService,
     private modalCtrl:ModalController
   ) {
-    this.idActividad = this.navParams.get("ActivityId");
-    this.title = `Entregar ${this.navParams.get("Title")}`;
     this.frmActividad = this.formBuilder.group({
       Identificacion: '',
       Nombre: '',
@@ -57,12 +45,8 @@ export class ActivityApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadCombustible = this.globales.unidadCombustible;
     this.unidadKilometraje = this.globales.unidadKilometraje;
-    this.moneda = this.globales.moneda;
     this.showMileage = this.globales.solicitarKilometraje;
-
-    this.actividad = await this.actividadesService.get(this.idActividad);
   }
 
   ngAfterViewInit() {}
@@ -103,29 +87,6 @@ export class ActivityApproveComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-  async confirm() {
-    const now = new Date();
-    const isoDate = now.toISOString();
-
-    await this.globales.showLoading('Enviando información');
-    const data = this.frmActividad.value;
-    const actividad = await this.actividadesService.get(this.idActividad);
-
-    if (!actividad) return;
-
-    const firma = this.getSignature();
-    actividad.IdEstado = Estado.Aprobado;
-    actividad.KilometrajeFinal = data.Kilometraje;
-    actividad.ResponsableCargo = data.Cargo;
-    actividad.ResponsableIdentificacion = data.Identificacion;
-    actividad.ResponsableNombre = data.Nombre;
-    actividad.ResponsableObservaciones = data.Observaciones;
-    actividad.ResponsableFirma = firma;
-    this.actividadesService.update(actividad);
-    this.globales.hideLoading();
-    this.globales.presentToast('Actividad aprobada', "top");
-    this.modalCtrl.dismiss(actividad);
-  }
 
   getSignature(): string | null {
     const context = this.canvas.getContext('2d');
@@ -143,4 +104,46 @@ export class ActivityApproveComponent  implements OnInit {
     return signatureData;
   }
 
+  async getFormData(): Promise<Actividad | undefined>{
+    const data = this.frmActividad.value;
+    const actividad = await this.actividadesService.get(this.activity?.id ?? '');
+
+    if (!actividad) return;
+
+    const firma = this.getSignature();
+    actividad.IdEstado = Estado.Rechazado;
+    actividad.KilometrajeFinal = data.Kilometraje;
+    actividad.ResponsableCargo = data.Cargo;
+    actividad.ResponsableIdentificacion = data.Identificacion;
+    actividad.ResponsableNombre = data.Nombre;
+    actividad.ResponsableObservaciones = data.Observaciones;
+    actividad.ResponsableFirma = firma;
+    return actividad;
+  }
+
+  async confirm() {
+    await this.globales.showLoading('Enviando información');
+    const actividad = await this.getFormData();
+
+    if (!actividad) return;
+
+    actividad.IdEstado = Estado.Aprobado;
+    this.actividadesService.update(actividad);
+    this.globales.hideLoading();
+    this.globales.presentToast('Actividad aprobada', "top");
+    this.modalCtrl.dismiss(actividad);
+  }
+
+  async reject() {
+    await this.globales.showLoading('Enviando información');
+    const actividad = await this.getFormData();
+
+    if (!actividad) return;
+
+    actividad.IdEstado = Estado.Rechazado;
+    this.actividadesService.update(actividad);
+    this.globales.hideLoading();
+    this.globales.presentToast('Actividad rechazada', "top");
+    this.modalCtrl.dismiss(actividad);
+  }
 }

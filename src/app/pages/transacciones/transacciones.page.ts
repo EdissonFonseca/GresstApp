@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
-import { ActionSheetController, IonModal, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -174,15 +174,11 @@ export class TransaccionesPage implements OnInit {
   }
 
   async openApproveActividad() {
-    const actividad = await this.actividadesService.get(this.activity().id);
-
-    if (actividad == null) return;
-
     const modal = await this.modalCtrl.create({
       component: ActivityApproveComponent,
       componentProps: {
-        ActivityId: this.activity().id,
-        Title: actividad.Titulo,
+        activity: this.activity(),
+        approveOrReject: 'approve',
       },
     });
 
@@ -190,7 +186,6 @@ export class TransaccionesPage implements OnInit {
 
     const { data } = await modal.onDidDismiss();
     if (data != null) {
-      console.log(data);
       this.activity.update(activity => {
         if (activity) {
           activity.status = Estado.Aprobado;

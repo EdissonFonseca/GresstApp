@@ -6,6 +6,7 @@ import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
 import { GlobalesService } from './globales.service';
 import { AppConfig } from './constants.service';
+import { Transaction } from '@app/interfaces/transaction.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -212,4 +213,23 @@ export class TransactionsService {
     }
   }
 
+  async postBackup(transaction: Transaction) {
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
+    const options = { url: `${this.transactionsUrl}/backup`, data:transaction, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+
+    try{
+      const response: HttpResponse = await CapacitorHttp.post(options);
+      if (response.status == 200) { //Ok
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Request error: ${error.message}`);
+      } else {
+        throw new Error(`Unknown error: ${error}`);
+      }
+    }
+  }
 }

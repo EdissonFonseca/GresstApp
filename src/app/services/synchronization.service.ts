@@ -116,6 +116,8 @@ export class SynchronizationService {
     let terceros: Tercero[] = await this.storage.get('Terceros');
     let tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
 
+    if (!await this.authenticationService.ping()) return false;
+
     if (!await this.authenticationService.validateToken())
       await this.authenticationService.reconnect();
 
@@ -187,6 +189,8 @@ export class SynchronizationService {
 
   async uploadTransactions(): Promise<boolean> {
     let transaction: Transaction = await this.storage.get('Transaction');
+
+    if (!await this.authenticationService.ping()) return false;
 
     if (!await this.authenticationService.validateToken())
       await this.authenticationService.reconnect();

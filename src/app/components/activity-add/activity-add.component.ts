@@ -59,6 +59,7 @@ export class ActivityAddComponent  implements OnInit {
     const isoToday = today.toISOString();
     let titulo: string = '';
 
+    this.globales.showLoading('Creando actividad...');
     if (this.idServicio == TipoServicio.Transporte && this.idRecurso != ''){
       const lista = await this.actividadesService.list();
       const actividades = lista.filter(x => x.IdServicio == this.idServicio && x.IdRecurso == this.idRecurso && x.IdEstado == Estado.Pendiente);
@@ -85,6 +86,7 @@ export class ActivityAddComponent  implements OnInit {
       NavegarPorTransaccion: true,
     };
     await this.actividadesService.create(actividad);
+    this.globales.hideLoading();
 
     this.modalCtrl.dismiss(actividad);
   }
