@@ -52,7 +52,7 @@ export class PuntoNuevoPage implements OnInit {
 
    async confirm(){
     const transaccion: Transaccion = {
-        IdActividad:this.idActividad,
+        IdActividad: this.idActividad,
         IdTransaccion: this.globales.newId(),
         EntradaSalida: EntradaSalida.Entrada,
         IdRecurso: "",

@@ -85,7 +85,7 @@ export class TransactionsService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 201 || response.status == 200) { //Ok
-        transaccion.IdTransaccion =  response.data.IdTransaccion;
+        //transaccion.IdTransaccion =  response.data.IdTransaccion;
         transaccion.IdOrden = response.data.IdOrden;
         transaccion.CRUD = null;
         return true;
@@ -147,14 +147,12 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log('PostActividad');
-    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Ok
         actividad.CRUD = null;
+        //actividad.IdActividad = response.data.IdActividad;
         actividad.IdOrden = response.data.IdOrden;
-        actividad.IdActividad = response.data.IdActividad;
         actividad.Orden = response.data.Orden;
         return true;
       } else {
@@ -173,8 +171,6 @@ export class TransactionsService {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
 
-    console.log('PatchActividad');
-    console.log(actividad);
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok

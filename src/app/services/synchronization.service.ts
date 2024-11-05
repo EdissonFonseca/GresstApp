@@ -282,6 +282,7 @@ export class SynchronizationService {
 
     } catch (error) {
       console.log(error);
+      await this.storage.set('Transaction', transaction);
       return false;
     }
   }

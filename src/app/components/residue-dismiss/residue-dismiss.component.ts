@@ -93,7 +93,7 @@ export class ResidueDismissComponent  implements OnInit {
           IdServicio: actividad.IdServicio,
           Fotos: [],
         };
-      await this.tareasService.create(actividad.IdActividad, tarea);
+      await this.tareasService.create(tarea);
     }
     this.residue.IdEstado = Estado.Inactivo;
     this.residue.IdDeposito = this.pointId;

@@ -241,11 +241,10 @@ export class TareasService {
     return tareas;
   }
 
-  async create(idActividad: string, tarea: Tarea) {
+  async create(tarea: Tarea) {
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction){
-      tarea.IdActividad = idActividad;
       tarea.CRUD = CRUDOperacion.Create;
       transaction.Tareas.push(tarea);
       await this.storage.set('Transaction', transaction);

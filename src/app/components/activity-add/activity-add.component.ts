@@ -49,6 +49,7 @@ export class ActivityAddComponent  implements OnInit {
     }
     this.unidadCombustible = this.globales.unidadCombustible;
     this.unidadKilometraje = this.globales.unidadKilometraje;
+    this.showMileage = this.globales.solicitarKilometraje;
   }
 
   async confirm() {

@@ -153,7 +153,7 @@ export class ResidueTransferComponent  implements OnInit {
           Volumen: this.residue.Volumen,
           Fotos: [],
         };
-        await this.tareasService.create(actividad.IdActividad, tarea);
+        await this.tareasService.create(tarea);
       }
       this.residue.IdEstado = Estado.Inactivo;
       this.residue.IdDeposito = this.pointId;

@@ -31,7 +31,7 @@ export class TransaccionesService {
           acumulador.cantidad += tarea.Cantidad ?? 0;
           acumulador.peso += tarea.Peso ?? 0;
           acumulador.volumen += tarea.Volumen ?? 0;
-            } else if (tarea.IdEstado === Estado.Pendiente) {
+        } else if (tarea.IdEstado === Estado.Pendiente) {
           acumulador.pendientes += 1;
         } else if (tarea.IdEstado === Estado.Rechazado) {
           acumulador.rechazados += 1;

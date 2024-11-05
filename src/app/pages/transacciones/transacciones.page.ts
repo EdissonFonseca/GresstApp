@@ -166,6 +166,17 @@ export class TransaccionesPage implements OnInit {
         return transactions;
       });
 
+      this.activity.update(activity => {
+        if (activity) {
+          activity.successItems = (activity.successItems ?? 0) + 1;
+          activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
+          activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
+          activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
+        }
+        this.cardService.updateVisibleProperties(activity);
+        return activity;
+      });
+
       await this.globales.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano

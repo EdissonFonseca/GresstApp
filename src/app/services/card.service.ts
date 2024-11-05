@@ -147,7 +147,7 @@ export class CardService {
   }
 
   async mapTransaccion(transaccion: Transaccion): Promise<Card> {
-    const summaryData = await this.transaccionesService.getSummary(transaccion.IdServicio, transaccion.IdTransaccion);
+    const summaryData = await this.transaccionesService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
 
     const card: Card = {
       id: transaccion.IdTransaccion,

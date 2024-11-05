@@ -217,7 +217,7 @@ export class ResidueReceiveComponent implements OnInit {
         Volumen: residuo.Volumen,
         Fotos: []
       };
-      await this.tareasService.create(actividad.IdActividad, tarea);
+      await this.tareasService.create(tarea);
     }
 
     this.modalCtrl.dismiss(residuo);

@@ -327,7 +327,7 @@ export class TaskEditComponent  implements OnInit {
             IdEstado: Estado.Aprobado,
             Fotos: this.fotos,
           };
-          await this.tareasService.create(this.activityId, tarea);
+          await this.tareasService.create(tarea);
         } else { //No hay tarea -> Salida
           const residuo = await this.inventarioService.getResiduo(this.residueId);
           if (residuo) {
@@ -350,7 +350,7 @@ export class TaskEditComponent  implements OnInit {
               Fotos: this.fotos,
               IdEstado: Estado.Aprobado,
               };
-            await this.tareasService.create(this.activityId, tarea);
+            await this.tareasService.create(tarea);
 
             residuo.IdEstado = Estado.Inactivo;
             await this.inventarioService.updateResiduo(residuo);

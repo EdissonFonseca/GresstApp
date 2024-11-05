@@ -43,6 +43,7 @@ export class TareasPage implements OnInit {
       this.mode = params['Mode'],
       this.transactionId = params['TransactionId']
     });
+    console.log(this.transactionId);
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state){
       const newActivity = nav.extras.state['activity'];
@@ -124,7 +125,6 @@ export class TareasPage implements OnInit {
                 this.transactions.update(transactions => {
                     const transactionToUpdate = transactions.find(t => t.id === data.IdTransaccion);
                     if (transactionToUpdate) {
-                      transactionToUpdate.status = Estado.Aprobado;
                       transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
                       transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
                       transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
@@ -141,7 +141,6 @@ export class TareasPage implements OnInit {
 
         this.activity.update(activity => {
             if (activity) {
-              activity.status = Estado.Aprobado;
               activity.successItems = (activity.successItems ?? 0) + 1;
               activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
               activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);

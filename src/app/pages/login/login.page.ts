@@ -32,6 +32,7 @@ export class LoginPage implements OnInit {
         this.synchronizationService.reload();
       }
       this.globales.initGlobales();
+      this.globales.hideLoading();
       this.navCtrl.navigateRoot('/home');
     }
   }
@@ -44,7 +45,6 @@ export class LoginPage implements OnInit {
 
     try {
       this.globales.showLoading('Conectando ...');
-
       if (await this.authenticationService.ping()) {
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {

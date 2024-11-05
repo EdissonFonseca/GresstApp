@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { ClienteProveedorInterno, CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
 import { GlobalesService } from 'src/app/services/globales.service';
@@ -66,7 +65,6 @@ export class TaskAddComponent  implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private route: ActivatedRoute,
     private globales: GlobalesService,
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
@@ -99,7 +97,6 @@ export class TaskAddComponent  implements OnInit {
     if (actividad)
     {
       this.proceso = this.globales.getNombreServicio(actividad.IdServicio);
-      console.log(this.proceso);
       if (actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) {
         this.solicitarEmbalaje = true;
         this.idVehiculo = actividad.IdRecurso ?? '';
@@ -321,6 +318,7 @@ export class TaskAddComponent  implements OnInit {
               IdDeposito: this.idPuntoEntrada,
               IdDepositoDestino: this.idPuntoSalida,
               IdTerceroDestino: this.idTerceroSalida,
+              IdOrden: actividad.IdOrden,
               Punto: this.puntoEntrada,
               Tercero: this.terceroEntrada,
               Titulo: 'Nueva - ' + (this.puntoEntrada ?? '') + (this.terceroEntrada ?? ''),
@@ -354,6 +352,7 @@ export class TaskAddComponent  implements OnInit {
 
               IdEstado: Estado.Pendiente,
               EntradaSalida: EntradaSalida.Entrada,
+              IdOrden: actividad.IdOrden,
               IdTercero: this.idTerceroEntrada,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
@@ -408,7 +407,7 @@ export class TaskAddComponent  implements OnInit {
         FechaProgramada: fecha,
         Fotos: this.fotos,
       };
-      await this.tareasService.create(this.idActividad, tarea);
+      await this.tareasService.create(tarea);
     }
     this.modalCtrl.dismiss(tarea);
   }

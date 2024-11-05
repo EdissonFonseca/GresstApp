@@ -93,6 +93,8 @@ export class ActividadesPage implements OnInit {
   async navigateToTarget(activity: Card) {
     const actividad: Actividad = await this.actividadesService.get(activity.id);
 
+    if (!actividad) return;
+
     switch(actividad.IdServicio)
     {
       case TipoServicio.Recoleccion:
@@ -180,17 +182,30 @@ export class ActividadesPage implements OnInit {
     if (data) {
       await this.globales.showLoading('Actualizando información');
 
-      let actividadesList = await this.actividadesService.list();
-      const mappedActivities = await this.cardService.mapActividades(actividadesList);
-      this.activities.set(mappedActivities);
+      this.activities.update(activities => {
+        const card = activities.find(x => x.id == data.IdActividad);
+        if (!card) {
+          this.actividadesService.get(data.IdActividad)
+            .then(async newActividad => {
+              if (newActividad) {
+                const newActivity = await this.cardService.mapActividad(newActividad);
+                if (newActivity) {
+                  activities.push(newActivity);
+                }
+              }
+            });
+        } else {
+          card.successItems = (card.successItems ?? 0) + 1;
+        }
 
+        return activities;
+      });
       await this.globales.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
       this.synchronizationService.uploadTransactions();
     }
   }
-
 
   getColorEstado(idEstado: string): string {
     return this.globales.getColorEstado(idEstado);
