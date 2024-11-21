@@ -13,13 +13,21 @@
       <ion-title size="large">Sincronizar</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-item >
+  <ion-item *ngIf="generaError == false">
     <ion-label>
       Esta operación envía los datos pendientes al servidor y obtiene las actualizaciones correspondientes
     </ion-label>
   </ion-item>
-  <ion-item>
+  <ion-item *ngIf="generaError == false">
     <ion-button color="success" (click)="synchronize()" aria-label="Sincronizar" size="large">Sincronizar</ion-button>
+  </ion-item>
+  <ion-item *ngIf="generaError == true">
+    <ion-label>
+      <ion-text color="danger">No se puede sincronizar, debido a errores en las transacciones. Por favor comuniquese con su administrador. Forzar salida envia un backup al servidor y borra las transacciones locales</ion-text>
+    </ion-label>
+  </ion-item>
+  <ion-item *ngIf="generaError == true">
+    <ion-button color="success" (click)="sendBackup()" size="large">Forzar salida</ion-button>
   </ion-item>
 </ion-content>
 

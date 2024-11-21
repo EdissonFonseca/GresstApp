@@ -31,39 +31,37 @@ export class SynchronizationService {
     private transactionsService: TransactionsService,
   ) {}
 
+  /**
+   * Download authorizations from the server and store them in the device.
+   */
   async downloadAuthorizations() {
     try {
-      if (!await this.authenticationService.validateToken())
-        await this.authenticationService.reconnect();
-
-      await this.storage.remove('Cuenta');
-
       var data = await this.authorizationService.get();
       await this.storage.set('Cuenta', data);
+
     } catch (error) {
-      console.log(error);
       throw (error);
     }
   }
 
+  /**
+   * Download inventory from the server and store it in the device.
+   */
   async downloadInventory() {
     try {
-      if (!await this.authenticationService.validateToken())
-        await this.authenticationService.reconnect();
-
       var inventarios : Residuo[] = await this.inventoryService.get();
       await this.storage.set('Inventario', inventarios);
+
     } catch (error)  {
-      console.log(error);
       throw (error);
     }
   }
 
+  /**
+   * Download master data from the server and store it in the device.
+   */
   async downloadMasterData() {
     try {
-      if (!await this.authenticationService.validateToken())
-        await this.authenticationService.reconnect();
-
       var embalajes : Embalaje[] = await this.masterdataService.getEmbalajes();
       await this.storage.set('Embalajes', embalajes);
 
@@ -89,25 +87,27 @@ export class SynchronizationService {
       await this.storage.set('Vehiculos', vehiculos);
 
     } catch (error) {
-      console.log(error);
       throw (error);
     }
   }
 
+  /**
+   * Download transactions from the server and store them in the device.
+   */
   async downloadTransactions() {
     try {
-      if (!await this.authenticationService.validateToken())
-        await this.authenticationService.reconnect();
-
       var transaction: Transaction = await this.transactionsService.get();
       await this.storage.set('Transaction', transaction);
 
     } catch(error) {
-      console.log(error);
       throw (error);
     }
   }
 
+  /**
+   * Upload master data to the server.
+   * @returns true if the operation was successful, false otherwise.
+   */
   async uploadMasterData(): Promise<boolean> {
     let embalajes: Embalaje[] = await this.storage.get('Embalajes');
     //let insumos: Insumo[] = await this.storage.get('Insumos');
@@ -115,11 +115,6 @@ export class SynchronizationService {
     let puntos: Punto[] = await this.storage.get('Puntos');
     let terceros: Tercero[] = await this.storage.get('Terceros');
     let tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
-
-    if (!await this.authenticationService.ping()) return false;
-
-    if (!await this.authenticationService.validateToken())
-      await this.authenticationService.reconnect();
 
     try {
       if (embalajes) {
@@ -181,19 +176,19 @@ export class SynchronizationService {
         });
       }
       return true;
+
     } catch (error) {
       console.log(error);
-      return false;
+      throw (error);
     }
   }
 
+  /**
+   * Upload transactions to the server.
+   * @returns true if the operation was successful, false otherwise.
+   */
   async uploadTransactions(): Promise<boolean> {
     let transaction: Transaction = await this.storage.get('Transaction');
-
-    if (!await this.authenticationService.ping()) return false;
-
-    if (!await this.authenticationService.validateToken())
-      await this.authenticationService.reconnect();
 
     try {
       if (transaction) {
@@ -281,14 +276,12 @@ export class SynchronizationService {
       return true;
 
     } catch (error) {
-      console.log(error);
-      await this.storage.set('Transaction', transaction);
-      return false;
+      throw (error);
     }
   }
 
-  async load()
-  {
+  async load(){
+    console.log('Cargando ...');
     try {
       this.storage.clear();
 
@@ -305,13 +298,12 @@ export class SynchronizationService {
       await this.downloadTransactions();
 
     } catch (error){
-      console.log(error);
       throw (error);
     }
   }
 
-  async reload()
-  {
+  async refresh() {
+    console.log('Refrescando ...');
     const user = await this.storage.get('Login');
     const password = await this.storage.get('Password');
     const token = await this.storage.get('Token');
@@ -330,12 +322,47 @@ export class SynchronizationService {
       await this.storage.set('Token', token);
 
     } catch (error){
-      console.log(error);
-
       await this.storage.set('Login', user);
       await this.storage.set('Password', password);
       await this.storage.set('Token', token);
 
+      throw (error);
+    }
+  }
+
+  async close() {
+    console.log('Cerrando ...');
+
+    if (!this.authenticationService.ping()) return;
+
+    if (!this.authenticationService.validateToken())
+      if (!this.authenticationService.reconnect()) return;
+
+    //Online
+    console.log('Subiendo datos maestros ...');
+    if (await this.uploadMasterData())
+    {
+      console.log('Subiendo transacciones ...');
+      if (await this.uploadTransactions()) {
+        await this.storage.clear();
+      }
+    }
+
+    try {
+    } catch (error) {
+      throw (error);
+    }
+  }
+
+  async forceQuit() {
+    console.log('Forzando salida ...');
+    let transaction: Transaction = await this.storage.get('Transaction');
+
+    try {
+      await this.transactionsService.postBackup(transaction);
+      await this.storage.clear();
+
+    } catch (error) {
       throw (error);
     }
   }

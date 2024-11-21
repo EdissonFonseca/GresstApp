@@ -6,6 +6,8 @@ import { MenuController } from '@ionic/angular';
 import { GlobalesService } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
 import { environment } from '../../../environments/environment';
+import { AuthenticationService } from '@app/services/authentication.service';
+import { SynchronizationService } from '@app/services/synchronization.service';
 
 @Component({
   selector: 'app-menu',
@@ -33,6 +35,8 @@ export class MenuComponent  implements OnInit {
     private navCtrl: NavController,
     private router: Router,
     private menuCtrl: MenuController,
+    private authenticationService: AuthenticationService,
+    private synchronizationService: SynchronizationService,
     private globales: GlobalesService
   ) { }
 
@@ -75,8 +79,16 @@ export class MenuComponent  implements OnInit {
   }
 
   async logout() {
-    await this.storage.clear();
-    this.navCtrl.navigateRoot('/login');
+    try {
+      await this.globales.showLoading('Sincronizando ...');
+      await this.synchronizationService.close();
+      this.globales.hideLoading();
+      this.navCtrl.navigateRoot('/login');
+    } catch (error) {
+      this.globales.hideLoading();
+      await this.globales.presentToast('Error al sincronizar', 'middle');
+      this.navCtrl.navigateRoot('/sincronizacion');
+    }
   }
 
   getInitials(name: string): string {

@@ -9,6 +9,7 @@ import { SynchronizationService } from 'src/app/services/synchronization.service
   styleUrls: ['./sincronizacion.page.scss'],
 })
 export class SincronizacionPage implements OnInit {
+  generaError: boolean = false;
 
   constructor(
     private navCtrl: NavController,
@@ -20,16 +21,28 @@ export class SincronizacionPage implements OnInit {
 
   async synchronize() {
     try {
-      await this.globales.showLoading('Conectando ...');
-      await this.synchronizationService.reload();
-
-      await this.globales.hideLoading();
+      await this.globales.showLoading('Closing ...');
+      await this.synchronizationService.refresh();
+      this.globales.hideLoading();
       await this.globales.presentToast('Datos sincronizados', 'middle');
-
       this.navCtrl.navigateForward('/home');
     } catch (error) {
-      await this.globales.hideLoading();
+      this.globales.hideLoading();
       await this.globales.presentToast('Error sincronizando', 'middle');
+      this.generaError = true;
+    }
+  }
+
+  async sendBackup() {
+    try {
+      await this.globales.showLoading('Force quit ...');
+      await this.synchronizationService.forceQuit();
+      this.globales.hideLoading();
+      await this.globales.presentToast('Datos enviados al servidor', 'middle');
+      this.navCtrl.navigateForward('/login');
+    } catch (error) {
+      this.globales.hideLoading();
+      await this.globales.presentToast('Error enviando backup', 'middle');
     }
   }
 

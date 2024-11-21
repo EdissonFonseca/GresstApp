@@ -35,7 +35,7 @@ export class AuthenticationService {
     if (this.globales.token == '') return false;
 
     const headers = { 'Authorization': `Bearer ${this.globales.token}` };
-    const options = { url: `${this.authenticationUrl}/validatetoken`, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.authenticationUrl}/validatetoken`, headers};
 
     try{
       const response: HttpResponse = await CapacitorHttp.get(options);
@@ -45,6 +45,7 @@ export class AuthenticationService {
         return false;
       }
     } catch (error) {
+      console.log('Error');
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
       } else {
@@ -61,6 +62,7 @@ export class AuthenticationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
         this.globales.token = response.data;
+        await this.storage.set('Token', response.data);
         return response.data;
       }
       throw new Error(`Usuario no autorizado`);
@@ -76,7 +78,6 @@ export class AuthenticationService {
     const data = {Username: username, Password: password};
     const options = {url: `${this.authenticationUrl}/authenticate`, data: data, headers: { 'Content-Type': 'application/json' }, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout};
 
-    console.log('Reconnect');
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {

@@ -1,3 +1,5 @@
+/// <reference types="google.maps" />
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Geolocation } from '@capacitor/geolocation';
@@ -6,8 +8,6 @@ import { Punto } from 'src/app/interfaces/punto.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { PuntosService } from 'src/app/services/puntos.service';
 import { environment } from 'src/environments/environment';
-
-declare var google: any;
 
 @Component({
   selector: 'app-ruta',
@@ -24,7 +24,8 @@ export class RutaPage implements OnInit {
   origin = { lat: 4.6105, lng: -74.0817 };
   destination = { lat: 4.6399, lng: -74.0824 };
 
-  constructor(    private modalCtrl: ModalController,
+  constructor(
+    private modalCtrl: ModalController,
     private route: ActivatedRoute,
     private puntosService: PuntosService,
     private actividadesService: ActividadesService
@@ -32,7 +33,7 @@ export class RutaPage implements OnInit {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
-      this.idActividad = params["IdActividad"]
+      this.idActividad = params["IdActividad"];
     });
     this.puntos = await this.puntosService.getPuntosFromTareasPendientes(this.idActividad);
     await this.loadGoogleMaps();
@@ -55,15 +56,20 @@ export class RutaPage implements OnInit {
     this.directionsService = new google.maps.DirectionsService();
     this.directionsRenderer = new google.maps.DirectionsRenderer();
 
-    this.map = new google.maps.Map(mapElement, {
-      center: this.origin,
-      zoom: 12,
-    });
+    if (mapElement) {
+      this.map = new google.maps.Map(mapElement, {
+        center: this.origin,
+        zoom: 12,
+      });
 
-    this.directionsRenderer.setMap(this.map);
+      this.directionsRenderer.setMap(this.map);
 
-    this.getCurrentPosition();
-    this.calculateRoute();
+      this.getCurrentPosition();
+      this.calculateRoute();
+    } else {
+      console.error('Map element not found');
+      alert('No se pudo inicializar el mapa.');
+    }
   }
 
   async getCurrentPosition() {
@@ -103,7 +109,7 @@ export class RutaPage implements OnInit {
       origin: this.origin,
       destination: this.destination,
       waypoints: this.puntos.filter((x) => x.Latitud != null && x.Longitud != null).map((point) => ({
-        location: new google.maps.LatLng(point.Latitud, point.Longitud),
+        location: new google.maps.LatLng(Number(point.Latitud), Number(point.Longitud)),
         stopover: true,
       })),
       optimizeWaypoints: true,

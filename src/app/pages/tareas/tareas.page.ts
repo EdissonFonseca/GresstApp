@@ -43,7 +43,6 @@ export class TareasPage implements OnInit {
       this.mode = params['Mode'],
       this.transactionId = params['TransactionId']
     });
-    console.log(this.transactionId);
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras.state){
       const newActivity = nav.extras.state['activity'];
@@ -98,7 +97,6 @@ export class TareasPage implements OnInit {
   }
 
   async openAddTarea() {
-    console.log(this.activity().id);
     const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {

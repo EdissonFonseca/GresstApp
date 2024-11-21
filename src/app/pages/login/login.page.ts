@@ -26,54 +26,61 @@ export class LoginPage implements OnInit {
   async ngOnInit() {
     var loggedUser = await this.storage.get('Login');
 
-    if (loggedUser) {
-      this.globales.showLoading('Reconectando ...');
-      if (await this.authenticationService.ping()) {
-        this.synchronizationService.reload();
+    try {
+      if (loggedUser) {
+        if (await this.authenticationService.ping()) { // En linea
+          await this.globales.showLoading('Sincronizando ...');
+          await this.synchronizationService.refresh();
+          this.globales.hideLoading();
+        } else {
+          await this.globales.presentToast("Está trabajando sin conexión", "middle");
+        }
+        await this.globales.initGlobales();
+        this.navCtrl.navigateRoot('/home');
       }
-      this.globales.initGlobales();
+    } catch (error) {
       this.globales.hideLoading();
-      this.navCtrl.navigateRoot('/home');
+      await this.globales.presentToast("Error al sincronizar", "middle");
+      this.navCtrl.navigateRoot('/sincronizacion');
+      return;
     }
   }
 
   async login(){
     if (this.username == '' || this.password == ''){
-      this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
+      await this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
       return;
     }
 
     try {
-      this.globales.showLoading('Conectando ...');
+      await this.globales.showLoading('Conectando ...');
       if (await this.authenticationService.ping()) {
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
-          await this.synchronizationService.load();
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
-          this.globales.initGlobales();
-
+          await this.synchronizationService.load();
+          await this.globales.initGlobales();
           this.globales.hideLoading();
-
           this.navCtrl.navigateRoot('/home');
-
         } else {
           this.globales.hideLoading();
           await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
         }
+      } else {
+        await this.globales.presentAlert('Error','Sin conexión', `No se puede conectar al servidor.`);
       }
-
+      this.globales.hideLoading();
     } catch (error) {
       this.globales.hideLoading();
       if (error instanceof Error){
-        this.globales.presentAlert('Error','Request Error', error.message);
+        await this.globales.presentAlert('Error','Request Error', error.message);
       }
       else{
-        this.globales.presentAlert('Error','Unknown error', `${error}`);
+        await this.globales.presentAlert('Error','Unknown error', `${error}`);
       }
     }
-    this.globales.hideLoading();
   }
 
   async goPassword(){
