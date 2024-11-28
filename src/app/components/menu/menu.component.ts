@@ -123,6 +123,7 @@ export class MenuComponent  implements OnInit {
 
         switch (result) {
           case 'Resume':
+            this.globales.estaCerrando = true;
             this.navCtrl.navigateRoot('/login');
             break;
           case 'Cancel':

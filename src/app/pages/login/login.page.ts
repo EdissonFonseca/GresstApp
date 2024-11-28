@@ -24,6 +24,8 @@ export class LoginPage implements OnInit {
   ) { }
 
   async ngOnInit() {
+    if (this.globales.estaCerrando) return;
+
     var loggedUser = await this.storage.get('Login');
 
     try {
@@ -52,6 +54,7 @@ export class LoginPage implements OnInit {
   }
 
   async login(){
+    this.globales.estaCerrando = false;
     if (this.username == '' || this.password == ''){
       await this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
       return;

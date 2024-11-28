@@ -42,6 +42,7 @@ export class GlobalesService {
   public unidadPeso: string = 'kg';
   public unidadVolumen: string = 'lt';
   public solicitarKilometraje: boolean = false;
+  public estaCerrando = false;
 
   constructor(
     private storage: StorageService,

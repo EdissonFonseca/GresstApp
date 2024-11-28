@@ -356,20 +356,25 @@ export class SynchronizationService {
 
     if (!this.globales.token) return false;
 
-    //Online
-    console.log('Subiendo datos maestros ...');
-    if (await this.uploadMasterData())
+    try
     {
-      console.log('Subiendo transacciones ...');
-      if (await this.uploadTransactions()) {
-        await this.storage.clear();
+      //Online
+      console.log('Subiendo datos maestros ...');
+      if (await this.uploadMasterData())
+      {
+        console.log('Subiendo transacciones ...');
+        if (await this.uploadTransactions()) {
+          await this.storage.clear();
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
-    } else {
+      return true;
+    } catch {
       return false;
     }
-    return true;
   }
 
   async forceQuit(): Promise<boolean> {
