@@ -41,19 +41,19 @@
   <form [formGroup]="frmActividad">
     <ion-list inset="true">
       <ion-item *ngIf="showName">
-        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" aria-label="Nombre" ></ion-input>
+        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" ></ion-input>
       </ion-item>
       <ion-item *ngIf="showPin">
-        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion" aria-label="Identificación" ></ion-input>
+        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion" ></ion-input>
       </ion-item>
       <ion-item *ngIf="showPin">
-        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo" aria-label="Cargo" ></ion-input>
+        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo" ></ion-input>
       </ion-item>
       <ion-item *ngIf="showMileage">
-        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" aria-label="Kilometraje" type="number"></ion-input>
+        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" type="number"></ion-input>
       </ion-item>
       <ion-item *ngIf="showNotes">
-        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
+        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" ></ion-textarea>
       </ion-item>
     </ion-list>
   </form>

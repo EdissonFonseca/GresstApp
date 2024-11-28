@@ -18,7 +18,7 @@
           <ion-label position="floating" color="medium">
             Utilizado como usuario principal, con acceso a  todas las funciones administrativas
           </ion-label>
-          <ion-input [(ngModel)]="email" name="email" type="email" aria-label="email" label=""></ion-input>
+          <ion-input [(ngModel)]="email" name="email" type="email" label="email"></ion-input>
         </ion-item>
         <ion-item>
           <ion-label position="floating" color="medium">
@@ -28,7 +28,7 @@
           <ion-label position="floating" color="medium">
             Escriba un nombre para su cuenta. Se puede cambiar después de ser creada, a través de los ajustes de la aplicación
           </ion-label>
-          <ion-input [(ngModel)]="name" name="name" type="text" aria-label="name" label=""></ion-input>
+          <ion-input [(ngModel)]="name" name="name" type="text" label="name"></ion-input>
         </ion-item>
         <ion-button expand="block" color="success" (click)="verify()">
           <ion-icon slot="start" name="log-in"></ion-icon>

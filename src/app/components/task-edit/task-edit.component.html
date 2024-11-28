@@ -44,17 +44,17 @@
       </ion-item>
       <ion-item *ngIf="medicion=='P' || captura == 'P'">
         <ion-note slot="start">Peso</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Peso" aria-label="Peso"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Peso"></ion-input>
         <ion-note slot="end">kg</ion-note>
       </ion-item>
       <ion-item *ngIf="medicion=='V' || captura == 'V'">
         <ion-note slot="start">Volumen</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Volumen" aria-label="Volumen"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Volumen"></ion-input>
         <ion-note slot="end">m3</ion-note>
       </ion-item>
       <ion-item>
         <ion-note slot="start">Cantidad</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Cantidad" aria-label="Cantidad"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Cantidad"></ion-input>
         <ion-note slot="end">un</ion-note>
       </ion-item>
       <ion-item >
@@ -64,7 +64,7 @@
       </ion-item>
       <ion-item>
         <ion-note slot="start">Observaciones</ion-note>
-        <ion-textarea formControlName="Observaciones" aria-label="Observaciones" ></ion-textarea>
+        <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>
       <ion-item lines="none" color="light">
         <ion-button expand="full" (click)="takePhoto()" color="secondary" *ngIf="status == 'P' && fotosPorMaterial > fotos.length">

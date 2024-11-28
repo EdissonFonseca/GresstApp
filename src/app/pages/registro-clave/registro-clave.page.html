@@ -15,14 +15,14 @@
             <ion-icon name="key" item-start class="text-primary"></ion-icon>
             Contraseña
           </ion-label>
-          <ion-input [(ngModel)]="newPassword" name="newPassword" type="password" aria-label="newPassword" label=""></ion-input>
+          <ion-input [(ngModel)]="newPassword" name="newPassword" type="password" label=""></ion-input>
         </ion-item>
           <ion-item>
           <ion-label position="floating" color="medium">
             <ion-icon name="key" item-start class="text-primary"></ion-icon>
             Confirmación
           </ion-label>
-          <ion-input [(ngModel)]="confirmPassword" name="confirmPassword" type="password" aria-label="password" label=""></ion-input>
+          <ion-input [(ngModel)]="confirmPassword" name="confirmPassword" type="password" label=""></ion-input>
         </ion-item>
         <ion-button expand="block" color="success" (click)="create()">
           <ion-icon slot="start" name="log-in"></ion-icon>

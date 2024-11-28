@@ -36,7 +36,7 @@ export class TransactionsService {
 
   async postTarea(tarea: Tarea): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -59,7 +59,7 @@ export class TransactionsService {
 
   async patchTarea(tarea: Tarea): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -80,7 +80,7 @@ export class TransactionsService {
 
   async postTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -103,7 +103,7 @@ export class TransactionsService {
 
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -124,7 +124,7 @@ export class TransactionsService {
 
   async emitCertificate(transaccion: Transaccion): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/emitircertificado`, data:transaccion, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/emitircertificado`, data:transaccion, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -145,7 +145,7 @@ export class TransactionsService {
 
   async postActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -169,7 +169,7 @@ export class TransactionsService {
 
   async patchActividad(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
@@ -190,9 +190,10 @@ export class TransactionsService {
 
   async postActividadInicio(actividad: Actividad): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividadInicio`, data:actividad, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/updateactividadinicio`, data:actividad, headers };
 
     try{
+      console.log(options);
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
         actividad.CRUD = null;
@@ -211,7 +212,7 @@ export class TransactionsService {
 
   async postBackup(transaction: Transaction) {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/backup`, data:transaction, headers, connectTimeout: AppConfig.connectionTimeout, readTimeout: AppConfig.readTimeout };
+    const options = { url: `${this.transactionsUrl}/backup`, data:transaction, headers };
 
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);

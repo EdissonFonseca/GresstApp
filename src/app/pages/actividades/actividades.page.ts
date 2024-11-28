@@ -64,7 +64,7 @@ export class ActividadesPage implements OnInit {
             value: this.kilometraje ? Math.floor(this.kilometraje) : 0,
             min: 0,
             attributes: {
-              'aria-label': 'Kilometraje'
+              'label': 'Kilometraje'
             }
           },
         ],

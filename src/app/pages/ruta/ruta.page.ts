@@ -80,9 +80,9 @@ export class RutaPage implements OnInit {
 
       this.map.setCenter({ lat: this.origin.lat, lng: this.origin.lng });
 
-      new google.maps.Marker({
-        position: { lat: this.origin.lat, lng: this.origin.lng },
+      new google.maps.marker.AdvancedMarkerElement({
         map: this.map,
+        position: { lat: this.origin.lat, lng: this.origin.lng },
         title: "Tu ubicación",
       });
     } catch (error) {
