@@ -20,33 +20,14 @@ export class SincronizacionPage implements OnInit {
   ngOnInit() {}
 
   async synchronize() {
-    try {
-      await this.globales.showLoading('Closing ...');
-      await this.synchronizationService.refresh();
-      this.globales.hideLoading();
-      await this.globales.presentToast('Datos sincronizados', 'middle');
+    await this.globales.showLoading('Closing ...');
+    this.generaError = !await this.synchronizationService.refresh();
+    this.globales.hideLoading();
+    if (!this.generaError) {
+      this.globales.presentToast('Sincronización exitosa', "middle");
       this.navCtrl.navigateForward('/home');
-    } catch (error) {
-      this.globales.hideLoading();
-      await this.globales.presentToast('Error sincronizando', 'middle');
-      this.generaError = true;
+    } else {
+      this.globales.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
-  }
-
-  async sendBackup() {
-    try {
-      await this.globales.showLoading('Force quit ...');
-      await this.synchronizationService.forceQuit();
-      this.globales.hideLoading();
-      await this.globales.presentToast('Datos enviados al servidor', 'middle');
-      this.navCtrl.navigateForward('/login');
-    } catch (error) {
-      this.globales.hideLoading();
-      await this.globales.presentToast('Error enviando backup', 'middle');
-    }
-  }
-
-  async cancel() {
-    this.navCtrl.navigateRoot('/home');
   }
 }

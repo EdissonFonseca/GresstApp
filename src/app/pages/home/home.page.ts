@@ -1,4 +1,5 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { SynchronizationService } from '@app/services/synchronization.service';
 import { IonTabs } from '@ionic/angular';
 
 @Component({
@@ -14,9 +15,12 @@ export class HomePage implements OnInit {
   nombreUsuario: string = '';
 
   constructor(
+    public synchronizationService: SynchronizationService,
   ) {}
 
-  async ngOnInit() {}
+  async ngOnInit() {
+    this.synchronizationService.countPendingTransactions();
+  }
 
   setHeader(title: string, helpPopup: string){
     this.title = title;

@@ -1,4 +1,4 @@
-<app-header [pageTitle]="title" [helpPopup]="helpPopup"></app-header>
+<app-header [pageTitle]="title" [helpPopup]="helpPopup" [pendingTransactions] = "synchronizationService.pendingTransactions()"></app-header>
 <app-menu></app-menu>
 <ion-content id="main-content">
   <ion-tabs #tabs>

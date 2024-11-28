@@ -210,5 +210,4 @@ export class ActividadesPage implements OnInit {
   getColorEstado(idEstado: string): string {
     return this.globales.getColorEstado(idEstado);
   }
-
 }

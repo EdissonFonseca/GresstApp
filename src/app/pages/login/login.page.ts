@@ -29,9 +29,15 @@ export class LoginPage implements OnInit {
     try {
       if (loggedUser) {
         if (await this.authenticationService.ping()) { // En linea
+          const user = await this.storage.get('Login');
+          const password = await this.storage.get('Password');
+          const token = await this.storage.get('Token');
           await this.globales.showLoading('Sincronizando ...');
-          await this.synchronizationService.refresh();
+          await this.synchronizationService.refresh()
           this.globales.hideLoading();
+          await this.storage.set('Login', user);
+          await this.storage.set('Password', password);
+          await this.storage.set('Token', token);
         } else {
           await this.globales.presentToast("Está trabajando sin conexión", "middle");
         }
@@ -41,7 +47,6 @@ export class LoginPage implements OnInit {
     } catch (error) {
       this.globales.hideLoading();
       await this.globales.presentToast("Error al sincronizar", "middle");
-      this.navCtrl.navigateRoot('/sincronizacion');
       return;
     }
   }
@@ -57,10 +62,11 @@ export class LoginPage implements OnInit {
       if (await this.authenticationService.ping()) {
         const token = await this.authenticationService.login(this.username, this.password);
         if (token) {
+          this.globales.token = token;
+          await this.synchronizationService.load();
           await this.storage.set('Login', this.username);
           await this.storage.set('Password', this.password);
           await this.storage.set('Token', token);
-          await this.synchronizationService.load();
           await this.globales.initGlobales();
           this.globales.hideLoading();
           this.navCtrl.navigateRoot('/home');

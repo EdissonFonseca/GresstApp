@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, Signal } from '@angular/core';
+import { Component, Input, OnInit, signal, Signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { Estado } from 'src/app/services/constants.service';
@@ -34,7 +34,7 @@ export class TareasPage implements OnInit {
     private cardService: CardService,
     private transaccionesService: TransaccionesService,
     private tareasService: TareasService,
-    private synchronizationService: SynchronizationService,
+    public synchronizationService: SynchronizationService,
   ) {
   }
 
@@ -366,6 +366,14 @@ export class TareasPage implements OnInit {
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
       this.synchronizationService.uploadTransactions();
 
+    }
+  }
+
+  async synchronize() {
+    if (await this.synchronizationService.refresh()){
+      this.globales.presentToast('Sincronización exitosa', "middle");
+    } else {
+      this.globales.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
   }
 }

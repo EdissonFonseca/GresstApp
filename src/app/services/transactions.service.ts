@@ -7,6 +7,7 @@ import { Actividad } from '../interfaces/actividad.interface';
 import { GlobalesService } from './globales.service';
 import { AppConfig } from './constants.service';
 import { Transaction } from '@app/interfaces/transaction.interface';
+import { StorageService } from './storage.service';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +16,8 @@ export class TransactionsService {
   private transactionsUrl = `${environment.apiUrl}/apptransactions`;
 
   constructor(
-    private globales: GlobalesService
+    private globales: GlobalesService,
+    private storage: StorageService,
   ) {}
 
   async get(): Promise<any>{
@@ -151,7 +153,6 @@ export class TransactionsService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200 || response.status == 201) { //Ok
         actividad.CRUD = null;
-        //actividad.IdActividad = response.data.IdActividad;
         actividad.IdOrden = response.data.IdOrden;
         actividad.Orden = response.data.Orden;
         return true;
@@ -193,7 +194,6 @@ export class TransactionsService {
     const options = { url: `${this.transactionsUrl}/updateactividadinicio`, data:actividad, headers };
 
     try{
-      console.log(options);
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) { //Ok
         actividad.CRUD = null;

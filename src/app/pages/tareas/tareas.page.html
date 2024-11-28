@@ -6,10 +6,13 @@
     <ion-title>
       {{ activity().title }}
     </ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="synchronizationService.pendingTransactions() > 0" (click)="synchronize()">
+        <ion-icon name="sync-outline"></ion-icon>
+        <ion-badge color="medium">{{synchronizationService.pendingTransactions()}}</ion-badge>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
-  <!-- <ion-item color="medium">
-    <app-card [card]="activity()" [allowApprove]="false" [allowNavigate]="false"></app-card>
-  </ion-item> -->
   <ion-toolbar>
     <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar ..." show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>

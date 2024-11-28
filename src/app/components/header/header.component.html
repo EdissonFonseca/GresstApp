@@ -10,6 +10,10 @@
       <ion-button>
         <ion-icon name="notifications"></ion-icon>
       </ion-button>
+      <ion-button *ngIf="pendingTransactions > 0" (click)="synchronize()">
+        <ion-icon name="sync-outline"></ion-icon>
+        <ion-badge color="medium" >{{pendingTransactions}}</ion-badge>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

@@ -13,6 +13,10 @@
       <ion-button  *ngIf="showNavigation" (click)="navigateToMap()">
         <ion-icon name="navigate-circle-outline" size="large"></ion-icon>
       </ion-button>
+      <ion-button *ngIf="synchronizationService.pendingTransactions() > 0" (click)="synchronize()">
+        <ion-icon name="sync-outline"></ion-icon>
+        <ion-badge color="medium">{{synchronizationService.pendingTransactions() }}</ion-badge>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
   <ion-toolbar >

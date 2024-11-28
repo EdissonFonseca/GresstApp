@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { StorageService } from './storage.service';
 import { MasterDataService } from './masterdata.service';
 import { CRUDOperacion } from './constants.service';
@@ -21,6 +21,8 @@ import { Transaction } from '../interfaces/transaction.interface';
   providedIn: 'root',
 })
 export class SynchronizationService {
+  pendingTransactions = signal<number>(0);
+
   constructor(
     private storage: StorageService,
     private globales: GlobalesService,
@@ -30,6 +32,22 @@ export class SynchronizationService {
     private masterdataService: MasterDataService,
     private transactionsService: TransactionsService,
   ) {}
+
+  async countPendingTransactions()  {
+    this.pendingTransactions.set(0);
+    try {
+      let transaction: Transaction = await this.storage.get('Transaction');
+      if (transaction) {
+        this.pendingTransactions.set(
+          transaction.Actividades.filter((actividad) => actividad.CRUD != null).length +
+          transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null).length +
+          transaction.Tareas.filter((tarea) => tarea.CRUD != null).length
+        );
+      }
+    } catch {
+      this.pendingTransactions.set(0);
+    }
+  }
 
   /**
    * Download authorizations from the server and store them in the device.
@@ -192,8 +210,8 @@ export class SynchronizationService {
 
     try {
       if (transaction) {
-        for (const actividad of transaction.Actividades) {
 
+        for (const actividad of transaction.Actividades) {
           if (actividad.CRUD == CRUDOperacion.Read) {
             if (actividad.LongitudInicial){
               const [latitud, longitud] = await this.globales.getCurrentPosition();
@@ -202,6 +220,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postActividadInicio(actividad)) {
               await this.storage.set('Transaction', transaction);
+              await this.countPendingTransactions();
               return false;
             }
           }
@@ -214,6 +233,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postActividad(actividad)) {
               await this.storage.set('Transaction', transaction);
+              await this.countPendingTransactions();
               return false;
             }
           }
@@ -226,6 +246,7 @@ export class SynchronizationService {
             }
             if (!await this.transactionsService.postTransaccion(transaccion)) {
               await this.storage.set('Transaction', transaction);
+              await this.countPendingTransactions();
               return false;
             }
           }
@@ -234,11 +255,13 @@ export class SynchronizationService {
             if (tarea.CRUD === CRUDOperacion.Create) {
               if (!await this.transactionsService.postTarea(tarea)) {
                 await this.storage.set('Transaction', transaction);
+                await this.countPendingTransactions();
                 return false;
               }
             } else {
               if (!await this.transactionsService.patchTarea(tarea)){
                 await this.storage.set('Transaction', transaction);
+                await this.countPendingTransactions();
                 return false;
               }
             }
@@ -265,6 +288,7 @@ export class SynchronizationService {
               actividad.LongitudFinal = longitud;
             }
             if (!await this.transactionsService.patchActividad(actividad)) {
+              await this.countPendingTransactions();
               this.storage.set('Transaction', transaction);
               return false;
             }
@@ -273,6 +297,7 @@ export class SynchronizationService {
       }
 
       await this.storage.set('Transaction', transaction);
+      await this.countPendingTransactions();
       return true;
 
     } catch (error) {
@@ -302,11 +327,8 @@ export class SynchronizationService {
     }
   }
 
-  async refresh() {
+  async refresh(): Promise<boolean> {
     console.log('Refrescando ...');
-    const user = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.storage.get('Token');
 
     try {
       console.log('Subiendo datos maestros ...');
@@ -317,26 +339,22 @@ export class SynchronizationService {
           this.load();
         }
       }
-      await this.storage.set('Login', user);
-      await this.storage.set('Password', password);
-      await this.storage.set('Token', token);
-
+      return true;
     } catch (error){
-      await this.storage.set('Login', user);
-      await this.storage.set('Password', password);
-      await this.storage.set('Token', token);
-
-      throw (error);
+      //throw (error);
+      return false;
     }
   }
 
-  async close() {
+  async close(): Promise<boolean> {
     console.log('Cerrando ...');
 
-    if (!this.authenticationService.ping()) return;
+    if (!this.authenticationService.ping()) return false;
 
     if (!this.authenticationService.validateToken())
-      if (!this.authenticationService.reconnect()) return;
+      this.globales.token = await this.authenticationService.reconnect();
+
+    if (!this.globales.token) return false;
 
     //Online
     console.log('Subiendo datos maestros ...');
@@ -345,25 +363,27 @@ export class SynchronizationService {
       console.log('Subiendo transacciones ...');
       if (await this.uploadTransactions()) {
         await this.storage.clear();
+      } else {
+        return false;
       }
+    } else {
+      return false;
     }
-
-    try {
-    } catch (error) {
-      throw (error);
-    }
+    return true;
   }
 
-  async forceQuit() {
+  async forceQuit(): Promise<boolean> {
     console.log('Forzando salida ...');
     let transaction: Transaction = await this.storage.get('Transaction');
 
     try {
       await this.transactionsService.postBackup(transaction);
       await this.storage.clear();
+      return true;
 
     } catch (error) {
-      throw (error);
+      return false;
+      //throw (error);
     }
   }
 }

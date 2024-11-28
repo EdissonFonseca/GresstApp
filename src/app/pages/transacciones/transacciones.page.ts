@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, signal } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
@@ -31,7 +31,7 @@ export class TransaccionesPage implements OnInit {
     private actividadesService: ActividadesService,
     private cardService: CardService,
     private transaccionesService: TransaccionesService,
-    private synchronizationService: SynchronizationService,
+    public synchronizationService: SynchronizationService,
     private modalCtrl: ModalController,
     private actionSheet: ActionSheetController,
   ) {}
@@ -221,4 +221,11 @@ export class TransaccionesPage implements OnInit {
     }
   }
 
+  async synchronize() {
+    if (await this.synchronizationService.refresh()){
+      this.globales.presentToast('Sincronización exitosa', "middle");
+    } else {
+      this.globales.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+    }
+  }
 }

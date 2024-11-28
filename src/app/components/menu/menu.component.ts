@@ -1,12 +1,11 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { StorageService } from 'src/app/services/storage.service';
-import { NavController } from '@ionic/angular';
-import { NavigationExtras, Router } from '@angular/router';
+import { AlertController, NavController } from '@ionic/angular';
+import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { GlobalesService } from 'src/app/services/globales.service';
 import { Permisos } from 'src/app/services/constants.service';
 import { environment } from '../../../environments/environment';
-import { AuthenticationService } from '@app/services/authentication.service';
 import { SynchronizationService } from '@app/services/synchronization.service';
 
 @Component({
@@ -35,7 +34,7 @@ export class MenuComponent  implements OnInit {
     private navCtrl: NavController,
     private router: Router,
     private menuCtrl: MenuController,
-    private authenticationService: AuthenticationService,
+    private alertController: AlertController,
     private synchronizationService: SynchronizationService,
     private globales: GlobalesService
   ) { }
@@ -78,16 +77,67 @@ export class MenuComponent  implements OnInit {
     this.menuCtrl.close();
   }
 
+  async showLogoutOptions(): Promise<string> {
+    return new Promise((resolve) => {
+      this.alertController
+        .create({
+          header: 'Datos sin sincronizar.',
+          message: 'No se pudo sincronizar. ¿Qué desea hacer?',
+          buttons: [
+            {
+              text: 'Forzar Cierre definitivo',
+              handler: () => {
+                resolve('ForceQuit');
+              },
+            },
+            {
+              text: 'Abandonar Sesión',
+              handler: () => {
+                resolve('Resume');
+              },
+            },
+            {
+              text: 'Continuar en Sesión',
+              role: 'cancel',
+              handler: () => {
+                resolve('Cancel');
+              },
+            },
+          ],
+        })
+        .then((alert) => {
+          alert.present();
+        });
+    });
+  }
+
   async logout() {
     try {
       await this.globales.showLoading('Sincronizando ...');
-      await this.synchronizationService.close();
+      const result = await this.synchronizationService.close();
       this.globales.hideLoading();
-      this.navCtrl.navigateRoot('/login');
+      if (result) {
+        this.navCtrl.navigateRoot('/login');
+      } else {
+        const result = await this.showLogoutOptions();
+
+        switch (result) {
+          case 'Resume':
+            this.navCtrl.navigateRoot('/login');
+            break;
+          case 'Cancel':
+            break;
+          case 'ForceQuit':
+            this.synchronizationService.forceQuit();
+            this.navCtrl.navigateRoot('/login');
+            break;
+          default:
+            break;
+        }
+      }
     } catch (error) {
       this.globales.hideLoading();
       await this.globales.presentToast('Error al sincronizar', 'middle');
-      this.navCtrl.navigateRoot('/sincronizacion');
     }
   }
 

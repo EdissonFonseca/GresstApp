@@ -61,8 +61,6 @@ export class AuthenticationService {
     try{
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
-        this.globales.token = response.data;
-        await this.storage.set('Token', response.data);
         return response.data;
       }
       throw new Error(`Usuario no autorizado`);
@@ -82,7 +80,6 @@ export class AuthenticationService {
       const response: HttpResponse = await CapacitorHttp.post(options);
       if (response.status == 200) {
         this.globales.token = response.data;
-        await this.storage.set('Token', response.data);
         return response.data;
       } else {
         throw new Error(`Usuario no autorizado`);
