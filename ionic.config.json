@@ -1,5 +1,7 @@
 {
   "name": "GresstApp",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular"
 }
