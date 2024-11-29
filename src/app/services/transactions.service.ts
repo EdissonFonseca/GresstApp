@@ -210,7 +210,7 @@ export class TransactionsService {
     }
   }
 
-  async postBackup(transaction: Transaction) {
+  async postBackup(transaction: Transaction): Promise<boolean> {
     const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
     const options = { url: `${this.transactionsUrl}/backup`, data:transaction, headers };
 
@@ -222,11 +222,12 @@ export class TransactionsService {
         return false;
       }
     } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(`Request error: ${error.message}`);
-      } else {
-        throw new Error(`Unknown error: ${error}`);
-      }
+      return false;
+      // if (error instanceof Error) {
+      //   throw new Error(`Request error: ${error.message}`);
+      // } else {
+      //   throw new Error(`Unknown error: ${error}`);
+      // }
     }
   }
 }

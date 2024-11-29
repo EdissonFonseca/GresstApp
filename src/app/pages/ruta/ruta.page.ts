@@ -1,5 +1,4 @@
 /// <reference types="google.maps" />
-
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Geolocation } from '@capacitor/geolocation';
@@ -50,21 +49,20 @@ export class RutaPage implements OnInit {
     document.body.appendChild(script);
   }
 
-  initMap() {
+  async initMap() {
     const mapElement = document.getElementById('map');
+    await this.getCurrentPosition();
+    await this.getDestinationPosition();
 
     this.directionsService = new google.maps.DirectionsService();
     this.directionsRenderer = new google.maps.DirectionsRenderer();
-
     if (mapElement) {
       this.map = new google.maps.Map(mapElement, {
         center: this.origin,
         zoom: 12,
       });
-
       this.directionsRenderer.setMap(this.map);
-
-      this.getCurrentPosition();
+      this.map.setCenter({ lat: this.origin.lat, lng: this.origin.lng });
       this.calculateRoute();
     } else {
       console.error('Map element not found');
@@ -74,33 +72,23 @@ export class RutaPage implements OnInit {
 
   async getCurrentPosition() {
     try {
-      const position = await Geolocation.getCurrentPosition();
+      const position = await Geolocation.getCurrentPosition({enableHighAccuracy: true,timeout: 10000,});
       this.origin.lat = position.coords.latitude;
       this.origin.lng = position.coords.longitude;
-
-      this.map.setCenter({ lat: this.origin.lat, lng: this.origin.lng });
-
-      new google.maps.marker.AdvancedMarkerElement({
-        map: this.map,
-        position: { lat: this.origin.lat, lng: this.origin.lng },
-        title: "Tu ubicación",
-      });
+      //new google.maps.Marker({map: this.map, position: { lat: this.origin.lat, lng: this.origin.lng },title: "Tu ubicación",});
     } catch (error) {
-      console.error('Error al obtener la ubicación actual:', error);
-      alert('No se pudo obtener la ubicación actual.');
+      console.log('Error al obtener la ubicación actual:', error);
     }
   }
 
   async getDestinationPosition() {
-    const currentLocation = await Geolocation.getCurrentPosition();
     const actividad = await this.actividadesService.get(this.idActividad);
 
     if (actividad && actividad.Destino?.Latitud != null && actividad.Destino?.Longitud != null){
       this.destination.lat = parseFloat(actividad.Destino.Latitud);
       this.destination.lng = parseFloat(actividad.Destino.Longitud);
     } else {
-      this.destination.lat = currentLocation.coords.latitude;
-      this.destination.lng = currentLocation.coords.longitude;
+      this.destination = this.origin;
     }
   }
 

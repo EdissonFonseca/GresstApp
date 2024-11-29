@@ -11,28 +11,14 @@ import { GlobalesService } from '@app/services/globales.service';
 })
 export class HeaderComponent  implements OnInit {
   @Input() pageTitle: string = 'Gresst';
-  @Input() pendingTransactions: number = 1;
-  @Input() helpPopup: string = 'help';
-  @ViewChild('popJornada') popJornada!: ElementRef;
-  @ViewChild('popInventario') popInventario!: ElementRef;
-
   isOpen = false;
 
   constructor(
-    private menuCtrl: MenuController,
-    private modalCtrl: ModalController,
-    private synchronizationService: SynchronizationService,
+    public synchronizationService: SynchronizationService,
     private globalesService: GlobalesService
   ) { }
 
   ngOnInit() {}
-
-  presentPopover(e: Event) {
-    // if (this.helpPopup == 'jornada' && this.popJornada){
-    //   this.popJornada.event = e;
-    //   this.isOpen = true;
-    //   }
-  }
 
   async synchronize(){
     if (await this.synchronizationService.refresh()){

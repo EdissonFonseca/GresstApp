@@ -180,7 +180,7 @@ export class GlobalesService {
 
   async getCurrentPosition(): Promise<[number | null, number | null]> {
     try {
-      const coordinates = await Geolocation.getCurrentPosition();
+      const coordinates = await Geolocation.getCurrentPosition({enableHighAccuracy: true,timeout: 10000,});
       const latitude = coordinates.coords.latitude;
       const longitude = coordinates.coords.longitude;
       return [latitude, longitude]; // Return tuple [latitude, longitude]
