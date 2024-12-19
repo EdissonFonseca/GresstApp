@@ -34,6 +34,7 @@ export class LoginPage implements OnInit {
           const user = await this.storage.get('Login');
           const password = await this.storage.get('Password');
           const token = await this.storage.get('Token');
+          this.globales.token = token;
           await this.globales.showLoading('Sincronizando ...');
           await this.synchronizationService.refresh()
           this.globales.hideLoading();

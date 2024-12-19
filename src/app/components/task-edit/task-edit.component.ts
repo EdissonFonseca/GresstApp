@@ -6,7 +6,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
-import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
 import { GlobalesService } from 'src/app/services/globales.service';
 import { InventarioService } from 'src/app/services/inventario.service';
 import { MaterialesService } from 'src/app/services/materiales.service';
@@ -32,6 +32,7 @@ export class TaskEditComponent  implements OnInit {
   frmTarea: FormGroup;
   activityId: string = '';
   captura: string = '';
+  factor: number | null = null;
   material: string = '';
   materialId: string = '';
   medicion: string = '';
@@ -114,6 +115,7 @@ export class TaskEditComponent  implements OnInit {
         this.material = materialItem.Nombre;
         this.medicion = materialItem.TipoMedicion;
         this.captura = materialItem.TipoCaptura;
+        this.factor = materialItem.Factor ?? 1;
       }
 
       if (this.task.IdDeposito) {
@@ -443,5 +445,14 @@ export class TaskEditComponent  implements OnInit {
 
   deletePhoto(index: number) {
     this.fotos.splice(index, 1);
+  }
+  calculateFromCantidad(event:any){
+    const enteredValue = (event.target as HTMLInputElement).value;
+    const resultValue = Number(enteredValue) * (this.factor ?? 1);
+
+    if (this.medicion == TipoMedicion.Peso)
+      this.frmTarea.patchValue({Peso: resultValue});
+    else if (this.medicion == TipoMedicion.Volumen)
+      this.frmTarea.patchValue({Volumen: resultValue});
   }
 }

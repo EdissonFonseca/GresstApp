@@ -27,4 +27,8 @@ export class HeaderComponent  implements OnInit {
       this.globalesService.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
   }
+
+  getColor() {
+    return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+  }
 }

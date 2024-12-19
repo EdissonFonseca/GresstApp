@@ -288,8 +288,9 @@ export class TaskAddComponent  implements OnInit {
         Aprovechable: true, //TODO
         Cantidad: data.Cantidad,
         Peso: data.Peso,
+        Volumen: data.Volumen,
         IdEmbalaje: data.IdEmbalaje,
-        CantidadEmbalaje: data.CantidadEmbalaje,
+        CantidadEmbalaje: data.Cantidad,
         IdEstado: Estado.Activo,
         Propietario: this.propietario,
         Material: this.material,

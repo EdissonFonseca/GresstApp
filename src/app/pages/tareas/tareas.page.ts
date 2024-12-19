@@ -368,6 +368,9 @@ export class TareasPage implements OnInit {
 
     }
   }
+  getColor() {
+    return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+  }
 
   async synchronize() {
     if (await this.synchronizationService.refresh()){

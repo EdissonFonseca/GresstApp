@@ -221,6 +221,10 @@ export class TransaccionesPage implements OnInit {
     }
   }
 
+  getColor() {
+    return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+  }
+
   async synchronize() {
     if (await this.synchronizationService.refresh()){
       this.globales.presentToast('Sincronización exitosa', "middle");

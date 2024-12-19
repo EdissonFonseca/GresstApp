@@ -14,7 +14,7 @@ export class AuthorizationService {
   ) {}
 
   async get(): Promise<any>{
-    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
+    const headers = { 'Authorization': `Bearer ${this.globales.token}`, 'Content-Type': 'application/json' };
     const options = { url: `${this.authorizationUrl}/get/app`, headers };
 
     try{

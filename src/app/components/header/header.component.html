@@ -10,9 +10,8 @@
       <ion-button>
         <ion-icon name="notifications"></ion-icon>
       </ion-button>
-      <ion-button *ngIf="synchronizationService.pendingTransactions() > 0" (click)="synchronize()">
-        <ion-icon name="sync-outline"></ion-icon>
-        <ion-badge color="medium" >{{synchronizationService.pendingTransactions()}}</ion-badge>
+      <ion-button (click)="synchronize()">
+        <ion-icon name="sync-outline" color="getColor()"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
