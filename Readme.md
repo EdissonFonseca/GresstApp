@@ -100,7 +100,7 @@ npm run build
 Copy the generated files to native platforms:
 
 bash
-Copiar código
+Copy code
 npx cap copy
 Compile and distribute the app using Android Studio or Xcode.
 

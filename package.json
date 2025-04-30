@@ -70,6 +70,5 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.2.2"
   },
-  "description": "Gresst App Ionic Angular Capacitor Project",
-  "type": "module"
+  "description": "Gresst App Ionic Angular Capacitor Project"
 }
