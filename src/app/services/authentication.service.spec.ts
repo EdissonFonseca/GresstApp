@@ -1,166 +1,228 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthenticationService } from './authentication.service';
-import { CapacitorHttp, HttpResponse } from '@capacitor/core';
-import { GlobalesService } from './globales.service';
 import { StorageService } from './storage.service';
+import { environment } from '../../environments/environment';
+
+interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
-  let globales: GlobalesService;
-  let storage: StorageService;
+  let httpMock: HttpTestingController;
+  let storageService: StorageService;
+
+  const mockTokenResponse: TokenResponse = {
+    accessToken: 'test-access-token',
+    refreshToken: 'test-refresh-token',
+    expiresIn: 3600
+  };
 
   beforeEach(() => {
-    globales = { token: '' } as GlobalesService;
-    storage = { set: jasmine.createSpy('set'), get: jasmine.createSpy('get') } as any;
-
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         AuthenticationService,
-        { provide: GlobalesService, useValue: globales },
-        { provide: StorageService, useValue: storage },
-      ],
+        StorageService
+      ]
     });
 
     service = TestBed.inject(AuthenticationService);
+    httpMock = TestBed.inject(HttpTestingController);
+    storageService = TestBed.inject(StorageService);
+
+    // Clear storage before each test
+    spyOn(storageService, 'clear');
+    spyOn(storageService, 'set');
+    spyOn(storageService, 'get').and.returnValue(Promise.resolve(null));
+  });
+
+  afterEach(() => {
+    httpMock.verify();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should ping the server and return true if successful', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.resolve(mockResponse));
+  describe('ping', () => {
+    it('should return true when server is reachable', () => {
+      service.ping().then(result => {
+        expect(result).toBeTrue();
+      });
 
-    const result = await service.ping();
-    expect(result).toBeTrue();
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/ping`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush({});
+    });
+
+    it('should return false when server is not reachable', () => {
+      service.ping().then(result => {
+        expect(result).toBeFalse();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/ping`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.error(new ErrorEvent('Network error'));
+    });
   });
 
-  it('should ping the server and return false if not successful', async () => {
-    const mockResponse: HttpResponse = { status: 500, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.resolve(mockResponse));
+  describe('login', () => {
+    const username = 'test@example.com';
+    const password = 'password123';
 
-    const result = await service.ping();
-    expect(result).toBeFalse();
+    it('should return true and store tokens on successful login', () => {
+      service.login(username, password).then(result => {
+        expect(result).toBeTrue();
+        expect(storageService.set).toHaveBeenCalledWith('accessToken', mockTokenResponse.accessToken);
+        expect(storageService.set).toHaveBeenCalledWith('refreshToken', mockTokenResponse.refreshToken);
+        expect(storageService.set).toHaveBeenCalledWith('username', username);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({ username, password });
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush(mockTokenResponse);
+    });
+
+    it('should return false on failed login', () => {
+      service.login(username, password).then(result => {
+        expect(result).toBeFalse();
+        expect(storageService.set).not.toHaveBeenCalled();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.error(new ErrorEvent('Unauthorized'));
+    });
   });
 
-  it('should ping the server and return false on error', async () => {
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.reject(new Error('Network error')));
+  describe('refreshToken', () => {
+    beforeEach(() => {
+      spyOn(storageService, 'get').and.callFake((key: string) => {
+        if (key === 'username') return Promise.resolve('test@example.com');
+        if (key === 'refreshToken') return Promise.resolve('old-refresh-token');
+        return Promise.resolve(null);
+      });
+    });
 
-    const result = await service.ping();
-    expect(result).toBeFalse();
+    it('should return true and update tokens on successful refresh', () => {
+      service.refreshToken().then(result => {
+        expect(result).toBeTrue();
+        expect(storageService.set).toHaveBeenCalledWith('accessToken', mockTokenResponse.accessToken);
+        expect(storageService.set).toHaveBeenCalledWith('refreshToken', mockTokenResponse.refreshToken);
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.body).toEqual({
+        username: 'test@example.com',
+        refreshToken: 'old-refresh-token'
+      });
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.flush(mockTokenResponse);
+    });
+
+    it('should return false when refresh token is missing', () => {
+      spyOn(storageService, 'get').and.returnValue(Promise.resolve(null));
+
+      service.refreshToken().then(result => {
+        expect(result).toBeFalse();
+        expect(storageService.set).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should return false on failed refresh', () => {
+      service.refreshToken().then(result => {
+        expect(result).toBeFalse();
+        expect(storageService.set).not.toHaveBeenCalled();
+      });
+
+      const req = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);
+      expect(req.request.method).toBe('POST');
+      expect(req.request.headers.has('Authorization')).toBeFalse();
+      req.error(new ErrorEvent('Unauthorized'));
+    });
   });
 
-  it('should validate token and return true if token is valid', async () => {
-    globales.token = 'valid-token';
-    const mockResponse: HttpResponse = { status: 200, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.resolve(mockResponse));
+  describe('restoreSession', () => {
+    beforeEach(() => {
+      spyOn(service, 'refreshToken').and.returnValue(Promise.resolve(true));
+      spyOn(service, 'ping').and.returnValue(Promise.resolve(true));
+    });
 
-    const result = await service.validateToken();
-    expect(result).toBeTrue();
+    it('should return true when online and refresh successful', () => {
+      service.restoreSession().then(result => {
+        expect(result).toBeTrue();
+        expect(service.refreshToken).toHaveBeenCalled();
+      });
+    });
+
+    it('should return false when online but refresh fails', () => {
+      (service.refreshToken as jasmine.Spy).and.returnValue(Promise.resolve(false));
+
+      service.restoreSession().then(result => {
+        expect(result).toBeFalse();
+      });
+    });
+
+    it('should return false when offline', () => {
+      (service.ping as jasmine.Spy).and.returnValue(Promise.resolve(false));
+
+      service.restoreSession().then(result => {
+        expect(result).toBeFalse();
+        expect(service.refreshToken).not.toHaveBeenCalled();
+      });
+    });
   });
 
-  it('should validate token and return false if token is invalid', async () => {
-    globales.token = 'invalid-token';
-    const mockResponse: HttpResponse = { status: 401, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.validateToken();
-    expect(result).toBeFalse();
+  describe('logout', () => {
+    it('should clear storage and return true', () => {
+      service.logout().then(result => {
+        expect(result).toBeTrue();
+        expect(storageService.clear).toHaveBeenCalled();
+      });
+    });
   });
 
-  it('should validate token and throw error on network error', async () => {
-    globales.token = 'valid-token';
-    spyOn(CapacitorHttp, 'get').and.returnValue(Promise.reject(new Error('Network error')));
+  describe('isAuthenticated', () => {
+    it('should return true when access token exists', () => {
+      spyOn(storageService, 'get').and.returnValue(Promise.resolve('valid-token'));
 
-    await expectAsync(service.validateToken()).toBeRejectedWithError('Request error: Network error');
+      service.isAuthenticated().then(result => {
+        expect(result).toBeTrue();
+      });
+    });
+
+    it('should return false when access token is missing', () => {
+      spyOn(storageService, 'get').and.returnValue(Promise.resolve(null));
+
+      service.isAuthenticated().then(result => {
+        expect(result).toBeFalse();
+      });
+    });
   });
 
-  it('should login successfully and return token', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: 'mocked-token', headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
+  describe('protected endpoint', () => {
+    it('should include Authorization header for protected endpoints', () => {
+      const mockToken = 'test-token';
+      spyOn(storageService, 'get').and.returnValue(Promise.resolve(mockToken));
 
-    const result = await service.login('testuser', 'testpassword');
-    expect(result).toBe('mocked-token');
-  });
+      service['http'].get(`${environment.apiUrl}/api/protected`).subscribe();
 
-  it('should throw error if login fails', async () => {
-    const mockResponse: HttpResponse = { status: 401, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    await expectAsync(service.login('testuser', 'wrongpassword')).toBeRejectedWithError('Usuario no autorizado');
-  });
-
-  it('should throw error on network error during login', async () => {
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.reject(new Error('Network error')));
-
-    await expectAsync(service.login('testuser', 'testpassword')).toBeRejectedWithError('Error durante el inicio de sesión: Network error');
-  });
-
-  it('should check if a user exists and return true', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.existUser('test@example.com');
-    expect(result).toBeTrue();
-  });
-
-  it('should check if a user exists and return false', async () => {
-    const mockResponse: HttpResponse = { status: 404, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.existUser('nonexistent@example.com');
-    expect(result).toBeFalse();
-  });
-
-  it('should throw error when checking user existence fails', async () => {
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.reject(new Error('Network error')));
-
-    await expectAsync(service.existUser('test@example.com')).toBeRejectedWithError('Usuario no existe');
-  });
-
-  it('should change name successfully', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: 'Name changed successfully', headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.changeName('test@example.com', 'New Name');
-    expect(result).toBe('Name changed successfully');
-  });
-
-  it('should throw error when changing name fails', async () => {
-    const mockResponse: HttpResponse = { status: 500, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    await expectAsync(service.changeName('test@example.com', 'New Name')).toBeRejectedWithError('Response Status 500');
-  });
-
-  it('should change password successfully', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: 'Password changed successfully', headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.changePassword('test@example.com', 'newpassword');
-    expect(result).toBe('Password changed successfully');
-  });
-
-  it('should throw error when changing password fails', async () => {
-    const mockResponse: HttpResponse = { status: 500, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    await expectAsync(service.changePassword('test@example.com', 'newpassword')).toBeRejectedWithError('Response Status 500');
-  });
-
-  it('should register user successfully', async () => {
-    const mockResponse: HttpResponse = { status: 200, data: 'User registered successfully', headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    const result = await service.register('test@example.com', 'Test User', 'password123');
-    expect(result).toBe('User registered successfully');
-  });
-
-  it('should throw error when registration fails', async () => {
-    const mockResponse: HttpResponse = { status: 500, data: {}, headers: {}, url: '' };
-    spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve(mockResponse));
-
-    await expectAsync(service.register('test@example.com', 'Test User', 'password123')).toBeRejectedWithError('Response Status 500');
+      const req = httpMock.expectOne(`${environment.apiUrl}/api/protected`);
+      expect(req.request.method).toBe('GET');
+      expect(req.request.headers.has('Authorization')).toBeTrue();
+      expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockToken}`);
+      req.flush({});
+    });
   });
 });
+

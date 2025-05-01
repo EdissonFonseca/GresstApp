@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
+import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { GlobalesService } from './globales.service';
 
 @Injectable({
   providedIn: 'root',
@@ -10,38 +9,39 @@ export class InventoryService {
   private bancoUrl = `${environment.apiUrl}/appbanco`;
   private inventoryUrl = `${environment.apiUrl}/appinventory`;
 
-  constructor(
-    private globales: GlobalesService,
-  ) {}
+  constructor() {}
 
-  async getBanco(): Promise<any>{
-    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
-    const options = { url: `${this.bancoUrl}/get`, headers };
+  async getBanco(): Promise<any> {
+    const options = {
+      url: `${this.bancoUrl}/get`,
+      headers: { 'Content-Type': 'application/json' }
+    };
 
-    try{
+    try {
       const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status == 200) {
+      if (response.status === 200) {
         return response.data;
-      } else {
-        throw new Error('Request error');
       }
-    } catch {
+      throw new Error('Request error');
+    } catch (error) {
+      throw error;
     }
   }
 
-  async get(): Promise<any>{
-    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
-    const options = { url: `${this.inventoryUrl}/get`, headers };
+  async get(): Promise<any> {
+    const options = {
+      url: `${this.inventoryUrl}/get`,
+      headers: { 'Content-Type': 'application/json' }
+    };
 
-    try{
+    try {
       const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status == 200) {
+      if (response.status === 200) {
         return response.data;
-      } else {
-        throw new Error('Request error');
       }
-    } catch (error){
-      throw(error);
+      throw new Error('Request error');
+    } catch (error) {
+      throw error;
     }
   }
 }

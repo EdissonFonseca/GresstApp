@@ -1,19 +1,43 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()">Cancelar</ion-button>
-    </ion-buttons>
-    <ion-title></ion-title>
+    <ion-title>Seleccionar Ubicación</ion-title>
     <ion-buttons slot="end">
-      <ion-button [strong]="true" (click)="confirm()">Guardar Punto</ion-button>
+      <ion-button (click)="cancel()">Cancelar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
-<ion-content>
-  <ion-item>
-    <ion-label position="stacked">Descripción</ion-label>
-    <ion-input [(ngModel)]="description" placeholder="Escribe una descripción"></ion-input>
-  </ion-item>
-  <ion-label *ngIf="latitude && longitude">Ubicación: {{ latitude }}, {{ longitude }}</ion-label>
-  <ion-button expand="full" (click)="getLocation()">Obtener Ubicación</ion-button>
+
+<ion-content class="ion-padding">
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Descripción</ion-label>
+      <ion-input [(ngModel)]="description" placeholder="Ingrese una descripción"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Coordenadas</ion-label>
+      <ion-text>
+        <p *ngIf="latitude && longitude">
+          Latitud: {{latitude | number:'1.6-6'}}<br>
+          Longitud: {{longitude | number:'1.6-6'}}
+        </p>
+        <p *ngIf="!latitude || !longitude" class="ion-text-muted">
+          No se ha obtenido ubicación
+        </p>
+      </ion-text>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" (click)="getLocation()" [disabled]="isLoading">
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <ion-icon *ngIf="!isLoading" name="location-outline" slot="start"></ion-icon>
+      {{isLoading ? 'Obteniendo ubicación...' : 'Obtener ubicación actual'}}
+    </ion-button>
+
+    <ion-button expand="block" color="success" (click)="confirm()" [disabled]="!latitude || !longitude">
+      <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+      Confirmar ubicación
+    </ion-button>
+  </div>
 </ion-content>

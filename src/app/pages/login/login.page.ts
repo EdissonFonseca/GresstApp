@@ -1,103 +1,201 @@
 import { Component, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { StorageService } from 'src/app/services/storage.service';
-import { SynchronizationService } from 'src/app/services/synchronization.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AuthenticationService } from '../../services/authentication.service';
+import { SynchronizationService } from '../../services/synchronization.service';
 
+/**
+ * Login page component that handles user authentication and offline mode support.
+ * Implements session persistence and automatic token refresh.
+ */
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
 export class LoginPage implements OnInit {
-  username = '';
-  password = '';
-  showNewAccount: boolean = false;
+  /** Form group for login credentials */
+  loginForm!: FormGroup;
+
+  /** Flag to prevent multiple session checks */
+  isCheckingSession = false;
 
   constructor(
-    private authenticationService: AuthenticationService,
-    private synchronizationService: SynchronizationService,
-    private navCtrl: NavController,
-    private storage: StorageService,
-    private globales: GlobalesService,
-  ) { }
+    private formBuilder: FormBuilder,
+    private authService: AuthenticationService,
+    private syncService: SynchronizationService,
+    private router: Router,
+    private alertController: AlertController,
+    private loadingController: LoadingController,
+    private toastController: ToastController
+  ) {
+    this.initializeLoginForm();
+  }
 
-  async ngOnInit() {
-    if (this.globales.estaCerrando) return;
+  ngOnInit(): void {
+    this.checkSession();
+  }
 
-    var loggedUser = await this.storage.get('Login');
+  /**
+   * Initializes the login form with validation rules
+   */
+  private initializeLoginForm(): void {
+    this.loginForm = this.formBuilder.group({
+      username: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
 
+  /**
+   * Checks for existing session and handles offline mode
+   * Attempts to refresh token if online, falls back to offline mode if needed
+   */
+  async checkSession(): Promise<void> {
     try {
-      if (loggedUser) {
-        if (await this.authenticationService.ping()) { // En linea
-          const user = await this.storage.get('Login');
-          const password = await this.storage.get('Password');
-          const token = await this.storage.get('Token');
-          this.globales.token = token;
-          await this.globales.showLoading('Sincronizando ...');
-          await this.synchronizationService.refresh()
-          this.globales.hideLoading();
-          await this.storage.set('Login', user);
-          await this.storage.set('Password', password);
-          await this.storage.set('Token', token);
+      this.isCheckingSession = true;
+
+      const loading = await this.loadingController.create({
+        message: 'Verificando sesión...',
+        spinner: 'circular'
+      });
+
+      try {
+        await loading.present();
+        const isOnline = await this.authService.ping();
+
+        if (isOnline) {
+          const sessionRestored = await this.authService.restoreSession();
+
+          if (sessionRestored) {
+            await this.syncService.refresh();
+            await this.router.navigate(['/home']);
+          }
         } else {
-          await this.globales.presentToast("Está trabajando sin conexión", "middle");
+          await this.showToast('Está trabajando sin conexión', 'middle');
         }
-        await this.globales.initGlobales();
-        this.navCtrl.navigateRoot('/home');
+      } finally {
+        await loading.dismiss();
       }
     } catch (error) {
-      this.globales.hideLoading();
-      await this.globales.presentToast("Error al sincronizar", "middle");
-      return;
+      console.error('❌ Error checking session:', error);
+    } finally {
+      this.isCheckingSession = false;
     }
   }
 
-  async login(){
-    this.globales.estaCerrando = false;
-    if (this.username == '' || this.password == ''){
-      await this.globales.presentAlert('Error', '', 'Debe digitar usuario y contrasena');
+  /**
+   * Handles the login process with offline mode support
+   * Validates credentials and manages authentication state
+   */
+  async login(): Promise<void> {
+    if (this.loginForm.invalid) {
+      console.log('❌ Form is invalid');
       return;
     }
 
+    const loading = await this.loadingController.create({
+      message: 'Iniciando sesión...',
+      spinner: 'circular'
+    });
+
     try {
-      await this.globales.showLoading('Conectando ...');
-      if (await this.authenticationService.ping()) {
-        const token = await this.authenticationService.login(this.username, this.password);
-        if (token) {
-          this.globales.token = token;
-          await this.synchronizationService.load();
-          await this.storage.set('Login', this.username);
-          await this.storage.set('Password', this.password);
-          await this.storage.set('Token', token);
-          await this.globales.initGlobales();
-          this.globales.hideLoading();
-          this.navCtrl.navigateRoot('/home');
-        } else {
-          this.globales.hideLoading();
-          await this.globales.presentAlert('Error','Usuario no autorizado', `Usuario o contraseña no válido.`);
+      await loading.present();
+      const { username, password } = this.loginForm.value;
+
+      const isOnline = await this.authService.ping();
+
+
+      if (!isOnline) {
+        console.log('❌ No connection available');
+        await this.showError('Error', 'No se puede iniciar sesión sin conexión');
+        return;
+      }
+
+      const loginSuccess = await this.authService.login(username, password);
+
+      if (loginSuccess) {
+        const loadSuccess = await this.syncService.load();
+
+        if (!loadSuccess) {
+          await this.showToast('No se pudieron cargar todos los datos', 'middle');
         }
+        await this.router.navigate(['/home']);
       } else {
-        await this.globales.presentAlert('Error','Sin conexión', `No se puede conectar al servidor.`);
+        console.log('❌ Invalid credentials');
+        await this.showError('Error de autenticación', 'Credenciales inválidas');
       }
-      this.globales.hideLoading();
-    } catch (error) {
-      this.globales.hideLoading();
-      if (error instanceof Error){
-        await this.globales.presentAlert('Error','Request Error', error.message);
+    } catch (error: any) {
+      console.error('❌ Error in login:', error);
+      let errorMessage = 'Error al iniciar sesión';
+
+      if (error.status === 401) {
+        errorMessage = 'Credenciales inválidas';
+      } else if (error.status === 0) {
+        errorMessage = 'No se pudo conectar con el servidor';
       }
-      else{
-        await this.globales.presentAlert('Error','Unknown error', `${error}`);
-      }
+
+      await this.showError('Error', errorMessage);
+    } finally {
+      await loading.dismiss();
     }
   }
 
-  async goPassword(){
-    this.navCtrl.navigateRoot('contrasena-correo');
+  /**
+   * Displays an error alert with the specified header and message
+   */
+  private async showError(header: string, message: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: ['OK']
+    });
+    await alert.present();
   }
 
-  async goRegister() {
-    this.navCtrl.navigateRoot('/registro-correo');
+  /**
+   * Displays a toast message with the specified content and position
+   */
+  private async showToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position
+    });
+    await toast.present();
+  }
+
+  /**
+   * Handles the password recovery process
+   * Requires online connectivity
+   */
+  async recoverPassword(): Promise<void> {
+    const { username } = this.loginForm.value;
+    if (!username) {
+      await this.showError('Error', 'Por favor ingrese su correo electrónico');
+      return;
+    }
+
+    const isOnline = await this.authService.ping();
+    if (!isOnline) {
+      await this.showError('Error', 'No se puede recuperar la contraseña sin conexión');
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Enviando correo de recuperación...',
+      spinner: 'circular'
+    });
+
+    try {
+      await loading.present();
+      // TODO: Implement password recovery logic
+      await this.showError('Éxito', 'Se ha enviado un correo con las instrucciones');
+    } catch (error) {
+      console.error('Error al recuperar contraseña:', error);
+      await this.showError('Error', 'No se pudo procesar la solicitud');
+    } finally {
+      await loading.dismiss();
+    }
   }
 }

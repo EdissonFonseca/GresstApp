@@ -137,7 +137,7 @@ export class TransaccionesPage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: TaskAddComponent,
       componentProps: {
-        IdActividad: this.activity().id,
+        idActividad: this.activity().id,
       },
     });
 

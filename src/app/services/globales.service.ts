@@ -31,7 +31,6 @@ export class GlobalesService {
     {IdServicio:TipoServicio.Tratamiento, Nombre:'Transformación', Accion: 'Transformación', Icono: '../../assets/icon/construct.svg'},
     {IdServicio:TipoServicio.Transporte, Nombre:'Transporte', Accion: 'Transporte', Icono: '../../assets/icon/truck.svg'},
   ];
-  public token: string = '';
   public fotosPorMaterial: number = 2;
   public moneda: string = '$';
   public kilometraje: number = 0;
@@ -78,7 +77,6 @@ export class GlobalesService {
     const data: Cuenta = await this.storage.get('Cuenta');
     this.fotosPorMaterial = Number(data.Parametros[Parametros.FotosPorMaterial] ?? "2");
     this.moneda = data.Parametros[Parametros.Moneda];
-    this.token = await this.storage.get('Token');
     this.unidadCantidad = data.Parametros[Parametros.UnidadCantidad];
     this.unidadCombustible = data.Parametros[Parametros.UnidadCombustible];
     this.unidadKilometraje = data.Parametros[Parametros.UnidadKilometraje];

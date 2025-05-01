@@ -2,43 +2,172 @@ ion-content {
   --background: url('../../../assets/img/Fondo.png') no-repeat center center / 100% 100%;
   background-attachment: fixed;
   height: 100vh;
+}
+
+.vertical-center {
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
-}
-
-ion-list {
-  background-color: transparent !important;
-}
-
-ion-item {
-  --ion-background-color: none;
-  --background-color: transparent !important;
-  --border-style: none;
-}
-.transparent{
-  background-color: transparent !important;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
 }
 
 .logo {
-  height: 80px;
-  margin-bottom: 10px;
-  margin-top: 10px;
-  margin-left: 30px;
+  width: 180px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  padding: 20px 0;
+}
+
+form {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+ion-list {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+}
+
+ion-item {
+  --background: transparent;
+  --border-color: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 16px;
+
+  &.transparent {
+    --background: transparent;
+  }
+
+  &[lines="none"] {
+    --border-style: none;
+  }
 }
 
 ion-input.custom {
   --background: #CADCB6;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
   --border-radius: 15px;
-  --padding-start: 10px;
-  --padding-end: 10px;
-  --margin-start: 10px;
+  --placeholder-color: var(--ion-color-medium);
+  --color: var(--ion-color-dark);
+  margin: 8px 0;
+  border-radius: 15px;
+  font-size: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &.ion-valid {
+    --background: #CADCB6;
+  }
+
+  &.ion-invalid {
+    --background: #CADCB6;
+  }
+}
+
+ion-icon {
+  color: var(--ion-color-medium);
+  font-size: 20px;
+  margin-right: 8px;
 }
 
 ion-button.custom {
   --background: #526449;
+  --background-hover: #526449;
+  --background-activated: #526449;
   --color: whitesmoke;
+  --border-radius: 15px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 24px 0 16px;
   height: 60px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &:disabled {
+    --background: #526449;
+    --box-shadow: none;
+    opacity: 0.7;
+  }
+
+  ion-icon {
+    color: whitesmoke;
+    margin-right: 8px;
+  }
+}
+
+ion-button[fill="clear"] {
+  --color: var(--ion-color-medium);
+  font-weight: 500;
+  margin: 8px 0;
+
+  &:hover {
+    --color: var(--ion-color-primary);
+  }
+}
+
+.validation-messages {
+  margin-top: 8px;
+  padding: 0 16px;
+
+  ion-text {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 4px;
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+form {
+  animation: fadeIn 0.5s ease-out;
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .vertical-center {
+    padding: 16px;
+  }
+
+  form {
+    padding: 16px;
+  }
+
+  .logo {
+    width: 150px;
+  }
+
+  ion-button.custom {
+    margin: 20px 0 12px;
+  }
+
+  .validation-messages {
+    padding: 0 8px;
+  }
 }

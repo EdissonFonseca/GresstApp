@@ -75,7 +75,6 @@ export class RutaPage implements OnInit {
       const position = await Geolocation.getCurrentPosition({enableHighAccuracy: true,timeout: 10000,});
       this.origin.lat = position.coords.latitude;
       this.origin.lng = position.coords.longitude;
-      //new google.maps.Marker({map: this.map, position: { lat: this.origin.lat, lng: this.origin.lng },title: "Tu ubicación",});
     } catch (error) {
       console.log('Error al obtener la ubicación actual:', error);
     }

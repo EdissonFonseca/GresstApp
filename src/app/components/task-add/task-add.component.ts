@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { ClienteProveedorInterno, CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from 'src/app/services/constants.service';
@@ -16,28 +16,28 @@ import { TareasService } from 'src/app/services/tareas.service';
 import { ActividadesService } from 'src/app/services/actividades.service';
 import { TransaccionesService } from 'src/app/services/transacciones.service';
 import { InventarioService } from 'src/app/services/inventario.service';
-import { NavParams } from '@ionic/angular';
 
 @Component({
   selector: 'app-task-add',
   templateUrl: './task-add.component.html',
   styleUrls: ['./task-add.component.scss'],
 })
-export class TaskAddComponent  implements OnInit {
+export class TaskAddComponent implements OnInit {
+  @Input() idActividad: string = '';
+  @Input() idTransaccion: string = '';
+
   formData: FormGroup;
   captura: string = '';
   colorReceive: string = 'primary';
   colorSend: string = 'medium';
   embalaje: string = '';
   factor: number | null = null;
-  idActividad: string = '';
   idDeposito: string = '';
   idEmbalaje: string = '';
   idMaterial: string = '';
   idPuntoEntrada: string = '';
   idPuntoSalida: string = '';
   idResiduo: string = '';
-  idTransaccion: string = '';
   idTratamiento: string = '';
   idVehiculo: string = '';
   material: string = '';
@@ -69,7 +69,6 @@ export class TaskAddComponent  implements OnInit {
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
     private transaccionesService: TransaccionesService,
-    private navParams: NavParams,
     private tareasService: TareasService,
     private inventarioService: InventarioService,
   ) {
@@ -86,8 +85,6 @@ export class TaskAddComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.idActividad = this.navParams.get("IdActividad");
-    this.idTransaccion = this.navParams.get("IdTransaccion");
     this.unidadCantidad = this.globales.unidadCantidad ?? '';
     this.unidadPeso = this.globales.unidadPeso ?? '';
     this.unidadVolumen = this.globales.unidadVolumen ?? '';
@@ -161,6 +158,9 @@ export class TaskAddComponent  implements OnInit {
         this.factor = data.data.factor;
       }
     });
+
+    console.log(this.medicion);
+    console.log(this.captura);
 
     await modal.present();
    }

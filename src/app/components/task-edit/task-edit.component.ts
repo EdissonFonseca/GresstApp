@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
-import { ModalController, NavParams } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActividadesService } from 'src/app/services/actividades.service';
@@ -23,27 +23,30 @@ import { EmbalajesService } from 'src/app/services/embalajes.service';
   templateUrl: './task-edit.component.html',
   styleUrls: ['./task-edit.component.scss'],
 })
-export class TaskEditComponent  implements OnInit {
+export class TaskEditComponent implements OnInit {
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
   @Input() notesText: string = 'Al aprobar la operacion, todos los pendientes quedan descartados';
+  @Input() activityId: string = '';
+  @Input() transactionId: string = '';
+  @Input() taskId: string = '';
+  @Input() materialId: string = '';
+  @Input() residueId: string = '';
+  @Input() inputOutput: string = '';
+
   frmTarea: FormGroup;
-  activityId: string = '';
   captura: string = '';
   factor: number | null = null;
   material: string = '';
-  materialId: string = '';
   medicion: string = '';
-  inputOutput: string = '';
   package: string = '';
   packageId: string = '';
   photo!: SafeResourceUrl;
   point: string = '';
   pointTarget: string = '';
   pointId: string = '';
-  residueId: string = '';
   stakeholder: string = '';
   stakeholderId: string = '';
   stakeholderTarget: string = '';
@@ -51,19 +54,16 @@ export class TaskEditComponent  implements OnInit {
   showDetails: boolean = false;
   showTratamiento: boolean = false;
   task: Tarea | undefined = undefined;
-  taskId: string = '';
-  transactionId: string = '';
   target: string = '';
   targetId: string = '';
   treatmentId: string = '';
   treatment: string = '';
   fotosPorMaterial: number = 2;
-  fotos: string[] = []; //Photo[] = [];
+  fotos: string[] = [];
   imageUrl: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
-    private navParams: NavParams,
     private modalCtrl: ModalController,
     private actividadesService: ActividadesService,
     private embalajesService: EmbalajesService,
@@ -75,13 +75,6 @@ export class TaskEditComponent  implements OnInit {
     private tercerosService: TercerosService,
     private globales: GlobalesService,
   ) {
-    this.activityId = this.navParams.get("ActivityId");
-    this.transactionId = this.navParams.get("TransactionId");
-    this.taskId = this.navParams.get("TaskId");
-    this.materialId = this.navParams.get("MaterialId");
-    this.residueId = this.navParams.get("ResidueId");
-    this.inputOutput = this.navParams.get("InputOutput");
-
     this.frmTarea = this.formBuilder.group({
       Cantidad: [],
       Peso: [],

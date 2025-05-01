@@ -18,15 +18,21 @@ export class SincronizacionPage implements OnInit {
   ngOnInit() {}
 
   async synchronize() {
-    await this.globales.showLoading('Closing ...');
+    await this.globales.showLoading('Sincronizando...');
     try {
-      await this.synchronizationService.downloadMasterData();
+      const success = await this.synchronizationService.refresh();
       this.globales.hideLoading();
-      await this.globales.presentToast('Sincronización exitosa', "middle");
-      this.navCtrl.navigateForward('/home');
+
+      if (success) {
+        await this.globales.presentToast('Sincronización exitosa', "middle");
+        this.navCtrl.navigateForward('/home');
+      } else {
+        await this.globales.presentToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
+      }
     } catch (error) {
       this.globales.hideLoading();
-      await this.globales.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+      console.error('Error durante la sincronización:', error);
+      await this.globales.presentToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
     }
   }
 }

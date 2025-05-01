@@ -1,30 +1,41 @@
 <ion-content [fullscreen]="true">
-  <br>
-  <br>
-  <br>
-  <form>
-    <ion-list inset="true" lines="inset">
-      <ion-item class="transparent">
-        <img src="../../../assets/img/Gresst.png" alt="" class="logo">
-      </ion-item>
-      <br>
-      <ion-item>
-        <ion-icon name="person" slot="start" ></ion-icon>
-        <ion-input [(ngModel)]="username" name="username" type="email" label="Usuario" labelPlacement="floating" class="custom" ></ion-input>
-      </ion-item>
-      <br>
-      <ion-item>
-        <ion-icon name="key" slot="start"></ion-icon>
-        <ion-input [(ngModel)]="password" name="password" type="password" label="Contraseña" labelPlacement="floating" class="custom" ></ion-input>
-      </ion-item>
-      <ion-item>
-        <ion-button slot="end" color="medium" shape="round" (click)="goPassword()">Olvidó su contraseña?</ion-button>
-      </ion-item>
-    </ion-list>
-    <ion-button expand="block" class="custom" shape="round" (click)="login()">
-      <ion-icon slot="start" name="log-in"></ion-icon>
-      Ingresar
-    </ion-button>
-    <ion-button *ngIf="showNewAccount" color="dark" fill="clear" (click)="goRegister()">Crear Cuenta?</ion-button>
-  </form>
+  <div class="vertical-center">
+    <ion-item lines="none">
+      <img src="../../../assets/img/Gresst.png" alt="" class="logo">
+    </ion-item>
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <ion-list inset="true">
+        <ion-item>
+          <ion-icon name="person" item-start class="text-primary"></ion-icon>
+          <ion-input
+            formControlName="username"
+            type="email"
+            label="Correo electrónico"
+            labelPlacement="floating"
+            class="custom">
+          </ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name="key" item-start class="text-primary"></ion-icon>
+          <ion-input
+            formControlName="password"
+            type="password"
+            label="Contraseña"
+            labelPlacement="floating"
+            class="custom">
+          </ion-input>
+        </ion-item>
+
+        <ion-button expand="block" class="custom" shape="round" type="submit" [disabled]="loginForm.invalid || isCheckingSession">
+          <ion-icon slot="start" name="log-in"></ion-icon>
+          Iniciar Sesión
+        </ion-button>
+
+        <ion-button fill="clear" expand="block" (click)="recoverPassword()">
+          ¿Olvidaste tu contraseña?
+        </ion-button>
+      </ion-list>
+    </form>
+  </div>
 </ion-content>

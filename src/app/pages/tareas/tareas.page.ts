@@ -100,8 +100,8 @@ export class TareasPage implements OnInit {
     const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-            IdActividad: this.activity().id,
-            IdTransaccion: this.transactionId,
+            idActividad: this.activity().id,
+            idTransaccion: this.transactionId,
         },
     });
 
@@ -160,12 +160,19 @@ export class TareasPage implements OnInit {
       return;
     }
 
-    const modal =   await this.modalCtrl.create({
+    const modal = await this.modalCtrl.create({
       component: TaskEditComponent,
       componentProps: {
-        ActivityId: currentActivity.id,
-        TransactionId: task.parentId,
-        TaskId: task.id,
+        activityId: currentActivity.id,
+        transactionId: task.parentId,
+        taskId: task.id,
+        materialId: task.materialId,
+        residueId: task.residueId,
+        inputOutput: task.inputOutput,
+        showName: true,
+        showPin: true,
+        showNotes: true,
+        showSignPad: true
       },
     });
 
@@ -373,10 +380,22 @@ export class TareasPage implements OnInit {
   }
 
   async synchronize() {
-    if (await this.synchronizationService.refresh()){
-      this.globales.presentToast('Sincronización exitosa', "middle");
-    } else {
-      this.globales.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+    await this.globales.showLoading('Sincronizando...');
+    try {
+      const success = await this.synchronizationService.refresh();
+      this.globales.hideLoading();
+
+      if (success) {
+        await this.globales.presentToast('Sincronización exitosa', "middle");
+        // Recargar los datos después de una sincronización exitosa
+        await this.ionViewWillEnter();
+      } else {
+        await this.globales.presentToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
+      }
+    } catch (error) {
+      this.globales.hideLoading();
+      console.error('Error durante la sincronización:', error);
+      await this.globales.presentToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
     }
   }
 }

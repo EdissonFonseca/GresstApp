@@ -16,11 +16,22 @@ import { InventoryService } from './inventory.service';
 import { GlobalesService } from './globales.service';
 import { AuthenticationService } from './authentication.service';
 import { Transaction } from '../interfaces/transaction.interface';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { firstValueFrom } from 'rxjs';
+import { Storage } from '@ionic/storage-angular';
+import { CapacitorHttp } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
+/**
+ * Service responsible for managing data synchronization between local storage and server.
+ * Handles data download, upload, and transaction management for offline-first functionality.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class SynchronizationService {
+  private readonly apiUrl = environment.apiUrl;
   pendingTransactions = signal<number>(0);
 
   constructor(
@@ -31,8 +42,14 @@ export class SynchronizationService {
     private inventoryService: InventoryService,
     private masterdataService: MasterDataService,
     private transactionsService: TransactionsService,
+    private readonly http: HttpClient,
+    private ionicStorage: Storage
   ) {}
 
+  /**
+   * Counts and updates the number of pending transactions in local storage
+   * @returns {Promise<void>}
+   */
   async countPendingTransactions()  {
     this.pendingTransactions.set(0);
     try {
@@ -50,41 +67,40 @@ export class SynchronizationService {
   }
 
   /**
-   * Download authorizations from the server and store them in the device.
+   * Downloads and stores authorization data from the server
+   * @throws {Error} If the download fails
    */
   async downloadAuthorizations() {
     try {
       var data = await this.authorizationService.get();
       await this.storage.set('Cuenta', data);
-
     } catch (error) {
       throw (error);
     }
   }
 
   /**
-   * Download inventory from the server and store it in the device.
+   * Downloads and stores inventory data from the server
+   * @throws {Error} If the download fails
    */
   async downloadInventory() {
     try {
       var inventarios : Residuo[] = await this.inventoryService.get();
       await this.storage.set('Inventario', inventarios);
-
     } catch (error)  {
       throw (error);
     }
   }
 
   /**
-   * Download master data from the server and store it in the device.
+   * Downloads and stores all master data from the server
+   * Includes: packaging, materials, points, services, third parties, treatments, and vehicles
+   * @throws {Error} If the download fails
    */
   async downloadMasterData() {
     try {
       var embalajes : Embalaje[] = await this.masterdataService.getEmbalajes();
       await this.storage.set('Embalajes', embalajes);
-
-      //var insumos : Insumo[] = await this.masterdataService.getInsumos();
-      //await this.storage.set('Insumos', insumos);
 
       var materiales: Material[] = await this.masterdataService.getMateriales();
       await this.storage.set('Materiales', materiales);
@@ -103,32 +119,31 @@ export class SynchronizationService {
 
       var vehiculos: Vehiculo[] = await this.masterdataService.getVehiculos();
       await this.storage.set('Vehiculos', vehiculos);
-
     } catch (error) {
       throw (error);
     }
   }
 
   /**
-   * Download transactions from the server and store them in the device.
+   * Downloads and stores transaction data from the server
+   * @throws {Error} If the download fails
    */
   async downloadTransactions() {
     try {
       var transaction: Transaction = await this.transactionsService.get();
       await this.storage.set('Transaction', transaction);
-
     } catch(error) {
       throw (error);
     }
   }
 
   /**
-   * Upload master data to the server.
-   * @returns true if the operation was successful, false otherwise.
+   * Uploads new master data records to the server
+   * @returns {Promise<boolean>} True if upload was successful
+   * @throws {Error} If the upload fails
    */
   async uploadMasterData(): Promise<boolean> {
     let embalajes: Embalaje[] = await this.storage.get('Embalajes');
-    //let insumos: Insumo[] = await this.storage.get('Insumos');
     let materiales: Material[] = await this.storage.get('Materiales');
     let puntos: Punto[] = await this.storage.get('Puntos');
     let terceros: Tercero[] = await this.storage.get('Terceros');
@@ -144,21 +159,9 @@ export class SynchronizationService {
         });
       }
 
-      // if (insumos) {
-      //   const insumosCrear = insumos.filter(x => x.CRUD == CRUDOperacion.Create);
-      //   insumosCrear.forEach(async(insumo) => {
-      //     console.log(insumo);
-      //     await this.masterdataService.postInsumo(insumo);
-      //     insumo.CRUD = null;
-      //     insumo.CRUDDate = null;
-      //   });
-      // }
-
       if (tratamientos) {
         const tratamientosCrear = tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
         tratamientosCrear.forEach(async(tratamiento) => {
-          console.log(tratamiento);
-          //await this.integration.postTratamiento(tratamiento);
           tratamiento.CRUD = null;
           tratamiento.CRUDDate = null;
         });
@@ -167,7 +170,6 @@ export class SynchronizationService {
       if (materiales) {
         const materialesCrear = materiales.filter(x => x.CRUD == CRUDOperacion.Create);
         materialesCrear.forEach(async(material) => {
-          console.log(material);
           await this.masterdataService.postMaterial(material);
           material.CRUD = null;
           material.CRUDDate = null;
@@ -177,7 +179,6 @@ export class SynchronizationService {
       if (terceros) {
         const tercerosCrear = terceros.filter(x => x.CRUD == CRUDOperacion.Create);
         tercerosCrear.forEach(async(tercero) => {
-          console.log(tercero);
           await this.masterdataService.postTercero(tercero);
           tercero.CRUD = null;
           tercero.CRUDDate = null;
@@ -187,30 +188,27 @@ export class SynchronizationService {
       if (puntos) {
         const puntosCrear = puntos.filter(x => x.CRUD == CRUDOperacion.Create);
         puntosCrear.forEach(async(punto) => {
-          console.log(punto);
-          //await this.integration.postPunto(punto);
           punto.CRUD = null;
           punto.CRUDDate = null;
         });
       }
       return true;
-
     } catch (error) {
-      console.log(error);
+      console.error('Error uploading master data:', error);
       throw (error);
     }
   }
 
   /**
-   * Upload transactions to the server.
-   * @returns true if the operation was successful, false otherwise.
+   * Uploads pending transactions to the server
+   * @returns {Promise<boolean>} True if upload was successful
+   * @throws {Error} If the upload fails
    */
   async uploadTransactions(): Promise<boolean> {
     let transaction: Transaction = await this.storage.get('Transaction');
 
     try {
       if (transaction) {
-
         for (const actividad of transaction.Actividades) {
           if (actividad.CRUD == CRUDOperacion.Read) {
             if (actividad.LongitudInicial){
@@ -299,96 +297,143 @@ export class SynchronizationService {
       await this.storage.set('Transaction', transaction);
       await this.countPendingTransactions();
       return true;
-
     } catch (error) {
       throw (error);
     }
   }
 
-  async load(){
-    console.log('Cargando ...');
+  /**
+   * Loads initial data after login
+   * @returns {Promise<boolean>} True if load was successful
+   */
+  async load(): Promise<boolean> {
     try {
-      this.storage.clear();
-
-      console.log('Descargando autorizaciones ...');
-      await this.downloadAuthorizations();
-
-      console.log('Descargando datos maestros ...');
-      await this.downloadMasterData();
-
-      console.log('Descargando inventario ...');
-      await this.downloadInventory();
-
-      console.log('Descargando transacciones ...');
-      await this.downloadTransactions();
-
-    } catch (error){
-      throw (error);
-    }
-  }
-
-  async refresh(): Promise<boolean> {
-    console.log('Refrescando ...');
-
-    try {
-      console.log('Subiendo datos maestros ...');
-      if (await this.uploadMasterData())
-      {
-        console.log('Subiendo transacciones ...');
-        if (await this.uploadTransactions()) {
-          this.load();
-        }
-      }
-      return true;
-    } catch (error){
-      //throw (error);
-      return false;
-    }
-  }
-
-  async close(): Promise<boolean> {
-    console.log('Cerrando ...');
-
-    if (!this.authenticationService.ping()) return false;
-
-    if (!this.authenticationService.validateToken())
-      this.globales.token = await this.authenticationService.reconnect();
-
-    if (!this.globales.token) return false;
-
-    try
-    {
-      //Online
-      console.log('Subiendo datos maestros ...');
-      if (await this.uploadMasterData())
-      {
-        console.log('Subiendo transacciones ...');
-        if (await this.uploadTransactions()) {
-          await this.storage.clear();
-        } else {
-          return false;
-        }
-      } else {
+      const isOnline = await this.authenticationService.ping();
+      if (!isOnline) {
         return false;
       }
+
+      await this.downloadAuthorizations();
+      await this.downloadInventory();
+      await this.downloadMasterData();
+      await this.downloadTransactions();
+      await this.countPendingTransactions();
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Error loading initial data:', error);
       return false;
     }
   }
 
-  async forceQuit(): Promise<boolean> {
-    console.log('Forzando salida ...');
-    let transaction: Transaction = await this.storage.get('Transaction');
-
+  /**
+   * Refreshes data for an existing session
+   * @returns {Promise<boolean>} True if refresh was successful
+   */
+  async refresh(): Promise<boolean> {
     try {
-      await this.transactionsService.postBackup(transaction);
-      await this.storage.clear();
-      return true;
+      const isOnline = await this.authenticationService.ping();
+      if (!isOnline) {
+        return false;
+      }
 
+      await this.uploadMasterData();
+      await this.uploadTransactions();
+      await this.downloadAuthorizations();
+      await this.downloadInventory();
+      await this.downloadMasterData();
+      await this.downloadTransactions();
+      await this.countPendingTransactions();
+      return true;
     } catch (error) {
+      console.error('Error refreshing data:', error);
       return false;
-      //throw (error);
+    }
+  }
+
+  /**
+   * Attempts to close the session by uploading pending transactions
+   * @returns {Promise<boolean>} True if close was successful, false otherwise
+   */
+  async close(): Promise<boolean> {
+    try {
+      const isOnline = await this.authenticationService.ping();
+      if (!isOnline) {
+        console.log('Cannot close session without connection');
+        return false;
+      }
+
+      const uploadSuccess = await this.uploadTransactions();
+      if (uploadSuccess) {
+        await this.storage.clear();
+        return true;
+      }
+
+      console.log('Failed to upload pending transactions');
+      return false;
+    } catch (error) {
+      console.error('Error closing session:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Forces application exit by creating a backup of current transactions
+   * @returns {Promise<void>}
+   */
+  async forceQuit(): Promise<void> {
+    try {
+      // Obtener datos del storage
+      const transactions = await this.storage.get('Transaction') || [];
+      const masterData = await this.storage.get('Embalajes') || [];
+      const inventory = await this.storage.get('Inventario') || [];
+      const authorizations = await this.storage.get('Cuenta') || [];
+
+      // Crear objeto con todos los datos
+      const backupData = {
+        timestamp: new Date().toISOString(),
+        transactions,
+        masterData,
+        inventory,
+        authorizations
+      };
+
+      // Convertir a JSON
+      const jsonData = JSON.stringify(backupData, null, 2);
+
+      // Crear nombre de archivo con timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const fileName = `gresst-backup-${timestamp}.json`;
+
+      // Guardar archivo en el directorio de documentos
+      await Filesystem.writeFile({
+        path: fileName,
+        data: jsonData,
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      console.log('Backup local creado exitosamente:', fileName);
+
+      // Intentar hacer backup en el servidor
+      try {
+        await CapacitorHttp.post({
+          url: `${environment.apiUrl}/api/transactions/backup`,
+          data: backupData,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('Backup en servidor creado exitosamente');
+      } catch (error) {
+        console.error('Error al crear backup en servidor:', error);
+      }
+
+      // Limpiar storage
+      await this.storage.clear();
+      console.log('Storage limpiado exitosamente');
+    } catch (error) {
+      console.error('Error en forceQuit:', error);
+      throw error;
     }
   }
 }

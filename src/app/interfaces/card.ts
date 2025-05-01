@@ -17,6 +17,9 @@ export interface Card {
   successItems?: number | null | undefined;
   volume?: number | null | undefined;
   weight?: number | null | undefined;
+  materialId?: string | null | undefined;
+  residueId?: string | null | undefined;
+  inputOutput?: string | null | undefined;
 
   color?: string | undefined | null;
   summary?: string | undefined | null;

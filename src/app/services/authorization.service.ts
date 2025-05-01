@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
+import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { GlobalesService } from './globales.service';
+import { AuthenticationService } from './authentication.service';
 
 @Injectable({
   providedIn: 'root',
@@ -9,23 +9,35 @@ import { GlobalesService } from './globales.service';
 export class AuthorizationService {
   private authorizationUrl = `${environment.apiUrl}/authorization`;
 
-  constructor(
-    private globales: GlobalesService
-  ) {}
+  constructor(private authService: AuthenticationService) {}
 
-  async get(): Promise<any>{
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`, 'Content-Type': 'application/json' };
-    const options = { url: `${this.authorizationUrl}/get/app`, headers };
+  async get(): Promise<any> {
+    const token = await this.authService.getAccessToken();
+    if (!token) {
+      throw new Error('No access token available');
+    }
 
-    try{
-      const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status == 200) {
-        return response.data;
-      } else {
-        throw new Error('Request error');
+    const options = {
+      url: `${this.authorizationUrl}/get/app`,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      webFetchExtra: {
+        mode: 'cors' as RequestMode,
+        cache: 'no-cache' as RequestCache,
+        credentials: 'omit' as RequestCredentials
       }
-    } catch (error){
-      throw(error);
+    };
+
+    try {
+      const response: HttpResponse = await CapacitorHttp.get(options);
+      if (response.status === 200) {
+        return response.data;
+      }
+      throw new Error('Request error');
+    } catch (error) {
+      throw error;
     }
   }
 }

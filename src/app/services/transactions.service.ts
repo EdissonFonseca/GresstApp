@@ -1,13 +1,26 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
+import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { environment } from '../../environments/environment';
 import { Tarea } from '../interfaces/tarea.interface';
 import { Transaccion } from '../interfaces/transaccion.interface';
 import { Actividad } from '../interfaces/actividad.interface';
-import { GlobalesService } from './globales.service';
-import { AppConfig } from './constants.service';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { StorageService } from './storage.service';
+import { HttpClient } from '@angular/common/http';
+
+interface TareaResponse {
+  IdSolicitud: number;
+  Item: number;
+}
+
+interface TransaccionResponse {
+  IdOrden: string;
+}
+
+interface ActividadResponse {
+  IdOrden: string;
+  Orden: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -16,40 +29,38 @@ export class TransactionsService {
   private transactionsUrl = `${environment.apiUrl}/apptransactions`;
 
   constructor(
-    private globales: GlobalesService,
+    private readonly http: HttpClient,
     private storage: StorageService,
   ) {}
 
-  async get(): Promise<any>{
-    const headers = { 'Authorization': `Bearer ${this.globales.token}` };
-    const options = { url: `${this.transactionsUrl}/get`, headers };
-
-    try{
+  async get(): Promise<Transaction> {
+    try {
+      const options = { url: `${this.transactionsUrl}/get` };
       const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status == 200) {
+      if (response.status === 200) {
         return response.data;
-      } else {
-        throw new Error('Request error');
       }
-    } catch (error){
-      throw(error);
+      throw new Error('Request failed');
+    } catch (error) {
+      throw error;
     }
   }
 
   async postTarea(tarea: Tarea): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtarea`, data:tarea, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/createtarea`,
+        data: tarea,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200 || response.status == 201) { //Created
+      if (response.status === 200 || response.status === 201) {
         tarea.CRUD = null;
-        tarea.IdSolicitud =  response.data.IdSolicitud;
+        tarea.IdSolicitud = response.data.IdSolicitud;
         tarea.Item = response.data.Item;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -60,17 +71,18 @@ export class TransactionsService {
   }
 
   async patchTarea(tarea: Tarea): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetarea`, data:tarea, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/updatetarea`,
+        data: tarea,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status === 200) {
         tarea.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -81,19 +93,19 @@ export class TransactionsService {
   }
 
   async postTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createtransaccion`, data:transaccion, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/createtransaccion`,
+        data: transaccion,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 201 || response.status == 200) { //Ok
-        //transaccion.IdTransaccion =  response.data.IdTransaccion;
+      if (response.status === 200 || response.status === 201) {
         transaccion.IdOrden = response.data.IdOrden;
         transaccion.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -104,17 +116,18 @@ export class TransactionsService {
   }
 
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updatetransaccion`, data:transaccion, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/updatetransaccion`,
+        data: transaccion,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status === 200) {
         transaccion.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -125,17 +138,18 @@ export class TransactionsService {
   }
 
   async emitCertificate(transaccion: Transaccion): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/emitircertificado`, data:transaccion, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/emitircertificado`,
+        data: transaccion,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status === 200) {
         transaccion.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -146,19 +160,20 @@ export class TransactionsService {
   }
 
   async postActividad(actividad: Actividad): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/createactividad`, data:actividad, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/createactividad`,
+        data: actividad,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200 || response.status == 201) { //Ok
+      if (response.status === 200 || response.status === 201) {
         actividad.CRUD = null;
         actividad.IdOrden = response.data.IdOrden;
         actividad.Orden = response.data.Orden;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -169,17 +184,18 @@ export class TransactionsService {
   }
 
   async patchActividad(actividad: Actividad): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividad`, data:actividad, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/updateactividad`,
+        data: actividad,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status === 200) {
         actividad.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -190,17 +206,18 @@ export class TransactionsService {
   }
 
   async postActividadInicio(actividad: Actividad): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/updateactividadinicio`, data:actividad, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/updateactividadinicio`,
+        data: actividad,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
+      if (response.status === 200) {
         actividad.CRUD = null;
         return true;
-      } else {
-        return false;
       }
+      return false;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`Request error: ${error.message}`);
@@ -211,23 +228,16 @@ export class TransactionsService {
   }
 
   async postBackup(transaction: Transaction): Promise<boolean> {
-    const headers = { 'Authorization': `Bearer ${this.globales.token}`,'Content-Type': 'application/json' };
-    const options = { url: `${this.transactionsUrl}/backup`, data:transaction, headers };
-
-    try{
+    try {
+      const options = {
+        url: `${this.transactionsUrl}/backup`,
+        data: transaction,
+        headers: { 'Content-Type': 'application/json' }
+      };
       const response: HttpResponse = await CapacitorHttp.post(options);
-      if (response.status == 200) { //Ok
-        return true;
-      } else {
-        return false;
-      }
+      return response.status === 200;
     } catch (error) {
       return false;
-      // if (error instanceof Error) {
-      //   throw new Error(`Request error: ${error.message}`);
-      // } else {
-      //   throw new Error(`Unknown error: ${error}`);
-      // }
     }
   }
 }
