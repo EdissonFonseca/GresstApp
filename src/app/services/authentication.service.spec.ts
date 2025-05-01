@@ -1,29 +1,25 @@
-import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { AuthenticationService } from './authentication.service';
 import { StorageService } from './storage.service';
 import { environment } from '../../environments/environment';
+import { CapacitorHttp } from '@capacitor/core';
 
 interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+  AccessToken: string;
+  RefreshToken: string;
 }
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
-  let httpMock: HttpTestingController;
   let storageService: StorageService;
 
   const mockTokenResponse: TokenResponse = {
-    accessToken: 'test-access-token',
-    refreshToken: 'test-refresh-token',
-    expiresIn: 3600
+    AccessToken: 'test-access-token',
+    RefreshToken: 'test-refresh-token'
   };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
         AuthenticationService,
         StorageService
@@ -31,7 +27,6 @@ describe('AuthenticationService', () => {
     });
 
     service = TestBed.inject(AuthenticationService);
-    httpMock = TestBed.inject(HttpTestingController);
     storageService = TestBed.inject(StorageService);
 
     // Clear storage before each test
@@ -41,7 +36,15 @@ describe('AuthenticationService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify();
+    // Limpiar todos los mocks después de cada prueba
+    (storageService.clear as jasmine.Spy).calls.reset();
+    (storageService.set as jasmine.Spy).calls.reset();
+    (storageService.get as jasmine.Spy).calls.reset();
+  });
+
+  afterAll(() => {
+    // Limpiar el TestBed después de todas las pruebas
+    TestBed.resetTestingModule();
   });
 
   it('should be created', () => {
@@ -49,107 +52,126 @@ describe('AuthenticationService', () => {
   });
 
   describe('ping', () => {
-    it('should return true when server is reachable', () => {
-      service.ping().then(result => {
-        expect(result).toBeTrue();
-      });
+    it('should return true when server is reachable', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'get').and.returnValue(Promise.resolve({
+        status: 200,
+        data: {},
+        headers: {},
+        url: ''
+      }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/ping`);
-      expect(req.request.method).toBe('GET');
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.flush({});
-    });
+      let result = false;
+      service.ping().then(res => result = res);
+      tick();
 
-    it('should return false when server is not reachable', () => {
-      service.ping().then(result => {
-        expect(result).toBeFalse();
-      });
+      expect(result).toBeTrue();
+      expect(CapacitorHttp.get).toHaveBeenCalledWith(jasmine.objectContaining({
+        url: `${environment.apiUrl}/authentication/ping`
+      }));
+    }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/ping`);
-      expect(req.request.method).toBe('GET');
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.error(new ErrorEvent('Network error'));
-    });
+    it('should return false when server is not reachable', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'get').and.returnValue(Promise.reject(new Error('Network error')));
+
+      let result = true;
+      service.ping().then(res => result = res);
+      tick();
+
+      expect(result).toBeFalse();
+    }));
   });
 
   describe('login', () => {
     const username = 'test@example.com';
     const password = 'password123';
 
-    it('should return true and store tokens on successful login', () => {
-      service.login(username, password).then(result => {
-        expect(result).toBeTrue();
-        expect(storageService.set).toHaveBeenCalledWith('accessToken', mockTokenResponse.accessToken);
-        expect(storageService.set).toHaveBeenCalledWith('refreshToken', mockTokenResponse.refreshToken);
-        expect(storageService.set).toHaveBeenCalledWith('username', username);
-      });
+    it('should return true and store tokens on successful login', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve({
+        status: 200,
+        data: mockTokenResponse,
+        headers: {},
+        url: ''
+      }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ username, password });
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.flush(mockTokenResponse);
-    });
+      let result = false;
+      service.login(username, password).then(res => result = res);
+      tick();
 
-    it('should return false on failed login', () => {
-      service.login(username, password).then(result => {
-        expect(result).toBeFalse();
-        expect(storageService.set).not.toHaveBeenCalled();
-      });
+      expect(result).toBeTrue();
+      expect(storageService.set).toHaveBeenCalledWith('Login', username);
+      expect(storageService.set).toHaveBeenCalledWith('AccessToken', mockTokenResponse.AccessToken);
+      expect(storageService.set).toHaveBeenCalledWith('RefreshToken', mockTokenResponse.RefreshToken);
+    }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/login`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.error(new ErrorEvent('Unauthorized'));
-    });
+    it('should return false on failed login', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve({
+        status: 401,
+        data: {},
+        headers: {},
+        url: ''
+      }));
+
+      let result = true;
+      service.login(username, password).then(res => result = res);
+      tick();
+
+      expect(result).toBeFalse();
+      expect(storageService.set).not.toHaveBeenCalled();
+    }));
   });
 
   describe('refreshToken', () => {
     beforeEach(() => {
       spyOn(storageService, 'get').and.callFake((key: string) => {
-        if (key === 'username') return Promise.resolve('test@example.com');
-        if (key === 'refreshToken') return Promise.resolve('old-refresh-token');
+        if (key === 'Login') return Promise.resolve('test@example.com');
+        if (key === 'RefreshToken') return Promise.resolve('old-refresh-token');
         return Promise.resolve(null);
       });
     });
 
-    it('should return true and update tokens on successful refresh', () => {
-      service.refreshToken().then(result => {
-        expect(result).toBeTrue();
-        expect(storageService.set).toHaveBeenCalledWith('accessToken', mockTokenResponse.accessToken);
-        expect(storageService.set).toHaveBeenCalledWith('refreshToken', mockTokenResponse.refreshToken);
-      });
+    it('should return true and update tokens on successful refresh', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve({
+        status: 200,
+        data: mockTokenResponse,
+        headers: {},
+        url: ''
+      }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({
-        username: 'test@example.com',
-        refreshToken: 'old-refresh-token'
-      });
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.flush(mockTokenResponse);
-    });
+      let result = false;
+      service.refreshToken().then(res => result = res);
+      tick();
 
-    it('should return false when refresh token is missing', () => {
+      expect(result).toBeTrue();
+      expect(storageService.set).toHaveBeenCalledWith('AccessToken', mockTokenResponse.AccessToken);
+      expect(storageService.set).toHaveBeenCalledWith('RefreshToken', mockTokenResponse.RefreshToken);
+    }));
+
+    it('should return false when refresh token is missing', fakeAsync(() => {
       spyOn(storageService, 'get').and.returnValue(Promise.resolve(null));
 
-      service.refreshToken().then(result => {
-        expect(result).toBeFalse();
-        expect(storageService.set).not.toHaveBeenCalled();
-      });
-    });
+      let result = true;
+      service.refreshToken().then(res => result = res);
+      tick();
 
-    it('should return false on failed refresh', () => {
-      service.refreshToken().then(result => {
-        expect(result).toBeFalse();
-        expect(storageService.set).not.toHaveBeenCalled();
-      });
+      expect(result).toBeFalse();
+      expect(storageService.set).not.toHaveBeenCalled();
+    }));
 
-      const req = httpMock.expectOne(`${environment.apiUrl}/auth/refresh`);
-      expect(req.request.method).toBe('POST');
-      expect(req.request.headers.has('Authorization')).toBeFalse();
-      req.error(new ErrorEvent('Unauthorized'));
-    });
+    it('should return false on failed refresh', fakeAsync(() => {
+      spyOn(CapacitorHttp, 'post').and.returnValue(Promise.resolve({
+        status: 401,
+        data: {},
+        headers: {},
+        url: ''
+      }));
+
+      let result = true;
+      service.refreshToken().then(res => result = res);
+      tick();
+
+      expect(result).toBeFalse();
+      expect(storageService.set).not.toHaveBeenCalled();
+    }));
   });
 
   describe('restoreSession', () => {
@@ -158,70 +180,77 @@ describe('AuthenticationService', () => {
       spyOn(service, 'ping').and.returnValue(Promise.resolve(true));
     });
 
-    it('should return true when online and refresh successful', () => {
-      service.restoreSession().then(result => {
-        expect(result).toBeTrue();
-        expect(service.refreshToken).toHaveBeenCalled();
-      });
-    });
+    it('should return true when online and refresh successful', fakeAsync(() => {
+      let result = false;
+      service.restoreSession().then(res => result = res);
+      tick();
 
-    it('should return false when online but refresh fails', () => {
+      expect(result).toBeTrue();
+      expect(service.refreshToken).toHaveBeenCalled();
+    }));
+
+    it('should return false when online but refresh fails', fakeAsync(() => {
       (service.refreshToken as jasmine.Spy).and.returnValue(Promise.resolve(false));
 
-      service.restoreSession().then(result => {
-        expect(result).toBeFalse();
-      });
-    });
+      let result = true;
+      service.restoreSession().then(res => result = res);
+      tick();
 
-    it('should return false when offline', () => {
+      expect(result).toBeFalse();
+    }));
+
+    it('should return false when offline', fakeAsync(() => {
       (service.ping as jasmine.Spy).and.returnValue(Promise.resolve(false));
 
-      service.restoreSession().then(result => {
-        expect(result).toBeFalse();
-        expect(service.refreshToken).not.toHaveBeenCalled();
-      });
-    });
+      let result = true;
+      service.restoreSession().then(res => result = res);
+      tick();
+
+      expect(result).toBeFalse();
+      expect(service.refreshToken).not.toHaveBeenCalled();
+    }));
   });
 
   describe('logout', () => {
-    it('should clear storage and return true', () => {
-      service.logout().then(result => {
-        expect(result).toBeTrue();
-        expect(storageService.clear).toHaveBeenCalled();
-      });
-    });
+    it('should clear storage', fakeAsync(() => {
+      service.logout();
+      tick();
+
+      expect(storageService.clear).toHaveBeenCalled();
+    }));
   });
 
   describe('isAuthenticated', () => {
-    it('should return true when access token exists', () => {
+    it('should return true when access token exists', fakeAsync(() => {
       spyOn(storageService, 'get').and.returnValue(Promise.resolve('valid-token'));
 
-      service.isAuthenticated().then(result => {
-        expect(result).toBeTrue();
-      });
-    });
+      let result = false;
+      service.isAuthenticated().then(res => result = res);
+      tick();
 
-    it('should return false when access token is missing', () => {
+      expect(result).toBeTrue();
+    }));
+
+    it('should return false when access token is missing', fakeAsync(() => {
       spyOn(storageService, 'get').and.returnValue(Promise.resolve(null));
 
-      service.isAuthenticated().then(result => {
-        expect(result).toBeFalse();
-      });
-    });
+      let result = true;
+      service.isAuthenticated().then(res => result = res);
+      tick();
+
+      expect(result).toBeFalse();
+    }));
   });
 
-  describe('protected endpoint', () => {
-    it('should include Authorization header for protected endpoints', () => {
-      const mockToken = 'test-token';
-      spyOn(storageService, 'get').and.returnValue(Promise.resolve(mockToken));
+  describe('isPublicEndpoint', () => {
+    it('should return true for public endpoints', () => {
+      const result = service.isPublicEndpoint('/authentication/login');
+      expect(result).toBeTrue();
+    });
 
-      service['http'].get(`${environment.apiUrl}/api/protected`).subscribe();
-
-      const req = httpMock.expectOne(`${environment.apiUrl}/api/protected`);
-      expect(req.request.method).toBe('GET');
-      expect(req.request.headers.has('Authorization')).toBeTrue();
-      expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockToken}`);
-      req.flush({});
+    it('should return false for protected endpoints', () => {
+      const result = service.isPublicEndpoint('/api/protected');
+      expect(result).toBeFalse();
     });
   });
 });

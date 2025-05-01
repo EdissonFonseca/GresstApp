@@ -1,43 +1,51 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { environment } from '../../environments/environment';
-import { AuthenticationService } from './authentication.service';
+import { HttpService } from './http.service';
+
+interface AuthorizationResponse {
+  titulo_learning_path: string;
+  actividades: {
+    id_actividad: string;
+    completada: boolean;
+    nota: number;
+    calificada: boolean;
+  }[];
+}
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AuthorizationService {
-  private authorizationUrl = `${environment.apiUrl}/authorization`;
+  private readonly apiUrl = environment.apiUrl;
 
-  constructor(private authService: AuthenticationService) {}
+  constructor(private http: HttpService) {}
 
-  async get(): Promise<any> {
-    const token = await this.authService.getAccessToken();
-    if (!token) {
-      throw new Error('No access token available');
-    }
+  async get(): Promise<AuthorizationResponse[]> {
+    return this.http.get<AuthorizationResponse[]>('/authorization/get/app');
+  }
 
-    const options = {
-      url: `${this.authorizationUrl}/get/app`,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      webFetchExtra: {
-        mode: 'cors' as RequestMode,
-        cache: 'no-cache' as RequestCache,
-        credentials: 'omit' as RequestCredentials
-      }
-    };
+  async hasPermission(permission: string): Promise<boolean> {
+    const permissions = await this.get();
+    return permissions.some(path =>
+      path.actividades.some(actividad => actividad.id_actividad === permission)
+    );
+  }
 
-    try {
-      const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status === 200) {
-        return response.data;
-      }
-      throw new Error('Request error');
-    } catch (error) {
-      throw error;
-    }
+  async hasAnyPermission(permissions: string[]): Promise<boolean> {
+    const userPermissions = await this.get();
+    return permissions.some(permission =>
+      userPermissions.some(path =>
+        path.actividades.some(actividad => actividad.id_actividad === permission)
+      )
+    );
+  }
+
+  async hasAllPermissions(permissions: string[]): Promise<boolean> {
+    const userPermissions = await this.get();
+    return permissions.every(permission =>
+      userPermissions.some(path =>
+        path.actividades.some(actividad => actividad.id_actividad === permission)
+      )
+    );
   }
 }

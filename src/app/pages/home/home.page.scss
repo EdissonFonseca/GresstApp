@@ -1,0 +1,86 @@
+ion-tab-bar {
+  --background: var(--ion-color-light);
+  --border-color: var(--ion-color-medium);
+  padding: 8px 0;
+}
+
+ion-tab-button {
+  --color: var(--ion-color-medium);
+  --color-selected: var(--ion-color-primary);
+  --ripple-color: var(--ion-color-primary);
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+
+  &.tab-selected {
+    --color: var(--ion-color-primary);
+
+    ion-icon, ion-label {
+      color: var(--ion-color-primary);
+    }
+  }
+
+  ion-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  ion-label {
+    font-size: 12px;
+    font-weight: 500;
+  }
+}
+
+.tab-selected {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background-color: var(--ion-color-primary);
+    border-radius: 2px;
+  }
+}
+
+// Animación para el cambio de tabs
+ion-tab-bar {
+  transition: all 0.3s ease;
+}
+
+ion-tab-button {
+  transition: all 0.2s ease;
+
+  &:hover {
+    --color: var(--ion-color-primary);
+    opacity: 0.8;
+  }
+}
+
+// Mejoras para el header
+app-header {
+  --background: var(--ion-color-light);
+  --border-color: var(--ion-color-medium);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// Estilos para el contenido
+ion-content {
+  --background: var(--ion-color-light-shade);
+}
+
+// Estilos para el contenedor principal
+ion-tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// Estilos para el área de contenido
+ion-router-outlet {
+  flex: 1;
+  overflow: auto;
+}

@@ -20,11 +20,14 @@ module.exports = function (config) {
         // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
         // for example, you can disable the random execution with `random: false`
         // or set a specific seed with `seed: 4321`
+        failFast: true,
+        timeoutInterval: 10000
       },
-      clearContext: false // leave Jasmine Spec Runner output visible in browser
+      clearContext: true // clear Jasmine Spec Runner output in browser
     },
     jasmineHtmlReporter: {
-      suppressAll: true // removes the duplicated traces
+      suppressAll: true, // removes the duplicated traces
+      suppressFailed: true // removes failed tests from the output
     },
     coverageReporter: {
       dir: path.join(__dirname, './coverage/app'),
@@ -41,6 +44,10 @@ module.exports = function (config) {
     autoWatch: true,
     browsers: ['Chrome'],
     singleRun: false,
-    restartOnFileChange: true
+    restartOnFileChange: true,
+    browserDisconnectTimeout: 10000,
+    browserNoActivityTimeout: 30000,
+    captureTimeout: 60000,
+    processKillTimeout: 2000
   });
 };

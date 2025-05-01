@@ -1,47 +1,53 @@
 import { Injectable } from '@angular/core';
-import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { environment } from '../../environments/environment';
+import { HttpService } from './http.service';
+import { Mensaje } from '../interfaces/mensaje.interface';
+import { Interlocutor } from '../interfaces/interlocutor.interface';
+import { Residuo } from '../interfaces/residuo.interface';
+
+export interface Inventario {
+  IdInventario: string;
+  IdResiduo: string;
+  IdEstado: string;
+  IdRecurso: string;
+  IdServicio: string;
+  Titulo: string;
+  CRUD?: string;
+  CRUDDate?: Date;
+}
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class InventoryService {
-  private bancoUrl = `${environment.apiUrl}/appbanco`;
-  private inventoryUrl = `${environment.apiUrl}/appinventory`;
+  private readonly apiUrl = environment.apiUrl;
 
-  constructor() {}
+  constructor(private http: HttpService) {}
 
   async getBanco(): Promise<any> {
-    const options = {
-      url: `${this.bancoUrl}/get`,
-      headers: { 'Content-Type': 'application/json' }
-    };
-
-    try {
-      const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status === 200) {
-        return response.data;
-      }
-      throw new Error('Request error');
-    } catch (error) {
-      throw error;
-    }
+    return this.http.get('/inventory/banco');
   }
 
-  async get(): Promise<any> {
-    const options = {
-      url: `${this.inventoryUrl}/get`,
-      headers: { 'Content-Type': 'application/json' }
-    };
+  async get(): Promise<Residuo[]> {
+    return this.http.get<Residuo[]>('/inventory/get');
+  }
 
-    try {
-      const response: HttpResponse = await CapacitorHttp.get(options);
-      if (response.status === 200) {
-        return response.data;
-      }
-      throw new Error('Request error');
-    } catch (error) {
-      throw error;
-    }
+  async getMensajes(idResiduo: string, idInterlocutor: string): Promise<Mensaje[]> {
+    return this.http.get<Mensaje[]>(`/inventory/mensajes/${idResiduo}/${idInterlocutor}`);
+  }
+
+  async getInterlocutores(idResiduo: string): Promise<Interlocutor[]> {
+    return this.http.get<Interlocutor[]>(`/inventory/interlocutores/${idResiduo}`);
+  }
+
+  async post(inventario: Inventario): Promise<boolean> {
+    const response = await this.http.post<{ IdInventario: string }>('/inventory/post', inventario);
+    inventario.IdInventario = response.IdInventario;
+    return true;
+  }
+
+  async patch(inventario: Inventario): Promise<boolean> {
+    await this.http.patch('/inventory/patch', inventario);
+    return true;
   }
 }

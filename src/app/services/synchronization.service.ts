@@ -16,12 +16,12 @@ import { InventoryService } from './inventory.service';
 import { GlobalesService } from './globales.service';
 import { AuthenticationService } from './authentication.service';
 import { Transaction } from '../interfaces/transaction.interface';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { HttpService } from './http.service';
 import { firstValueFrom } from 'rxjs';
 import { Storage } from '@ionic/storage-angular';
 import { CapacitorHttp } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { environment } from '../../environments/environment';
 
 /**
  * Service responsible for managing data synchronization between local storage and server.
@@ -42,7 +42,7 @@ export class SynchronizationService {
     private inventoryService: InventoryService,
     private masterdataService: MasterDataService,
     private transactionsService: TransactionsService,
-    private readonly http: HttpClient,
+    private readonly http: HttpService,
     private ionicStorage: Storage
   ) {}
 
@@ -72,8 +72,8 @@ export class SynchronizationService {
    */
   async downloadAuthorizations() {
     try {
-      var data = await this.authorizationService.get();
-      await this.storage.set('Cuenta', data);
+      const permissions = await this.authorizationService.get();
+      await this.storage.set('Cuenta', permissions);
     } catch (error) {
       throw (error);
     }
@@ -154,16 +154,16 @@ export class SynchronizationService {
         const embalajesCrear = embalajes.filter(x => x.CRUD == CRUDOperacion.Create);
         embalajesCrear.forEach(async(embalaje) => {
           await this.masterdataService.postEmbalaje(embalaje);
-          embalaje.CRUD = null;
-          embalaje.CRUDDate = null;
+          embalaje.CRUD = undefined;
+          embalaje.CRUDDate = undefined;
         });
       }
 
       if (tratamientos) {
         const tratamientosCrear = tratamientos.filter(x => x.CRUD == CRUDOperacion.Create);
         tratamientosCrear.forEach(async(tratamiento) => {
-          tratamiento.CRUD = null;
-          tratamiento.CRUDDate = null;
+          tratamiento.CRUD = undefined;
+          tratamiento.CRUDDate = undefined;
         });
       }
 
@@ -171,8 +171,8 @@ export class SynchronizationService {
         const materialesCrear = materiales.filter(x => x.CRUD == CRUDOperacion.Create);
         materialesCrear.forEach(async(material) => {
           await this.masterdataService.postMaterial(material);
-          material.CRUD = null;
-          material.CRUDDate = null;
+          material.CRUD = undefined;
+          material.CRUDDate = undefined;
         });
       }
 
@@ -180,16 +180,16 @@ export class SynchronizationService {
         const tercerosCrear = terceros.filter(x => x.CRUD == CRUDOperacion.Create);
         tercerosCrear.forEach(async(tercero) => {
           await this.masterdataService.postTercero(tercero);
-          tercero.CRUD = null;
-          tercero.CRUDDate = null;
+          tercero.CRUD = undefined;
+          tercero.CRUDDate = undefined;
         });
       }
 
       if (puntos) {
         const puntosCrear = puntos.filter(x => x.CRUD == CRUDOperacion.Create);
         puntosCrear.forEach(async(punto) => {
-          punto.CRUD = null;
-          punto.CRUDDate = null;
+          punto.CRUD = undefined;
+          punto.CRUDDate = undefined;
         });
       }
       return true;
@@ -416,13 +416,7 @@ export class SynchronizationService {
 
       // Intentar hacer backup en el servidor
       try {
-        await CapacitorHttp.post({
-          url: `${environment.apiUrl}/api/transactions/backup`,
-          data: backupData,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        await this.http.post('/transactions/backup', backupData);
         console.log('Backup en servidor creado exitosamente');
       } catch (error) {
         console.error('Error al crear backup en servidor:', error);

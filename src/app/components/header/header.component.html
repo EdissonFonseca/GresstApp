@@ -7,11 +7,14 @@
       {{ pageTitle }}
     </ion-title>
     <ion-buttons slot="end">
+      <ion-button *ngIf="helpPopup" (click)="showHelp()">
+        <ion-icon name="help-circle-outline"></ion-icon>
+      </ion-button>
       <ion-button>
         <ion-icon name="notifications"></ion-icon>
       </ion-button>
       <ion-button (click)="synchronize()">
-        <ion-icon name="sync-outline" color="getColor()"></ion-icon>
+        <ion-icon name="sync-outline" [color]="getColor()"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

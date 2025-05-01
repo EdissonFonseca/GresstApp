@@ -11,11 +11,13 @@ import { GlobalesService } from '@app/services/globales.service';
 })
 export class HeaderComponent  implements OnInit {
   @Input() pageTitle: string = 'Gresst';
+  @Input() helpPopup: string = '';
   isOpen = false;
 
   constructor(
     public synchronizationService: SynchronizationService,
-    private globalesService: GlobalesService
+    private globalesService: GlobalesService,
+    private modalCtrl: ModalController
   ) { }
 
   ngOnInit() {}
@@ -30,5 +32,17 @@ export class HeaderComponent  implements OnInit {
 
   getColor() {
     return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+  }
+
+  async showHelp() {
+    if (this.helpPopup) {
+      const modal = await this.modalCtrl.create({
+        component: 'app-help-popup',
+        componentProps: {
+          popupId: this.helpPopup
+        }
+      });
+      await modal.present();
+    }
   }
 }
