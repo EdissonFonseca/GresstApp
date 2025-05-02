@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { AuthenticationService, FidoError } from '../../services/authentication.service';
 import { SynchronizationService } from '../../services/synchronization.service';
+import { StorageService } from '../../services/storage.service';
 
 /**
  * Login page component that handles user authentication and offline mode support.
@@ -21,6 +22,8 @@ export class LoginPage implements OnInit {
   /** Flag to prevent multiple session checks */
   isCheckingSession = false;
 
+  isDarkMode = false;
+
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthenticationService,
@@ -28,13 +31,15 @@ export class LoginPage implements OnInit {
     private router: Router,
     private alertController: AlertController,
     private loadingController: LoadingController,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private storageService: StorageService
   ) {
     this.initializeLoginForm();
   }
 
   ngOnInit(): void {
     this.checkSession();
+    this.checkTheme();
   }
 
   /**
@@ -195,5 +200,21 @@ export class LoginPage implements OnInit {
     } finally {
       await loading.dismiss();
     }
+  }
+
+  async checkTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    this.isDarkMode = prefersDark.matches;
+    this.toggleDarkTheme(this.isDarkMode);
+
+    // Escuchar cambios en la preferencia del sistema
+    prefersDark.addEventListener('change', (e) => {
+      this.isDarkMode = e.matches;
+      this.toggleDarkTheme(this.isDarkMode);
+    });
+  }
+
+  toggleDarkTheme(shouldAdd: boolean) {
+    document.body.classList.toggle('dark-theme', shouldAdd);
   }
 }
