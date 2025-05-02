@@ -48,7 +48,9 @@ export class HttpService {
     '/api/sync/refresh'
   ];
 
-  constructor(private tokenService: TokenService) {}
+  constructor(private tokenService: TokenService) {
+    console.log('🔧 [HTTP] Service initialized with API URL:', this.apiUrl);
+  }
 
   /**
    * Checks if an endpoint should be excluded from authentication
@@ -120,6 +122,8 @@ export class HttpService {
   async get<T>(endpoint: string, data?: any): Promise<T> {
     try {
       const url = `${this.apiUrl}${endpoint}`;
+      console.log('🌐 [HTTP] Making GET request to:', url);
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
@@ -132,10 +136,17 @@ export class HttpService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      console.log('🔑 [HTTP] Request headers:', headers);
+
       const response = await CapacitorHttp.get({
         url,
         headers,
         data
+      });
+
+      console.log('✅ [HTTP] Response:', {
+        status: response.status,
+        data: response.data
       });
 
       if (response.status >= 400) {
@@ -158,6 +169,9 @@ export class HttpService {
   async post<T>(endpoint: string, data: any): Promise<T> {
     try {
       const url = `${this.apiUrl}${endpoint}`;
+      console.log('🌐 [HTTP] Making POST request to:', url);
+      console.log('📦 [HTTP] Request data:', data);
+
       const headers: Record<string, string> = {
         'Content-Type': 'application/json'
       };
@@ -170,10 +184,17 @@ export class HttpService {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      console.log('🔑 [HTTP] Request headers:', headers);
+
       const response = await CapacitorHttp.post({
         url,
         headers,
         data
+      });
+
+      console.log('✅ [HTTP] Response:', {
+        status: response.status,
+        data: response.data
       });
 
       if (response.status >= 400) {

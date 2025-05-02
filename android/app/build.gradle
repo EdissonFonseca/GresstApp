@@ -28,8 +28,10 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    aaptOptions {
-        cruncherEnabled false
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java']
+        }
     }
 }
 
