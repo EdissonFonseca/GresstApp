@@ -45,15 +45,30 @@ export class PuntosService {
   }
 
   async getPuntosFromTareasPendientes(idActividad: string){
+    console.log('🔍 Obteniendo puntos de tareas para actividad:', idActividad);
+
     let puntos: Punto[] = await this.storage.get('Puntos');
+    console.log('📦 Puntos en storage:', puntos);
+
     const transaction: Transaction = await this.storage.get('Transaction');
+    console.log('📄 Transaction:', transaction);
+
     const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
+    console.log('📋 Tareas filtradas:', tareas);
+    console.log('📋 Estado de las tareas:', tareas.map(t => ({ IdTarea: t.IdTarea, IdEstado: t.IdEstado, IdDeposito: t.IdDeposito })));
 
     if (transaction && tareas)
     {
-      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null && x.IdEstado == Estado.Pendiente);
+      // Obtener todos los puntos, no solo los pendientes
+      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null);
+      console.log('📍 Tareas con puntos:', tareasPuntos);
+      console.log('📍 Estado de las tareas con puntos:', tareasPuntos.map(t => ({ IdTarea: t.IdTarea, IdEstado: t.IdEstado, IdDeposito: t.IdDeposito })));
+
       const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdDeposito ?? '');
+      console.log('🔑 IDs de puntos:', idsPuntos);
+
       puntos = puntos.filter((punto) => idsPuntos.includes(punto.IdDeposito));
+      console.log('🎯 Puntos filtrados:', puntos);
     }
     return puntos;
   }
