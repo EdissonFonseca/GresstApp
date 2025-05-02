@@ -7,7 +7,12 @@ GresstApp is a mobile application developed using **Node.js**, **TypeScript**, *
 **Gresst SAS - Edisson Fonseca**  
 [https://gresst.com/](https://gresst.com/)
 
----
+## Documentation
+
+This project includes comprehensive documentation:
+
+- [Technical Documentation](DOCUMENTATION.md) - For developers and technical contributors
+- [User Guide](USER_GUIDE.md) - For end users and administrators
 
 ## Description
 
