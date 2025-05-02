@@ -40,31 +40,59 @@ Ensure you have the following installed:
 - **Ionic CLI**:  
   ```bash
   npm install -g @ionic/cli
+  ```
 
-#Clone the Repository
+### Clone the Repository
+```bash
 git clone https://github.com/your-user/gresstapp.git
 cd gresstapp
+```
 
-#Install Dependencies
+### Install Dependencies
+```bash
 npm install
+```
 
-Mobile Development
-Capacitor Setup
+### Configuration Files Setup
+
+After cloning the repository, you need to set up your configuration files:
+
+1. **Environment Configuration**:
+   ```bash
+   # Copy the example environment file
+   cp src/environments/environment.example.ts src/environments/environment.ts
+   ```
+   Then edit `src/environments/environment.ts` and add your Google Maps API key:
+   ```typescript
+   export const environment = {
+     production: false,
+     GOOGLE_MAPS_API_KEY: 'your-api-key-here'
+   };
+   ```
+
+Note: The environment configuration file is gitignored and should not be committed to the repository. Each developer needs to set up their own configuration file. The Google Maps API key configured here will be used by both the web application and the native mobile app.
+
+### Mobile Development
+
+#### Capacitor Setup
 Synchronize Capacitor with native platforms:
 
-bash
-Copiar código
+```bash
 npx cap sync
+```
+
 Open the project in the appropriate IDE:
 
 Android:
-bash
-Copiar código
+```bash
 npx cap open android
+```
+
 iOS:
-bash
-Copiar código
+```bash
 npx cap open ios
+```
+
 Key Dependencies
 Production
 @angular/core: Angular core framework.

@@ -1,14 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
+import { environment } from './src/environments/environment';
 
-const config: CapacitorConfig = {
+const capacitorConfig: CapacitorConfig = {
   appId: 'com.gresst.app',
   appName: 'Gresst App',
   webDir: 'www',
   plugins: {
     GoogleMaps: {
-      apiKey: ''
+      apiKey: environment.GOOGLE_MAPS_API_KEY
     }
   }
 };
 
-export default config;
+export default capacitorConfig;
