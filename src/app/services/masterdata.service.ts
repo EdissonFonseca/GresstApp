@@ -21,43 +21,43 @@ export class MasterDataService {
   constructor(private http: HttpService) {}
 
   async getEmbalajes(): Promise<Embalaje[]> {
-    return this.http.get<Embalaje[]>('/masterdata/embalajes');
+    return this.http.get<Embalaje[]>('/embalajes/get');
   }
 
   async getInsumos(): Promise<Insumo[]> {
-    return this.http.get<Insumo[]>('/masterdata/insumos');
+    return this.http.get<Insumo[]>('/insumos/get');
   }
 
   async getInterlocutores(idResiduo: string): Promise<Interlocutor[]> {
-    return this.http.get<Interlocutor[]>(`/masterdata/interlocutores/${idResiduo}`);
+    return this.http.get<Interlocutor[]>(`/mensajes/listinterlocutores/${idResiduo}`);
   }
 
   async getMateriales(): Promise<Material[]> {
-    return this.http.get<Material[]>('/masterdata/materiales');
+    return this.http.get<Material[]>('/materiales/getforapp');
   }
 
   async getMensajes(idResiduo: string, idInterlocutor: string): Promise<Mensaje[]> {
-    return this.http.get<Mensaje[]>(`/masterdata/mensajes/${idResiduo}/${idInterlocutor}`);
+    return this.http.get<Mensaje[]>(`/mensajes/get`);
   }
 
   async getPuntos(): Promise<Punto[]> {
-    return this.http.get<Punto[]>('/masterdata/puntos');
+    return this.http.get<Punto[]>('/depositos/getpuntos');
   }
 
   async getServicios(): Promise<Servicio[]> {
-    return this.http.get<Servicio[]>('/masterdata/servicios');
+    return this.http.get<Servicio[]>('/servicios/get');
   }
 
   async getTerceros(): Promise<Tercero[]> {
-    return this.http.get<Tercero[]>('/masterdata/terceros');
+    return this.http.get<Tercero[]>('/terceros/get');
   }
 
   async getTratamientos(): Promise<Tratamiento[]> {
-    return this.http.get<Tratamiento[]>('/masterdata/tratamientos');
+    return this.http.get<Tratamiento[]>('/tratamientos/get');
   }
 
   async getVehiculos(): Promise<Vehiculo[]> {
-    return this.http.get<Vehiculo[]>('/masterdata/vehiculos');
+    return this.http.get<Vehiculo[]>('/vehiculos/getautorizados');
   }
 
   async postEmbalaje(embalaje: Embalaje): Promise<boolean> {

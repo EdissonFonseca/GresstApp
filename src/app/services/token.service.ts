@@ -18,9 +18,6 @@ export class TokenService {
   async getToken(): Promise<string | null> {
     try {
       const token = await this.storage.get(this.tokenKey);
-      console.log('🔍 [Token] Buscando token con clave:', this.tokenKey);
-      console.log('🔍 [Token] Token encontrado:', token ? 'Sí' : 'No');
-
       if (!token) {
         return null;
       }
@@ -48,13 +45,6 @@ export class TokenService {
    * @param {string} username - The username to store
    */
   async setToken(token: string, refreshToken: string, username: string): Promise<void> {
-    console.log('💾 [Token] Guardando tokens para usuario:', username);
-    console.log('💾 [Token] Usando claves:', {
-      tokenKey: this.tokenKey,
-      refreshTokenKey: this.refreshTokenKey,
-      usernameKey: this.usernameKey
-    });
-
     try {
       // Guardar todos los tokens en paralelo
       await Promise.all([
@@ -68,17 +58,9 @@ export class TokenService {
       const savedRefreshToken = await this.storage.get(this.refreshTokenKey);
       const savedUsername = await this.storage.get(this.usernameKey);
 
-      console.log('✅ [Token] Verificación después de guardar:', {
-        token: savedToken ? 'Guardado' : 'No guardado',
-        refreshToken: savedRefreshToken ? 'Guardado' : 'No guardado',
-        username: savedUsername ? 'Guardado' : 'No guardado'
-      });
-
       if (!savedToken || !savedRefreshToken || !savedUsername) {
         throw new Error('Error verificando tokens guardados');
       }
-
-      console.log('✅ [Token] Tokens guardados exitosamente');
     } catch (error) {
       console.error('❌ [Token] Error guardando tokens:', error);
       throw error;
@@ -92,7 +74,6 @@ export class TokenService {
   async getRefreshToken(): Promise<string | null> {
     try {
       const token = await this.storage.get(this.refreshTokenKey);
-      console.log('🔍 [Token] Refresh token encontrado:', token ? 'Sí' : 'No');
       return token;
     } catch (error) {
       console.error('❌ [Token] Error obteniendo refresh token:', error);
@@ -107,7 +88,6 @@ export class TokenService {
   async getUsername(): Promise<string | null> {
     try {
       const username = await this.storage.get(this.usernameKey);
-      console.log('🔍 [Token] Username encontrado:', username ? 'Sí' : 'No');
       return username;
     } catch (error) {
       console.error('❌ [Token] Error obteniendo username:', error);
@@ -119,12 +99,10 @@ export class TokenService {
    * Clears all stored tokens
    */
   async clearTokens(): Promise<void> {
-    console.log('🧹 [Token] Limpiando tokens...');
     try {
       await this.storage.remove(this.tokenKey);
       await this.storage.remove(this.refreshTokenKey);
       await this.storage.remove(this.usernameKey);
-      console.log('✅ [Token] Tokens limpiados exitosamente');
     } catch (error) {
       console.error('❌ [Token] Error limpiando tokens:', error);
       throw error;

@@ -51,7 +51,6 @@ export class AuthenticationService {
       this.isInitialized = true;
     } catch (error) {
       console.error('Authentication service initialization failed:', error);
-      // Don't throw here, just log the error
       this.isInitialized = true;
     }
   }
@@ -94,28 +93,19 @@ export class AuthenticationService {
    */
   async login(username: string, password: string): Promise<boolean> {
     try {
-      console.log('🔐 [Auth] Iniciando proceso de login para usuario:', username);
-
       const response = await this.http.post<TokenResponse>('/authentication/login', {
         Username: username,
         Password: password
       });
-
-      console.log('✅ [Auth] Login exitoso, respuesta:', response);
 
       if (!response.AccessToken || !response.RefreshToken) {
         console.error('❌ [Auth] Respuesta de login inválida:', response);
         throw new Error('Respuesta de login inválida');
       }
 
-      console.log('🔑 [Auth] Guardando tokens...');
       await this.tokenService.setToken(response.AccessToken, response.RefreshToken, username);
-      console.log('✅ [Auth] Tokens guardados exitosamente');
 
-      // Verificar que el token esté disponible
       const token = await this.tokenService.getToken();
-      console.log('🔍 [Auth] Token después de guardar:', token ? 'Disponible' : 'No disponible');
-
       if (!token) {
         console.error('❌ [Auth] Token no disponible después de guardar');
         throw new Error('Token no disponible después de guardar');
@@ -204,10 +194,7 @@ export class AuthenticationService {
    * @returns {Promise<boolean>} True if refresh successful, false otherwise
    */
   async refreshToken(): Promise<boolean> {
-    console.log('🔄 [Auth] Iniciando refresh token...');
-
     if (!await this.tokenService.hasRefreshToken()) {
-      console.log('❌ [Auth] No hay refresh token disponible');
       return false;
     }
 
@@ -220,15 +207,11 @@ export class AuthenticationService {
         return false;
       }
 
-      console.log('🔄 [Auth] Enviando solicitud de refresh token...');
-      const response = await this.http.post<{ access_token: string; refresh_token: string }>('/authentication/refresh', {
+      const response = await this.http.post<{ access_token: string; refresh_token: string }>('/authentication/refreshtoken', {
         refresh_token: refreshToken
       });
 
-      console.log('✅ [Auth] Refresh token exitoso, actualizando tokens...');
       await this.tokenService.setToken(response.access_token, response.refresh_token, username);
-      console.log('✅ [Auth] Tokens actualizados exitosamente');
-
       return true;
     } catch (error) {
       console.error('❌ [Auth] Error en refresh token:', error);
@@ -242,9 +225,7 @@ export class AuthenticationService {
    * @returns {Promise<void>}
    */
   async logout(): Promise<void> {
-    console.log('🚪 [Auth] Iniciando logout...');
     await this.tokenService.clearTokens();
-    console.log('✅ [Auth] Logout completado');
   }
 
   /**
@@ -261,12 +242,9 @@ export class AuthenticationService {
    */
   async isAuthenticated(): Promise<boolean> {
     if (!this.isInitialized) {
-      console.log('🔄 [Auth] Servicio no inicializado, iniciando...');
       await this.initialize();
     }
-    const isAuth = await this.tokenService.hasValidToken();
-    console.log('🔍 [Auth] Estado de autenticación:', isAuth);
-    return isAuth;
+    return await this.tokenService.hasValidToken();
   }
 
   /**
@@ -274,29 +252,20 @@ export class AuthenticationService {
    * @returns {Promise<boolean>} True if session was restored, false otherwise
    */
   async restoreSession(): Promise<boolean> {
-    console.log('🔄 [Auth] Intentando restaurar sesión...');
     try {
       const isOnline = await this.ping();
-      console.log('🌐 [Auth] Estado de conexión:', isOnline);
 
       if (isOnline) {
-        // If we have a valid token, no need to refresh
         if (await this.tokenService.hasValidToken()) {
-          console.log('✅ [Auth] Token válido encontrado');
           return true;
         }
 
-        // If we have a refresh token, try to refresh
         if (await this.tokenService.hasRefreshToken()) {
-          console.log('🔄 [Auth] Intentando refresh token...');
           return await this.refreshToken();
         }
       }
 
-      // If we're offline, check if we have a valid token
-      const hasValidToken = await this.tokenService.hasValidToken();
-      console.log('🔍 [Auth] Estado de token offline:', hasValidToken);
-      return hasValidToken;
+      return await this.tokenService.hasValidToken();
     } catch (error) {
       console.error('❌ [Auth] Error restaurando sesión:', error);
       return false;
