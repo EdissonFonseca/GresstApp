@@ -83,12 +83,15 @@ export class SynchronizationService {
    * Downloads and stores inventory data from the server
    * @throws {Error} If the download fails
    */
-  async downloadInventory() {
+  async downloadInventory(): Promise<void> {
+    console.log('📦 [Sync] Obteniendo inventario...');
     try {
-      var inventarios : Residuo[] = await this.inventoryService.get();
-      await this.storage.set('Inventario', inventarios);
-    } catch (error)  {
-      throw (error);
+      const response = await this.http.get<Residuo[]>('/appinventory/get');
+      await this.storage.set('Inventario', response);
+      console.log('✅ [Sync] Inventario descargado exitosamente');
+    } catch (error) {
+      console.error('❌ [Sync] Error descargando inventario:', error);
+      throw error;
     }
   }
 
@@ -307,20 +310,40 @@ export class SynchronizationService {
    * @returns {Promise<boolean>} True if load was successful
    */
   async load(): Promise<boolean> {
+    console.log('🔄 [Sync] Iniciando carga de datos iniciales...');
     try {
+      // Check if server is reachable
+      console.log('🌐 [Sync] Verificando conexión con el servidor...');
       const isOnline = await this.authenticationService.ping();
       if (!isOnline) {
+        console.log('❌ [Sync] Servidor no accesible, omitiendo carga inicial');
         return false;
       }
+      console.log('✅ [Sync] Servidor accesible');
 
+      console.log('📥 [Sync] Descargando autorizaciones...');
       await this.downloadAuthorizations();
+      console.log('✅ [Sync] Autorizaciones descargadas');
+
+      console.log('📥 [Sync] Descargando inventario...');
       await this.downloadInventory();
+      console.log('✅ [Sync] Inventario descargado');
+
+      console.log('📥 [Sync] Descargando datos maestros...');
       await this.downloadMasterData();
+      console.log('✅ [Sync] Datos maestros descargados');
+
+      console.log('📥 [Sync] Descargando transacciones...');
       await this.downloadTransactions();
+      console.log('✅ [Sync] Transacciones descargadas');
+
+      console.log('🔢 [Sync] Contando transacciones pendientes...');
       await this.countPendingTransactions();
+      console.log('✅ [Sync] Carga inicial completada exitosamente');
+
       return true;
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error('❌ [Sync] Error en carga inicial:', error);
       return false;
     }
   }
@@ -330,22 +353,72 @@ export class SynchronizationService {
    * @returns {Promise<boolean>} True if refresh was successful
    */
   async refresh(): Promise<boolean> {
+    console.log('🔄 [Sync] Iniciando refresh de datos...');
     try {
-      const isOnline = await this.authenticationService.ping();
-      if (!isOnline) {
+      // Check if user is authenticated before proceeding
+      const isAuthenticated = await this.authenticationService.isAuthenticated();
+      if (!isAuthenticated) {
+        console.log('❌ [Sync] Usuario no autenticado, omitiendo refresh');
         return false;
       }
 
-      await this.uploadMasterData();
-      await this.uploadTransactions();
-      await this.downloadAuthorizations();
-      await this.downloadInventory();
-      await this.downloadMasterData();
-      await this.downloadTransactions();
-      await this.countPendingTransactions();
-      return true;
-    } catch (error) {
-      console.error('Error refreshing data:', error);
+      // Check if server is reachable
+      const isOnline = await this.authenticationService.ping();
+      if (!isOnline) {
+        console.log('❌ [Sync] Servidor no accesible, omitiendo refresh');
+        return false;
+      }
+
+      console.log('✅ [Sync] Servidor accesible, actualizando datos...');
+
+      try {
+        console.log('📤 [Sync] Subiendo datos maestros...');
+        await this.uploadMasterData();
+        console.log('✅ [Sync] Datos maestros subidos');
+
+        console.log('📤 [Sync] Subiendo transacciones...');
+        await this.uploadTransactions();
+        console.log('✅ [Sync] Transacciones subidas');
+
+        console.log('📥 [Sync] Descargando autorizaciones...');
+        await this.downloadAuthorizations();
+        console.log('✅ [Sync] Autorizaciones descargadas');
+
+        console.log('📥 [Sync] Descargando inventario...');
+        await this.downloadInventory();
+        console.log('✅ [Sync] Inventario descargado');
+
+        console.log('📥 [Sync] Descargando datos maestros...');
+        await this.downloadMasterData();
+        console.log('✅ [Sync] Datos maestros descargados');
+
+        console.log('📥 [Sync] Descargando transacciones...');
+        await this.downloadTransactions();
+        console.log('✅ [Sync] Transacciones descargadas');
+
+        console.log('🔢 [Sync] Contando transacciones pendientes...');
+        await this.countPendingTransactions();
+        console.log('✅ [Sync] Refresh completado exitosamente');
+
+        return true;
+      } catch (error: any) {
+        console.error('❌ [Sync] Error en operación específica:', {
+          error,
+          message: error?.message,
+          stack: error?.stack,
+          status: error?.status,
+          data: error?.data
+        });
+        throw error;
+      }
+    } catch (error: any) {
+      console.error('❌ [Sync] Error en refresh:', {
+        error,
+        message: error?.message,
+        stack: error?.stack,
+        status: error?.status,
+        data: error?.data
+      });
       return false;
     }
   }

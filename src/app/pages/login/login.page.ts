@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
-import { AuthenticationService } from '../../services/authentication.service';
+import { AuthenticationService, FidoError } from '../../services/authentication.service';
 import { SynchronizationService } from '../../services/synchronization.service';
 
 /**
@@ -54,6 +54,7 @@ export class LoginPage implements OnInit {
   async checkSession(): Promise<void> {
     try {
       this.isCheckingSession = true;
+      console.log('🔄 [Login] Verificando sesión...');
 
       const loading = await this.loadingController.create({
         message: 'Verificando sesión...',
@@ -62,23 +63,30 @@ export class LoginPage implements OnInit {
 
       try {
         await loading.present();
+        console.log('🌐 [Login] Verificando conexión...');
         const isOnline = await this.authService.ping();
+        console.log('📡 [Login] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
 
         if (isOnline) {
+          console.log('🔄 [Login] Intentando restaurar sesión...');
           const sessionRestored = await this.authService.restoreSession();
 
           if (sessionRestored) {
+            console.log('✅ [Login] Sesión restaurada, actualizando datos...');
             await this.syncService.refresh();
             await this.router.navigate(['/home']);
+          } else {
+            console.log('ℹ️ [Login] No hay sesión para restaurar');
           }
         } else {
+          console.log('ℹ️ [Login] Modo sin conexión activado');
           await this.showToast('Está trabajando sin conexión', 'middle');
         }
       } finally {
         await loading.dismiss();
       }
     } catch (error) {
-      console.error('❌ Error checking session:', error);
+      console.error('❌ [Login] Error verificando sesión:', error);
     } finally {
       this.isCheckingSession = false;
     }
@@ -89,8 +97,10 @@ export class LoginPage implements OnInit {
    * Validates credentials and manages authentication state
    */
   async login(): Promise<void> {
+    console.log('🔐 [Login] Iniciando proceso de login...');
     if (this.loginForm.invalid) {
-      console.log('❌ Form is invalid');
+      console.log('❌ [Login] Formulario inválido');
+      await this.showError('Error', 'Por favor ingrese usuario y contraseña');
       return;
     }
 
@@ -103,30 +113,34 @@ export class LoginPage implements OnInit {
       await loading.present();
       const { username, password } = this.loginForm.value;
 
+      console.log('🌐 [Login] Verificando conexión...');
       const isOnline = await this.authService.ping();
-
+      console.log('📡 [Login] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
 
       if (!isOnline) {
-        console.log('❌ No connection available');
+        console.log('❌ [Login] No se puede iniciar sesión sin conexión');
         await this.showError('Error', 'No se puede iniciar sesión sin conexión');
         return;
       }
 
+      console.log('🔄 [Login] Verificando credenciales...');
       const loginSuccess = await this.authService.login(username, password);
 
       if (loginSuccess) {
+        console.log('✅ [Login] Login exitoso, iniciando sincronización...');
         const loadSuccess = await this.syncService.load();
 
         if (!loadSuccess) {
           await this.showToast('No se pudieron cargar todos los datos', 'middle');
         }
         await this.router.navigate(['/home']);
+        console.log('✅ [Login] Sincronización completada');
       } else {
-        console.log('❌ Invalid credentials');
+        console.log('❌ [Login] Login fallido');
         await this.showError('Error de autenticación', 'Credenciales inválidas');
       }
     } catch (error: any) {
-      console.error('❌ Error in login:', error);
+      console.error('❌ [Login] Error in login:', error);
       let errorMessage = 'Error al iniciar sesión';
 
       if (error.status === 401) {
@@ -135,7 +149,12 @@ export class LoginPage implements OnInit {
         errorMessage = 'No se pudo conectar con el servidor';
       }
 
-      await this.showError('Error', errorMessage);
+      if (error instanceof FidoError) {
+        console.log('🔄 [Login] Redirigiendo a autenticación FIDO2...');
+        await this.router.navigate(['/fido2']);
+      } else {
+        await this.showError('Error', errorMessage);
+      }
     } finally {
       await loading.dismiss();
     }

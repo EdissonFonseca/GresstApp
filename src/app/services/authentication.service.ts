@@ -14,6 +14,16 @@ export interface TokenResponse {
 }
 
 /**
+ * Custom error class for FIDO2 related errors
+ */
+export class FidoError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FidoError';
+  }
+}
+
+/**
  * Service responsible for handling authentication operations
  * including login, token refresh, and session management
  */
@@ -23,11 +33,28 @@ export interface TokenResponse {
 export class AuthenticationService {
   /** Base URL for API endpoints */
   private readonly apiUrl = environment.apiUrl;
+  private isInitialized = false;
 
   constructor(
     private http: HttpService,
     private tokenService: TokenService
-  ) {}
+  ) {
+    this.initialize();
+  }
+
+  /**
+   * Initialize the authentication service
+   */
+  private async initialize(): Promise<void> {
+    try {
+      await this.restoreSession();
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('Authentication service initialization failed:', error);
+      // Don't throw here, just log the error
+      this.isInitialized = true;
+    }
+  }
 
   /**
    * Checks if an endpoint should be excluded from authentication
@@ -66,13 +93,42 @@ export class AuthenticationService {
    * @throws {Error} If the server request fails
    */
   async login(username: string, password: string): Promise<boolean> {
-    const response = await this.http.post<{ access_token: string; refresh_token: string }>('/authentication/login', {
-      Username: username,
-      Password: password
-    });
+    try {
+      console.log('🔐 [Auth] Iniciando proceso de login para usuario:', username);
 
-    await this.tokenService.setToken(response.access_token, response.refresh_token);
-    return true;
+      const response = await this.http.post<TokenResponse>('/authentication/login', {
+        Username: username,
+        Password: password
+      });
+
+      console.log('✅ [Auth] Login exitoso, respuesta:', response);
+
+      if (!response.AccessToken || !response.RefreshToken) {
+        console.error('❌ [Auth] Respuesta de login inválida:', response);
+        throw new Error('Respuesta de login inválida');
+      }
+
+      console.log('🔑 [Auth] Guardando tokens...');
+      await this.tokenService.setToken(response.AccessToken, response.RefreshToken, username);
+      console.log('✅ [Auth] Tokens guardados exitosamente');
+
+      // Verificar que el token esté disponible
+      const token = await this.tokenService.getToken();
+      console.log('🔍 [Auth] Token después de guardar:', token ? 'Disponible' : 'No disponible');
+
+      if (!token) {
+        console.error('❌ [Auth] Token no disponible después de guardar');
+        throw new Error('Token no disponible después de guardar');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ [Auth] Error en login:', error);
+      if (error instanceof Error && error.name === 'FallbackRequestedError') {
+        throw new FidoError('FIDO2 authentication fallback requested');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -148,20 +204,34 @@ export class AuthenticationService {
    * @returns {Promise<boolean>} True if refresh successful, false otherwise
    */
   async refreshToken(): Promise<boolean> {
+    console.log('🔄 [Auth] Iniciando refresh token...');
+
     if (!await this.tokenService.hasRefreshToken()) {
+      console.log('❌ [Auth] No hay refresh token disponible');
       return false;
     }
 
     try {
       const refreshToken = await this.tokenService.getRefreshToken();
+      const username = await this.tokenService.getUsername();
+
+      if (!username) {
+        console.error('❌ [Auth] No se encontró username durante refresh token');
+        return false;
+      }
+
+      console.log('🔄 [Auth] Enviando solicitud de refresh token...');
       const response = await this.http.post<{ access_token: string; refresh_token: string }>('/authentication/refresh', {
         refresh_token: refreshToken
       });
 
-      await this.tokenService.setToken(response.access_token, response.refresh_token);
+      console.log('✅ [Auth] Refresh token exitoso, actualizando tokens...');
+      await this.tokenService.setToken(response.access_token, response.refresh_token, username);
+      console.log('✅ [Auth] Tokens actualizados exitosamente');
+
       return true;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error('❌ [Auth] Error en refresh token:', error);
       await this.logout();
       return false;
     }
@@ -172,7 +242,9 @@ export class AuthenticationService {
    * @returns {Promise<void>}
    */
   async logout(): Promise<void> {
+    console.log('🚪 [Auth] Iniciando logout...');
     await this.tokenService.clearTokens();
+    console.log('✅ [Auth] Logout completado');
   }
 
   /**
@@ -188,7 +260,13 @@ export class AuthenticationService {
    * @returns {Promise<boolean>} True if user is authenticated, false otherwise
    */
   async isAuthenticated(): Promise<boolean> {
-    return this.tokenService.hasValidToken();
+    if (!this.isInitialized) {
+      console.log('🔄 [Auth] Servicio no inicializado, iniciando...');
+      await this.initialize();
+    }
+    const isAuth = await this.tokenService.hasValidToken();
+    console.log('🔍 [Auth] Estado de autenticación:', isAuth);
+    return isAuth;
   }
 
   /**
@@ -196,22 +274,33 @@ export class AuthenticationService {
    * @returns {Promise<boolean>} True if session was restored, false otherwise
    */
   async restoreSession(): Promise<boolean> {
-    const isOnline = await this.ping();
+    console.log('🔄 [Auth] Intentando restaurar sesión...');
+    try {
+      const isOnline = await this.ping();
+      console.log('🌐 [Auth] Estado de conexión:', isOnline);
 
-    if (isOnline) {
-      // Si tenemos un token válido, no necesitamos refrescarlo
-      if (await this.tokenService.hasValidToken()) {
-        return true;
+      if (isOnline) {
+        // If we have a valid token, no need to refresh
+        if (await this.tokenService.hasValidToken()) {
+          console.log('✅ [Auth] Token válido encontrado');
+          return true;
+        }
+
+        // If we have a refresh token, try to refresh
+        if (await this.tokenService.hasRefreshToken()) {
+          console.log('🔄 [Auth] Intentando refresh token...');
+          return await this.refreshToken();
+        }
       }
 
-      // Si tenemos un refresh token, intentamos refrescar
-      if (await this.tokenService.hasRefreshToken()) {
-        return await this.refreshToken();
-      }
+      // If we're offline, check if we have a valid token
+      const hasValidToken = await this.tokenService.hasValidToken();
+      console.log('🔍 [Auth] Estado de token offline:', hasValidToken);
+      return hasValidToken;
+    } catch (error) {
+      console.error('❌ [Auth] Error restaurando sesión:', error);
+      return false;
     }
-
-    // Si estamos offline, verificamos si tenemos un token válido
-    return await this.tokenService.hasValidToken();
   }
 }
 

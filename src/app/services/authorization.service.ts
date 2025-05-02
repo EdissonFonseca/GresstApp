@@ -20,15 +20,38 @@ export class AuthorizationService {
 
   constructor(private http: HttpService) {}
 
+  /**
+   * Retrieves authorization data from the server
+   * @returns {Promise<AuthorizationResponse[]>} Array of authorization responses
+   * @throws {Error} If the request fails
+   */
   async get(): Promise<AuthorizationResponse[]> {
-    return this.http.get<AuthorizationResponse[]>('/authorization/get/app');
+    console.log('🔑 [Auth] Obteniendo autorizaciones...');
+    try {
+      const response = await this.http.get<AuthorizationResponse[]>('/authorization/get/app');
+      console.log('✅ [Auth] Autorizaciones obtenidas exitosamente:', response.length);
+      return response;
+    } catch (error) {
+      console.error('❌ [Auth] Error obteniendo autorizaciones:', error);
+      throw error;
+    }
   }
 
-  async hasPermission(permission: string): Promise<boolean> {
-    const permissions = await this.get();
-    return permissions.some(path =>
-      path.actividades.some(actividad => actividad.id_actividad === permission)
-    );
+  /**
+   * Checks if a user has permission for a specific action
+   * @param {string} action - The action to check permission for
+   * @returns {Promise<boolean>} True if user has permission
+   */
+  async hasPermission(action: string): Promise<boolean> {
+    console.log('🔍 [Auth] Verificando permiso para acción:', action);
+    try {
+      const response = await this.http.get<boolean>(`/authorization/check/${action}`);
+      console.log('✅ [Auth] Permiso verificado:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ [Auth] Error verificando permiso:', error);
+      return false;
+    }
   }
 
   async hasAnyPermission(permissions: string[]): Promise<boolean> {

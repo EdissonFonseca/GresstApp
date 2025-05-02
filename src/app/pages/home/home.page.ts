@@ -1,9 +1,11 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { SynchronizationService } from '@app/services/synchronization.service';
+import { SynchronizationService } from '../../services/synchronization.service';
 import { IonTabs } from '@ionic/angular';
 import { signal } from '@angular/core';
-import { StorageService } from '@app/services/storage.service';
-import { GlobalesService } from '@app/services/globales.service';
+import { StorageService } from '../../services/storage.service';
+import { GlobalesService } from '../../services/globales.service';
+import { AuthenticationService } from '../../services/authentication.service';
+import { Router } from '@angular/router';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
@@ -11,8 +13,8 @@ import { GlobalesService } from '@app/services/globales.service';
  */
 @Component({
   selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  templateUrl: './home.page.html',
+  styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
   @Input() title = 'Jornada';
@@ -27,7 +29,9 @@ export class HomePage implements OnInit {
   constructor(
     public synchronizationService: SynchronizationService,
     private storage: StorageService,
-    private globales: GlobalesService
+    private globales: GlobalesService,
+    private authService: AuthenticationService,
+    private router: Router
   ) {}
 
   /**
@@ -112,5 +116,55 @@ export class HomePage implements OnInit {
       'Error al cargar los datos. Por favor, intente de nuevo.',
       'middle'
     );
+  }
+
+  async ionViewWillEnter() {
+    console.log('🔄 [Home] Verificando estado de la aplicación...');
+    try {
+      console.log('🌐 [Home] Verificando conexión...');
+      const isOnline = await this.authService.ping();
+      console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
+
+      if (isOnline) {
+        console.log('🔄 [Home] Actualizando datos...');
+        await this.synchronizationService.refresh();
+        console.log('✅ [Home] Datos actualizados');
+      } else {
+        console.log('ℹ️ [Home] Modo sin conexión activado');
+        await this.globales.presentToast(
+          'Está trabajando sin conexión',
+          'middle'
+        );
+      }
+    } catch (error) {
+      console.error('❌ [Home] Error verificando estado:', error);
+    }
+  }
+
+  async logout() {
+    console.log('🚪 [Home] Iniciando proceso de logout...');
+    try {
+      console.log('🌐 [Home] Verificando conexión...');
+      const isOnline = await this.authService.ping();
+      console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
+
+      if (isOnline) {
+        console.log('🔄 [Home] Cerrando sesión...');
+        await this.synchronizationService.close();
+        await this.authService.logout();
+        console.log('✅ [Home] Sesión cerrada exitosamente');
+      } else {
+        console.log('ℹ️ [Home] Modo sin conexión, cerrando sesión local...');
+        await this.authService.logout();
+      }
+
+      await this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('❌ [Home] Error en logout:', error);
+      await this.globales.presentToast(
+        'Error al cerrar sesión',
+        'middle'
+      );
+    }
   }
 }

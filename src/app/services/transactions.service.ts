@@ -33,55 +33,60 @@ export class TransactionsService {
   ) {}
 
   async get(): Promise<Transaction> {
-    return this.http.get<Transaction>('/transactions/get');
+    return this.http.get<Transaction>('/apptransactions/get');
   }
 
   async postTarea(tarea: Tarea): Promise<boolean> {
-    const response = await this.http.post<{ IdTarea: string }>('/transactions/posttarea', tarea);
+    const response = await this.http.post<{ IdTarea: string }>('/apptransactions/createtarea', tarea);
     tarea.IdTarea = response.IdTarea;
     return true;
   }
 
   async patchTarea(tarea: Tarea): Promise<boolean> {
-    await this.http.patch('/transactions/patchtarea', tarea);
-    return true;
+    try {
+      await this.http.post('/apptransactions/updatetarea', tarea);
+      return true;
+    } catch (error) {
+      console.error('Error updating task:', error);
+      return false;
+    }
   }
 
   async postTransaccion(transaccion: Transaccion): Promise<boolean> {
-    const response = await this.http.post<{ IdTransaccion: string }>('/transactions/posttransaccion', transaccion);
+    const response = await this.http.post<{ IdTransaccion: string }>('/apptransactions/createtransaccion', transaccion);
     transaccion.IdTransaccion = response.IdTransaccion;
     return true;
   }
 
   async patchTransaccion(transaccion: Transaccion): Promise<boolean> {
-    await this.http.patch('/transactions/patchtransaccion', transaccion);
+    await this.http.post('/apptransactions/updatetransaccion', transaccion);
     return true;
   }
 
   async emitCertificate(transaccion: Transaccion): Promise<boolean> {
-    await this.http.post('/transactions/emitcertificate', transaccion);
+    await this.http.post('/apptransactions/emitcertificate', transaccion);
     return true;
   }
 
   async postActividad(actividad: Actividad): Promise<boolean> {
-    const response = await this.http.post<{ IdActividad: string }>('/transactions/postactividad', actividad);
+    const response = await this.http.post<{ IdActividad: string }>('/apptransactions/createactividad', actividad);
     actividad.IdActividad = response.IdActividad;
     return true;
   }
 
   async patchActividad(actividad: Actividad): Promise<boolean> {
-    await this.http.patch('/transactions/patchactividad', actividad);
+    await this.http.post('/apptransactions/updateactividad', actividad);
     return true;
   }
 
   async postActividadInicio(actividad: Actividad): Promise<boolean> {
-    const response = await this.http.post<{ IdActividad: string }>('/transactions/postactividadinicio', actividad);
+    const response = await this.http.post<{ IdActividad: string }>('/apptransactions/createactividadinicio', actividad);
     actividad.IdActividad = response.IdActividad;
     return true;
   }
 
   async postBackup(data: any): Promise<boolean> {
-    await this.http.post('/transactions/backup', data);
+    await this.http.post('/apptransactions/backup', data);
     return true;
   }
 }

@@ -17,6 +17,25 @@ import { CRUDOperacion } from './constants.service';
 import { Storage } from '@ionic/storage-angular';
 import { CapacitorHttp, HttpResponse } from '@capacitor/core';
 import { Filesystem, Directory, WriteFileResult } from '@capacitor/filesystem';
+import { Residuo } from '../interfaces/residuo.interface';
+import { Embalaje } from '../interfaces/embalaje.interface';
+import { Material } from '../interfaces/material.interface';
+import { Punto } from '../interfaces/punto.interface';
+import { Servicio } from '../interfaces/servicio.interface';
+import { Tercero } from '../interfaces/tercero.interface';
+import { Tratamiento } from '../interfaces/tratamiento.interface';
+import { Vehiculo } from '../interfaces/vehiculo.interface';
+
+// Importar la interfaz AuthorizationResponse del servicio
+type AuthorizationResponse = {
+  titulo_learning_path: string;
+  actividades: {
+    id_actividad: string;
+    completada: boolean;
+    nota: number;
+    calificada: boolean;
+  }[];
+};
 
 describe('SynchronizationService', () => {
   let service: SynchronizationService;
@@ -68,6 +87,105 @@ describe('SynchronizationService', () => {
     IdRecurso: '1',
     IdServicio: '1',
     CRUD: null
+  };
+
+  // Mocks para los servicios
+  const mockAuthorizationResponse: AuthorizationResponse = {
+    titulo_learning_path: 'Test Path',
+    actividades: [
+      {
+        id_actividad: '1',
+        completada: false,
+        nota: 0,
+        calificada: false
+      }
+    ]
+  };
+
+  const mockResiduo: Residuo = {
+    IdResiduo: '1',
+    Aprovechable: true,
+    IdEstado: '1',
+    IdMaterial: '1',
+    IdPropietario: '1',
+    Ubicacion: 'Test Location',
+    Cantidad: 100,
+    Peso: 50,
+    Volumen: 25,
+    IdDeposito: '1',
+    IdDepositoOrigen: '1',
+    IdEmbalaje: '1',
+    CantidadEmbalaje: 10,
+    IdVehiculo: '1',
+    IdRuta: '1',
+    IdTratamiento: '1',
+    FechaIngreso: new Date().toISOString(),
+    EntradaSalida: 'true',
+    NumeroContactos: 1,
+    Precio: 100,
+    Publico: true,
+    Solicitud: 'Test Request',
+    Material: 'Test Material',
+    Propietario: 'Test Owner',
+    DepositoOrigen: 'Test Origin',
+    Cantidades: '100/50/25'
+  };
+
+  const mockEmbalaje: Embalaje = {
+    IdEmbalaje: '1',
+    Nombre: 'Test Embalaje'
+  };
+
+  const mockMaterial: Material = {
+    IdMaterial: '1',
+    Aprovechable: true,
+    Nombre: 'Test Material',
+    TipoCaptura: 'Manual',
+    TipoMedicion: 'Unidad'
+  };
+
+  const mockPunto: Punto = {
+    IdDeposito: '1',
+    IdMateriales: ['1'],
+    IdPersona: '1',
+    Nombre: 'Test Punto',
+    Direccion: 'Test Address',
+    Latitud: '0',
+    Longitud: '0',
+    Localizacion: 'Test Location',
+    Tercero: 'Test Tercero',
+    Tipo: 'Test Type',
+    Acopio: true,
+    Almacenamiento: true,
+    Disposicion: true,
+    Entrega: true,
+    Generacion: true,
+    Recepcion: true,
+    Tratamiento: true
+  };
+
+  const mockServicio: Servicio = {
+    IdServicio: '1',
+    Nombre: 'Test Servicio'
+  };
+
+  const mockTercero: Tercero = {
+    IdPersona: '1',
+    Identificacion: '123456789',
+    Nombre: 'Test Tercero',
+    Telefono: '123456789'
+  };
+
+  const mockTratamiento: Tratamiento = {
+    IdTratamiento: '1',
+    IdServicio: '1',
+    Nombre: 'Test Tratamiento'
+  };
+
+  const mockVehiculo: Vehiculo = {
+    IdVehiculo: '1',
+    IdMateriales: ['1'],
+    Nombre: 'Test Vehiculo'
   };
 
   beforeEach(() => {
@@ -161,10 +279,9 @@ describe('SynchronizationService', () => {
 
   describe('download operations', () => {
     it('should download authorizations successfully', async () => {
-      const mockData = { id: 1 };
-      spyOn(authorizationService, 'get').and.returnValue(Promise.resolve(mockData));
+      spyOn(authorizationService, 'get').and.returnValue(Promise.resolve([mockAuthorizationResponse]));
       await service.downloadAuthorizations();
-      expect(storageService.set).toHaveBeenCalledWith('Cuenta', mockData);
+      expect(storageService.set).toHaveBeenCalledWith('Cuenta', [mockAuthorizationResponse]);
     });
 
     it('should handle authorization download errors', async () => {
@@ -173,10 +290,9 @@ describe('SynchronizationService', () => {
     });
 
     it('should download inventory successfully', async () => {
-      const mockInventory = [{ id: 1 }];
-      spyOn(inventoryService, 'get').and.returnValue(Promise.resolve(mockInventory));
+      spyOn(inventoryService, 'get').and.returnValue(Promise.resolve([mockResiduo]));
       await service.downloadInventory();
-      expect(storageService.set).toHaveBeenCalledWith('Inventario', mockInventory);
+      expect(storageService.set).toHaveBeenCalledWith('Inventario', [mockResiduo]);
     });
 
     it('should handle inventory download errors', async () => {
@@ -185,24 +301,23 @@ describe('SynchronizationService', () => {
     });
 
     it('should download master data successfully', async () => {
-      const mockData = { id: 1 };
-      spyOn(masterdataService, 'getEmbalajes').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getMateriales').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getPuntos').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getServicios').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getTerceros').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getTratamientos').and.returnValue(Promise.resolve([mockData]));
-      spyOn(masterdataService, 'getVehiculos').and.returnValue(Promise.resolve([mockData]));
+      spyOn(masterdataService, 'getEmbalajes').and.returnValue(Promise.resolve([mockEmbalaje]));
+      spyOn(masterdataService, 'getMateriales').and.returnValue(Promise.resolve([mockMaterial]));
+      spyOn(masterdataService, 'getPuntos').and.returnValue(Promise.resolve([mockPunto]));
+      spyOn(masterdataService, 'getServicios').and.returnValue(Promise.resolve([mockServicio]));
+      spyOn(masterdataService, 'getTerceros').and.returnValue(Promise.resolve([mockTercero]));
+      spyOn(masterdataService, 'getTratamientos').and.returnValue(Promise.resolve([mockTratamiento]));
+      spyOn(masterdataService, 'getVehiculos').and.returnValue(Promise.resolve([mockVehiculo]));
 
       await service.downloadMasterData();
 
-      expect(storageService.set).toHaveBeenCalledWith('Embalajes', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Materiales', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Puntos', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Servicios', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Terceros', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Tratamientos', [mockData]);
-      expect(storageService.set).toHaveBeenCalledWith('Vehiculos', [mockData]);
+      expect(storageService.set).toHaveBeenCalledWith('Embalajes', [mockEmbalaje]);
+      expect(storageService.set).toHaveBeenCalledWith('Materiales', [mockMaterial]);
+      expect(storageService.set).toHaveBeenCalledWith('Puntos', [mockPunto]);
+      expect(storageService.set).toHaveBeenCalledWith('Servicios', [mockServicio]);
+      expect(storageService.set).toHaveBeenCalledWith('Terceros', [mockTercero]);
+      expect(storageService.set).toHaveBeenCalledWith('Tratamientos', [mockTratamiento]);
+      expect(storageService.set).toHaveBeenCalledWith('Vehiculos', [mockVehiculo]);
     });
 
     it('should handle master data download errors', async () => {
