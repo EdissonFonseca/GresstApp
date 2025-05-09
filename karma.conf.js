@@ -21,13 +21,17 @@ module.exports = function (config) {
         // for example, you can disable the random execution with `random: false`
         // or set a specific seed with `seed: 4321`
         failFast: true,
-        timeoutInterval: 10000
+        timeoutInterval: 10000,
+        random: false
       },
-      clearContext: true // clear Jasmine Spec Runner output in browser
+      clearContext: false // Cambiado a false para mantener el contexto
     },
     jasmineHtmlReporter: {
-      suppressAll: true, // removes the duplicated traces
-      suppressFailed: true // removes failed tests from the output
+      suppressAll: false, // Cambiado a false para mostrar todos los resultados
+      suppressFailed: false, // Cambiado a false para mostrar las pruebas fallidas
+      showColors: true,
+      showSpec: true,
+      showStack: true
     },
     coverageReporter: {
       dir: path.join(__dirname, './coverage/app'),
@@ -37,10 +41,10 @@ module.exports = function (config) {
         { type: 'text-summary' }
       ]
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ['kjhtml', 'progress'], // Cambiado el orden para priorizar kjhtml
     port: 9876,
     colors: true,
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DEBUG,
     autoWatch: true,
     browsers: ['Chrome'],
     singleRun: false,
@@ -48,6 +52,17 @@ module.exports = function (config) {
     browserDisconnectTimeout: 10000,
     browserNoActivityTimeout: 30000,
     captureTimeout: 60000,
-    processKillTimeout: 2000
+    processKillTimeout: 2000,
+    browserConsoleLogOptions: {
+      level: 'debug',
+      format: '%b %T: %m',
+      terminal: true
+    },
+    customLaunchers: {
+      ChromeDebug: {
+        base: 'Chrome',
+        flags: ['--remote-debugging-port=9222']
+      }
+    }
   });
 };

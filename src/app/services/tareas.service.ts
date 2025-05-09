@@ -70,15 +70,20 @@ export class TareasService {
     let accion: string;
     const now = new Date().toISOString();
     const transaction: Transaction = await this.storage.get('Transaction');
-    const actividad: Actividad | undefined = transaction.Actividades.find((item) => item.IdActividad == idActividad)!;
+    const actividad: Actividad | undefined = transaction.Actividades.find((item) => item.IdActividad == idActividad);
+
+    if (!actividad) {
+      console.error('No se encontró la actividad con ID:', idActividad);
+      return [];
+    }
+
     const materiales = await this.materialesService.list();
     const tratamientos = await this.tratamientosService.list();
     const embalajes = await this.embalajesService.list();
     const puntos = await this.puntosService.list();
     const terceros = await this.tercerosService.list();
 
-    if (transaction)
-    {
+    if (transaction) {
       if (idTransaccion)
         tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
       else

@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpService } from './http.service';
 import { TokenService } from './token.service';
+import { SynchronizationService } from './synchronization.service';
+import { LoggerService } from './logger.service';
 
 /**
  * Interface representing the token response from the authentication server
@@ -37,7 +39,9 @@ export class AuthenticationService {
 
   constructor(
     private http: HttpService,
-    private tokenService: TokenService
+    private tokenService: TokenService,
+    private syncService: SynchronizationService,
+    private logger: LoggerService
   ) {
     this.initialize();
   }
@@ -50,8 +54,47 @@ export class AuthenticationService {
       await this.restoreSession();
       this.isInitialized = true;
     } catch (error) {
-      console.error('Authentication service initialization failed:', error);
+      this.logger.error('Authentication service initialization failed', error);
       this.isInitialized = true;
+    }
+  }
+
+  /**
+   * Restores the user session if a valid token exists
+   * @returns {Promise<boolean>} True if session was restored successfully
+   */
+  async restoreSession(): Promise<boolean> {
+    try {
+      const username = await this.tokenService.getUsername();
+      if (!username) {
+        this.logger.info('No stored username found');
+        return false;
+      }
+
+      this.logger.info('Found stored username', { username });
+
+      // Verificar si hay conexión
+      const isOnline = await this.ping();
+
+      if (isOnline) {
+        this.logger.info('Device is online, attempting to sync data');
+        try {
+          // Intentar sincronizar datos
+          await this.syncService.refresh();
+          this.logger.info('Data sync completed successfully');
+          return true;
+        } catch (error) {
+          this.logger.error('Data sync failed', error);
+          // Si falla la sincronización, continuar con el usuario offline
+          return true;
+        }
+      } else {
+        this.logger.info('Device is offline, continuing with stored user');
+        return true;
+      }
+    } catch (error) {
+      this.logger.error('Error restoring session', error);
+      return false;
     }
   }
 
@@ -75,7 +118,7 @@ export class AuthenticationService {
       return response;
     } catch (error) {
       if (error instanceof Error) {
-        console.error('❌ Ping error details:', {
+        this.logger.error('Ping failed', {
           message: error.message,
           name: error.name
         });
@@ -99,7 +142,7 @@ export class AuthenticationService {
       });
 
       if (!response.AccessToken || !response.RefreshToken) {
-        console.error('❌ [Auth] Respuesta de login inválida:', response);
+        this.logger.error('Invalid login response', { response });
         throw new Error('Respuesta de login inválida');
       }
 
@@ -107,13 +150,22 @@ export class AuthenticationService {
 
       const token = await this.tokenService.getToken();
       if (!token) {
-        console.error('❌ [Auth] Token no disponible después de guardar');
+        this.logger.error('Token not available after saving', { username });
         throw new Error('Token no disponible después de guardar');
+      }
+
+      // Intentar sincronizar datos después del login exitoso
+      try {
+        await this.syncService.refresh();
+        this.logger.info('Initial data sync completed successfully');
+      } catch (error) {
+        this.logger.error('Initial data sync failed', error);
+        // Continuar aunque falle la sincronización
       }
 
       return true;
     } catch (error) {
-      console.error('❌ [Auth] Error en login:', error);
+      this.logger.error('Login failed', error);
       if (error instanceof Error && error.name === 'FallbackRequestedError') {
         throw new FidoError('FIDO2 authentication fallback requested');
       }
@@ -134,7 +186,7 @@ export class AuthenticationService {
       const response = await this.http.post<boolean>('/authentication/register', { email, name, password });
       return response;
     } catch (error) {
-      console.error('Registration failed:', error);
+      this.logger.error('Registration failed', error);
       throw error;
     }
   }
@@ -150,7 +202,7 @@ export class AuthenticationService {
       const response = await this.http.post<boolean>('/authentication/exist', { email });
       return response;
     } catch (error) {
-      console.error('User existence check failed:', error);
+      this.logger.error('User existence check failed', error);
       throw error;
     }
   }
@@ -167,7 +219,7 @@ export class AuthenticationService {
       const response = await this.http.post<boolean>('/authentication/change-name', { currentPassword, newName });
       return response;
     } catch (error) {
-      console.error('Name change failed:', error);
+      this.logger.error('Name change failed', error);
       throw error;
     }
   }
@@ -184,7 +236,7 @@ export class AuthenticationService {
       const response = await this.http.post<boolean>('/authentication/change-password', { currentPassword, newPassword });
       return response;
     } catch (error) {
-      console.error('Password change failed:', error);
+      this.logger.error('Password change failed', error);
       throw error;
     }
   }
@@ -203,7 +255,7 @@ export class AuthenticationService {
       const username = await this.tokenService.getUsername();
 
       if (!username) {
-        console.error('❌ [Auth] No se encontró username durante refresh token');
+        this.logger.error('No username found during refresh token', { refreshToken });
         return false;
       }
 
@@ -214,7 +266,7 @@ export class AuthenticationService {
       await this.tokenService.setToken(response.access_token, response.refresh_token, username);
       return true;
     } catch (error) {
-      console.error('❌ [Auth] Error en refresh token:', error);
+      this.logger.error('Error in refresh token', error);
       await this.logout();
       return false;
     }
@@ -245,31 +297,6 @@ export class AuthenticationService {
       await this.initialize();
     }
     return await this.tokenService.hasValidToken();
-  }
-
-  /**
-   * Attempts to restore the session, either by refreshing the token or using stored tokens
-   * @returns {Promise<boolean>} True if session was restored, false otherwise
-   */
-  async restoreSession(): Promise<boolean> {
-    try {
-      const isOnline = await this.ping();
-
-      if (isOnline) {
-        if (await this.tokenService.hasValidToken()) {
-          return true;
-        }
-
-        if (await this.tokenService.hasRefreshToken()) {
-          return await this.refreshToken();
-        }
-      }
-
-      return await this.tokenService.hasValidToken();
-    } catch (error) {
-      console.error('❌ [Auth] Error restaurando sesión:', error);
-      return false;
-    }
   }
 }
 

@@ -59,7 +59,6 @@ export class LoginPage implements OnInit {
   async checkSession(): Promise<void> {
     try {
       this.isCheckingSession = true;
-      console.log('🔄 [Login] Verificando sesión...');
 
       const loading = await this.loadingController.create({
         message: 'Verificando sesión...',
@@ -68,12 +67,10 @@ export class LoginPage implements OnInit {
 
       try {
         await loading.present();
-        console.log('🌐 [Login] Verificando conexión...');
         const isOnline = await this.authService.ping();
         console.log('📡 [Login] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
 
         if (isOnline) {
-          console.log('🔄 [Login] Intentando restaurar sesión...');
           const sessionRestored = await this.authService.restoreSession();
 
           if (sessionRestored) {
