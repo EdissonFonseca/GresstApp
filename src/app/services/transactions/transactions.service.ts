@@ -3,7 +3,7 @@ import { StorageService } from '../core/storage.service';
 import { Transaccion } from '../../interfaces/transaccion.interface';
 import { TasksService } from './tasks.service';
 import { Tarea } from '../../interfaces/tarea.interface';
-  import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS } from '@app/constants/constants';
+  import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, STORAGE } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Transaction } from '../../interfaces/transaction.interface';
@@ -47,7 +47,7 @@ export class TransactionsService {
     let nombre: string = '';
     let operacion: string = '';
     let ubicacion: string = '';
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const transacciones: Transaccion[] = transaction.Transacciones.filter((x) => x.IdActividad == idActividad);
     const puntos = await this.pointsService.list();
     const terceros = await this.thirdpartiesService.list();
@@ -100,7 +100,7 @@ export class TransactionsService {
   }
 
   async get(idActividad: string, idTransaccion: string) {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     let transaccion: Transaccion | undefined;
 
     if (transaction){
@@ -113,7 +113,7 @@ export class TransactionsService {
   }
 
   async getByPunto(idActividad: string, idPunto: string) {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     let transaccion: Transaccion | undefined;
 
     if (transaction) {
@@ -123,7 +123,7 @@ export class TransactionsService {
   }
 
   async getByTercero(idActividad: string, idTercero: string) {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     let transaccion: Transaccion | undefined = undefined;
 
     if (transaction)
@@ -135,19 +135,19 @@ export class TransactionsService {
 
   async create(transaccion: Transaccion) {
     const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     if (transaction) {
       transaccion.FechaInicial = now;
       transaccion.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Transacciones.push(transaccion);
-      await this.storage.set('Transaction', transaction);
+      await this.storage.set(STORAGE.TRANSACTION, transaction);
     }
   }
 
   async update(transaccion: Transaccion) {
     const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     if (transaction)
     {
@@ -173,7 +173,7 @@ export class TransactionsService {
           x.CRUD = CRUD_OPERATIONS.UPDATE
         });
 
-        await this.storage.set("Transaction", transaction);
+        await this.storage.set(STORAGE.TRANSACTION, transaction);
       }
     }
   }

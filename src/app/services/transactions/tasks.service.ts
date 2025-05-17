@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { StorageService } from '../core/storage.service';
 import { Tarea } from '../../interfaces/tarea.interface';
 import { Actividad } from '../../interfaces/actividad.interface';
-import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
+import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, SERVICE_TYPES, STORAGE } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
@@ -36,7 +36,7 @@ export class TasksService {
   }
 
   async list(idActividad: string, idTransaccion?: string | null): Promise<Tarea[]>{
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const materials = await this.materialsService.list();
     const treatments = await this.treatmentsService.list();
     const actividad: Actividad | undefined = transaction.Actividades.find((x) => x.IdActividad == idActividad);
@@ -68,7 +68,7 @@ export class TasksService {
     let embalaje: string;
     let accion: string;
     const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const actividad: Actividad | undefined = transaction.Actividades.find((item) => item.IdActividad == idActividad);
 
     if (!actividad) {
@@ -246,19 +246,19 @@ export class TasksService {
   }
 
   async create(tarea: Tarea) {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     if (transaction){
       tarea.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Tareas.push(tarea);
-      await this.storage.set('Transaction', transaction);
+      await this.storage.set(STORAGE.TRANSACTION, transaction);
     }
   }
 
   async update(idActividad: string, idTransaccion: string, tarea: Tarea) {
     const now = new Date().toISOString();
     let tareaUpdate: Tarea | undefined = undefined;
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     if (transaction)
     {
@@ -279,7 +279,7 @@ export class TasksService {
         tareaUpdate.IdEstado = tarea.IdEstado;
         tareaUpdate.Fotos = tarea.Fotos;
         tareaUpdate.FechaEjecucion = now;
-        await this.storage.set("Transaction", transaction);
+        await this.storage.set(STORAGE.TRANSACTION, transaction);
       }
     }
   }

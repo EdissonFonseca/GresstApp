@@ -3,6 +3,7 @@ import { StorageService } from '@app/services/core/storage.service';
 import { Punto } from '@app/interfaces/punto.interface';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { Tarea } from '@app/interfaces/tarea.interface';
+import { STORAGE } from '@app/constants/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -13,7 +14,7 @@ export class PointsService {
   ) {}
 
   async get(idPunto: string): Promise<Punto | undefined> {
-    const puntos: Punto[] = await this.storage.get('Puntos');
+    const puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
 
     if (puntos) {
       const punto = puntos.find((punto) => punto.IdDeposito === idPunto);
@@ -24,14 +25,14 @@ export class PointsService {
   }
 
   async list(): Promise<Punto[]> {
-    const puntos: Punto[] = await this.storage.get('Puntos');
+    const puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
 
     return puntos;
   }
 
   async getPuntosFromTareas(idActividad: string){
-    let puntos: Punto[] = await this.storage.get('Puntos');
-    const transaction: Transaction = await this.storage.get('Transaction');
+    let puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
 
     if (transaction && tareas)
@@ -46,10 +47,10 @@ export class PointsService {
   async getPuntosFromTareasPendientes(idActividad: string){
     console.log('🔍 Obteniendo puntos de tareas para actividad:', idActividad);
 
-    let puntos: Punto[] = await this.storage.get('Puntos');
+    let puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
     console.log('📦 Puntos en storage:', puntos);
 
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     console.log('📄 Transaction:', transaction);
 
     const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;

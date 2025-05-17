@@ -4,6 +4,7 @@ import { AlertController } from '@ionic/angular';
 import { Cuenta } from '@app/interfaces/cuenta.interface';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Page component for user profile management
@@ -39,7 +40,7 @@ export class ProfilePage implements OnInit {
    * Loads user account data and populates the form
    */
   async ngOnInit() {
-    this.cuenta = await this.storage.get('Cuenta');
+    this.cuenta = await this.storage.get(STORAGE.ACCOUNT);
 
     this.formData.patchValue({
       Nombre: this.cuenta?.NombreUsuario,
@@ -59,14 +60,14 @@ export class ProfilePage implements OnInit {
    * Updates the name in the backend and local storage
    */
   async changeName() {
-    const userName = await this.storage.get('Login');
+    const userName = await this.storage.get(STORAGE.USERNAME);
     const formValues = this.formData.value;
 
     try {
       await this.authenticationService.changeName(userName, formValues.Nombre);
       if (this.cuenta) {
         this.cuenta.NombreUsuario = formValues.Nombre;
-        await this.storage.set('Cuenta', this.cuenta);
+        await this.storage.set(STORAGE.ACCOUNT, this.cuenta);
       }
       await this.presentAlert('Name changed', '', 'Your name has been successfully changed');
     } catch (error) {
@@ -80,8 +81,8 @@ export class ProfilePage implements OnInit {
    * Validates current password and updates to new password
    */
   async changePassword() {
-    const userName = await this.storage.get('Login');
-    const currentPassword = await this.storage.get('Password');
+    const userName = await this.storage.get(STORAGE.USERNAME);
+    const currentPassword = '';
 
     if (this.formData.valid) {
       const formValues = this.formData.value;
@@ -92,7 +93,7 @@ export class ProfilePage implements OnInit {
       } else {
         try {
           await this.authenticationService.changePassword(userName, formValues.ClaveNueva);
-          await this.storage.set('Password', formValues.ClaveNueva);
+          //await this.storage.set('Password', formValues.ClaveNueva);
           await this.presentAlert('Password changed', '', 'Your password has been successfully changed');
         } catch (error) {
           await this.presentAlert('Error', '', 'An error occurred while changing your password');

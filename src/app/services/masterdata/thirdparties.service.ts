@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Tercero } from '@app/interfaces/tercero.interface';
-import { CRUD_OPERATIONS } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 import { Punto } from '@app/interfaces/punto.interface';
 
@@ -15,7 +15,7 @@ export class ThirdpartiesService {
   ) {}
 
   async get(idTercero: string): Promise<Tercero | undefined> {
-    const terceros: Tercero[] = await this.storage.get('Terceros');
+    const terceros: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
 
     if (terceros) {
       const tercero = terceros.find((tercero) => tercero.IdPersona === idTercero);
@@ -26,14 +26,14 @@ export class ThirdpartiesService {
   }
 
   async list(): Promise<Tercero[]> {
-    const terceros: Tercero[] = await this.storage.get('Terceros');
+    const terceros: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
 
     return terceros;
   }
 
   async getTercerosConPuntos(): Promise<Tercero[]> {
-    const terceros: Tercero[] = await this.storage.get('Terceros');
-    const puntos: Punto[] = await this.storage.get('Puntos');
+    const terceros: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
+    const puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
 
     const idTerceros: string[] = puntos.map(x => x.IdPersona ?? '');
 
@@ -54,9 +54,9 @@ export class ThirdpartiesService {
     finally
     {
       //Add to array
-      const terceros: Tercero[] = await this.storage.get('Terceros');
+      const terceros: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
       terceros.push(tercero);
-      await this.storage.set('Terceros', terceros);
+      await this.storage.set(STORAGE.THIRD_PARTIES, terceros);
     }
     return true;
   }

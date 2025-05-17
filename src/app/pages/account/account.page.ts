@@ -3,6 +3,7 @@ import { NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Account page component
@@ -33,7 +34,7 @@ export class AccountPage implements OnInit {
    * Initialize the page and load account data
    */
   async ngOnInit() {
-    this.cuenta = await this.storage.get('Cuenta');
+    this.cuenta = await this.storage.get(STORAGE.ACCOUNT);
 
     this.formData.patchValue({
       Nombre: this.cuenta?.NombreCuenta,

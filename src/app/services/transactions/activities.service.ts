@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUD_OPERATIONS, STATUS, SERVICES } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { Utils } from '@app/utils/utils';
@@ -39,7 +39,7 @@ export class ActivitiesService {
   }
 
   async list(): Promise<Actividad[]> {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     let actividades: Actividad[] = [];
 
     if (!transaction?.Actividades) return actividades;
@@ -55,7 +55,7 @@ export class ActivitiesService {
   }
 
   async get(idActividad: string): Promise<Actividad> {
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     let actividades: Actividad[] = [];
 
     actividades = transaction.Actividades;
@@ -70,7 +70,7 @@ export class ActivitiesService {
   }
 
   async getByServicio(idServicio: string, idRecurso: string) : Promise<Actividad | undefined>{
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const actividades = transaction.Actividades;
     const actividad: Actividad = actividades.find((item) => item.IdServicio == idServicio && item.IdRecurso == idRecurso)!;
     return actividad;
@@ -80,7 +80,7 @@ export class ActivitiesService {
   async create(actividad: Actividad) {
     const now = new Date().toISOString();
     const [latitud, longitud] = await Utils.getCurrentPosition();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     actividad.CRUD = CRUD_OPERATIONS.CREATE;
     actividad.FechaInicial = now;
@@ -88,12 +88,12 @@ export class ActivitiesService {
     actividad.LatitudInicial = longitud;
 
     transaction.Actividades.push(actividad);
-    await this.storage.set('Transaction', transaction);
+    await this.storage.set(STORAGE.TRANSACTION, transaction);
   }
 
   async update(actividad: Actividad) {
     const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
@@ -122,13 +122,13 @@ export class ActivitiesService {
         x.CRUD = CRUD_OPERATIONS.UPDATE
       });
 
-      await this.storage.set("Transaction", transaction);
+      await this.storage.set(STORAGE.TRANSACTION, transaction);
     }
   }
 
   async updateInicio(actividad: Actividad) {
     const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get('Transaction');
+    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
     const actividades = transaction.Actividades;
     const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
@@ -139,7 +139,7 @@ export class ActivitiesService {
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
-      await this.storage.set("Transaction", transaction);
+      await this.storage.set(STORAGE.TRANSACTION, transaction);
     }
   }
 }

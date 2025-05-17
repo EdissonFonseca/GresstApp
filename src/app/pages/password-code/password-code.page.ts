@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MenuController, NavController, ToastController } from '@ionic/angular';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Page component for verification code validation
@@ -42,7 +43,7 @@ export class PasswordCodePage implements OnInit {
    */
   async verify() {
     try {
-      const generatedCode = await this.storage.get('Code');
+      const generatedCode = await this.storage.get(STORAGE.VERIFICATION_CODE);
 
       if (this.verificationCode !== generatedCode) {
         await this.presentToast('The code does not match', 'middle');

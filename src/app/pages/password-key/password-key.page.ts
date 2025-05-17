@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {  NavController, ToastController, LoadingController, AlertController } from '@ionic/angular';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Password key page component that handles password change functionality.
@@ -60,7 +61,7 @@ export class PasswordKeyPage implements OnInit {
       });
       await loading.present();
 
-      const email = await this.storage.get('Email');
+      const email = await this.storage.get(STORAGE.EMAIL);
       await this.authenticationService.changePassword(email, this.newPassword);
 
       await loading.dismiss();

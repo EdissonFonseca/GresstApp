@@ -6,6 +6,7 @@ import { InventoryApiService } from '@app/services/api/inventoryApi.service';
 import { StorageService } from '@app/services/core/storage.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { Utils } from '@app/utils/utils';
+import { STORAGE } from '@app/constants/constants';
 
 @Component({
   selector: 'app-bank',
@@ -54,11 +55,5 @@ export class BankPage implements OnInit {
   }
 
   async handleClear(){
-    await Utils.showLoading('Sincronizando ...');
-    const username = await this.storage.get('Login');
-    const password = await this.storage.get('Password');
-    const token = await this.authenticationService.login(username, password);
-    this.materiales = await this.inventoryService.getBank();
-    await Utils.hideLoading();
   }
 }

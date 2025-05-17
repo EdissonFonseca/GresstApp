@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { TransactionsApiService } from '@app/services/api/transactionsApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 @Component({
   selector: 'app-search-certificates',
@@ -42,7 +43,7 @@ export class SearchCertificatesPage implements OnInit {
     }
 
     try {
-      const transaction = await this.storage.get('Transaccion');
+      const transaction = await this.storage.get(STORAGE.TRANSACTION);
       const success = await this.transactionsService.emitCertificate(transaction);
 
       if (success) {

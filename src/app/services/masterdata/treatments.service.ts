@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Tratamiento } from '@app/interfaces/tratamiento.interface';
+import { STORAGE } from '@app/constants/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +13,7 @@ export class TreatmentsService {
 
 
   async get(idTratamiento: string): Promise<Tratamiento | undefined> {
-    const tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
+    const tratamientos: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
 
     if (tratamientos) {
       const tratamiento = tratamientos.find((tratamiento) => tratamiento.IdTratamiento === idTratamiento);
@@ -23,7 +24,7 @@ export class TreatmentsService {
   }
 
   async list(): Promise<Tratamiento[]> {
-    const tratamientos: Tratamiento[] = await this.storage.get('Tratamientos');
+    const tratamientos: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
 
     return tratamientos;
   }

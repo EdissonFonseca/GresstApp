@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUD_OPERATIONS } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
 import { Insumo } from '@app/interfaces/insumo.interface';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 
@@ -14,7 +14,7 @@ export class SuppliesService  {
   ) {}
 
   async list(): Promise<Insumo[]> {
-    const insumos: Insumo[] = await this.storage.get('Insumos');
+    const insumos: Insumo[] = await this.storage.get(STORAGE.SUPPLIES);
 
     return insumos;
   }
@@ -33,9 +33,9 @@ export class SuppliesService  {
     finally
     {
       //Add to array
-      const insumos: Insumo[] = await this.storage.get('Insumos');
+      const insumos: Insumo[] = await this.storage.get(STORAGE.SUPPLIES);
       insumos.push(insumo);
-      await this.storage.set('Insumos', insumo);
+      await this.storage.set(STORAGE.SUPPLIES, insumo);
     }
     return true;
   }

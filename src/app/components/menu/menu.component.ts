@@ -3,7 +3,7 @@ import { StorageService } from '@app/services/core/storage.service';
 import { AlertController, NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { PERMISSIONS } from '@app/constants/constants';
+import { PERMISSIONS, STORAGE } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '@app/services/core/session.service';
 import { Utils } from '@app/utils/utils';
@@ -39,7 +39,7 @@ export class MenuComponent  implements OnInit {
   ) { }
 
   async ngOnInit() {
-    const cuenta = await this.storage.get('Cuenta');
+    const cuenta = await this.storage.get(STORAGE.ACCOUNT);
 
     this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;

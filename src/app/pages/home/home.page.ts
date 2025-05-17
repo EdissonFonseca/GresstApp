@@ -6,6 +6,7 @@ import { StorageService } from '../../services/core/storage.service';
 import { SessionService } from '@app/services/core/session.service';
 import { Router } from '@angular/router';
 import { Utils } from '@app/utils/utils';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
@@ -83,7 +84,7 @@ export class HomePage implements OnInit {
    */
   private async loadUserData() {
     try {
-      const user = await this.storage.get('User');
+      const user = await this.storage.get(STORAGE.USERNAME);
       if (user) {
         this.nombreUsuario.set(user.Nombre || '');
       }
@@ -97,7 +98,7 @@ export class HomePage implements OnInit {
    */
   private async loadAccountData() {
     try {
-      const cuenta = await this.storage.get('Cuenta');
+      const cuenta = await this.storage.get(STORAGE.ACCOUNT);
       if (cuenta) {
         this.nombreCuenta.set(cuenta.NombreCuenta || '');
       }

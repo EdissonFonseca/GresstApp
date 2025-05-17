@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NavController, LoadingController, AlertController } from '@ionic/angular';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Page component for user registration
@@ -44,8 +45,8 @@ export class RegisterKeyPage implements OnInit {
 
     try {
       await loading.present();
-      const email = await this.storage.get('Email');
-      const name = await this.storage.get('Name');
+      const email = await this.storage.get(STORAGE.EMAIL);
+      const name = await this.storage.get(STORAGE.FULLNAME);
 
       await this.authenticationService.register(email, name, this.newPassword);
       await this.presentAlert('User registered', '', 'User registered successfully');

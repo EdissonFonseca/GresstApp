@@ -3,7 +3,7 @@ import { Storage } from '@ionic/storage-angular';
 import { Network } from '@capacitor/network';
 import { AuthenticationApiService } from '../api/authenticationApi.service';
 import { SynchronizationService } from './synchronization.service';
-import { AUTH_KEYS } from '../../constants/constants';
+import { AUTH_KEYS, STORAGE } from '../../constants/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { HttpService } from '../api/http.service';
 import { LoggerService } from './logger.service';
@@ -138,10 +138,10 @@ export class SessionService {
   async forceQuit(): Promise<void> {
     try {
       // Get data from storage
-      const transactions = await this.storage.get('Transaction') || [];
-      const masterData = await this.storage.get('Embalajes') || [];
-      const inventory = await this.storage.get('Inventario') || [];
-      const authorizations = await this.storage.get('Cuenta') || [];
+      const transactions = await this.storage.get(STORAGE.TRANSACTION) || [];
+      const masterData = await this.storage.get(STORAGE.PACKAGES) || [];
+      const inventory = await this.storage.get(STORAGE.INVENTORY) || [];
+      const authorizations = await this.storage.get(STORAGE.ACCOUNT) || [];
 
       // Create backup data object
       const backupData: BackupData = {

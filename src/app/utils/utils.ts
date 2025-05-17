@@ -1,5 +1,5 @@
 import { Geolocation } from '@capacitor/geolocation';
-import { GEOLOCATION, INPUT_OUTPUT, SERVICES, ERRORS, VALIDATION, FILES, DATETIME, CRUD_OPERATIONS, STATUSES } from '../constants/constants';
+import { GEOLOCATION, INPUT_OUTPUT, SERVICES, ERRORS, VALIDATION, FILES, DATETIME, CRUD_OPERATIONS, STATUSES, STORAGE } from '../constants/constants';
 import { LoggerService } from '../services/core/logger.service';
 import { Injectable } from '@angular/core';
 import { StorageService } from '../services/core/storage.service';
@@ -172,7 +172,7 @@ export class Utils {
    * @returns The permission string or empty string if not found
    */
   static async getPermission(permissionName: string): Promise<string> {
-    const account = await Utils.storage.get('account');
+    const account = await Utils.storage.get(STORAGE.ACCOUNT);
     if (account?.permisos) {
       return account.permisos[permissionName] || '';
     }
@@ -248,7 +248,7 @@ export class Utils {
    * @returns The person ID or undefined if not found
    */
   static async getPersonId(): Promise<string | undefined> {
-    const account = await Utils.storage.get('account');
+    const account = await Utils.storage.get(STORAGE.ACCOUNT);
     return account?.IdPersonaCuenta;
   }
 
@@ -257,7 +257,7 @@ export class Utils {
    * @returns The account object
    */
   static async getAccount(): Promise<any> {
-    return await Utils.storage.get('account');
+    return await Utils.storage.get(STORAGE.ACCOUNT);
   }
 
   /**
@@ -266,7 +266,7 @@ export class Utils {
    * @returns True if the service is allowed
    */
   static async allowService(serviceId: string): Promise<boolean> {
-    const account = await Utils.storage.get('account');
+    const account = await Utils.storage.get(STORAGE.ACCOUNT);
     return account?.servicios?.includes(serviceId) ?? false;
   }
 

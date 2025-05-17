@@ -12,7 +12,7 @@ import { Tratamiento } from '../../interfaces/tratamiento.interface';
 import { Vehiculo } from '../../interfaces/vehiculo.interface';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { environment } from '../../../environments/environment';
-import { CRUD_OPERATIONS } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
 import { LoggerService } from './logger.service';
 import { InventoryApiService } from '../api/inventoryApi.service';
 import { Utils } from '@app/utils/utils';
@@ -44,7 +44,7 @@ export class SynchronizationService {
   async countPendingTransactions(): Promise<void> {
     this.pendingTransactions.set(0);
     try {
-      const transaction: Transaction = await this.storage.get('Transaction');
+      const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
       if (transaction) {
         this.pendingTransactions.set(
           transaction.Actividades.filter((actividad) => actividad.CRUD != null).length +
@@ -65,7 +65,7 @@ export class SynchronizationService {
   async downloadAuthorizations(): Promise<void> {
     try {
       const permissions = await this.authorizationService.get();
-      await this.storage.set('Cuenta', permissions);
+      await this.storage.set(STORAGE.ACCOUNT, permissions);
     } catch (error) {
       this.logger.error('Error downloading authorizations', error);
       throw error;
@@ -79,7 +79,7 @@ export class SynchronizationService {
   async downloadInventory(): Promise<void> {
     try {
       const response = await this.inventoryService.get();
-      await this.storage.set('Inventario', response);
+      await this.storage.set(STORAGE.INVENTORY, response);
     } catch (error) {
       this.logger.error('Error downloading inventory', error);
       throw error;
@@ -94,25 +94,25 @@ export class SynchronizationService {
   async downloadMasterData(): Promise<void> {
     try {
       const packaging: Embalaje[] = await this.masterdataService.getPackaging();
-      await this.storage.set('Embalajes', packaging);
+      await this.storage.set(STORAGE.PACKAGES, packaging);
 
       const materials: Material[] = await this.masterdataService.getMaterials();
-      await this.storage.set('Materiales', materials);
+      await this.storage.set(STORAGE.MATERIALS, materials);
 
       const points: Punto[] = await this.masterdataService.getPoints();
-      await this.storage.set('Puntos', points);
+      await this.storage.set(STORAGE.POINTS, points);
 
       const services: Servicio[] = await this.masterdataService.getServices();
-      await this.storage.set('Servicios', services);
+      await this.storage.set(STORAGE.SERVICES, services);
 
       const thirdParties: Tercero[] = await this.masterdataService.getThirdParties();
-      await this.storage.set('Terceros', thirdParties);
+      await this.storage.set(STORAGE.THIRD_PARTIES, thirdParties);
 
       const treatments: Tratamiento[] = await this.masterdataService.getTreatments();
-      await this.storage.set('Tratamientos', treatments);
+      await this.storage.set(STORAGE.TREATMENTS, treatments);
 
       const vehicles: Vehiculo[] = await this.masterdataService.getVehicles();
-      await this.storage.set('Vehiculos', vehicles);
+      await this.storage.set(STORAGE.VEHICLES, vehicles);
     } catch (error) {
       this.logger.error('Error downloading master data', error);
       throw error;
@@ -126,7 +126,7 @@ export class SynchronizationService {
   async downloadTransactions(): Promise<void> {
     try {
       const transaction: Transaction = await this.transactionsService.get();
-      await this.storage.set('Transaction', transaction);
+      await this.storage.set(STORAGE.TRANSACTION, transaction);
     } catch (error) {
       this.logger.error('Error downloading transactions', error);
       throw error;
@@ -140,11 +140,11 @@ export class SynchronizationService {
    */
   async uploadMasterData(): Promise<boolean> {
     try {
-      const packaging: Embalaje[] = await this.storage.get('Embalajes');
-      const materials: Material[] = await this.storage.get('Materiales');
-      const points: Punto[] = await this.storage.get('Puntos');
-      const thirdParties: Tercero[] = await this.storage.get('Terceros');
-      const treatments: Tratamiento[] = await this.storage.get('Tratamientos');
+      const packaging: Embalaje[] = await this.storage.get(STORAGE.PACKAGES);
+      const materials: Material[] = await this.storage.get(STORAGE.MATERIALS);
+      const points: Punto[] = await this.storage.get(STORAGE.POINTS);
+      const thirdParties: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
+      const treatments: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
 
       if (packaging) {
         const newPackaging = packaging.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
@@ -203,7 +203,7 @@ export class SynchronizationService {
    */
   async uploadTransactions(): Promise<boolean> {
     try {
-      const transaction: Transaction = await this.storage.get('Transaction');
+      const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
       if (transaction) {
         // Process activities
@@ -215,7 +215,7 @@ export class SynchronizationService {
               activity.LongitudInicial = longitude;
             }
             if (!await this.transactionsService.createInitialActivity(activity)) {
-              await this.storage.set('Transaction', transaction);
+              await this.storage.set(STORAGE.TRANSACTION, transaction);
               await this.countPendingTransactions();
               return false;
             }
@@ -228,7 +228,7 @@ export class SynchronizationService {
               activity.LongitudInicial = longitude;
             }
             if (!await this.transactionsService.createActivity(activity)) {
-              await this.storage.set('Transaction', transaction);
+              await this.storage.set(STORAGE.TRANSACTION, transaction);
               await this.countPendingTransactions();
               return false;
             }
@@ -243,7 +243,7 @@ export class SynchronizationService {
             trans.Longitud = longitude;
           }
           if (!await this.transactionsService.createTransaction(trans)) {
-            await this.storage.set('Transaction', transaction);
+            await this.storage.set(STORAGE.TRANSACTION, transaction);
             await this.countPendingTransactions();
             return false;
           }
@@ -253,20 +253,20 @@ export class SynchronizationService {
         for (const task of transaction.Tareas.filter((t: any) => t.CRUD != null)) {
           if (task.CRUD === CRUD_OPERATIONS.CREATE) {
             if (!await this.transactionsService.createTask(task)) {
-              await this.storage.set('Transaction', transaction);
+              await this.storage.set(STORAGE.TRANSACTION, transaction);
               await this.countPendingTransactions();
               return false;
             }
           } else if (task.CRUD === CRUD_OPERATIONS.UPDATE) {
             if (!await this.transactionsService.updateTask(task)) {
-              await this.storage.set('Transaction', transaction);
+                await this.storage.set(STORAGE.TRANSACTION, transaction);
               await this.countPendingTransactions();
               return false;
             }
           }
         }
 
-        await this.storage.set('Transaction', transaction);
+        await this.storage.set(STORAGE.TRANSACTION, transaction);
         await this.countPendingTransactions();
       }
 

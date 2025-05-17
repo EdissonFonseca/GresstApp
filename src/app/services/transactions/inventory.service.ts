@@ -3,7 +3,7 @@ import { Residuo } from "../../interfaces/residuo.interface";
 import { Actividad } from "../../interfaces/actividad.interface";
 import { Cuenta } from "../../interfaces/cuenta.interface";
 import { StorageService } from "../core/storage.service";
-import { CRUD_OPERATIONS, SERVICE_TYPES } from "../../constants/constants";
+import { CRUD_OPERATIONS, SERVICE_TYPES, STORAGE } from "../../constants/constants";
 import { MaterialsService } from "../masterdata/materials.service";
 import { PointsService } from "../masterdata/points.service";
 import { ThirdpartiesService } from "../masterdata/thirdparties.service";
@@ -21,9 +21,9 @@ export class InventoryService {
   ) {}
 
   async list(): Promise<Residuo[]> {
-    const cuenta: Cuenta  = await this.storage.get('Cuenta');
-    const actividades: Actividad[] = await this.storage.get('Actividades');
-    const residuos: Residuo[] = await this.storage.get('Inventario');
+    const cuenta: Cuenta  = await this.storage.get(STORAGE.ACCOUNT);
+    const actividades: Actividad[] = await this.storage.get(STORAGE.ACTIVITIES);
+    const residuos: Residuo[] = await this.storage.get(STORAGE.INVENTORY);
     const materiales = await this.materialsService.list();
     const terceros = await this.thirdpartiesService.list();
     const puntos = await this.pointsService.list();
@@ -95,16 +95,16 @@ export class InventoryService {
   }
 
   async createResiduo(residuo: Residuo) {
-    let inventario: Residuo[] = await this.storage.get('Inventario');
+    let inventario: Residuo[] = await this.storage.get(STORAGE.INVENTORY);
 
     if (!inventario)
       inventario = [];
     inventario.push(residuo);
-    await this.storage.set('Inventario', inventario);
+    await this.storage.set(STORAGE.INVENTORY, inventario);
   }
 
   async updateResiduo(residuo: Residuo) {
-    const residuos: Residuo[] = await this.storage.get('Inventario');
+    const residuos: Residuo[] = await this.storage.get(STORAGE.INVENTORY);
     const residuoStorage: Residuo = residuos.find((item) => item.IdResiduo == residuo.IdResiduo)!;
     if (residuoStorage) {
       residuoStorage.CRUD = CRUD_OPERATIONS.UPDATE;

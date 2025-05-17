@@ -3,6 +3,7 @@ import { MenuController, NavController, LoadingController, ToastController } fro
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { MailService } from '@app/services/core/mail.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Page component for password recovery via email
@@ -64,8 +65,8 @@ export class PasswordEmailPage implements OnInit {
         );
 
         if (this.verificationCode) {
-          await this.storage.set('Email', this.email);
-          await this.storage.set('Code', this.verificationCode);
+          await this.storage.set(STORAGE.EMAIL, this.email);
+          await this.storage.set(STORAGE.VERIFICATION_CODE, this.verificationCode);
           this.navCtrl.navigateRoot('/password-code');
         }
       } else {
