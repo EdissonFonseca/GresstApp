@@ -1,4 +1,3 @@
-/* cSpell:disable */
 {
   "COMMON": {
     "BACK": "Atrás",
@@ -11,17 +10,27 @@
     "LANGUAGE": "Idioma"
   },
   "AUTH": {
-    "LOGIN": "Iniciar Sesión",
+    "LOGIN": {
+      "WELCOME": "Bienvenido",
+      "USERNAME": "Correo electrónico",
+      "PASSWORD": "Contraseña",
+      "SUBMIT": "Iniciar Sesión",
+      "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+      "CHECKING_SESSION": "Verificando sesión...",
+      "SENDING_RECOVERY": "Enviando correo de recuperación...",
+      "RECOVERY_SENT": "Se ha enviado un correo con instrucciones"
+    },
     "LOGOUT": "Cerrar Sesión",
     "USERNAME": "Usuario",
     "PASSWORD": "Contraseña",
     "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
     "RECOVER_PASSWORD": "Recuperar Contraseña",
     "ERRORS": {
-      "TITLE": "Error de Autenticación",
-      "INVALID_CREDENTIALS": "Credenciales inválidas",
-      "NO_CONNECTION": "No hay conexión al servidor",
-      "SERVER_ERROR": "Error del servidor"
+      "TITLE": "Error",
+      "NO_CONNECTION": "No hay conexión a internet",
+      "INVALID_CREDENTIALS": "Usuario o contraseña incorrectos",
+      "EMAIL_REQUIRED": "Por favor ingrese su correo electrónico",
+      "SERVER_ERROR": "Error del servidor. Por favor intente más tarde"
     }
   },
   "TREATMENTS": {

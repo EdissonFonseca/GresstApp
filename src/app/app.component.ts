@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthenticationApiService } from './services/api/authenticationApi.service';
 import { Platform } from '@ionic/angular';
+import { TranslationService } from './services/core/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,8 @@ export class AppComponent {
   constructor(
     private auth: AuthenticationApiService,
     private router: Router,
-    private platform: Platform) { }
+    private platform: Platform,
+    private translationService: TranslationService) { }
 
     async initializeApp() {
       await this.platform.ready();

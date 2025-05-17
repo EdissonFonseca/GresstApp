@@ -1,6 +1,6 @@
 <ion-content [fullscreen]="true" class="ion-padding">
   <div class="login-container">
-    <h2 class="welcome-text">Bienvenido</h2>
+    <h2 class="welcome-text">{{ 'AUTH.LOGIN.WELCOME' | translate }}</h2>
 
     <form [formGroup]="loginForm" (ngSubmit)="login()" class="login-form">
       <div class="logo-container">
@@ -12,7 +12,7 @@
         <ion-input
           formControlName="username"
           type="email"
-          label="Correo electrónico"
+          [label]="'AUTH.LOGIN.USERNAME' | translate"
           labelPlacement="floating"
           class="custom">
         </ion-input>
@@ -23,7 +23,7 @@
         <ion-input
           formControlName="password"
           type="password"
-          label="Contraseña"
+          [label]="'AUTH.LOGIN.PASSWORD' | translate"
           labelPlacement="floating"
           class="custom">
         </ion-input>
@@ -31,11 +31,11 @@
 
       <ion-button expand="block" class="login-button" shape="round" type="submit" [disabled]="loginForm.invalid || isCheckingSession">
         <ion-icon slot="start" name="log-in-outline"></ion-icon>
-        Iniciar Sesión
+        {{ 'AUTH.LOGIN.SUBMIT' | translate }}
       </ion-button>
 
       <ion-button fill="clear" expand="block" class="forgot-password" (click)="recoverPassword()">
-        ¿Olvidaste tu contraseña?
+        {{ 'AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
       </ion-button>
     </form>
   </div>

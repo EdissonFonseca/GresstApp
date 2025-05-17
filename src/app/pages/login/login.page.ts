@@ -53,22 +53,20 @@ export class LoginPage implements OnInit {
    * @throws {Error} If login process fails
    */
   async login(): Promise<void> {
+    const { username, password } = this.loginForm.value;
+
     try {
-      // Show loading indicator
       this.loading = await this.loadingController.create({
-        message: 'Authenticating...',
+        message: this.translate.instant('AUTH.LOGIN.CHECKING_SESSION'),
         spinner: 'circular'
       });
       await this.loading.present();
 
-      // Check network connectivity
       const isOnline = await this.sessionService.isOnline();
       if (!isOnline) {
         throw new Error('NO_CONNECTION');
       }
 
-      // Attempt login
-      const { username, password } = this.loginForm.value;
       const success = await this.authService.login(username, password);
       if (success) {
         await this.sessionService.load();
@@ -80,7 +78,6 @@ export class LoginPage implements OnInit {
       console.error('❌ [Login] Error in login:', error);
       let errorMessage = '';
 
-      // Handle specific error cases
       if (error.message === 'NO_CONNECTION') {
         errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
       } else if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
@@ -91,9 +88,11 @@ export class LoginPage implements OnInit {
         errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
       }
 
-      await Utils.showAlert(this.translate.instant('AUTH.ERRORS.TITLE'), errorMessage);
+      await Utils.showAlert(
+        this.translate.instant('AUTH.ERRORS.TITLE'),
+        errorMessage
+      );
     } finally {
-      // Dismiss loading indicator if it exists
       if (this.loading) {
         await this.loading.dismiss();
         this.loading = null;
@@ -113,32 +112,38 @@ export class LoginPage implements OnInit {
         throw new Error('EMAIL_REQUIRED');
       }
 
-      // Check network connectivity
       const isOnline = await this.sessionService.isOnline();
       if (!isOnline) {
         throw new Error('NO_CONNECTION');
       }
 
-      // Show loading indicator
       this.loading = await this.loadingController.create({
-        message: 'Sending recovery email...',
+        message: this.translate.instant('AUTH.LOGIN.SENDING_RECOVERY'),
         spinner: 'circular'
       });
       await this.loading.present();
 
       // TODO: Implement password recovery logic
-      await Utils.showToast('A recovery email has been sent with instructions', 'top');
+      await Utils.showToast(
+        this.translate.instant('AUTH.LOGIN.RECOVERY_SENT'),
+        'top'
+      );
     } catch (error: any) {
       console.error('Error recovering password:', error);
-      let errorMessage = 'Could not process the request';
+      let errorMessage = '';
 
       if (error.message === 'EMAIL_REQUIRED') {
-        errorMessage = 'Please enter your email address';
+        errorMessage = this.translate.instant('AUTH.ERRORS.EMAIL_REQUIRED');
       } else if (error.message === 'NO_CONNECTION') {
-        errorMessage = 'Cannot recover password without connection';
+        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
+      } else {
+        errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
       }
 
-      await Utils.showAlert('Error', errorMessage);
+      await Utils.showAlert(
+        this.translate.instant('AUTH.ERRORS.TITLE'),
+        errorMessage
+      );
     } finally {
       if (this.loading) {
         await this.loading.dismiss();

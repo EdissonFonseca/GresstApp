@@ -10,17 +10,27 @@
     "LANGUAGE": "Language"
   },
   "AUTH": {
-    "LOGIN": "Login",
+    "LOGIN": {
+      "WELCOME": "Welcome",
+      "USERNAME": "Email",
+      "PASSWORD": "Password",
+      "SUBMIT": "Sign In",
+      "FORGOT_PASSWORD": "Forgot your password?",
+      "CHECKING_SESSION": "Checking session...",
+      "SENDING_RECOVERY": "Sending recovery email...",
+      "RECOVERY_SENT": "A recovery email has been sent with instructions"
+    },
     "LOGOUT": "Logout",
     "USERNAME": "Username",
     "PASSWORD": "Password",
     "FORGOT_PASSWORD": "Forgot Password?",
     "RECOVER_PASSWORD": "Recover Password",
     "ERRORS": {
-      "TITLE": "Authentication Error",
-      "INVALID_CREDENTIALS": "Invalid credentials",
-      "NO_CONNECTION": "No server connection",
-      "SERVER_ERROR": "Server error"
+      "TITLE": "Error",
+      "NO_CONNECTION": "No internet connection",
+      "INVALID_CREDENTIALS": "Invalid username or password",
+      "EMAIL_REQUIRED": "Please enter your email address",
+      "SERVER_ERROR": "Server error. Please try again later"
     }
   },
   "TREATMENTS": {
