@@ -1,11 +1,11 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { SynchronizationService } from '../../services/synchronization.service';
+import { SynchronizationService } from '../../services/core/synchronization.service';
 import { IonTabs } from '@ionic/angular';
 import { signal } from '@angular/core';
-import { StorageService } from '../../services/storage.service';
-import { GlobalesService } from '../../services/globales.service';
-import { AuthenticationService } from '../../services/authentication.service';
+import { StorageService } from '../../services/core/storage.service';
+import { SessionService } from '@app/services/core/session.service';
 import { Router } from '@angular/router';
+import { Utils } from '@app/utils/utils';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
@@ -29,8 +29,7 @@ export class HomePage implements OnInit {
   constructor(
     public synchronizationService: SynchronizationService,
     private storage: StorageService,
-    private globales: GlobalesService,
-    private authService: AuthenticationService,
+    private sessionService: SessionService,
     private router: Router
   ) {}
 
@@ -112,7 +111,7 @@ export class HomePage implements OnInit {
    */
   private async handleError(error: any) {
     console.error('Error en HomePage:', error);
-    await this.globales.presentToast(
+    await Utils.presentToast(
       'Error al cargar los datos. Por favor, intente de nuevo.',
       'middle'
     );
@@ -122,16 +121,16 @@ export class HomePage implements OnInit {
     console.log('🔄 [Home] Verificando estado de la aplicación...');
     try {
       console.log('🌐 [Home] Verificando conexión...');
-      const isOnline = await this.authService.ping();
+      const isOnline = await this.sessionService.isOnline();
       console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
 
       if (isOnline) {
         console.log('🔄 [Home] Actualizando datos...');
-        await this.synchronizationService.refresh();
+        await this.sessionService.refresh();
         console.log('✅ [Home] Datos actualizados');
       } else {
         console.log('ℹ️ [Home] Modo sin conexión activado');
-        await this.globales.presentToast(
+        await Utils.presentToast(
           'Está trabajando sin conexión',
           'middle'
         );
@@ -145,23 +144,22 @@ export class HomePage implements OnInit {
     console.log('🚪 [Home] Iniciando proceso de logout...');
     try {
       console.log('🌐 [Home] Verificando conexión...');
-      const isOnline = await this.authService.ping();
+      const isOnline = await this.sessionService.isOnline();
       console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
 
       if (isOnline) {
         console.log('🔄 [Home] Cerrando sesión...');
-        await this.synchronizationService.close();
-        await this.authService.logout();
+        await this.sessionService.close();
         console.log('✅ [Home] Sesión cerrada exitosamente');
       } else {
         console.log('ℹ️ [Home] Modo sin conexión, cerrando sesión local...');
-        await this.authService.logout();
+        await this.sessionService.close();
       }
 
       await this.router.navigate(['/login']);
     } catch (error) {
       console.error('❌ [Home] Error en logout:', error);
-      await this.globales.presentToast(
+        await Utils.presentToast(
         'Error al cerrar sesión',
         'middle'
       );

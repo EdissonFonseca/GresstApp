@@ -4,9 +4,9 @@ import { Title } from '@angular/platform-browser';
 import { Card } from '@app/interfaces/card';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { Estado } from 'src/app/services/constants.service';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { TransaccionesService } from 'src/app/services/transacciones.service';
+import { Estado } from '@app/constants/constants';
+import { TransactionsService } from '@app/services/transactions/transactions.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-transaction-approve',
@@ -33,9 +33,8 @@ export class TransactionApproveComponent  implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
-    private globales: GlobalesService,
     private modalCtrl:ModalController,
-    private transaccionesService: TransaccionesService
+    private transactionsService: TransactionsService
   ) {
     this.frmTransaccion = this.formBuilder.group({
       Identificacion: '',
@@ -47,8 +46,8 @@ export class TransactionApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadKilometraje = this.globales.unidadKilometraje;
-    this.showMileage = this.globales.solicitarKilometraje;
+    this.unidadKilometraje = Utils.unidadKilometraje;
+    this.showMileage = Utils.solicitarKilometraje;
   }
 
   ngAfterViewInit() {}
@@ -105,7 +104,7 @@ export class TransactionApproveComponent  implements OnInit {
     let transaccion: Transaccion | undefined;
 
     const data = this.frmTransaccion.value;
-    transaccion = await this.transaccionesService.get(this.transaction?.parentId ?? '', this.transaction?.id ?? '');
+    transaccion = await this.transactionsService.get(this.transaction?.parentId ?? '', this.transaction?.id ?? '');
     if (transaccion) { //Si hay transaccion
       const firma = this.getSignature();
 
@@ -123,11 +122,11 @@ export class TransactionApproveComponent  implements OnInit {
     var transaccion = await this.getFormData();
     if (!transaccion) return;
 
-    await this.globales.showLoading('Enviando información');
+    await Utils.showLoading('Enviando información');
     transaccion.IdEstado = Estado.Aprobado;
-    await this.transaccionesService.update(transaccion);
-    this.globales.hideLoading();
-    this.globales.presentToast('Transaccion aprobada', "top");
+    await this.transactionsService.update(transaccion);
+    Utils.hideLoading();
+    Utils.presentToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 
@@ -135,11 +134,11 @@ export class TransactionApproveComponent  implements OnInit {
     var transaccion = await this.getFormData();
     if (!transaccion) return;
 
-    await this.globales.showLoading('Enviando información');
+    await Utils.showLoading('Enviando información');
     transaccion.IdEstado = Estado.Rechazado;
-    await this.transaccionesService.update(transaccion);
-    this.globales.hideLoading();
-    this.globales.presentToast('Transaccion rechazada', "top");
+    await this.transactionsService.update(transaccion);
+    Utils.hideLoading();
+    Utils.presentToast('Transaccion rechazada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 }

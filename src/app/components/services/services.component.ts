@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { Servicio } from 'src/app/interfaces/servicio.interface';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { ServiciosService } from 'src/app/services/servicios.service';
+import { ServicesService } from '@app/services/masterdata/services.service';
+import { SERVICIOS } from '@app/constants/constants';
 
 @Component({
   selector: 'app-services',
@@ -18,22 +18,21 @@ export class ServicesComponent  implements OnInit {
   items: { id: string, name: string; selected: boolean }[] = [];
 
   constructor(
-    private globales: GlobalesService,
-    private serviciosService: ServiciosService,
+    private servicesService: ServicesService,
     private toastCtrl: ToastController
   ) { }
 
   async ngOnInit() {
-    this.services = await this.serviciosService.list();
+    this.services = await this.servicesService.list();
 
-    this.globales.servicios.forEach((item) => {
+    SERVICIOS.forEach((item: Servicio) => {
       var selected = false;
 
       const selectedItem = this.services.find(x => x.IdServicio === item.IdServicio);
       selected = (selectedItem != null);
       const newItem = {
         id: item.IdServicio,
-        name: item.Accion,
+        name: item.Nombre,
         selected: selected,
       };
       this.items.push(newItem);
@@ -42,7 +41,7 @@ export class ServicesComponent  implements OnInit {
 
   async changeSelection(idServicio: string, checked:boolean) {
     if (checked) {
-      await this.serviciosService.create(idServicio);
+      await this.servicesService.create(idServicio);
       const toast = await this.toastCtrl.create({
         message: `Servicio agregado`,
         duration: 1500,
@@ -50,7 +49,7 @@ export class ServicesComponent  implements OnInit {
       });
       await toast.present();
     } else {
-      await this.serviciosService.delete(idServicio);
+      await this.servicesService.delete(idServicio);
       const toast = await this.toastCtrl.create({
         message: `Servicio eliminado`,
         duration: 1500,

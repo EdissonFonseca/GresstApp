@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
 import { PointsComponent } from '../points/points.component';
-import { GlobalesService } from 'src/app/services/globales.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Material } from 'src/app/interfaces/material.interface';
-import { InventarioService } from 'src/app/services/inventario.service';
-import { MaterialesService } from 'src/app/services/materiales.service';
+import { InventoryService } from '@app/services/transactions/inventory.service';
+import { MaterialsService } from '@app/services/masterdata/materials.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residue-move',
@@ -31,23 +31,22 @@ export class ResidueMoveComponent  implements OnInit {
   constructor(
     private navParams: NavParams,
     private modalCtrl: ModalController,
-    private inventarioService: InventarioService,
-    private materialesService: MaterialesService,
-    private globales: GlobalesService
+    private inventoryService: InventoryService,
+    private materialsService: MaterialsService,
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
 
   async ngOnInit() {
-    this.residue = await this.inventarioService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResiduo(this.residueId);
 
     if (!this.residue) return;
 
-    this.unidadCantidad = this.globales.unidadCantidad;
-    this.unidadPeso = this.globales.unidadPeso;
-    this.unidadVolumen = this.globales.unidadPeso;
+    this.unidadCantidad = Utils.unidadCantidad;
+    this.unidadPeso = Utils.unidadPeso;
+    this.unidadVolumen = Utils.unidadPeso;
 
-    this.material = await this.materialesService.get(this.residue.IdMaterial);
+    this.material = await this.materialsService.get(this.residue.IdMaterial);
   }
 
   async confirm() {
@@ -55,7 +54,7 @@ export class ResidueMoveComponent  implements OnInit {
 
     this.residue.IdDeposito = this.targetId;
     this.residue.IdVehiculo = this.vehicleId;
-    this.inventarioService.updateResiduo(this.residue);
+    this.inventoryService.updateResiduo(this.residue);
 
     this.modalCtrl.dismiss({TargetId: this.targetId, VehicleId: this.vehicleId, Target: this.target });
   }
@@ -69,7 +68,7 @@ export class ResidueMoveComponent  implements OnInit {
   }
 
   async selectTarget() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {

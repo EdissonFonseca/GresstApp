@@ -1,6 +1,5 @@
 import { Component, EventEmitter, inject, Input, OnInit, output, Output, SimpleChanges } from '@angular/core';
 import { Card } from '@app/interfaces/card';
-import { GlobalesService } from '@app/services/globales.service';
 
 @Component({
   selector: 'app-card',
@@ -16,7 +15,6 @@ export class CardComponent  implements OnInit {
   @Output() reject = new EventEmitter<string>();
 
   constructor(
-    private globales: GlobalesService
   ) { }
 
   ngOnInit() {

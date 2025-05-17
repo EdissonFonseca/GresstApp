@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
-import { AuthenticationService, FidoError } from '../../services/authentication.service';
-import { SynchronizationService } from '../../services/synchronization.service';
-import { StorageService } from '../../services/storage.service';
+import { SessionService } from '@app/services/core/session.service';
+import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
+import { SynchronizationService } from '@app/services/core/synchronization.service';
 
 /**
  * Login page component that handles user authentication and offline mode support.
@@ -22,127 +22,87 @@ export class LoginPage implements OnInit {
   /** Flag to prevent multiple session checks */
   isCheckingSession = false;
 
+  /** Flag to track dark mode state */
   isDarkMode = false;
+
+  /** Loading indicator instance */
+  private loading: HTMLIonLoadingElement | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthenticationService,
-    private syncService: SynchronizationService,
+    private authService: AuthenticationApiService,
     private router: Router,
     private alertController: AlertController,
     private loadingController: LoadingController,
     private toastController: ToastController,
-    private storageService: StorageService
+    private sessionService: SessionService
   ) {
-    this.initializeLoginForm();
-  }
-
-  ngOnInit(): void {
-    this.checkSession();
-    this.checkTheme();
-  }
-
-  /**
-   * Initializes the login form with validation rules
-   */
-  private initializeLoginForm(): void {
     this.loginForm = this.formBuilder.group({
       username: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  /**
-   * Checks for existing session and handles offline mode
-   * Attempts to refresh token if online, falls back to offline mode if needed
-   */
-  async checkSession(): Promise<void> {
-    try {
-      this.isCheckingSession = true;
-
-      const loading = await this.loadingController.create({
-        message: 'Verificando sesión...',
-        spinner: 'circular'
-      });
-
-      try {
-        await loading.present();
-        const isOnline = await this.authService.ping();
-        console.log('📡 [Login] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
-
-        if (isOnline) {
-          const sessionRestored = await this.authService.restoreSession();
-
-          if (sessionRestored) {
-            console.log('✅ [Login] Sesión restaurada, actualizando datos...');
-            await this.syncService.refresh();
-            await this.router.navigate(['/home']);
-          } else {
-            console.log('ℹ️ [Login] No hay sesión para restaurar');
-          }
-        } else {
-          console.log('ℹ️ [Login] Modo sin conexión activado');
-          await this.showToast('Está trabajando sin conexión', 'middle');
-        }
-      } finally {
-        await loading.dismiss();
-      }
-    } catch (error) {
-      console.error('❌ [Login] Error verificando sesión:', error);
-    } finally {
-      this.isCheckingSession = false;
-    }
+  ngOnInit(): void {
+    this.checkTheme();
   }
 
   /**
    * Handles the login process with offline mode support
    * Validates credentials and manages authentication state
+   * @throws {Error} If login process fails
    */
   async login(): Promise<void> {
-    const loading = await this.loadingController.create({
-      message: 'Iniciando sesión...',
-      spinner: 'dots'
-    });
-    await loading.present();
-
     try {
-      const isOnline = await this.authService.ping();
+      // Show loading indicator
+      this.loading = await this.loadingController.create({
+        message: 'Authenticating...',
+        spinner: 'circular'
+      });
+      await this.loading.present();
+
+      // Check network connectivity
+      const isOnline = await this.sessionService.isOnline();
       if (!isOnline) {
-        await this.showError('Error de conexión', 'No se pudo conectar con el servidor');
-        return;
+        throw new Error('NO_CONNECTION');
       }
 
+      // Attempt login
       const { username, password } = this.loginForm.value;
       const success = await this.authService.login(username, password);
-
       if (success) {
-        await this.syncService.load();
+        await this.sessionService.load();
         await this.router.navigate(['/home']);
       } else {
-        await this.showError('Error de autenticación', 'Credenciales inválidas');
+        throw new Error('INVALID_CREDENTIALS');
       }
     } catch (error: any) {
       console.error('❌ [Login] Error in login:', error);
-      let errorMessage = 'Error al iniciar sesión';
+      let errorMessage = 'Error during login';
 
-      if (error.status === 401) {
-        errorMessage = 'Credenciales inválidas';
+      // Handle specific error cases
+      if (error.message === 'NO_CONNECTION') {
+        errorMessage = 'Could not connect to the server';
+      } else if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
+        errorMessage = 'Invalid credentials';
       } else if (error.status === 0) {
-        errorMessage = 'No se pudo conectar con el servidor';
+        errorMessage = 'Could not connect to the server';
       }
 
-      if (error instanceof FidoError) {
-        await this.router.navigate(['/fido2']);
-      } else {
-        await this.showError('Error', errorMessage);
-      }
+      await this.showError('Authentication Error', errorMessage);
     } finally {
-      await loading.dismiss();
+      // Dismiss loading indicator if it exists
+      if (this.loading) {
+        await this.loading.dismiss();
+        this.loading = null;
+      }
     }
   }
 
   /**
    * Displays an error alert with the specified header and message
+   * @param header - The alert header text
+   * @param message - The alert message text
    */
   private async showError(header: string, message: string): Promise<void> {
     const alert = await this.alertController.create({
@@ -155,6 +115,8 @@ export class LoginPage implements OnInit {
 
   /**
    * Displays a toast message with the specified content and position
+   * @param message - The toast message text
+   * @param position - The position of the toast (top, middle, bottom)
    */
   private async showToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
     const toast = await this.toastController.create({
@@ -168,50 +130,69 @@ export class LoginPage implements OnInit {
   /**
    * Handles the password recovery process
    * Requires online connectivity
+   * @throws {Error} If recovery process fails
    */
   async recoverPassword(): Promise<void> {
-    const { username } = this.loginForm.value;
-    if (!username) {
-      await this.showError('Error', 'Por favor ingrese su correo electrónico');
-      return;
-    }
-
-    const isOnline = await this.authService.ping();
-    if (!isOnline) {
-      await this.showError('Error', 'No se puede recuperar la contraseña sin conexión');
-      return;
-    }
-
-    const loading = await this.loadingController.create({
-      message: 'Enviando correo de recuperación...',
-      spinner: 'circular'
-    });
-
     try {
-      await loading.present();
+      const { username } = this.loginForm.value;
+      if (!username) {
+        throw new Error('EMAIL_REQUIRED');
+      }
+
+      // Check network connectivity
+      const isOnline = await this.sessionService.isOnline();
+      if (!isOnline) {
+        throw new Error('NO_CONNECTION');
+      }
+
+      // Show loading indicator
+      this.loading = await this.loadingController.create({
+        message: 'Sending recovery email...',
+        spinner: 'circular'
+      });
+      await this.loading.present();
+
       // TODO: Implement password recovery logic
-      await this.showError('Éxito', 'Se ha enviado un correo con las instrucciones');
-    } catch (error) {
-      console.error('Error al recuperar contraseña:', error);
-      await this.showError('Error', 'No se pudo procesar la solicitud');
+      await this.showToast('A recovery email has been sent with instructions', 'top');
+    } catch (error: any) {
+      console.error('Error recovering password:', error);
+      let errorMessage = 'Could not process the request';
+
+      if (error.message === 'EMAIL_REQUIRED') {
+        errorMessage = 'Please enter your email address';
+      } else if (error.message === 'NO_CONNECTION') {
+        errorMessage = 'Cannot recover password without connection';
+      }
+
+      await this.showError('Error', errorMessage);
     } finally {
-      await loading.dismiss();
+      if (this.loading) {
+        await this.loading.dismiss();
+        this.loading = null;
+      }
     }
   }
 
-  async checkTheme() {
+  /**
+   * Checks and applies the system's theme preference
+   */
+  async checkTheme(): Promise<void> {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
     this.isDarkMode = prefersDark.matches;
     this.toggleDarkTheme(this.isDarkMode);
 
-    // Escuchar cambios en la preferencia del sistema
+    // Listen for system theme changes
     prefersDark.addEventListener('change', (e) => {
       this.isDarkMode = e.matches;
       this.toggleDarkTheme(this.isDarkMode);
     });
   }
 
-  toggleDarkTheme(shouldAdd: boolean) {
+  /**
+   * Toggles dark theme on the document body
+   * @param shouldAdd - Whether to add or remove dark theme
+   */
+  toggleDarkTheme(shouldAdd: boolean): void {
     document.body.classList.toggle('dark-theme', shouldAdd);
   }
 }

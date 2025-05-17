@@ -6,9 +6,8 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { AuthInterceptor } from './interceptors/auth.interceptor';
-import { AppLifecycleService } from './services/app-lifecycle.service';
+import { HttpClientModule } from '@angular/common/http';
+import { AppLifecycleService } from './services/core/app-lifecycle.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -22,7 +21,6 @@ import { AppLifecycleService } from './services/app-lifecycle.service';
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideAnimationsAsync(),
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     AppLifecycleService
   ],
   bootstrap: [AppComponent],

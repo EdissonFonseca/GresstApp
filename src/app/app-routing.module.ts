@@ -8,12 +8,12 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'chat-interlocutores',
-    loadChildren: () => import('./pages/chat-interlocutores/chat-interlocutores.module').then( m => m.ChatInterlocutoresPageModule)
+    path: 'chat-interlocutors',
+    loadChildren: () => import('./pages/chat-interlocutors/chat-interlocutors.module').then( m => m.ChatInterlocutorsPageModule)
   },
   {
-    path: 'cuenta',
-    loadChildren: () => import('./pages/cuenta/cuenta.module').then( m => m.CuentaPageModule)
+    path: 'account',
+    loadChildren: () => import('./pages/account/account.module').then( m => m.AccountPageModule)
   },
   {
     path: 'home',
@@ -28,100 +28,112 @@ const routes: Routes = [
     loadChildren: () => import('./pages/materiales/materiales.module').then( m => m.MaterialesPageModule)
   },
   {
-    path: 'punto-nuevo',
-    loadChildren: () => import('./pages/punto-nuevo/punto-nuevo.module').then( m => m.PuntoNuevoPageModule)
+    path: 'point-new',
+    loadChildren: () => import('./pages/point-new/point-new.module').then( m => m.PointNewPageModule)
   },
   {
-    path: 'resumen',
-    loadChildren: () => import('./pages/resumen/resumen.module').then( m => m.ResumenPageModule)
+    path: 'summary',
+    loadChildren: () => import('./pages/summary/summary.module').then( m => m.SummaryPageModule)
   },
   {
     path: 'chat',
     loadChildren: () => import('./pages/chat/chat.module').then( m => m.ChatPageModule)
   },
   {
-    path: 'embalajes',
-    loadChildren: () => import('./pages/embalajes/embalajes.module').then( m => m.EmbalajesPageModule)
+    path: 'packaging',
+    loadChildren: () => import('./pages/packaging/packaging.module').then( m => m.PackagingPageModule)
   },
   {
-    path: 'insumos',
-    loadChildren: () => import('./pages/insumos/insumos.module').then( m => m.InsumosPageModule)
+    path: 'supply',
+    loadChildren: () => import('./pages/supply/supply.module').then(m => m.SupplyPageModule)
   },
   {
-    path: 'terceros',
-    loadChildren: () => import('./pages/terceros/terceros.module').then( m => m.TercerosPageModule)
+    path: 'third-parties',
+    loadChildren: () => import('./pages/third-parties/third-parties.module').then( m => m.ThirdPartiesPageModule)
   },
   {
     path: 'puntos',
     loadChildren: () => import('./pages/puntos/puntos.module').then( m => m.PuntosPageModule)
   },
   {
-    path: 'certificados-buscar',
-    loadChildren: () => import('./pages/certificados-buscar/certificados-buscar.module').then( m => m.CertificadosBuscarPageModule)
+    path: 'search-certificates',
+    loadChildren: () => import('./pages/search-certificates/search-certificates.module').then( m => m.SearchCertificatesPageModule)
   },
   {
-    path: 'perfil',
-    loadChildren: () => import('./pages/perfil/perfil.module').then( m => m.PerfilPageModule)
+    path: 'profile',
+    loadChildren: () => import('./pages/profile/profile.module').then( m => m.ProfilePageModule)
   },
   {
     path: 'tutorial',
     loadChildren: () => import('./pages/tutorial/tutorial.module').then( m => m.TutorialPageModule)
   },
   {
-    path: 'actividades',
-    loadChildren: () => import('./pages/actividades/actividades.module').then( m => m.ActividadesPageModule)
+    path: 'activities',
+    loadChildren: () => import('./pages/activities/activities.module').then( m => m.ActivitiesPageModule)
   },
   {
-    path: 'tareas',
-    loadChildren: () => import('./pages/tareas/tareas.module').then( m => m.TareasPageModule)
+    path: 'tasks',
+    loadChildren: () => import('./pages/tasks/tasks.module').then(m => m.TasksPageModule)
   },
   {
-    path: 'transacciones',
-    loadChildren: () => import('./pages/transacciones/transacciones.module').then( m => m.TransaccionesPageModule)
+    path: 'transactions',
+    loadChildren: () => import('./pages/transactions/transactions.module').then(m => m.TransactionsPageModule)
   },
   {
     path: 'tratamientos',
     loadChildren: () => import('./pages/tratamientos/tratamientos.module').then( m => m.TratamientosPageModule)
   },
   {
-    path: 'registro-correo',
-    loadChildren: () => import('./pages/registro-correo/registro-correo.module').then( m => m.RegistroCorreoPageModule)
+    path: 'register-email',
+    loadChildren: () => import('./pages/register-email/register-email.module').then( m => m.RegisterEmailPageModule)
   },
   {
-    path: 'registro-codigo',
-    loadChildren: () => import('./pages/registro-codigo/registro-codigo.module').then( m => m.RegistroCodigoPageModule)
+    path: 'register-code',
+    loadChildren: () => import('./pages/register-code/register-code.module').then( m => m.RegisterCodePageModule)
   },
   {
-    path: 'registro-clave',
-    loadChildren: () => import('./pages/registro-clave/registro-clave.module').then( m => m.RegistroClavePageModule)
+    path: 'register-key',
+    loadChildren: () => import('./pages/register-key/register-key.module').then( m => m.RegisterKeyPageModule)
   },
   {
     path: 'servicios',
     loadChildren: () => import('./pages/servicios/servicios.module').then( m => m.ServiciosPageModule)
   },
   {
-    path: 'contrasena-correo',
-    loadChildren: () => import('./pages/contrasena-correo/contrasena-correo.module').then( m => m.ContrasenaCorreoPageModule)
+    path: 'password-email',
+    loadChildren: () => import('./pages/password-email/password-email.module').then( m => m.PasswordEmailPageModule)
   },
   {
-    path: 'contrasena-codigo',
-    loadChildren: () => import('./pages/contrasena-codigo/contrasena-codigo.module').then( m => m.ContrasenaCodigoPageModule)
+    path: 'password-code',
+    loadChildren: () => import('./pages/password-code/password-code.module').then( m => m.PasswordCodePageModule)
   },
   {
-    path: 'contrasena-clave',
-    loadChildren: () => import('./pages/contrasena-clave/contrasena-clave.module').then( m => m.ContrasenaClavePageModule)
+      path: 'password-key',
+    loadChildren: () => import('./pages/password-key/password-key.module').then( m => m.PasswordKeyPageModule)
   },
   {
-    path: 'produccion',
-    loadChildren: () => import('./pages/produccion/produccion.module').then( m => m.ProduccionPageModule)
+    path: 'production',
+    loadChildren: () => import('./pages/production/production.module').then(m => m.ProductionPageModule)
   },
   {
-    path: 'sincronizacion',
-    loadChildren: () => import('./pages/sincronizacion/sincronizacion.module').then( m => m.SincronizacionPageModule)
+    path: 'synchronization',
+    loadChildren: () => import('./pages/synchronization/synchronization.module').then(m => m.SynchronizationPageModule)
   },
   {
-    path: 'ruta',
-    loadChildren: () => import('./pages/ruta/ruta.module').then( m => m.RutaPageModule)
+    path: 'route',
+    loadChildren: () => import('./pages/route/route.module').then(m => m.RoutePageModule)
+  },
+  {
+    path: 'bank',
+    loadChildren: () => import('./pages/bank/bank.module').then( m => m.BankPageModule)
+  },
+  {
+    path: 'inventory',
+    loadChildren: () => import('./pages/inventory/inventory.module').then(m => m.InventoryPageModule)
+  },
+  {
+    path: 'third-parties',
+    loadChildren: () => import('./pages/third-parties/third-parties.module').then(m => m.ThirdPartiesPageModule)
   },
 ];
 @NgModule({

@@ -1,17 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
-import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
-import { GlobalesService } from 'src/app/services/globales.service';
+import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
+import { Utils } from '@app/utils/utils';
 import { PointsComponent } from '../points/points.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
-import { ActividadesService } from 'src/app/services/actividades.service';
-import { TareasService } from 'src/app/services/tareas.service';
-import { InventarioService } from 'src/app/services/inventario.service';
-import { MaterialesService } from 'src/app/services/materiales.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
+import { TasksService } from '@app/services/transactions/tasks.service';
+import { InventoryService } from '@app/services/transactions/inventory.service';
+import { MaterialsService } from '@app/services/masterdata/materials.service';
 
 @Component({
   selector: 'app-residue-dismiss',
@@ -39,23 +39,22 @@ export class ResidueDismissComponent  implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private navParams: NavParams,
-    private globales: GlobalesService,
-    private actividadesService: ActividadesService,
-    private tareasService: TareasService,
-    private inventarioService: InventarioService,
-    private materialesService: MaterialesService,
+    private activitiesService: ActivitiesService,
+    private tasksService: TasksService,
+    private inventoryService: InventoryService,
+    private materialsService: MaterialsService,
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
 
   async ngOnInit() {
-    this.residue = await this.inventarioService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.unidadCantidad = this.globales.unidadCantidad;
-    this.unidadPeso = this.globales.unidadPeso;
-    this.unidadVolumen = this.globales.unidadPeso;
-    this.material = await this.materialesService.get(this.residue.IdMaterial);
+    this.unidadCantidad = Utils.unidadCantidad;
+    this.unidadPeso = Utils.unidadPeso;
+    this.unidadVolumen = Utils.unidadPeso;
+    this.material = await this.materialsService.get(this.residue.IdMaterial);
   }
 
   async confirm() {
@@ -67,15 +66,15 @@ export class ResidueDismissComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    const personId = await this.globales.getIdPersona();
-    actividad = await this.actividadesService.getByServicio(this.serviceId, this.pointId);
+    const personId = await Utils.getPersonId();
+    actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
     if (!actividad) {
-      actividad = {IdActividad: this.globales.newId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
-      await this.actividadesService.create(actividad);
+      actividad = {IdActividad: Utils.generateId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
+      await this.activitiesService.create(actividad);
     }
     if (actividad) {
       const tarea: Tarea = {
-          IdTarea: this.globales.newId(),
+          IdTarea: Utils.generateId(),
           IdActividad: actividad.IdActividad,
 
           IdMaterial: this.residue.IdMaterial,
@@ -93,11 +92,11 @@ export class ResidueDismissComponent  implements OnInit {
           IdServicio: actividad.IdServicio,
           Fotos: [],
         };
-      await this.tareasService.create(tarea);
+        await this.tasksService.create(tarea);
     }
     this.residue.IdEstado = Estado.Inactivo;
     this.residue.IdDeposito = this.pointId;
-    await this.inventarioService.updateResiduo(this.residue);
+    await this.inventoryService.updateResiduo(this.residue);
     this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad });
   }
 
@@ -114,7 +113,7 @@ export class ResidueDismissComponent  implements OnInit {
   }
 
    async selectPlant() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -134,7 +133,7 @@ export class ResidueDismissComponent  implements OnInit {
    }
 
    async selectStore() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -156,7 +155,7 @@ export class ResidueDismissComponent  implements OnInit {
    }
 
    async selectTreatment() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: TreatmentsComponent,
       componentProps: {

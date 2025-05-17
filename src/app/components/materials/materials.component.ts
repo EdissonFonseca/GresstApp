@@ -1,10 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { GlobalesService } from 'src/app/services/globales.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Material } from 'src/app/interfaces/material.interface';
-import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { MaterialesService } from 'src/app/services/materiales.service';
+import { Material } from '@app/interfaces/material.interface';
+import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { MaterialsService } from '@app/services/masterdata/materials.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-materials',
@@ -26,8 +26,7 @@ export class MaterialsComponent  implements OnInit {
   enableNew: boolean = false;
 
   constructor(
-    private globales: GlobalesService,
-    private materialesService: MaterialesService,
+    private materialsService: MaterialsService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
   ) {
@@ -42,8 +41,8 @@ export class MaterialsComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.materials = await this.materialesService.list();
-    this.enableNew = (await this.globales.getPermiso(Permisos.AppMaterial))?.includes(CRUDOperacion.Create);
+    this.materials = await this.materialsService.list();
+    this.enableNew = (await Utils.getPermission(Permisos.AppMaterial))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){
@@ -52,8 +51,8 @@ export class MaterialsComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
     this.formData.patchValue({Nombre: this.selectedName});
 
-    const materiales = await this.materialesService.list();
-    this.materials = materiales.filter((material) => material.Nombre .toLowerCase().indexOf(query) > -1);
+    const materials = await this.materialsService.list();
+    this.materials = materials.filter((material) => material.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
   select(idMaterial: string, nombre: string, captura: string, medicion: string, factor: number | null) {
@@ -122,8 +121,8 @@ export class MaterialsComponent  implements OnInit {
           break;
       }
 
-      const material: Material = {IdMaterial: this.globales.newId(), Nombre: formData.Nombre, TipoCaptura: captura, Factor: factor, TipoMedicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
-      const created = await this.materialesService.create(material);
+      const material: Material = {IdMaterial: Utils.generateId(), Nombre: formData.Nombre, TipoCaptura: captura, Factor: factor, TipoMedicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
+      const created = await this.materialsService.create(material);
       if (created)
       {
         const data = {id: material.IdMaterial, name: this.selectedName};
@@ -132,8 +131,8 @@ export class MaterialsComponent  implements OnInit {
           this.selectedValue = material.IdMaterial;
         }
         else{
-          this.materials = await this.materialesService.list();
-          await this.globales.presentToast(`Material ${formData.Nombre} creado`, 'middle');
+          this.materials = await this.materialsService.list();
+          await Utils.presentToast(`Material ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';
         }

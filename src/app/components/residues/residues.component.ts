@@ -2,8 +2,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { InventarioService } from 'src/app/services/inventario.service';
+import { InventoryService } from '@app/services/transactions/inventory.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residues',
@@ -19,21 +19,20 @@ export class ResiduesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: GlobalesService,
     private modalCtrl: ModalController,
-    private inventarioService: InventarioService,
+    private inventoryService: InventoryService,
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
     });
-    this.residues = await this.inventarioService.list();
+    this.residues = await this.inventoryService.list();
   }
 
   async getNombre(idResiduo: string) {
     let nombre: string = '';
     console.log(idResiduo);
-    const residuo = await this.inventarioService.getResiduo(idResiduo);
+    const residuo = await this.inventoryService.getResiduo(idResiduo);
 
 
     // if (residuo)
@@ -60,8 +59,8 @@ export class ResiduesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const inventario = await this.inventarioService.list();
-    this.residues = inventario.filter((residuo) => residuo.Material??''.toLowerCase().indexOf(query) > -1);
+    const inventory = await this.inventoryService.list();
+    this.residues = inventory.filter((residuo) => residuo.Material??''.toLowerCase().indexOf(query) > -1);
   }
 
   async select(idMaterial: string, nombre: string) {

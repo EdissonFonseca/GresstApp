@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { MenuController, ModalController } from '@ionic/angular';
-import { LocationSelectComponent } from '../location-select/location-select.component';
-import { SynchronizationService } from '@app/services/synchronization.service';
-import { GlobalesService } from '@app/services/globales.service';
+import { ModalController } from '@ionic/angular';
+import { SynchronizationService } from '@app/services/core/synchronization.service';
+import { Utils } from '@app/utils/utils';
+import { SessionService } from '@app/services/core/session.service';
 
 @Component({
   selector: 'app-header',
@@ -16,17 +16,17 @@ export class HeaderComponent  implements OnInit {
 
   constructor(
     public synchronizationService: SynchronizationService,
-    private globalesService: GlobalesService,
-    private modalCtrl: ModalController
+    private modalCtrl: ModalController,
+    private sessionService: SessionService
   ) { }
 
   ngOnInit() {}
 
   async synchronize(){
-    if (await this.synchronizationService.refresh()){
-      this.globalesService.presentToast('Sincronización exitosa', "middle");
+    if (await this.sessionService.refresh()){
+      Utils.presentToast('Sincronización exitosa', "middle");
     } else {
-      this.globalesService.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+      Utils.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
   }
 

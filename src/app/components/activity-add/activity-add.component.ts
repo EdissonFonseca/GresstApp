@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Estado, TipoServicio } from 'src/app/services/constants.service';
-import { GlobalesService } from 'src/app/services/globales.service';
+import { Estado, TipoServicio } from '@app/constants/constants';
+import { GlobalsService } from '@app/services/core/globals.service';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { ActividadesService } from 'src/app/services/actividades.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-activity-add',
@@ -32,9 +33,9 @@ export class ActivityAddComponent  implements OnInit {
 
   constructor(
     private modalCtrl: ModalController,
-    private globales: GlobalesService,
+    private globals: GlobalsService,
     private navParams: NavParams,
-    private actividadesService: ActividadesService,
+    private activitiesService: ActivitiesService,
     private formBuilder: FormBuilder,
   ) {
     this.frmActivity = this.formBuilder.group({
@@ -47,9 +48,9 @@ export class ActivityAddComponent  implements OnInit {
     if (this.idServicio == TipoServicio.Transporte) {
       this.showTransport = true;
     }
-    this.unidadCombustible = this.globales.unidadCombustible;
-    this.unidadKilometraje = this.globales.unidadKilometraje;
-    this.showMileage = this.globales.solicitarKilometraje;
+    this.unidadCombustible = this.globals.unidadCombustible;
+    this.unidadKilometraje = this.globals.unidadKilometraje;
+    this.showMileage = this.globals.solicitarKilometraje;
   }
 
   async confirm() {
@@ -60,12 +61,12 @@ export class ActivityAddComponent  implements OnInit {
     const isoToday = today.toISOString();
     let titulo: string = '';
 
-    this.globales.showLoading('Creando actividad...');
+    Utils.showLoading('Creando actividad...');
     if (this.idServicio == TipoServicio.Transporte && this.idRecurso != ''){
-      const lista = await this.actividadesService.list();
+      const lista = await this.activitiesService.list();
       const actividades = lista.filter(x => x.IdServicio == this.idServicio && x.IdRecurso == this.idRecurso && x.IdEstado == Estado.Pendiente);
       if (actividades.length > 0) {
-        this.globales.presentToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
+        Utils.presentToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
         this.idRecurso = '';
         this.recurso = '';
         return;
@@ -77,7 +78,7 @@ export class ActivityAddComponent  implements OnInit {
       titulo = recurso;
     }
     const actividad: Actividad = {
-      IdActividad: this.globales.newId(),
+      IdActividad: Utils.generateId(),
       IdServicio: this.idServicio,
       IdRecurso: this.idRecurso,
       Titulo: titulo,
@@ -86,8 +87,8 @@ export class ActivityAddComponent  implements OnInit {
       IdEstado: Estado.Pendiente,
       NavegarPorTransaccion: true,
     };
-    await this.actividadesService.create(actividad);
-    this.globales.hideLoading();
+    await this.activitiesService.create(actividad);
+    Utils.hideLoading();
 
     this.modalCtrl.dismiss(actividad);
   }
@@ -101,7 +102,7 @@ export class ActivityAddComponent  implements OnInit {
   }
 
   async selectVehicle() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: VehiclesComponent,
       componentProps: {
@@ -122,7 +123,7 @@ export class ActivityAddComponent  implements OnInit {
    }
 
    async selectTarget() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -145,7 +146,7 @@ export class ActivityAddComponent  implements OnInit {
    }
 
    async selectSource() {
-    const idTercero = await this.globales.getIdPersona();
+    const idTercero = await Utils.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {

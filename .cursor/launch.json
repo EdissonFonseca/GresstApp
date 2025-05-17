@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Debug Ionic App",
+            "url": "http://localhost:8100",
+            "webRoot": "${workspaceFolder}",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./src/*": "${webRoot}/src/*",
+                "webpack:///src/*": "${webRoot}/src/*",
+                "webpack:///*": "*",
+                "webpack:///./~/*": "${webRoot}/node_modules/*"
+            },
+            "skipFiles": [
+                "<node_internals>/**",
+                "${workspaceFolder}/node_modules/**"
+            ],
+            "userDataDir": false,
+            "runtimeArgs": [
+                "--disable-web-security",
+                "--remote-debugging-port=9222"
+            ],
+            "preLaunchTask": "ionic:serve",
+            "restart": true,
+            "timeout": 30000,
+            "trace": true
+        }
+    ]
+}

@@ -2,10 +2,11 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
-import { Insumo } from 'src/app/interfaces/insumo.interface';
-import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { InsumosService } from 'src/app/services/insumos.service';
+import { Insumo } from '@app/interfaces/insumo.interface';
+import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { GlobalsService } from '@app/services/core/globals.service';
+import { SuppliesService } from '@app/services/masterdata/supplies.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-supplies',
@@ -24,10 +25,10 @@ export class SuppliesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: GlobalesService,
+    private globals: GlobalsService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private insumosService: InsumosService,
+    private suppliesService: SuppliesService,
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -36,8 +37,8 @@ export class SuppliesComponent  implements OnInit {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.supplies = await this.insumosService.list();
-    this.enableNew = (await this.globales.getPermiso(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
+    this.supplies = await this.suppliesService.list();
+    this.enableNew = (await Utils.getPermission(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){
@@ -45,8 +46,8 @@ export class SuppliesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const insumos = await this.insumosService.list();
-    this.supplies = insumos.filter((supply) => supply.Nombre .toLowerCase().indexOf(query) > -1);
+    const supplies = await this.suppliesService.list();
+    this.supplies = supplies.filter((supply) => supply.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
   select(idMaterial: string) {
@@ -65,8 +66,8 @@ export class SuppliesComponent  implements OnInit {
 
   async create() {
     const formData = this.formData.value;
-    const insumo: Insumo = { IdInsumo: this.globales.newId(), Nombre: formData.Nombre, IdEstado: 'A'};
-    const created = await this.insumosService.create(insumo);
+    const insumo: Insumo = { IdInsumo: Utils.newId(), Nombre: formData.Nombre, IdEstado: 'A'};
+    const created = await this.suppliesService.create(insumo);
     if (created)
     {
       const data = {id: insumo.IdInsumo, name: formData.Nombre};
@@ -75,8 +76,8 @@ export class SuppliesComponent  implements OnInit {
         this.selectedValue = insumo.IdInsumo;
       }
       else{
-        this.supplies = await this.insumosService.list();
-        await this.globales.presentToast(`Insumo ${formData.Nombre} creado`, 'middle');
+        this.supplies = await this.suppliesService.list();
+        await Utils.presentToast(`Insumo ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

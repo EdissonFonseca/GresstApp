@@ -4,7 +4,7 @@ import { IonicModule, LoadingController, ToastController, AlertController } from
 import { Router } from '@angular/router';
 import { LoginPage } from './login.page';
 import { AuthenticationService } from '../../services/authentication.service';
-import { SynchronizationService } from '../../services/synchronization.service';
+import { SynchronizationService } from '../../services/core/synchronization.service';
 
 describe('LoginPage', () => {
   let component: LoginPage;

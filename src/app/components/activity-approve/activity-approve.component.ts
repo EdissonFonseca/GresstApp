@@ -3,9 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Card } from '@app/interfaces/card';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { ActividadesService } from 'src/app/services/actividades.service';
-import { Estado } from 'src/app/services/constants.service';
-import { GlobalesService } from 'src/app/services/globales.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
+import { Estado } from '@app/constants/constants';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-activity-approve',
@@ -31,8 +31,7 @@ export class ActivityApproveComponent  implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
-    private globales: GlobalesService,
-    private actividadesService: ActividadesService,
+    private activitiesService: ActivitiesService,
     private modalCtrl:ModalController
   ) {
     this.frmActividad = this.formBuilder.group({
@@ -45,14 +44,14 @@ export class ActivityApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadKilometraje = this.globales.unidadKilometraje;
-    this.showMileage = this.globales.solicitarKilometraje;
+    this.unidadKilometraje = Utils.unidadKilometraje;
+    this.showMileage = Utils.solicitarKilometraje;
   }
 
   ngAfterViewInit() {}
 
   getColorEstado(idEstado: string): string {
-    return this.globales.getColorEstado(idEstado);
+    return Utils.getStateColor(idEstado);
   }
 
   ionViewDidEnter() {
@@ -106,7 +105,7 @@ export class ActivityApproveComponent  implements OnInit {
 
   async getFormData(): Promise<Actividad | undefined>{
     const data = this.frmActividad.value;
-    const actividad = await this.actividadesService.get(this.activity?.id ?? '');
+    const actividad = await this.activitiesService.get(this.activity?.id ?? '');
 
     if (!actividad) return;
 
@@ -122,28 +121,28 @@ export class ActivityApproveComponent  implements OnInit {
   }
 
   async confirm() {
-    await this.globales.showLoading('Enviando información');
+    await Utils.showLoading('Enviando información');
     const actividad = await this.getFormData();
 
     if (!actividad) return;
 
     actividad.IdEstado = Estado.Aprobado;
-    this.actividadesService.update(actividad);
-    this.globales.hideLoading();
-    this.globales.presentToast('Actividad aprobada', "top");
+    this.activitiesService.update(actividad);
+    Utils.hideLoading();
+    Utils.presentToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 
   async reject() {
-    await this.globales.showLoading('Enviando información');
+    await Utils.showLoading('Enviando información');
     const actividad = await this.getFormData();
 
     if (!actividad) return;
 
     actividad.IdEstado = Estado.Rechazado;
-    this.actividadesService.update(actividad);
-    this.globales.hideLoading();
-    this.globales.presentToast('Actividad rechazada', "top");
+    this.activitiesService.update(actividad);
+    Utils.hideLoading();
+    Utils.presentToast('Actividad rechazada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 }

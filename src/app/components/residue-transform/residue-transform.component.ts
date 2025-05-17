@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { GlobalesService } from 'src/app/services/globales.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { TipoServicio } from 'src/app/services/constants.service';
-import { InventarioService } from 'src/app/services/inventario.service';
+import { TipoServicio } from '@app/constants/constants';
+import { InventoryService } from '@app/services/transactions/inventory.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residue-transform',
@@ -34,8 +34,7 @@ export class ResidueTransformComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
     private navParams: NavParams,
-    private inventarioService: InventarioService,
-    private globales: GlobalesService
+    private inventoryService: InventoryService
   ) {
     this.residueId = this.navParams.get("ResidueId");
     this.frm = this.formBuilder.group({
@@ -45,7 +44,7 @@ export class ResidueTransformComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventarioService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResiduo(this.residueId);
 
     this.frm.patchValue({
       Quantity: this.residue?.Cantidad

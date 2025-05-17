@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { HomePage } from './home.page';
-import { SynchronizationService } from '@app/services/synchronization.service';
+import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { ComponentsModule } from '@app/components/components.module';
 import { RouterTestingModule } from '@angular/router/testing';
-import { StorageService } from '@app/services/storage.service';
+import { StorageService } from '@app/services/core/storage.service';
 import { GlobalesService } from '@app/services/globales.service';
 
 describe('HomePage', () => {

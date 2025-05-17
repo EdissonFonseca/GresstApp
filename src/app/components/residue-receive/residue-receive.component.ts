@@ -3,21 +3,23 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
-import { GlobalesService } from 'src/app/services/globales.service';
+import { GlobalsService } from '@app/services/core/globals.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PackagesComponent } from '../packages/packages.component';
 import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
 import { PointsComponent } from '../points/points.component';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
-import { EntradaSalida, Estado, TipoServicio } from 'src/app/services/constants.service';
+import { EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { ActividadesService } from 'src/app/services/actividades.service';
-import { TareasService } from 'src/app/services/tareas.service';
-import { TransaccionesService } from 'src/app/services/transacciones.service';
-import { InventarioService } from 'src/app/services/inventario.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
+import { TasksService } from '@app/services/transactions/tasks.service';
+import { TransactionsService } from '@app/services/transactions/transactions.service';
+import { InventoryService } from '@app/services/transactions/inventory.service';
+import { CRUDOperacion } from '@app/constants/constants';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residue-receive',
@@ -51,13 +53,13 @@ export class ResidueReceiveComponent implements OnInit {
 
   constructor (
     private formBuilder: FormBuilder,
-    private globales: GlobalesService,
+    private globales: GlobalsService,
     private modalCtrl: ModalController,
     private sanitizer: DomSanitizer,
-    private actividadesService: ActividadesService,
-    private transaccionesService: TransaccionesService,
-    private tareasService: TareasService,
-    private inventarioService: InventarioService
+    private activitiesService: ActivitiesService,
+    private transactionsService: TransactionsService,
+    private tasksService: TasksService,
+    private inventoryService: InventoryService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -70,10 +72,10 @@ export class ResidueReceiveComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.showTransport = await this.globales.allowServicio(TipoServicio.Transporte);
-    this.showCollect = await this.globales.allowServicio(TipoServicio.Recoleccion);
-    this.showProduce = await this.globales.allowServicio(TipoServicio.Generacion);
-    this.showReceive = await this.globales.allowServicio(TipoServicio.Recepcion);
+    this.showTransport = await Utils.allowServicio(TipoServicio.Transporte);
+    this.showCollect = await Utils.allowServicio(TipoServicio.Recoleccion);
+    this.showProduce = await Utils.allowServicio(TipoServicio.Generacion);
+    this.showReceive = await Utils.allowServicio(TipoServicio.Recepcion);
   }
 
   async confirm() {
@@ -98,129 +100,132 @@ export class ResidueReceiveComponent implements OnInit {
     }
 
     if (this.serviceId == TipoServicio.Generacion)
-      this.idPropietario = await this.globales.getIdPersona() ?? '';
+      this.idPropietario = await Utils.getPersonId() ?? '';
     if (this.serviceId == TipoServicio.Recepcion || this.serviceId == TipoServicio.Generacion)
       this.idPuntoRecoleccion = this.idPuntoRecepcion;
 
     const residuo: Residuo = {
-      IdResiduo: this.globales.newId(),
+      IdResiduo: Utils.newId(),
       IdMaterial: this.idMaterial,
       IdPropietario: this.idPropietario,
       IdDeposito: this.idPuntoRecepcion,
       IdVehiculo: this.idVehiculo,
       IdDepositoOrigen: this.idPuntoRecoleccion,
-      Aprovechable: true, //TODO
+      Aprovechable: true,
       Cantidad: data.Cantidad,
       Peso: data.Peso,
       IdEmbalaje: this.idEmbalaje,
       CantidadEmbalaje: data.CantidadEmbalaje,
       IdEstado: Estado.Activo,
       Material: this.material,
-      Ubicacion: '', //TODO
+      Ubicacion: '',
       Volumen: data.Volumen,
     };
-    await this.inventarioService.createResiduo(residuo);
 
-    switch(this.serviceId){
-      case TipoServicio.Generacion:
-      case TipoServicio.Recepcion:
-        idRecurso = this.idPuntoRecepcion;
-        titulo = this.puntoRecepcion;
-        entradaSalida = EntradaSalida.Entrada;
-        break;
-      case TipoServicio.Recoleccion:
-        if (this.idVehiculo) {
-          idRecurso = this.idVehiculo;
-          titulo = this.idVehiculo;
-        } else {
-          idRecurso = this.idPuntoRecepcion;
-          titulo = this.puntoRecepcion;
-        }
-        break;
-    }
-    actividad = await this.actividadesService.getByServicio(this.serviceId, idRecurso);
-    if (!actividad)
-    {
-      const ahora = new Date();
-      const hoy = new Date(ahora.getFullYear(), ahora.getMonth(),ahora.getDate());
-      if (this.fecha >= hoy){
-        actividad = {
-          IdActividad: this.globales.newId(),
-          IdEstado: Estado.Aprobado,
-          IdServicio: this.serviceId,
-          IdRecurso: idRecurso,
-          NavegarPorTransaccion: false,
-          FechaInicial: isoDate,
-          FechaOrden: isoToday,
-          Titulo: titulo,
-        };
-        await this.actividadesService.create(actividad);
-      } else {
-        estaEnJornada = false;
-      }
-    } else {
-      estaEnJornada = this.globales.verificarFechaJornada(today ?? null, today, this.fecha);
-    }
+    await this.inventoryService.createResiduo(residuo);
 
-    if (estaEnJornada && actividad){
-      idTransaccion = '';
-      if (this.serviceId == TipoServicio.Recepcion){
-        transaccion = await this.transaccionesService.getByTercero(actividad.IdActividad, this.idPropietario);
-        if (!transaccion) {
-          transaccion = {
-            IdActividad: actividad.IdActividad,
-            IdTransaccion: this.globales.newId(),
-
-            IdServicio: actividad.IdServicio,
-            IdRecurso: actividad.IdRecurso,
-            EntradaSalida: EntradaSalida.Entrada,
-            IdEstado: Estado.Aprobado,
-            Titulo: this.propietario,
-            IdTercero: this.idPropietario,
-          }
-          await this.transaccionesService.create(transaccion);
-          idTransaccion = transaccion.IdTransaccion;
-        }
-      } else if (this.serviceId == TipoServicio.Recoleccion || this.serviceId == TipoServicio.Transporte) {
-        transaccion = await this.transaccionesService.getByPunto(actividad.IdActividad, this.idPuntoRecoleccion);
-        if (!transaccion) {
-          transaccion = {
-            IdActividad: actividad.IdActividad,
-            IdTransaccion: this.globales.newId(),
-
-            IdEstado: Estado.Aprobado,
-            EntradaSalida: EntradaSalida.Entrada,
-            IdRecurso: actividad.IdRecurso,
-            IdServicio: actividad.IdServicio,
-            Titulo: this.puntoRecoleccion,
-            IdTercero: this.idPropietario,
-            IdDeposito: this.idPuntoRecoleccion,
-          }
-          await this.transaccionesService.create(transaccion);
-          idTransaccion = transaccion.IdTransaccion;
-        }
-      }
-      tarea = {
-        IdActividad: actividad.IdActividad,
-        IdTransaccion: idTransaccion,
-        IdTarea: this.globales.newId(),
-
+    if (this.serviceId == TipoServicio.Generacion) {
+      actividad = {
+        IdActividad: Utils.newId(),
         IdServicio: this.serviceId,
-        IdEstado: Estado.Aprobado,
-        IdMaterial: this.idMaterial,
-        IdResiduo: residuo.IdResiduo,
-        IdRecurso: actividad.IdRecurso,
-        FechaEjecucion: isoDate,
-        EntradaSalida: EntradaSalida.Entrada,
-        Cantidad: residuo.Cantidad,
-        Peso: residuo.Peso,
-        Volumen: residuo.Volumen,
-        Fotos: []
+        IdRecurso: this.idPuntoRecoleccion,
+        Titulo: this.puntoRecoleccion,
+        CRUD: CRUDOperacion.Create,
+        IdEstado: Estado.Pendiente,
+        NavegarPorTransaccion: false,
+        FechaInicial: isoDate,
+        FechaOrden: isoToday
       };
-      await this.tareasService.create(tarea);
+      await this.activitiesService.create(actividad);
     }
 
-    this.modalCtrl.dismiss(residuo);
+    if (actividad) {
+      estaEnJornada = Utils.verificarFechaJornada(today ?? null, today, this.fecha);
+      if (estaEnJornada) {
+        const tarea: Tarea = {
+          IdTarea: Utils.newId(),
+          IdActividad: actividad.IdActividad,
+          IdMaterial: this.idMaterial,
+          IdResiduo: residuo.IdResiduo,
+          IdDeposito: this.idPuntoRecepcion,
+          IdTercero: this.idPropietario,
+          IdEstado: Estado.Aprobado,
+          IdRecurso: actividad.IdRecurso,
+          FechaEjecucion: isoDate,
+          CRUD: CRUDOperacion.Create,
+          EntradaSalida: EntradaSalida.Entrada,
+          Cantidad: data.Cantidad,
+          Peso: data.Peso,
+          Volumen: data.Volumen,
+          IdServicio: actividad.IdServicio,
+          Fotos: [],
+        };
+        await this.tasksService.create(tarea);
+      } else {
+        const transaccion: Transaccion = {
+          IdTransaccion: Utils.newId(),
+          IdActividad: actividad.IdActividad,
+          //IdMaterial: this.idMaterial,
+          //IdResiduo: residuo.IdResiduo,
+          //IdDeposito: this.idPuntoRecepcion,
+          //IdTercero: this.idPropietario,
+          //IdTransaccion: Utils.newId(),
+          //IdActividad: actividad.IdActividad,
+          //IdDeposito: this.idPuntoRecepcion,
+          //IdTercero: this.idPropietario,
+          IdEstado: Estado.Pendiente,
+          IdRecurso: actividad.IdRecurso,
+          //FechaEjecucion: isoDate,
+          CRUD: CRUDOperacion.Create,
+          EntradaSalida: EntradaSalida.Entrada,
+          //Cantidad: data.Cantidad,
+          //Peso: data.Peso,
+          //Volumen: data.Volumen,
+          IdServicio: actividad.IdServicio,
+          //Fotos: [],
+          Titulo: this.puntoRecepcion,
+        };
+        await this.transactionsService.create(transaccion);
+      }
+    }
+
+    if (this.serviceId == TipoServicio.Transporte) {
+      actividad = {
+        IdActividad: Utils.newId(),
+        IdServicio: TipoServicio.Transporte,
+        IdRecurso: this.idVehiculo ?? '',
+        Titulo: this.vehiculo,
+        CRUD: CRUDOperacion.Create,
+        IdEstado: Estado.Pendiente,
+        NavegarPorTransaccion: false,
+        FechaInicial: isoDate,
+        FechaOrden: isoToday
+      };
+      await this.activitiesService.create(actividad);
+
+      const transaccion: Transaccion = {
+        IdTransaccion: Utils.newId(),
+        IdActividad: actividad.IdActividad,
+        //IdMaterial: this.idMaterial,
+        //IdResiduo: residuo.IdResiduo,
+        //IdDeposito: this.idPuntoRecepcion,
+        //IdTercero: this.idPropietario,
+        IdEstado: Estado.Pendiente,
+        IdRecurso: actividad.IdRecurso,
+        //FechaEjecucion: isoDate,
+        CRUD: CRUDOperacion.Create,
+        EntradaSalida: EntradaSalida.Entrada,
+        //Cantidad: data.Cantidad,
+        //Peso: data.Peso,
+        //Volumen: data.Volumen,
+        IdServicio: actividad.IdServicio,
+        //Fotos: [],
+        Titulo: this.vehiculo,
+      };
+      await this.transactionsService.create(transaccion);
+    }
+
+    this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad});
   }
 
   cancel() {
@@ -270,7 +275,7 @@ export class ResidueReceiveComponent implements OnInit {
    }
 
    async selectPuntoRecepcion() {
-    const idPersona = await this.globales.getIdPersona();
+    const idPersona = await Utils.getPersonId();
 
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,

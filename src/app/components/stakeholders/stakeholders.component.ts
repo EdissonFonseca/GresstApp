@@ -1,10 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CRUDOperacion, Permisos } from '@app/services/constants.service';
+import { CRUDOperacion, Permisos } from '@app/constants/constants';
 import { ModalController, NavController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { TercerosService } from 'src/app/services/terceros.service';
+import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-stakeholders',
@@ -22,10 +22,9 @@ export class StakeholdersComponent  implements OnInit {
   showNew: boolean = false;
 
   constructor(
-    private globales: GlobalesService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private tercerosService: TercerosService,
+    private thirdpartiesService: ThirdpartiesService,
     private navCtrl: NavController
   ) {
     this.formData = this.formBuilder.group({
@@ -37,8 +36,8 @@ export class StakeholdersComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.terceros = await this.tercerosService.list();
-    this.enableNew = (await this.globales.getPermiso(Permisos.AppTercero))?.includes(CRUDOperacion.Create);
+    this.terceros = await this.thirdpartiesService.list();
+    this.enableNew = (await Utils.getPermission(Permisos.AppTercero))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){
@@ -47,7 +46,7 @@ export class StakeholdersComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
     this.formData.patchValue({Nombre: this.selectedName});
 
-    const tercerosList = await this.tercerosService.list();
+    const tercerosList = await this.thirdpartiesService.list();
     this.terceros = tercerosList.filter((tercero) => tercero.Nombre?.toLowerCase().indexOf(query) > -1);
   }
 
@@ -75,8 +74,8 @@ export class StakeholdersComponent  implements OnInit {
     if (this.formData.valid)
     {
       const formData = this.formData.value;
-      const tercero: Tercero = {IdPersona: this.globales.newId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, Cliente: true};
-      const created = await this.tercerosService.create(tercero);
+      const tercero: Tercero = {IdPersona: Utils.generateId(), Nombre: formData.Nombre, Identificacion: formData.Identificacion, Correo: formData.Correo, Telefono: formData.Telefono, Cliente: true};
+      const created = await this.thirdpartiesService.create(tercero);
       if (created)
       {
         const data = {id: tercero.IdPersona, name: this.selectedName};
@@ -85,8 +84,8 @@ export class StakeholdersComponent  implements OnInit {
           this.selectedValue = tercero.IdPersona;
         }
         else{
-          this.terceros = await this.tercerosService.list();
-          await this.globales.presentToast(`Tercero ${formData.Nombre} creado`, 'middle');
+          this.terceros = await this.thirdpartiesService.list();
+          await Utils.presentToast(`Tercero ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';
         }

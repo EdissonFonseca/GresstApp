@@ -1,12 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { StorageService } from 'src/app/services/storage.service';
+import { StorageService } from '@app/services/core/storage.service';
 import { AlertController, NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { Permisos } from 'src/app/services/constants.service';
+import { GlobalsService } from '@app/services/core/globals.service';
+import { Permisos } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
-import { SynchronizationService } from '@app/services/synchronization.service';
+import { SessionService } from '@app/services/core/session.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-menu',
@@ -35,8 +36,7 @@ export class MenuComponent  implements OnInit {
     private router: Router,
     private menuCtrl: MenuController,
     private alertController: AlertController,
-    private synchronizationService: SynchronizationService,
-    private globales: GlobalesService
+    private sessionService: SessionService
   ) { }
 
   async ngOnInit() {
@@ -45,16 +45,16 @@ export class MenuComponent  implements OnInit {
     this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;
     this.user = cuenta.NombreUsuario;
-    this.showCertificado = await this.globales.getPermiso(Permisos.AppCertificado) != '';
-    this.showCuenta = await this.globales.getPermiso(Permisos.AppCuenta) != '';
-    this.showEmbalajes = await this.globales.getPermiso(Permisos.AppEmbalaje) != '';
-    this.showInsumos = await this.globales.getPermiso(Permisos.AppInsumo) != '';
-    this.showMateriales = await this.globales.getPermiso(Permisos.AppMaterial) != '';
-    this.showServicios = await this.globales.getPermiso(Permisos.AppServicio) != '';
-    this.showPuntos = await this.globales.getPermiso(Permisos.AppPunto) != '';
-    this.showTerceros = await this.globales.getPermiso(Permisos.AppTercero) != '';
-    this.showTratamientos = await this.globales.getPermiso(Permisos.AppClaseTratamiento) != '';
-    this.showVehiculos = await this.globales.getPermiso(Permisos.AppVehiculo) != '';
+    this.showCertificado = await Utils.getPermission(Permisos.AppCertificado) != '';
+    this.showCuenta = await Utils.getPermission(Permisos.AppCuenta) != '';
+    this.showEmbalajes = await Utils.getPermission(Permisos.AppEmbalaje) != '';
+    this.showInsumos = await Utils.getPermission(Permisos.AppInsumo) != '';
+    this.showMateriales = await Utils.getPermission(Permisos.AppMaterial) != '';
+    this.showServicios = await Utils.getPermission(Permisos.AppServicio) != '';
+    this.showPuntos = await Utils.getPermission(Permisos.AppPunto) != '';
+    this.showTerceros = await Utils.getPermission(Permisos.AppTercero) != '';
+    this.showTratamientos = await Utils.getPermission(Permisos.AppClaseTratamiento) != '';
+    this.showVehiculos = await Utils.getPermission(Permisos.AppVehiculo) != '';
 
     this.debug == !environment.production;
   }
@@ -113,9 +113,9 @@ export class MenuComponent  implements OnInit {
 
   async logout() {
     try {
-      await this.globales.showLoading('Sincronizando ...');
-      const result = await this.synchronizationService.close();
-      this.globales.hideLoading();
+      await Utils.showLoading('Sincronizando ...');
+      const result = await this.sessionService.close();
+      Utils.hideLoading();
       if (result) {
         this.navCtrl.navigateRoot('/login');
       } else {
@@ -123,13 +123,13 @@ export class MenuComponent  implements OnInit {
 
         switch (result) {
           case 'Resume':
-            this.globales.estaCerrando = true;
+            Utils.estaCerrando = true;
             this.navCtrl.navigateRoot('/login');
             break;
           case 'Cancel':
             break;
           case 'ForceQuit':
-            this.synchronizationService.forceQuit();
+            this.sessionService.forceQuit();
             this.navCtrl.navigateRoot('/login');
             break;
           default:
@@ -137,8 +137,8 @@ export class MenuComponent  implements OnInit {
         }
       }
     } catch (error) {
-      this.globales.hideLoading();
-      await this.globales.presentToast('Error al sincronizar', 'middle');
+      Utils.hideLoading();
+      await Utils.presentToast('Error al sincronizar', 'middle');
     }
   }
 

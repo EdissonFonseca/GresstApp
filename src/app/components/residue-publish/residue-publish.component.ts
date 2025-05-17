@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { InventarioService } from 'src/app/services/inventario.service';
+import { InventoryService } from '@app/services/transactions/inventory.service';
 
 @Component({
   selector: 'app-residue-publish',
@@ -19,7 +19,7 @@ export class ResiduePublishComponent  implements OnInit {
     private modalCtrl: ModalController,
     private navParams: NavParams,
     private formBuilder: FormBuilder,
-    private inventarioService: InventarioService,
+    private inventoryService: InventoryService,
   ) {
     //this.targets = this.navParams.get("targets");
     this.residueId = this.navParams.get("ResidueId");
@@ -31,7 +31,7 @@ export class ResiduePublishComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventarioService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResiduo(this.residueId);
 
     this.formData.patchValue({
       Quantity: this.residue?.Cantidad

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { HeaderComponent } from './header.component';
-import { SynchronizationService } from '@app/services/synchronization.service';
+import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { GlobalesService } from '@app/services/globales.service';
 
 describe('HeaderComponent', () => {

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Mensaje } from 'src/app/interfaces/mensaje.interface';
-import { GlobalesService } from 'src/app/services/globales.service';
-import { MasterDataService } from 'src/app/services/masterdata.service';
+import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-chat',
@@ -19,20 +19,19 @@ export class ChatPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales:GlobalesService,
-    private masterdataService: MasterDataService
+    private masterdataService: MasterDataApiService
   ) { }
 
   async ngOnInit() {
-    this.globales.showLoading('Sincronizando ....');
+    await Utils.showLoading('Sincronizando ....');
     this.route.queryParams.subscribe(params => {
       this.idResiduo = params["IdResiduo"],
       this.idInterlocutor = params["IdInterlocutor"],
       this.interlocutor = params["Interlocutor"]
     });
-    this.messages = await this.masterdataService.getMensajes(this.idResiduo, this.idInterlocutor);
+    this.messages = await this.masterdataService.getMessages(this.idResiduo, this.idInterlocutor);
 
-    this.globales.hideLoading();
+    await Utils.hideLoading();
   }
 
 

@@ -3,9 +3,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
-import { CRUDOperacion, Permisos } from 'src/app/services/constants.service';
-import { EmbalajesService } from 'src/app/services/embalajes.service';
-import { GlobalesService } from 'src/app/services/globales.service';
+import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { PackagingService } from '@app/services/masterdata/packaging.service';
+import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-packages',
@@ -24,8 +24,7 @@ export class PackagesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globales: GlobalesService,
-    private embalajesService: EmbalajesService,
+    private packagingService: PackagingService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
   ) {
@@ -38,8 +37,8 @@ export class PackagesComponent  implements OnInit {
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {
     });
-    this.packages = await this.embalajesService.list();
-    this.enableNew = (await this.globales.getPermiso(Permisos.AppEmbalaje))?.includes(CRUDOperacion.Create);
+    this.packages = await this.packagingService.list();
+    this.enableNew = (await Utils.getPermission(Permisos.AppEmbalaje))?.includes(CRUDOperacion.Create);
   }
 
   async handleInput(event: any){
@@ -48,7 +47,7 @@ export class PackagesComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
 
     this.formData.patchValue({Nombre: this.selectedName});
-    const embalajesList = await this.embalajesService.list();
+    const embalajesList = await this.packagingService.list();
     this.packages = embalajesList.filter((embalaje) => embalaje.Nombre .toLowerCase().indexOf(query) > -1);
   }
 
@@ -75,8 +74,8 @@ export class PackagesComponent  implements OnInit {
 
   async create() {
     const formData = this.formData.value;
-    const embalaje: Embalaje = { IdEmbalaje: this.globales.newId(), Nombre: formData.Nombre};
-    const created = await this.embalajesService.create(embalaje);
+    const embalaje: Embalaje = { IdEmbalaje: Utils.generateId(), Nombre: formData.Nombre};
+    const created = await this.packagingService.create(embalaje);
     if (created)
     {
       const data = {id: embalaje.IdEmbalaje, name: formData.Nombre};
@@ -85,8 +84,8 @@ export class PackagesComponent  implements OnInit {
         this.selectedValue = embalaje.IdEmbalaje;
       }
       else{
-        this.packages = await this.embalajesService.list();
-        await this.globales.presentToast(`Embalaje ${formData.Nombre} creado`, 'middle');
+        this.packages = await this.packagingService.list();
+        await Utils.presentToast(`Embalaje ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

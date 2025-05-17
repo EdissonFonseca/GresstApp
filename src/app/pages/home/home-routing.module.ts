@@ -9,15 +9,15 @@ const routes: Routes = [
     children: [
       {
         path: 'actividades',
-        loadChildren: () => import('../actividades/actividades.module').then(m => m.ActividadesPageModule)
+        loadChildren: () => import('../activities/activities.module').then(m => m.ActivitiesPageModule)
       },
       {
         path: 'inventario',
-        loadChildren: () => import('../inventario/inventario.module').then(m => m.InventarioPageModule)
+        loadChildren: () => import('../inventory/inventory.module').then(m => m.InventoryPageModule)
       },
       {
-        path: 'banco',
-        loadChildren: () => import('../banco/banco.module').then(m => m.BolsaPageModule)
+        path: 'bank',
+        loadChildren: () => import('../bank/bank.module').then(m => m.BankPageModule)
       },
       {
         path: '',
