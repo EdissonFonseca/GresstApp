@@ -1,11 +1,10 @@
 import { Geolocation } from '@capacitor/geolocation';
-import { GEOLOCATION, GLOBALS, ESTADOS, CRUDOperacion, TipoServicio, EntradaSalida, SERVICIOS } from '../constants/constants';
+import { GEOLOCATION, INPUT_OUTPUT, SERVICES, ERRORS, VALIDATION, FILES, DATETIME, CRUD_OPERATIONS, STATUSES } from '../constants/constants';
 import { LoggerService } from '../services/core/logger.service';
-import { Platform } from '@ionic/angular';
 import { Injectable } from '@angular/core';
 import { StorageService } from '../services/core/storage.service';
-import { ToastController, LoadingController } from '@ionic/angular';
-import { Permisos } from '@app/constants/constants';
+import { Platform, ToastController, LoadingController, AlertController } from '@ionic/angular';
+import { PERMISSIONS } from '@app/constants/constants';
 import { Interlocutor } from '../interfaces/interlocutor.interface';
 import { MasterDataApiService } from '../services/api/masterdataApi.service';
 
@@ -22,31 +21,34 @@ export class Utils {
   private static loadingController: LoadingController;
   private static loading: HTMLIonLoadingElement;
   private static masterdataService: MasterDataApiService;
+  private static alertController: AlertController;
 
   // Global variables
-  public static fotosPorMaterial: number = 2;
-  public static moneda: string = '$';
-  public static kilometraje: number = 0;
-  public static combustible: number = 0;
-  public static unidadCantidad: string = 'un';
-  public static unidadCombustible: string = 'gl';
-  public static unidadKilometraje: string = 'km';
-  public static unidadPeso: string = 'kg';
-  public static unidadVolumen: string = 'lt';
-  public static solicitarKilometraje: boolean = false;
-  public static estaCerrando: boolean = false;
+  public static photosByMaterial: number = 2;
+  public static currency: string = '$';
+  public static mileage: number = 0;
+  public static fuel: number = 0;
+  public static quantityUnit: string = 'un';
+  public static fuelUnit: string = 'gl';
+  public static mileageUnit: string = 'km';
+  public static weightUnit: string = 'kg';
+  public static volumeUnit: string = 'lt';
+  public static _requestMileage: boolean = false;
+  public static isClosing: boolean = false;
 
   constructor(
     private platform: Platform,
     private storageService: StorageService,
-    toastController: ToastController,
-    loadingController: LoadingController,
+    private toastController: ToastController,
+    private loadingController: LoadingController,
+    private alertController: AlertController,
     masterdataService: MasterDataApiService
   ) {
     Utils.initializeLogger(this.platform);
     Utils.storage = this.storageService;
     Utils.toastController = toastController;
     Utils.loadingController = loadingController;
+    Utils.alertController = alertController;
     Utils.masterdataService = masterdataService;
   }
 
@@ -72,7 +74,7 @@ export class Utils {
       return [position.coords.latitude, position.coords.longitude];
     } catch (error) {
       Utils.logger?.error('Error getting current position', error);
-      throw new Error(GLOBALS.ERRORS.GEOLOCATION);
+      throw new Error(ERRORS.GEOLOCATION);
     }
   }
 
@@ -82,7 +84,7 @@ export class Utils {
    * @param {string} format - The format to use (defaults to DATETIME_FORMAT)
    * @returns {string} The formatted date string
    */
-  static formatDate(date: Date, format: string = GLOBALS.DATETIME.DATETIME_FORMAT): string {
+  static formatDate(date: Date, format: string = DATETIME.DATETIME_FORMAT): string {
     try {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -111,12 +113,12 @@ export class Utils {
    */
   static validatePassword(password: string): boolean {
     try {
-      if (password.length < GLOBALS.VALIDATION.MIN_PASSWORD_LENGTH ||
-          password.length > GLOBALS.VALIDATION.MAX_PASSWORD_LENGTH) {
+      if (password.length < VALIDATION.MIN_PASSWORD_LENGTH ||
+          password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
         return false;
       }
 
-      return new RegExp(GLOBALS.VALIDATION.PASSWORD_PATTERN).test(password);
+      return new RegExp(VALIDATION.PASSWORD_PATTERN).test(password);
     } catch (error) {
       Utils.logger?.error('Error validating password', error);
       return false;
@@ -130,8 +132,8 @@ export class Utils {
    */
   static validateUsername(username: string): boolean {
     try {
-      return username.length >= GLOBALS.VALIDATION.MIN_USERNAME_LENGTH &&
-             username.length <= GLOBALS.VALIDATION.MAX_USERNAME_LENGTH;
+      return username.length >= VALIDATION.MIN_USERNAME_LENGTH &&
+             username.length <= VALIDATION.MAX_USERNAME_LENGTH;
     } catch (error) {
       Utils.logger?.error('Error validating username', error);
       return false;
@@ -145,11 +147,11 @@ export class Utils {
    */
   static validateFile(file: File): boolean {
     try {
-      if (file.size > GLOBALS.FILES.MAX_SIZE) {
+      if (file.size > FILES.MAX_SIZE) {
         return false;
       }
 
-      return (GLOBALS.FILES.ALLOWED_TYPES as readonly string[]).includes(file.type);
+      return (FILES.ALLOWED_TYPES as readonly string[]).includes(file.type);
     } catch (error) {
       Utils.logger?.error('Error validating file', error);
       return false;
@@ -162,88 +164,6 @@ export class Utils {
    */
   static generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  /**
-   * Debounces a function call
-   * @param {Function} func - The function to debounce
-   * @param {number} wait - The time to wait in milliseconds
-   * @returns {Function} The debounced function
-   */
-  static debounce<T extends (...args: any[]) => any>(
-    func: T,
-    wait: number
-  ): (...args: Parameters<T>) => void {
-    let timeout: ReturnType<typeof setTimeout>;
-
-    return function executedFunction(...args: Parameters<T>) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
-
-  /**
-   * Throttles a function call
-   * @param {Function} func - The function to throttle
-   * @param {number} limit - The time limit in milliseconds
-   * @returns {Function} The throttled function
-   */
-  static throttle<T extends (...args: any[]) => any>(
-    func: T,
-    limit: number
-  ): (...args: Parameters<T>) => void {
-    let inThrottle: boolean;
-    let lastResult: ReturnType<T>;
-
-    return function executedFunction(...args: Parameters<T>) {
-      if (!inThrottle) {
-        func(...args);
-        inThrottle = true;
-        setTimeout(() => (inThrottle = false), limit);
-      }
-    };
-  }
-
-  /**
-   * Deep clones an object
-   * @param {T} obj - The object to clone
-   * @returns {T} The cloned object
-   */
-  static deepClone<T>(obj: T): T {
-    try {
-      return JSON.parse(JSON.stringify(obj));
-    } catch (error) {
-      Utils.logger?.error('Error cloning object', error);
-      return obj;
-    }
-  }
-
-  /**
-   * Checks if an object is empty
-   * @param {object} obj - The object to check
-   * @returns {boolean} True if the object is empty
-   */
-  static isEmpty(obj: object): boolean {
-    return Object.keys(obj).length === 0;
-  }
-
-  /**
-   * Removes null or undefined values from an object
-   * @param {Record<string, any>} obj - The object to clean
-   * @returns {Record<string, any>} The cleaned object
-   */
-  static removeNullValues(obj: Record<string, any>): Record<string, any> {
-    return Object.entries(obj).reduce((acc: Record<string, any>, [key, value]) => {
-      if (value !== null && value !== undefined) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
   }
 
   /**
@@ -265,7 +185,7 @@ export class Utils {
    * @returns The color string (e.g. 'success', 'warning', 'danger', etc.)
    */
   static getStateColor(stateId: string): string {
-    const estado = ESTADOS.find(e => e.IdEstado === stateId);
+    const estado = STATUSES.find(e => e.IdEstado === stateId);
     return estado?.Color || 'medium';
   }
 
@@ -274,7 +194,7 @@ export class Utils {
    * @param message The message to display
    * @param position The position of the toast (top, middle, bottom)
    */
-  static async presentToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
+  static async showToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
     const toast = await Utils.toastController.create({
       message,
       duration: 3000,
@@ -306,6 +226,24 @@ export class Utils {
   }
 
   /**
+   * Shows an alert dialog with the specified header and message
+   * @param header - The alert header text
+   * @param message - The alert message text
+   */
+  static async showAlert(header: string, message: string): Promise<void> {
+    try {
+      const alert = await Utils.alertController.create({
+        header,
+        message,
+        buttons: ['OK']
+      });
+      await alert.present();
+    } catch (error) {
+      Utils.logger?.error('Error showing alert', error);
+    }
+  }
+
+  /**
    * Gets the current user's person ID from the account
    * @returns The person ID or undefined if not found
    */
@@ -315,18 +253,10 @@ export class Utils {
   }
 
   /**
-   * Generate a new unique ID
-   * @returns A new unique ID
-   */
-  static newId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  /**
    * Get the account from storage
    * @returns The account object
    */
-  static async getCuenta(): Promise<any> {
+  static async getAccount(): Promise<any> {
     return await Utils.storage.get('account');
   }
 
@@ -335,7 +265,7 @@ export class Utils {
    * @param serviceId The service ID to check
    * @returns True if the service is allowed
    */
-  static async allowServicio(serviceId: string): Promise<boolean> {
+  static async allowService(serviceId: string): Promise<boolean> {
     const account = await Utils.storage.get('account');
     return account?.servicios?.includes(serviceId) ?? false;
   }
@@ -345,25 +275,9 @@ export class Utils {
    * @param serviceId The service ID
    * @returns The service name
    */
-  static getNombreServicio(serviceId: string): string {
-    const servicios: Record<string, string> = {
-      [TipoServicio.Recoleccion]: 'Recolección',
-      [TipoServicio.Transporte]: 'Transporte',
-      [TipoServicio.Entrega]: 'Entrega',
-      [TipoServicio.Recepcion]: 'Recepción',
-      [TipoServicio.Generacion]: 'Generación'
-    };
-    return servicios[serviceId] || serviceId;
-  }
-
-  /**
-   * Get the name of a service
-   * @param serviceId The service ID
-   * @returns The service name
-   */
   static getServiceName(serviceId: string): string {
-    const servicio = SERVICIOS.find(s => s.IdServicio === serviceId);
-    return servicio?.Nombre || serviceId;
+    const servicio = SERVICES.find(s => s.serviceId === serviceId);
+    return servicio?.Name || serviceId;
   }
 
   /**
@@ -371,13 +285,13 @@ export class Utils {
    * @param entradaSalida The input/output operation
    * @returns The action name
    */
-  static getAccionEntradaSalida(entradaSalida: string): string {
+  static getInputOutputAction(inputOutput: string): string {
     const acciones: Record<string, string> = {
-      [EntradaSalida.Entrada]: 'Entrada',
-      [EntradaSalida.Salida]: 'Salida',
-      [EntradaSalida.Transferencia]: 'Transferencia'
+      [INPUT_OUTPUT.INPUT]: 'Entrada',
+      [INPUT_OUTPUT.OUTPUT]: 'Salida',
+      [INPUT_OUTPUT.TRANSFERENCE]: 'Transferencia'
     };
-    return acciones[entradaSalida] || entradaSalida;
+    return acciones[inputOutput] || inputOutput;
   }
 
   /**
@@ -387,9 +301,9 @@ export class Utils {
    * @param fecha The date to check
    * @returns True if the date is within the work day
    */
-  static verificarFechaJornada(fechaInicial: Date | null, fechaFinal: Date | null, fecha: Date | null): boolean {
-    if (!fechaInicial || !fechaFinal || !fecha) return false;
-    return fecha >= fechaInicial && fecha <= fechaFinal;
+  static verifyWorkDay(startDate: Date | null, endDate: Date | null, date: Date | null): boolean {
+    if (!startDate || !endDate || !date) return false;
+    return date >= startDate && date <= endDate;
   }
 
   /**
@@ -413,8 +327,8 @@ export class Utils {
    * @returns True if the user has permission to add activities
    */
   static async allowAddActivity(): Promise<boolean> {
-    const acopio = (await Utils.getPermission(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
-    const transporte = (await Utils.getPermission(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
+    const acopio = (await Utils.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
+    const transporte = (await Utils.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
     return acopio || transporte;
   }
 
@@ -423,7 +337,7 @@ export class Utils {
    * @returns True if mileage should be requested
    */
   static get requestMileage(): boolean {
-    return Utils.solicitarKilometraje;
+    return Utils._requestMileage;
   }
 
   /**
@@ -431,7 +345,7 @@ export class Utils {
    * @param value Whether mileage should be requested
    */
   static set requestMileage(value: boolean) {
-    Utils.solicitarKilometraje = value;
+    Utils._requestMileage = value;
   }
 
   /**

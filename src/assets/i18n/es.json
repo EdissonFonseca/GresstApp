@@ -1,0 +1,45 @@
+/* cSpell:disable */
+{
+  "COMMON": {
+    "BACK": "Atrás",
+    "CANCEL": "Cancelar",
+    "SAVE": "Guardar",
+    "DELETE": "Eliminar",
+    "EDIT": "Editar",
+    "SEARCH": "Buscar",
+    "LOADING": "Cargando...",
+    "LANGUAGE": "Idioma"
+  },
+  "AUTH": {
+    "LOGIN": "Iniciar Sesión",
+    "LOGOUT": "Cerrar Sesión",
+    "USERNAME": "Usuario",
+    "PASSWORD": "Contraseña",
+    "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+    "RECOVER_PASSWORD": "Recuperar Contraseña",
+    "ERRORS": {
+      "TITLE": "Error de Autenticación",
+      "INVALID_CREDENTIALS": "Credenciales inválidas",
+      "NO_CONNECTION": "No hay conexión al servidor",
+      "SERVER_ERROR": "Error del servidor"
+    }
+  },
+  "TREATMENTS": {
+    "TITLE": "Tratamientos",
+    "SELECT_TREATMENT": "Seleccione los tratamientos",
+    "CREATE": "Crear",
+    "NAME": "Nombre",
+    "DESCRIPTION": "Descripción",
+    "SERVICE": "Servicio"
+  },
+  "SERVICES": {
+    "TITLE": "Servicios",
+    "SELECT_SERVICES": "Seleccione los servicios que realiza"
+  },
+  "POINTS": {
+    "TITLE": "Ruta",
+    "NEW": "Nuevo Punto",
+    "EDIT": "Editar Punto",
+    "DELETE": "Eliminar Punto"
+  }
+}

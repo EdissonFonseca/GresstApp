@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, RequiredValidator, Validators } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
-import { Estado, TipoServicio } from '@app/constants/constants';
-import { GlobalsService } from '@app/services/core/globals.service';
+import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -33,7 +32,6 @@ export class ActivityAddComponent  implements OnInit {
 
   constructor(
     private modalCtrl: ModalController,
-    private globals: GlobalsService,
     private navParams: NavParams,
     private activitiesService: ActivitiesService,
     private formBuilder: FormBuilder,
@@ -45,12 +43,12 @@ export class ActivityAddComponent  implements OnInit {
 
   async ngOnInit() {
     this.idServicio = this.navParams.get('IdServicio');
-    if (this.idServicio == TipoServicio.Transporte) {
+    if (this.idServicio == SERVICE_TYPES.TRANSPORT) {
       this.showTransport = true;
     }
-    this.unidadCombustible = this.globals.unidadCombustible;
-    this.unidadKilometraje = this.globals.unidadKilometraje;
-    this.showMileage = this.globals.solicitarKilometraje;
+    this.unidadCombustible = Utils.fuelUnit;
+    this.unidadKilometraje = Utils.mileageUnit;
+    this.showMileage = Utils.requestMileage;
   }
 
   async confirm() {
@@ -62,16 +60,16 @@ export class ActivityAddComponent  implements OnInit {
     let titulo: string = '';
 
     Utils.showLoading('Creando actividad...');
-    if (this.idServicio == TipoServicio.Transporte && this.idRecurso != ''){
+    if (this.idServicio == SERVICE_TYPES.TRANSPORT && this.idRecurso != ''){
       const lista = await this.activitiesService.list();
-      const actividades = lista.filter(x => x.IdServicio == this.idServicio && x.IdRecurso == this.idRecurso && x.IdEstado == Estado.Pendiente);
+      const actividades = lista.filter(x => x.IdServicio == this.idServicio && x.IdRecurso == this.idRecurso && x.IdEstado == STATUS.PENDING);
       if (actividades.length > 0) {
-        Utils.presentToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
+        Utils.showToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
         this.idRecurso = '';
         this.recurso = '';
         return;
       } else {
-        this.idServicio = TipoServicio.Transporte;
+        this.idServicio = SERVICE_TYPES.TRANSPORT;
         titulo = this.idRecurso;
       }
     } else {
@@ -84,7 +82,7 @@ export class ActivityAddComponent  implements OnInit {
       Titulo: titulo,
       FechaInicial: isoDate,
       FechaOrden: isoToday,
-      IdEstado: Estado.Pendiente,
+      IdEstado: STATUS.PENDING,
       NavegarPorTransaccion: true,
     };
     await this.activitiesService.create(actividad);

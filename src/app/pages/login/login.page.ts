@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { LoadingController } from '@ionic/angular';
 import { SessionService } from '@app/services/core/session.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
+import { Utils } from '@app/utils/utils';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * Login page component that handles user authentication and offline mode support.
@@ -32,10 +33,9 @@ export class LoginPage implements OnInit {
     private formBuilder: FormBuilder,
     private authService: AuthenticationApiService,
     private router: Router,
-    private alertController: AlertController,
     private loadingController: LoadingController,
-    private toastController: ToastController,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private translate: TranslateService
   ) {
     this.loginForm = this.formBuilder.group({
       username: ['', [Validators.required, Validators.email]],
@@ -78,18 +78,20 @@ export class LoginPage implements OnInit {
       }
     } catch (error: any) {
       console.error('❌ [Login] Error in login:', error);
-      let errorMessage = 'Error during login';
+      let errorMessage = '';
 
       // Handle specific error cases
       if (error.message === 'NO_CONNECTION') {
-        errorMessage = 'Could not connect to the server';
+        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
       } else if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
-        errorMessage = 'Invalid credentials';
+        errorMessage = this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS');
       } else if (error.status === 0) {
-        errorMessage = 'Could not connect to the server';
+        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
+      } else {
+        errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
       }
 
-      await this.showError('Authentication Error', errorMessage);
+      await Utils.showAlert(this.translate.instant('AUTH.ERRORS.TITLE'), errorMessage);
     } finally {
       // Dismiss loading indicator if it exists
       if (this.loading) {
@@ -97,34 +99,6 @@ export class LoginPage implements OnInit {
         this.loading = null;
       }
     }
-  }
-
-  /**
-   * Displays an error alert with the specified header and message
-   * @param header - The alert header text
-   * @param message - The alert message text
-   */
-  private async showError(header: string, message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['OK']
-    });
-    await alert.present();
-  }
-
-  /**
-   * Displays a toast message with the specified content and position
-   * @param message - The toast message text
-   * @param position - The position of the toast (top, middle, bottom)
-   */
-  private async showToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      position
-    });
-    await toast.present();
   }
 
   /**
@@ -153,7 +127,7 @@ export class LoginPage implements OnInit {
       await this.loading.present();
 
       // TODO: Implement password recovery logic
-      await this.showToast('A recovery email has been sent with instructions', 'top');
+      await Utils.showToast('A recovery email has been sent with instructions', 'top');
     } catch (error: any) {
       console.error('Error recovering password:', error);
       let errorMessage = 'Could not process the request';
@@ -164,7 +138,7 @@ export class LoginPage implements OnInit {
         errorMessage = 'Cannot recover password without connection';
       }
 
-      await this.showError('Error', errorMessage);
+      await Utils.showAlert('Error', errorMessage);
     } finally {
       if (this.loading) {
         await this.loading.dismiss();

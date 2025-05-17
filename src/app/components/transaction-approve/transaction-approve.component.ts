@@ -1,10 +1,9 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Title } from '@angular/platform-browser';
 import { Card } from '@app/interfaces/card';
-import { ModalController, NavParams } from '@ionic/angular';
+import { ModalController  } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { Estado } from '@app/constants/constants';
+import { STATUS } from '@app/constants/constants';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Utils } from '@app/utils/utils';
 
@@ -46,8 +45,8 @@ export class TransactionApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadKilometraje = Utils.unidadKilometraje;
-    this.showMileage = Utils.solicitarKilometraje;
+    this.unidadKilometraje = Utils.mileageUnit;
+    this.showMileage = Utils.requestMileage;
   }
 
   ngAfterViewInit() {}
@@ -123,10 +122,10 @@ export class TransactionApproveComponent  implements OnInit {
     if (!transaccion) return;
 
     await Utils.showLoading('Enviando información');
-    transaccion.IdEstado = Estado.Aprobado;
+    transaccion.IdEstado = STATUS.APPROVED;
     await this.transactionsService.update(transaccion);
     Utils.hideLoading();
-    Utils.presentToast('Transaccion aprobada', "top");
+    Utils.showToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 
@@ -135,10 +134,10 @@ export class TransactionApproveComponent  implements OnInit {
     if (!transaccion) return;
 
     await Utils.showLoading('Enviando información');
-    transaccion.IdEstado = Estado.Rechazado;
+    transaccion.IdEstado = STATUS.REJECTED;
     await this.transactionsService.update(transaccion);
     Utils.hideLoading();
-    Utils.presentToast('Transaccion rechazada', "top");
+    Utils.showToast('Transaccion rechazada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 }

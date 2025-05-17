@@ -8,7 +8,7 @@ import { SynchronizationService } from '@app/services/core/synchronization.servi
 import { NavController } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
-import { EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
+import { INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Utils } from '@app/utils/utils';
@@ -59,11 +59,11 @@ export class PointNewPage implements OnInit {
    async confirm(){
     const transaccion: Transaccion = {
         IdActividad: this.idActividad,
-        IdTransaccion: Utils.newId(),
-        EntradaSalida: EntradaSalida.Entrada,
+        IdTransaccion: Utils.generateId(),
+        EntradaSalida: INPUT_OUTPUT.INPUT,
         IdRecurso: "",
-        IdServicio: TipoServicio.Recoleccion,
-        IdEstado: Estado.Pendiente,
+        IdServicio: SERVICE_TYPES.COLLECTION,
+        IdEstado: STATUS.PENDING,
         Titulo: '' // TODO
       };
     await this.transactionsService.create(transaccion);

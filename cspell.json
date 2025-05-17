@@ -1,0 +1,38 @@
+{
+  "version": "0.2",
+  "language": "en,es",
+  "words": [
+    "AUTH",
+    "COMMON",
+    "ERRORS",
+    "POINTS",
+    "SERVICES",
+    "TREATMENTS",
+    "autenticación",
+    "cargando",
+    "contraseña",
+    "crear",
+    "descripción",
+    "eliminar",
+    "editar",
+    "guardar",
+    "idioma",
+    "iniciar",
+    "nombre",
+    "punto",
+    "ruta",
+    "seleccione",
+    "servicio",
+    "servicios",
+    "sesión",
+    "tratamiento",
+    "tratamientos",
+    "usuario"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "package-lock.json",
+    "yarn.lock"
+  ]
+}

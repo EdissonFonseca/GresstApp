@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Embalaje } from 'src/app/interfaces/embalaje.interface';
-import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
 
@@ -38,7 +38,7 @@ export class PackagesComponent  implements OnInit {
     this.route.queryParams.subscribe(params => {
     });
     this.packages = await this.packagingService.list();
-    this.enableNew = (await Utils.getPermission(Permisos.AppEmbalaje))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_PACKAGE))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){
@@ -85,7 +85,7 @@ export class PackagesComponent  implements OnInit {
       }
       else{
         this.packages = await this.packagingService.list();
-        await Utils.presentToast(`Embalaje ${formData.Nombre} creado`, 'middle');
+        await Utils.showToast(`Embalaje ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

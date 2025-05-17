@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { TratamientosPageRoutingModule } from './tratamientos-routing.module';
-import { TratamientosPage } from './tratamientos.page';
+import { ServiceListPageRoutingModule } from './service-list-routing.module';
+import { ServiceListPage } from './service-list.page';
 import { ComponentsModule } from 'src/app/components/components.module';
 
 @NgModule({
@@ -12,8 +12,8 @@ import { ComponentsModule } from 'src/app/components/components.module';
     FormsModule,
     IonicModule,
     ComponentsModule,
-    TratamientosPageRoutingModule
+    ServiceListPageRoutingModule
   ],
-  declarations: [TratamientosPage]
+  declarations: [ServiceListPage]
 })
-export class TratamientosPageModule {}
+export class ServiceListPageModule {}

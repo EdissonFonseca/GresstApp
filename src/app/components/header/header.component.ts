@@ -24,9 +24,9 @@ export class HeaderComponent  implements OnInit {
 
   async synchronize(){
     if (await this.sessionService.refresh()){
-      Utils.presentToast('Sincronización exitosa', "middle");
+      Utils.showToast('Sincronización exitosa', "middle");
     } else {
-      Utils.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+      Utils.showToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
   }
 

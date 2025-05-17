@@ -3,7 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
-import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residues',

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController, ModalController } from '@ionic/angular';
 import { Insumo } from '@app/interfaces/insumo.interface';
 import { SuppliesService } from '@app/services/masterdata/supplies.service';
-import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { SuppliesComponent } from '@app/components/supplies/supplies.component';
 
@@ -30,7 +30,7 @@ export class SupplyPage implements OnInit {
    */
   async ngOnInit() {
     this.supplies = await this.suppliesService.list();
-    this.enableNew = (await Utils.getPermission(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async openAddSupply() {

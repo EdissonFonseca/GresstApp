@@ -3,11 +3,11 @@ import { Residuo } from "../../interfaces/residuo.interface";
 import { Actividad } from "../../interfaces/actividad.interface";
 import { Cuenta } from "../../interfaces/cuenta.interface";
 import { StorageService } from "../core/storage.service";
-import { CRUDOperacion, TipoServicio } from "../../constants/constants";
+import { CRUD_OPERATIONS, SERVICE_TYPES } from "../../constants/constants";
 import { MaterialsService } from "../masterdata/materials.service";
-import { ThirdpartiesService } from "../masterdata/thirdparties.service";
 import { PointsService } from "../masterdata/points.service";
-import { GlobalsService } from "../core/globals.service";
+import { ThirdpartiesService } from "../masterdata/thirdparties.service";
+import { Utils } from "@app/utils/utils";
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,6 @@ import { GlobalsService } from "../core/globals.service";
 export class InventoryService {
   constructor(
     private storage: StorageService,
-    private globals: GlobalsService,
     private materialsService: MaterialsService,
     private thirdpartiesService: ThirdpartiesService,
     private pointsService: PointsService
@@ -57,25 +56,25 @@ export class InventoryService {
         ubicacion = residuo.IdVehiculo;
       }
       else if (residuo.IdRuta) {
-        const actividad = actividades.find(x => x.IdServicio == TipoServicio.Recoleccion && x.IdRecurso == residuo.IdRuta);
+        const actividad = actividades.find(x => x.IdServicio == SERVICE_TYPES.COLLECTION && x.IdRecurso == residuo.IdRuta);
         if (actividad)
           ubicacion = actividad.Titulo;
       }
       residuo.Ubicacion = ubicacion;
       if (residuo.Cantidad ?? 0 > 0){
-        cantidades += `${residuo.Cantidad} ${this.globals.unidadCantidad}`;
+        cantidades += `${residuo.Cantidad} ${Utils.quantityUnit}`;
       }
       if (residuo.Peso ?? 0 > 0){
         if (cantidades != '')
-          cantidades += `/${residuo.Peso} ${this.globals.unidadPeso}`;
+          cantidades += `/${residuo.Peso} ${Utils.weightUnit}`;
         else
-          cantidades = `${residuo.Peso} ${this.globals.unidadPeso}`;
+          cantidades = `${residuo.Peso} ${Utils.weightUnit}`;
       }
       if (residuo.Volumen ?? 0 > 0){
         if (cantidades != '')
-          cantidades += `/${residuo.Volumen} ${this.globals.unidadVolumen}`;
+          cantidades += `/${residuo.Volumen} ${Utils.volumeUnit}`;
         else
-          cantidades = `${residuo.Volumen} ${this.globals.unidadVolumen}`;
+          cantidades = `${residuo.Volumen} ${Utils.volumeUnit}`;
       }
       residuo.Cantidades = cantidades;
     });
@@ -108,7 +107,7 @@ export class InventoryService {
     const residuos: Residuo[] = await this.storage.get('Inventario');
     const residuoStorage: Residuo = residuos.find((item) => item.IdResiduo == residuo.IdResiduo)!;
     if (residuoStorage) {
-      residuoStorage.CRUD = CRUDOperacion.Update;
+      residuoStorage.CRUD = CRUD_OPERATIONS.UPDATE;
       residuoStorage.IdEstado = residuo.IdEstado;
       residuoStorage.Cantidad = residuo.Cantidad;
       residuoStorage.CantidadEmbalaje = residuo.CantidadEmbalaje;

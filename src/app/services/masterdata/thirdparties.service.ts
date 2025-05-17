@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Tercero } from '@app/interfaces/tercero.interface';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 import { Punto } from '@app/interfaces/punto.interface';
 
@@ -44,11 +44,11 @@ export class ThirdpartiesService {
     try{
       const posted = await this.masterdataService.createThirdParty(tercero);
       if (!posted) {
-        tercero.CRUD = CRUDOperacion.Create;
+        tercero.CRUD = CRUD_OPERATIONS.CREATE;
         tercero.CRUDDate = new Date();
       }
     } catch {
-      tercero.CRUD = CRUDOperacion.Create;
+      tercero.CRUD = CRUD_OPERATIONS.CREATE;
       tercero.CRUDDate = new Date();
     }
     finally

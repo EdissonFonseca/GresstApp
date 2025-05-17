@@ -3,8 +3,7 @@ import { StorageService } from '@app/services/core/storage.service';
 import { AlertController, NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
-import { GlobalsService } from '@app/services/core/globals.service';
-import { Permisos } from '@app/constants/constants';
+import { PERMISSIONS } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '@app/services/core/session.service';
 import { Utils } from '@app/utils/utils';
@@ -45,16 +44,16 @@ export class MenuComponent  implements OnInit {
     this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;
     this.user = cuenta.NombreUsuario;
-    this.showCertificado = await Utils.getPermission(Permisos.AppCertificado) != '';
-    this.showCuenta = await Utils.getPermission(Permisos.AppCuenta) != '';
-    this.showEmbalajes = await Utils.getPermission(Permisos.AppEmbalaje) != '';
-    this.showInsumos = await Utils.getPermission(Permisos.AppInsumo) != '';
-    this.showMateriales = await Utils.getPermission(Permisos.AppMaterial) != '';
-    this.showServicios = await Utils.getPermission(Permisos.AppServicio) != '';
-    this.showPuntos = await Utils.getPermission(Permisos.AppPunto) != '';
-    this.showTerceros = await Utils.getPermission(Permisos.AppTercero) != '';
-    this.showTratamientos = await Utils.getPermission(Permisos.AppClaseTratamiento) != '';
-    this.showVehiculos = await Utils.getPermission(Permisos.AppVehiculo) != '';
+    this.showCertificado = await Utils.getPermission(PERMISSIONS.APP_CERTIFICATE) != '';
+    this.showCuenta = await Utils.getPermission(PERMISSIONS.APP_ACCOUNT) != '';
+    this.showEmbalajes = await Utils.getPermission(PERMISSIONS.APP_PACKAGE) != '';
+    this.showInsumos = await Utils.getPermission(PERMISSIONS.APP_SUPPLY) != '';
+    this.showMateriales = await Utils.getPermission(PERMISSIONS.APP_MATERIAL) != '';
+    this.showServicios = await Utils.getPermission(PERMISSIONS.APP_SERVICE) != '';
+    this.showPuntos = await Utils.getPermission(PERMISSIONS.APP_POINT) != '';
+    this.showTerceros = await Utils.getPermission(PERMISSIONS.APP_THIRD_PARTY) != '';
+    this.showTratamientos = await Utils.getPermission(PERMISSIONS.APP_TREATMENT) != '';
+    this.showVehiculos = await Utils.getPermission(PERMISSIONS.APP_VEHICLE) != '';
 
     this.debug == !environment.production;
   }
@@ -123,7 +122,7 @@ export class MenuComponent  implements OnInit {
 
         switch (result) {
           case 'Resume':
-            Utils.estaCerrando = true;
+            Utils.isClosing = true;
             this.navCtrl.navigateRoot('/login');
             break;
           case 'Cancel':
@@ -138,7 +137,7 @@ export class MenuComponent  implements OnInit {
       }
     } catch (error) {
       Utils.hideLoading();
-      await Utils.presentToast('Error al sincronizar', 'middle');
+      await Utils.showToast('Error al sincronizar', 'middle');
     }
   }
 

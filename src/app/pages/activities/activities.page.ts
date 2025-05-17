@@ -7,7 +7,7 @@ import { ActionSheetController, AlertController, ModalController, NavController 
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { CRUDOperacion, Permisos, SERVICIOS, TipoServicio } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS, SERVICE_TYPES, SERVICES } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -103,10 +103,10 @@ export class ActivitiesPage implements OnInit {
 
     switch(actividad.IdServicio)
     {
-      case TipoServicio.Recoleccion:
-      case TipoServicio.Transporte:
+      case SERVICE_TYPES.COLLECTION:
+      case SERVICE_TYPES.TRANSPORT:
         if (actividad.FechaInicial == null) {
-          if (Utils.solicitarKilometraje) {
+          if (Utils.requestMileage) {
             const result = await this.requestMileagePrompt();
             if (result) {
               actividad.KilometrajeInicial = this.kilometraje;
@@ -146,18 +146,18 @@ export class ActivitiesPage implements OnInit {
   async openAddActivity() {
     const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
-    const acopio = (await Utils.getPermission(Permisos.AppAcopio))?.includes(CRUDOperacion.Create);
+    const acopio = (await Utils.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
     if (acopio) {
-      var servicio = SERVICIOS.find(x => x.IdServicio == TipoServicio.Acopio);
+      var servicio = SERVICES.find(x => x.serviceId == SERVICE_TYPES.COLLECTION);
       if (servicio)
-        actionSheetDict[TipoServicio.Acopio] = { icon: servicio.Icono, name: servicio.Nombre };
+        actionSheetDict[SERVICE_TYPES.COLLECTION] = { icon: servicio.Icon, name: servicio.Name };
     }
 
-    const transporte = (await Utils.getPermission(Permisos.AppTransporte))?.includes(CRUDOperacion.Create);
+    const transporte = (await Utils.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
     if (transporte) {
-      var servicio = SERVICIOS.find(x => x.IdServicio == TipoServicio.Transporte);
+      var servicio = SERVICES.find(x => x.serviceId == SERVICE_TYPES.TRANSPORT);
       if (servicio)
-        actionSheetDict[TipoServicio.Transporte] = { icon: servicio.Icono, name: servicio.Nombre };
+        actionSheetDict[SERVICE_TYPES.TRANSPORT] = { icon: servicio.Icon, name: servicio.Name };
     }
 
     const buttons = Object.keys(actionSheetDict).map(key => ({

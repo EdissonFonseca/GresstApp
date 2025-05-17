@@ -24,8 +24,8 @@ const routes: Routes = [
     loadChildren: () => import('./pages/login/login.module').then(m => m.LoginPageModule)
   },
   {
-    path: 'materiales',
-    loadChildren: () => import('./pages/materiales/materiales.module').then( m => m.MaterialesPageModule)
+    path: 'material-list',
+    loadChildren: () => import('./pages/material-list/material-list.module').then( m => m.MaterialListPageModule)
   },
   {
     path: 'point-new',
@@ -52,8 +52,8 @@ const routes: Routes = [
     loadChildren: () => import('./pages/third-parties/third-parties.module').then( m => m.ThirdPartiesPageModule)
   },
   {
-    path: 'puntos',
-    loadChildren: () => import('./pages/puntos/puntos.module').then( m => m.PuntosPageModule)
+    path: 'point-list',
+    loadChildren: () => import('./pages/point-list/point-list.module').then( m => m.PointListPageModule)
   },
   {
     path: 'search-certificates',
@@ -80,8 +80,8 @@ const routes: Routes = [
     loadChildren: () => import('./pages/transactions/transactions.module').then(m => m.TransactionsPageModule)
   },
   {
-    path: 'tratamientos',
-    loadChildren: () => import('./pages/tratamientos/tratamientos.module').then( m => m.TratamientosPageModule)
+    path: 'treatment-list',
+    loadChildren: () => import('./pages/treatment-list/treatment-list.module').then( m => m.TreatmentListPageModule)
   },
   {
     path: 'register-email',
@@ -96,8 +96,8 @@ const routes: Routes = [
     loadChildren: () => import('./pages/register-key/register-key.module').then( m => m.RegisterKeyPageModule)
   },
   {
-    path: 'servicios',
-    loadChildren: () => import('./pages/servicios/servicios.module').then( m => m.ServiciosPageModule)
+    path: 'service-list',
+    loadChildren: () => import('./pages/service-list/service-list.module').then( m => m.ServiceListPageModule)
   },
   {
     path: 'password-email',
@@ -108,7 +108,7 @@ const routes: Routes = [
     loadChildren: () => import('./pages/password-code/password-code.module').then( m => m.PasswordCodePageModule)
   },
   {
-      path: 'password-key',
+    path: 'password-key',
     loadChildren: () => import('./pages/password-key/password-key.module').then( m => m.PasswordKeyPageModule)
   },
   {
@@ -134,12 +134,13 @@ const routes: Routes = [
   {
     path: 'third-parties',
     loadChildren: () => import('./pages/third-parties/third-parties.module').then(m => m.ThirdPartiesPageModule)
-  },
+  }
 ];
+
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
   ],
   exports: [RouterModule]
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }

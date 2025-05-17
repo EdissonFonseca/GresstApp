@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUDOperacion, Estado, SERVICIOS } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STATUS, SERVICES } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { Utils } from '@app/utils/utils';
@@ -20,14 +20,14 @@ export class ActivitiesService {
 
     const resultado = tareas.reduce(
       (acumulador, tarea) => {
-        if (tarea.IdEstado === Estado.Aprobado) {
+        if (tarea.IdEstado === STATUS.APPROVED) {
           acumulador.aprobados += 1;
           acumulador.cantidad += tarea.Cantidad ?? 0;
           acumulador.peso += tarea.Peso ?? 0;
           acumulador.volumen += tarea.Volumen ?? 0;
-        } else if (tarea.IdEstado === Estado.Pendiente) {
+        } else if (tarea.IdEstado === STATUS.PENDING) {
           acumulador.pendientes += 1;
-        } else if (tarea.IdEstado === Estado.Rechazado) {
+        } else if (tarea.IdEstado === STATUS.REJECTED) {
           acumulador.rechazados += 1;
         }
         return acumulador;
@@ -46,10 +46,10 @@ export class ActivitiesService {
 
     actividades = transaction.Actividades;
     actividades.forEach((actividad) => {
-      const servicio = SERVICIOS.find(s => s.IdServicio === actividad.IdServicio);
+      const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
 
-      actividad.Icono = servicio?.Icono || '';
-      actividad.Accion = servicio?.Accion || '';    });
+      actividad.Icono = servicio?.Icon || '';
+      actividad.Accion = servicio?.Action || '';    });
 
     return actividades;
   }
@@ -61,10 +61,10 @@ export class ActivitiesService {
     actividades = transaction.Actividades;
     const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
 
-    const servicio = SERVICIOS.find(s => s.IdServicio === actividad.IdServicio);
+    const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
 
-    actividad.Icono = servicio?.Icono || '';
-    actividad.Accion = servicio?.Accion || '';
+    actividad.Icono = servicio?.Icon || '';
+    actividad.Accion = servicio?.Action || '';
 
     return actividad;
   }
@@ -82,7 +82,7 @@ export class ActivitiesService {
     const [latitud, longitud] = await Utils.getCurrentPosition();
     const transaction: Transaction = await this.storage.get('Transaction');
 
-    actividad.CRUD = CRUDOperacion.Create;
+    actividad.CRUD = CRUD_OPERATIONS.CREATE;
     actividad.FechaInicial = now;
     actividad.LatitudInicial = latitud;
     actividad.LatitudInicial = longitud;
@@ -98,7 +98,7 @@ export class ActivitiesService {
     const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
     {
-      current.CRUD = CRUDOperacion.Update;
+      current.CRUD = CRUD_OPERATIONS.UPDATE;
       current.FechaFinal = now;
       current.IdEstado = actividad.IdEstado;
       current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
@@ -109,17 +109,17 @@ export class ActivitiesService {
       current.ResponsableNombre = actividad.ResponsableNombre;
       current.ResponsableObservaciones = actividad.ResponsableObservaciones;
 
-      const tareas = transaction.Tareas.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+      const tareas = transaction.Tareas.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING && x.CRUD == null);
       tareas.forEach(x => {
-        x.IdEstado = Estado.Rechazado,
-        x.CRUD = CRUDOperacion.Update
+        x.IdEstado = STATUS.REJECTED,
+        x.CRUD = CRUD_OPERATIONS.UPDATE
       });
 
-      const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+      const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING && x.CRUD == null);
       transacciones.forEach(x => {
         x.FechaInicial = now,
-        x.IdEstado = Estado.Rechazado,
-        x.CRUD = CRUDOperacion.Update
+        x.IdEstado = STATUS.REJECTED,
+        x.CRUD = CRUD_OPERATIONS.UPDATE
       });
 
       await this.storage.set("Transaction", transaction);
@@ -133,7 +133,7 @@ export class ActivitiesService {
     const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
     {
-      current.CRUD = CRUDOperacion.Read;
+      current.CRUD = CRUD_OPERATIONS.READ;
       current.FechaInicial = now;
       current.IdEstado = actividad.IdEstado;
       current.KilometrajeInicial = actividad.KilometrajeInicial;

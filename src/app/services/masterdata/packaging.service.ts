@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Embalaje } from '@app/interfaces/embalaje.interface';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 
@@ -31,7 +31,7 @@ export class PackagingService {
 
   async create(embalaje: Embalaje): Promise<boolean> {
     try{
-      embalaje.CRUD = CRUDOperacion.Create;
+      embalaje.CRUD = CRUD_OPERATIONS.CREATE;
       embalaje.CRUDDate = new Date();
       const posted = await this.masterdataService.createPackaging(embalaje);
       if (posted) {

@@ -29,15 +29,15 @@ export class SynchronizationPage implements OnInit {
       await Utils.hideLoading();
 
       if (success) {
-        await Utils.presentToast('Sincronización exitosa', "middle");
+        await Utils.showToast('Sincronización exitosa', "middle");
         this.navCtrl.navigateForward('/home');
       } else {
-        await Utils.presentToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
+        await Utils.showToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
       }
     } catch (error) {
       await Utils.hideLoading();
       console.error('Error durante la sincronización:', error);
-      await Utils.presentToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
+      await Utils.showToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
     }
   }
 }

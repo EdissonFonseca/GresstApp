@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { ClienteProveedorInterno, CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from '@app/constants/constants';
+import { THIRD_PARTY_TYPES, CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/constants/constants';
 import { PackagesComponent } from '../packages/packages.component';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PointsComponent } from '../points/points.component';
@@ -84,16 +84,16 @@ export class TaskAddComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadCantidad = Utils.unidadCantidad ?? '';
-    this.unidadPeso = Utils.unidadPeso ?? '';
-    this.unidadVolumen = Utils.unidadPeso ?? '';
-    this.fotosPorMaterial = Utils.fotosPorMaterial ?? 2;
+    this.unidadCantidad = Utils.quantityUnit ?? '';
+    this.unidadPeso = Utils.weightUnit ?? '';
+    this.unidadVolumen = Utils.volumeUnit ?? '';
+    this.fotosPorMaterial = Utils.photosByMaterial ?? 2;
 
     const actividad = await this.activitiesService.get(this.idActividad);
     if (actividad)
     {
       this.proceso = Utils.getServiceName(actividad.IdServicio);
-      if (actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) {
+      if (actividad.IdServicio == SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT) {
         this.solicitarEmbalaje = true;
         this.idVehiculo = actividad.IdRecurso ?? '';
         if (this.idTransaccion)
@@ -108,7 +108,7 @@ export class TaskAddComponent implements OnInit {
         } else {
           this.solicitarPunto = true;
         }
-      } else if (actividad.IdServicio == TipoServicio.Recepcion) {
+      } else if (actividad.IdServicio == SERVICE_TYPES.RECEPTION) {
         this.solicitarPropietario = true;
       }
     }
@@ -118,9 +118,9 @@ export class TaskAddComponent implements OnInit {
     const enteredValue = (event.target as HTMLInputElement).value;
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
-    if (this.medicion == TipoMedicion.Peso)
+    if (this.medicion == MEASUREMENTS.WEIGHT)
       this.formData.patchValue({Peso: resultValue});
-    else if (this.medicion == TipoMedicion.Volumen)
+    else if (this.medicion == MEASUREMENTS.VOLUME)
       this.formData.patchValue({Volumen: resultValue});
   }
 
@@ -168,7 +168,7 @@ export class TaskAddComponent implements OnInit {
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
-        tipoTercero: ClienteProveedorInterno.Cliente,
+        tipoTercero: THIRD_PARTY_TYPES.CLIENT,
         includeMe: false,
       },
     });
@@ -188,7 +188,7 @@ export class TaskAddComponent implements OnInit {
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
-        tipoTercero: ClienteProveedorInterno.Proveedor,
+        tipoTercero: THIRD_PARTY_TYPES.SUPPLIER,
         includeMe: true,
       },
     });
@@ -278,7 +278,7 @@ export class TaskAddComponent implements OnInit {
 
     idTransaccion = this.idTransaccion;
     const data = this.formData.value;
-    if (actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte || actividad.IdServicio === TipoServicio.Recepcion){
+    if (actividad.IdServicio == SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT || actividad.IdServicio === SERVICE_TYPES.RECEPTION){
       const residuo: Residuo = {
         IdResiduo: Utils.generateId(),
         IdMaterial: this.idMaterial,
@@ -290,14 +290,14 @@ export class TaskAddComponent implements OnInit {
         Volumen: data.Volumen,
         IdEmbalaje: data.IdEmbalaje,
         CantidadEmbalaje: data.Cantidad,
-        IdEstado: Estado.Activo,
+        IdEstado: STATUS.ACTIVE,
         Propietario: this.propietario,
         Material: this.material,
         DepositoOrigen: this.puntoEntrada,
-        EntradaSalida: EntradaSalida.Entrada,
-        IdDeposito: actividad.IdServicio == TipoServicio.Recepcion? actividad.IdRecurso : '',
-        IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
-        IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
+        EntradaSalida: INPUT_OUTPUT.INPUT,
+        IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION? actividad.IdRecurso : '',
+        IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
+        IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
         Imagen: this.imageUrl,
         Ubicacion: '' //TODO
       };
@@ -305,15 +305,15 @@ export class TaskAddComponent implements OnInit {
       idResiduo = residuo.IdResiduo;
 
       if (!this.idTransaccion) {
-        if (actividad.IdServicio === TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte){
+        if (actividad.IdServicio === SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT){
           const transaccionActual = await this.transactionsService.getByPunto(this.idActividad, this.idPuntoEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdActividad: this.idActividad,
               IdTransaccion: Utils.generateId(),
 
-              IdEstado: Estado.Pendiente,
-              EntradaSalida: EntradaSalida.Entrada,
+              IdEstado: STATUS.PENDING,
+              EntradaSalida: INPUT_OUTPUT.INPUT,
               IdTercero: this.idTerceroEntrada,
               IdDeposito: this.idPuntoEntrada,
               IdDepositoDestino: this.idPuntoSalida,
@@ -328,30 +328,30 @@ export class TaskAddComponent implements OnInit {
               IdServicio: actividad.IdServicio,
               FechaInicial: isoDate,
               FechaFinal: isoDate,
-              Accion: Utils.getAccionEntradaSalida(EntradaSalida.Transferencia),
+              Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
             };
             fecha = isoDate;
             await this.transactionsService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
           } else {
-            if (transaccionActual.IdEstado == Estado.Pendiente) {
+            if (transaccionActual.IdEstado == STATUS.PENDING) {
               await this.transactionsService.update(transaccionActual);
               idTransaccion = transaccionActual.IdTransaccion;
               fecha = transaccionActual.FechaInicial ?? isoDate;
             } else {
-              Utils.presentToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
+              Utils.showToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
               return;
             }
           }
-        } else if (actividad.IdServicio == TipoServicio.Recepcion) {
+        } else if (actividad.IdServicio == SERVICE_TYPES.RECEPTION) {
           const transaccionActual = await this.transactionsService.getByTercero(this.idActividad, this.idTerceroEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdActividad: this.idActividad,
               IdTransaccion: Utils.generateId(),
 
-              IdEstado: Estado.Pendiente,
-              EntradaSalida: EntradaSalida.Entrada,
+              IdEstado: STATUS.PENDING,
+              EntradaSalida: INPUT_OUTPUT.INPUT,
               IdOrden: actividad.IdOrden,
               IdTercero: this.idTerceroEntrada,
               IdRecurso: actividad.IdRecurso,
@@ -361,13 +361,13 @@ export class TaskAddComponent implements OnInit {
               IdTerceroDestino: this.idTerceroSalida,
               Titulo: this.propietario,
               Icono: 'person',
-              Accion: Utils.getAccionEntradaSalida(EntradaSalida.Transferencia),
+              Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
             };
             await this.transactionsService.create(transaccion);
             idTransaccion = transaccion.IdTransaccion;
             fecha = isoDate;
           } else {
-            transaccionActual.CRUD = CRUDOperacion.Update;
+            transaccionActual.CRUD = CRUD_OPERATIONS.UPDATE;
             await this.transactionsService.update(transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaInicial ?? isoDate;
@@ -394,9 +394,9 @@ export class TaskAddComponent implements OnInit {
         IdDepositoDestino: this.idPuntoSalida,
         IdTerceroDestino: this.idTerceroSalida,
         Accion: 'Ver',
-        EntradaSalida: EntradaSalida.Entrada,
+        EntradaSalida: INPUT_OUTPUT.INPUT,
         IdServicio: actividad.IdServicio,
-        IdEstado: Estado.Aprobado,
+        IdEstado: STATUS.APPROVED,
         IdRecurso: actividad.IdRecurso,
         FechaEjecucion: isoDate,
         FechaSolicitud: isoDate,

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { ModalController, NavController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
@@ -37,7 +37,7 @@ export class StakeholdersComponent  implements OnInit {
 
   async ngOnInit() {
     this.terceros = await this.thirdpartiesService.list();
-    this.enableNew = (await Utils.getPermission(Permisos.AppTercero))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_THIRD_PARTY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){
@@ -85,7 +85,7 @@ export class StakeholdersComponent  implements OnInit {
         }
         else{
           this.terceros = await this.thirdpartiesService.list();
-          await Utils.presentToast(`Tercero ${formData.Nombre} creado`, 'middle');
+          await Utils.showToast(`Tercero ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';
         }

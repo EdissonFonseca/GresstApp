@@ -2,7 +2,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Material } from '@app/interfaces/material.interface';
-import { CRUDOperacion, Permisos } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
 
@@ -42,7 +42,7 @@ export class MaterialsComponent  implements OnInit {
 
   async ngOnInit() {
     this.materials = await this.materialsService.list();
-    this.enableNew = (await Utils.getPermission(Permisos.AppMaterial))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){
@@ -132,7 +132,7 @@ export class MaterialsComponent  implements OnInit {
         }
         else{
           this.materials = await this.materialsService.list();
-          await Utils.presentToast(`Material ${formData.Nombre} creado`, 'middle');
+          await Utils.showToast(`Material ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';
         }

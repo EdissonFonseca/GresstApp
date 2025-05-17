@@ -6,7 +6,7 @@ import { ModalController } from '@ionic/angular';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { EntradaSalida, Estado, TipoMedicion, TipoServicio } from '@app/constants/constants';
+import { INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/constants/constants';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { PointsService } from '@app/services/masterdata/points.service';
@@ -92,7 +92,7 @@ export class TaskEditComponent implements OnInit {
     let peso: number | null = null;
     let volumen: number | null = null;
 
-    this.fotosPorMaterial = Utils.fotosPorMaterial;
+    this.fotosPorMaterial = Utils.photosByMaterial;
     this.task = await this.tasksService.get(this.activityId, this.transactionId, this.taskId);
     if (this.task)
     {
@@ -142,7 +142,7 @@ export class TaskEditComponent implements OnInit {
         this.package = embalaje?.Nombre ?? '';
       }
 
-      if (this.inputOutput == EntradaSalida.Salida) {
+      if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
         const residuo = await this.inventoryService.getResiduo(this.residueId);
         if (residuo) {
           cantidad = residuo.Cantidad ?? 0;
@@ -234,7 +234,7 @@ export class TaskEditComponent implements OnInit {
       tarea.Cantidad = data.Cantidad;
       tarea.FechaEjecucion = isoDate;
       tarea.IdEmbalaje = data.IdEmbalaje;
-      tarea.IdEstado = Estado.Aprobado;
+      tarea.IdEstado = STATUS.APPROVED;
       tarea.Observaciones = data.Observaciones;
       tarea.Peso = data.Peso;
       tarea.Volumen = data.Volumen;
@@ -242,15 +242,15 @@ export class TaskEditComponent implements OnInit {
       tarea.Fotos = this.fotos;
       this.tasksService.update(this.activityId, this.transactionId, tarea);
 
-      if (this.inputOutput == EntradaSalida.Entrada) { //Tarea -> Entrada
+      if (this.inputOutput == INPUT_OUTPUT.INPUT) { //Tarea -> Entrada
         idResiduo = Utils.generateId();
         const residuo: Residuo = {
           IdResiduo: idResiduo,
           IdMaterial: tarea.IdMaterial,
           IdPropietario: this.stakeholderId,
-          IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
-          IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
-          IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
+          IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION ? actividad.IdRecurso: '',
+          IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
+          IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
           IdDepositoOrigen: tarea.IdDeposito,
           Aprovechable: true, //TODO
           Cantidad: data.Cantidad,
@@ -261,8 +261,8 @@ export class TaskEditComponent implements OnInit {
           Propietario: this.stakeholder,
           Material: this.material,
           DepositoOrigen: this.point,
-          EntradaSalida: EntradaSalida.Entrada,
-          IdEstado: Estado.Pendiente,
+          EntradaSalida: INPUT_OUTPUT.INPUT,
+          IdEstado: STATUS.PENDING,
           FechaIngreso: isoDate,
           Imagen: this.imageUrl,
           Ubicacion: '' //TODO
@@ -272,7 +272,7 @@ export class TaskEditComponent implements OnInit {
         idResiduo = this.residueId;
         const residuo = await this.inventoryService.getResiduo(idResiduo);
         if (residuo){
-          residuo.IdEstado = Estado.Inactivo;
+          residuo.IdEstado = STATUS.INACTIVE;
           this.inventoryService.updateResiduo(residuo);
         }
       }
@@ -285,9 +285,9 @@ export class TaskEditComponent implements OnInit {
             IdResiduo: Utils.generateId(),
             IdMaterial: this.materialId,
             IdPropietario: this.stakeholderId,
-            IdDeposito: actividad.IdServicio == TipoServicio.Recepcion ? actividad.IdRecurso: '',
-            IdRuta: actividad.IdServicio == TipoServicio.Recoleccion? actividad.IdRecurso : '',
-            IdVehiculo: actividad.IdServicio == TipoServicio.Transporte? actividad.IdRecurso : '',
+            IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION ? actividad.IdRecurso: '',
+            IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
+            IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
             IdDepositoOrigen: transaccion.IdDeposito,
             Aprovechable: true, //TODO
             Cantidad: data.Cantidad,
@@ -297,7 +297,7 @@ export class TaskEditComponent implements OnInit {
             Propietario: this.stakeholder,
             Material: this.material,
             DepositoOrigen: this.point,
-            IdEstado: Estado.Activo,
+            IdEstado: STATUS.ACTIVE,
             FechaIngreso: isoDate,
             Ubicacion: '' //TODO
           };
@@ -317,8 +317,8 @@ export class TaskEditComponent implements OnInit {
             IdServicio: actividad.IdServicio,
             IdEmbalaje: data.IdEmbalaje,
             Observaciones: data.Observaciones,
-            EntradaSalida: EntradaSalida.Entrada,
-            IdEstado: Estado.Aprobado,
+            EntradaSalida: INPUT_OUTPUT.INPUT,
+            IdEstado: STATUS.APPROVED,
             Fotos: this.fotos,
           };
           await this.tasksService.create(tarea);
@@ -340,13 +340,13 @@ export class TaskEditComponent implements OnInit {
               Volumen: data.Volumen,
               IdEmbalaje: data.IdEmbalaje,
               Observaciones: data.Observaciones,
-              EntradaSalida: EntradaSalida.Entrada,
+              EntradaSalida: INPUT_OUTPUT.INPUT,
               Fotos: this.fotos,
-              IdEstado: Estado.Aprobado,
+              IdEstado: STATUS.APPROVED,
               };
             await this.tasksService.create(tarea);
 
-            residuo.IdEstado = Estado.Inactivo;
+            residuo.IdEstado = STATUS.INACTIVE;
               await this.inventoryService.updateResiduo(residuo);
           }
         }
@@ -364,7 +364,7 @@ export class TaskEditComponent implements OnInit {
     if (tarea)
     {
       tarea.Observaciones = data.Observaciones;
-      tarea.IdEstado = Estado.Rechazado;
+      tarea.IdEstado = STATUS.REJECTED;
       tarea.FechaEjecucion = isoDate;
       this.tasksService.update(this.activityId, this.transactionId, tarea);
     }
@@ -442,9 +442,9 @@ export class TaskEditComponent implements OnInit {
     const enteredValue = (event.target as HTMLInputElement).value;
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
-    if (this.medicion == TipoMedicion.Peso)
+    if (this.medicion == MEASUREMENTS.WEIGHT)
       this.frmTarea.patchValue({Peso: resultValue});
-    else if (this.medicion == TipoMedicion.Volumen)
+    else if (this.medicion == MEASUREMENTS.VOLUME)
       this.frmTarea.patchValue({Volumen: resultValue});
   }
 }

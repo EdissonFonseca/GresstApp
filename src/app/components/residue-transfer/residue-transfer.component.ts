@@ -3,7 +3,7 @@ import { ModalController, NavParams } from '@ionic/angular';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
 import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
 import { PointsComponent } from '../points/points.component';
-import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
+import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { Material } from 'src/app/interfaces/material.interface';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -59,9 +59,9 @@ export class ResidueTransferComponent  implements OnInit {
     this.residue = await this.inventoryService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.unidadCantidad = Utils.unidadCantidad;
-    this.unidadPeso = Utils.unidadPeso;
-    this.unidadVolumen = Utils.unidadPeso;
+    this.unidadCantidad = Utils.quantityUnit;
+    this.unidadPeso = Utils.weightUnit;
+    this.unidadVolumen = Utils.volumeUnit;
 
     this.material = await this.materialsService.get(this.residue.IdMaterial);
   }
@@ -76,13 +76,13 @@ export class ResidueTransferComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    if (this.serviceId == TipoServicio.Entrega || this.serviceId == TipoServicio.Recoleccion) {
+    if (this.serviceId == SERVICE_TYPES.DELIVERY || this.serviceId == SERVICE_TYPES.TRANSPORT) {
       const punto = await this.pointsService.get(this.residue.IdDeposito ?? '');
-      if (this.serviceId == TipoServicio.Entrega){
-        actividad = await this.activitiesService.getByServicio(TipoServicio.Entrega, this.residue.IdDeposito ?? '');
+      if (this.serviceId == SERVICE_TYPES.DELIVERY){
+        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.DELIVERY, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto){
-            actividad = {IdActividad: Utils.generateId(), IdServicio: TipoServicio.Entrega, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
+            actividad = {IdActividad: Utils.generateId(), IdServicio: SERVICE_TYPES.DELIVERY, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
             await this.activitiesService.create(actividad);
           }
         }
@@ -93,22 +93,22 @@ export class ResidueTransferComponent  implements OnInit {
               IdActividad: actividad.IdActividad,
               IdTransaccion: Utils.generateId(),
 
-              IdEstado: Estado.Pendiente,
-              EntradaSalida: EntradaSalida.Salida,
+              IdEstado: STATUS.PENDING,
+              EntradaSalida: INPUT_OUTPUT.OUTPUT,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
               IdTercero: this.stakeholderId,
-              CRUD: CRUDOperacion.Create,
+              CRUD: CRUD_OPERATIONS.CREATE,
               Titulo: '' // TODO
             };
             await this.transactionsService.create(transaccion);
           }
         }
       } else {
-        actividad = await this.activitiesService.getByServicio(TipoServicio.Transporte, this.residue.IdVehiculo ?? '');
+        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.TRANSPORT, this.residue.IdVehiculo ?? '');
         if (!actividad){
-          actividad = {IdActividad: Utils.generateId(), IdServicio: TipoServicio.Transporte, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
-          actividad.CRUD = CRUDOperacion.Create;
+          actividad = {IdActividad: Utils.generateId(), IdServicio: SERVICE_TYPES.TRANSPORT, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
+          actividad.CRUD = CRUD_OPERATIONS.CREATE;
           await this.activitiesService.create(actividad);
         }
         if (actividad){
@@ -118,13 +118,13 @@ export class ResidueTransferComponent  implements OnInit {
               IdActividad: actividad.IdActividad,
               IdTransaccion: Utils.generateId(),
 
-              IdEstado: Estado.Pendiente,
-              EntradaSalida: EntradaSalida.Entrada,
+              IdEstado: STATUS.PENDING,
+              EntradaSalida: INPUT_OUTPUT.INPUT,
               IdTercero: this.stakeholderId,
               IdDeposito: this.pointId,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
-              CRUD: CRUDOperacion.Create,
+              CRUD: CRUD_OPERATIONS.CREATE,
               Titulo: '' // TODO
             };
             await this.transactionsService.create(transaccion);
@@ -144,9 +144,9 @@ export class ResidueTransferComponent  implements OnInit {
           FechaEjecucion: isoDate,
           IdDeposito: this.pointId,
           IdTercero: this.stakeholderId,
-          IdEstado: Estado.Aprobado,
-          CRUD: CRUDOperacion.Create,
-          EntradaSalida: EntradaSalida.Salida,
+          IdEstado: STATUS.APPROVED,
+          CRUD: CRUD_OPERATIONS.CREATE,
+          EntradaSalida: INPUT_OUTPUT.OUTPUT,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
@@ -154,7 +154,7 @@ export class ResidueTransferComponent  implements OnInit {
         };
         await this.tasksService.create(tarea);
       }
-      this.residue.IdEstado = Estado.Inactivo;
+      this.residue.IdEstado = STATUS.INACTIVE;
       this.residue.IdDeposito = this.pointId;
       await this.inventoryService.updateResiduo(this.residue);
     } else {

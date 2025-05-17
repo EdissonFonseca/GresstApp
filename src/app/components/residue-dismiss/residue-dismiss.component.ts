@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, NavParams } from '@ionic/angular';
-import { CRUDOperacion, EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
+import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { PointsComponent } from '../points/points.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
@@ -51,9 +51,9 @@ export class ResidueDismissComponent  implements OnInit {
     this.residue = await this.inventoryService.getResiduo(this.residueId);
     if (!this.residue) return;
 
-    this.unidadCantidad = Utils.unidadCantidad;
-    this.unidadPeso = Utils.unidadPeso;
-    this.unidadVolumen = Utils.unidadPeso;
+    this.unidadCantidad = Utils.quantityUnit;
+    this.unidadPeso = Utils.weightUnit;
+    this.unidadVolumen = Utils.volumeUnit;
     this.material = await this.materialsService.get(this.residue.IdMaterial);
   }
 
@@ -69,7 +69,7 @@ export class ResidueDismissComponent  implements OnInit {
     const personId = await Utils.getPersonId();
     actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
     if (!actividad) {
-      actividad = {IdActividad: Utils.generateId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUDOperacion.Create, IdEstado: Estado.Pendiente, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
+      actividad = {IdActividad: Utils.generateId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
       await this.activitiesService.create(actividad);
     }
     if (actividad) {
@@ -81,11 +81,11 @@ export class ResidueDismissComponent  implements OnInit {
           IdResiduo: this.residue.IdResiduo,
           IdDeposito: this.pointId,
           IdTercero: this.stakeholderId,
-          IdEstado: Estado.Aprobado,
+          IdEstado: STATUS.APPROVED,
           IdRecurso: actividad.IdRecurso,
           FechaEjecucion: isoDate,
-          CRUD: CRUDOperacion.Create,
-          EntradaSalida: EntradaSalida.Salida,
+          CRUD: CRUD_OPERATIONS.CREATE,
+          EntradaSalida: INPUT_OUTPUT.OUTPUT,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
@@ -94,7 +94,7 @@ export class ResidueDismissComponent  implements OnInit {
         };
         await this.tasksService.create(tarea);
     }
-    this.residue.IdEstado = Estado.Inactivo;
+    this.residue.IdEstado = STATUS.INACTIVE;
     this.residue.IdDeposito = this.pointId;
     await this.inventoryService.updateResiduo(this.residue);
     this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad });

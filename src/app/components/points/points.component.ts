@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 import { ModalController, NavParams } from '@ionic/angular';
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
-import { ClienteProveedorInterno, CRUDOperacion, Permisos } from '@app/constants/constants';
+import { THIRD_PARTY_TYPES, CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Utils } from '@app/utils/utils';
@@ -34,7 +34,7 @@ export class PointsComponent  implements OnInit, OnChanges {
 
   async ngOnInit() {
     await this.filterPoints();
-    this.enableNew = (await Utils.getPermission(Permisos.AppPunto))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_POINT))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -48,11 +48,11 @@ export class PointsComponent  implements OnInit, OnChanges {
     if (this.idTercero) {
       this.terceros = terceros.filter((x: Tercero) => x.IdPersona == this.idTercero);
     } else if (this.tipoTercero) {
-      if (this.tipoTercero == ClienteProveedorInterno.Cliente)
+      if (this.tipoTercero == THIRD_PARTY_TYPES.CLIENT)
         this.terceros = terceros.filter((x: Tercero) => x.Cliente);
-      else if (this.tipoTercero == ClienteProveedorInterno.Proveedor)
+      else if (this.tipoTercero == THIRD_PARTY_TYPES.SUPPLIER)
         this.terceros = terceros.filter((x: Tercero) => x.Proveedor);
-      if (this.tipoTercero == ClienteProveedorInterno.Interno)
+      if (this.tipoTercero == THIRD_PARTY_TYPES.INTERNAL)
         this.terceros = terceros.filter((x: Tercero) => x.Empleado);
     } else {
       this.terceros = terceros;

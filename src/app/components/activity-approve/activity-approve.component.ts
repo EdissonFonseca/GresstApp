@@ -1,10 +1,10 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Card } from '@app/interfaces/card';
-import { ModalController, NavParams } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { Estado } from '@app/constants/constants';
+import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 
 @Component({
@@ -44,8 +44,8 @@ export class ActivityApproveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.unidadKilometraje = Utils.unidadKilometraje;
-    this.showMileage = Utils.solicitarKilometraje;
+    this.unidadKilometraje = Utils.mileageUnit;
+    this.showMileage = Utils.requestMileage;
   }
 
   ngAfterViewInit() {}
@@ -110,7 +110,7 @@ export class ActivityApproveComponent  implements OnInit {
     if (!actividad) return;
 
     const firma = this.getSignature();
-    actividad.IdEstado = Estado.Rechazado;
+    actividad.IdEstado = STATUS.REJECTED;
     actividad.KilometrajeFinal = data.Kilometraje;
     actividad.ResponsableCargo = data.Cargo;
     actividad.ResponsableIdentificacion = data.Identificacion;
@@ -126,10 +126,10 @@ export class ActivityApproveComponent  implements OnInit {
 
     if (!actividad) return;
 
-    actividad.IdEstado = Estado.Aprobado;
+    actividad.IdEstado = STATUS.APPROVED;
     this.activitiesService.update(actividad);
     Utils.hideLoading();
-    Utils.presentToast('Actividad aprobada', "top");
+    Utils.showToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 
@@ -139,10 +139,10 @@ export class ActivityApproveComponent  implements OnInit {
 
     if (!actividad) return;
 
-    actividad.IdEstado = Estado.Rechazado;
+    actividad.IdEstado = STATUS.REJECTED;
     this.activitiesService.update(actividad);
     Utils.hideLoading();
-    Utils.presentToast('Actividad rechazada', "top");
+    Utils.showToast('Actividad rechazada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 }

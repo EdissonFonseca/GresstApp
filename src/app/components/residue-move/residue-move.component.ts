@@ -42,9 +42,9 @@ export class ResidueMoveComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    this.unidadCantidad = Utils.unidadCantidad;
-    this.unidadPeso = Utils.unidadPeso;
-    this.unidadVolumen = Utils.unidadPeso;
+    this.unidadCantidad = Utils.quantityUnit;
+    this.unidadPeso = Utils.weightUnit;
+    this.unidadVolumen = Utils.volumeUnit;
 
     this.material = await this.materialsService.get(this.residue.IdMaterial);
   }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Servicio } from '@app/interfaces/servicio.interface';
-import { SERVICIOS } from '@app/constants/constants';
+import { SERVICES } from '@app/constants/constants';
 
 @Injectable({
   providedIn: 'root',
@@ -31,10 +31,10 @@ export class ServicesService {
   async create(idServicio: string) {
     const servicios: Servicio[] = await this.storage.get('Servicios');
 
-    const selectedServicio = SERVICIOS.find(x => x.IdServicio == idServicio);
+    const selectedServicio = SERVICES.find(x => x.serviceId == idServicio);
     if (selectedServicio != null)
     {
-      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Nombre, CRUDDate: new Date() };
+      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Name, CRUDDate: new Date() };
       servicios.push(servicio);
       await this.storage.set('Servicios', servicios);
     }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { StorageService } from '../core/storage.service';
 import { Tarea } from '../../interfaces/tarea.interface';
 import { Actividad } from '../../interfaces/actividad.interface';
-import { CRUDOperacion, EntradaSalida, Estado, TipoMedicion, TipoServicio } from '@app/constants/constants';
+import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
@@ -89,7 +89,7 @@ export class TasksService {
         tareas = transaction.Tareas.filter(x => x.IdActividad == idActividad);
 
       if (tareas.length > 0){
-        tareas.filter(x => x.EntradaSalida == EntradaSalida.Entrada || x.IdResiduo)?.forEach(async (tarea) => {
+        tareas.filter(x => x.EntradaSalida == INPUT_OUTPUT.INPUT || x.IdResiduo)?.forEach(async (tarea) => {
           tarea.IdServicio = actividad.IdServicio;
           const material = materials.find((x) => x.IdMaterial == tarea.IdMaterial);
           let resumen: string = '';
@@ -119,32 +119,32 @@ export class TasksService {
               }
             }
 
-            if (tarea.IdEstado == Estado.Pendiente){
+            if (tarea.IdEstado == STATUS.PENDING){
               switch(tarea.IdServicio) {
-                case TipoServicio.Almacenamiento:
+                case SERVICE_TYPES.STORAGE:
                   accion = 'Almacenar';
                   break;
-                case TipoServicio.Disposicion:
+                case SERVICE_TYPES.DISPOSAL:
                   accion = tarea.Tratamiento ?? 'Disponer';
                   break;
-                case TipoServicio.Recepcion:
+                case SERVICE_TYPES.RECEPTION:
                   accion = 'Recibir';
                   break;
-                  case TipoServicio.Generacion:
+                case SERVICE_TYPES.GENERATION:
                     accion = 'Generar';
                     break;
-                case TipoServicio.Recoleccion:
-                case TipoServicio.Transporte:
+                case SERVICE_TYPES.COLLECTION:
+                case SERVICE_TYPES.TRANSPORT:
                   if (tarea.EntradaSalida == 'E'){
                     accion = 'Recoger';
                   } else {
                     accion = 'Entregar';
                   }
                   break;
-                case TipoServicio.Entrega:
+                case SERVICE_TYPES.DELIVERY:
                   accion = 'Entregar';
                   break;
-                case TipoServicio.Tratamiento:
+                case SERVICE_TYPES.TREATMENT:
                   accion = tarea.Tratamiento ?? 'Transformar';
                   break;
               }
@@ -154,7 +154,7 @@ export class TasksService {
           }
         });
       }
-      if ((actividad.IdServicio == TipoServicio.Recoleccion || actividad.IdServicio == TipoServicio.Transporte) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
+      if ((actividad.IdServicio == SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT) && idTransaccion) { //las tareas corresponden a la configuracion si es una ruta
         const puntos = await this.pointsService.list();
         var transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
         if (transaccion && transaccion.IdDeposito)
@@ -177,8 +177,8 @@ export class TasksService {
                     FechaEjecucion : now,
                     IdRecurso: actividad.IdRecurso,
                     IdServicio: actividad.IdServicio,
-                    IdEstado: Estado.Inactivo,
-                    EntradaSalida: EntradaSalida.Salida,
+                    IdEstado: STATUS.INACTIVE,
+                    EntradaSalida: INPUT_OUTPUT.OUTPUT,
                     Material: material.Nombre,
                     Fotos: []
                   };
@@ -189,10 +189,10 @@ export class TasksService {
           }
         }
       }
-      if (actividad.IdServicio === TipoServicio.Transporte) {
+      if (actividad.IdServicio === SERVICE_TYPES.TRANSPORT) {
         var transaccion = transaction.Transacciones.find(x => x.IdActividad == idActividad && x.IdTransaccion == idTransaccion);
 
-        if (transaccion && transaccion.EntradaSalida != EntradaSalida.Entrada){
+        if (transaccion && transaccion.EntradaSalida != INPUT_OUTPUT.INPUT){
             const residuos = (await this.inventoryService.list()).filter(x => x.IdVehiculo == actividad.IdRecurso);
           residuos.forEach((residuo) => {
             const material = materials.find((x) => x.IdMaterial == residuo.IdMaterial);
@@ -206,7 +206,7 @@ export class TasksService {
                   embalaje = `- (${residuo.CantidadEmbalaje ?? ''} ${embalajeData.Nombre}`;
               }
 
-              const tarea = tareas.find(x => x.IdMaterial == residuo.IdMaterial && x.EntradaSalida == EntradaSalida.Salida);
+              const tarea = tareas.find(x => x.IdMaterial == residuo.IdMaterial && x.EntradaSalida == INPUT_OUTPUT.OUTPUT);
               if (tarea) {
                   tarea.IdResiduo = residuo.IdResiduo;
                   tarea.IdTransaccion = idTransaccion ?? undefined;
@@ -224,11 +224,11 @@ export class TasksService {
                   IdMaterial: material.IdMaterial,
                   IdResiduo: residuo.IdResiduo,
                   Accion: 'Entregar',
-                  IdEstado: Estado.Inactivo,
+                  IdEstado: STATUS.INACTIVE,
                   FechaEjecucion: now,
                   IdRecurso: actividad.IdRecurso,
                   IdServicio: actividad.IdServicio,
-                  EntradaSalida: EntradaSalida.Salida,
+                  EntradaSalida: INPUT_OUTPUT.OUTPUT,
                   Cantidad: residuo.Cantidad,
                   Peso: residuo.Peso,
                   Volumen: residuo.Volumen,
@@ -249,7 +249,7 @@ export class TasksService {
     const transaction: Transaction = await this.storage.get('Transaction');
 
     if (transaction){
-      tarea.CRUD = CRUDOperacion.Create;
+      tarea.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Tareas.push(tarea);
       await this.storage.set('Transaction', transaction);
     }
@@ -268,7 +268,7 @@ export class TasksService {
         tareaUpdate = transaction.Tareas.find((t) => t.IdActividad == idActividad && t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
       if (tareaUpdate)
       {
-        tareaUpdate.CRUD = CRUDOperacion.Update;
+        tareaUpdate.CRUD = CRUD_OPERATIONS.UPDATE;
         tareaUpdate.Cantidad = tarea.Cantidad;
         tareaUpdate.IdEmbalaje = tarea.IdEmbalaje;
         tareaUpdate.IdTratamiento = tarea.IdTratamiento;

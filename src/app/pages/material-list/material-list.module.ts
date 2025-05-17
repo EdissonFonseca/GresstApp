@@ -1,12 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import { IonicModule } from '@ionic/angular';
-
-import { PuntosPageRoutingModule } from './puntos-routing.module';
-
-import { PuntosPage } from './puntos.page';
+import { MaterialListPageRoutingModule } from './material-list-routing.module';
+import { MaterialListPage } from './material-list.page';
 import { ComponentsModule } from 'src/app/components/components.module';
 
 @NgModule({
@@ -15,8 +12,8 @@ import { ComponentsModule } from 'src/app/components/components.module';
     FormsModule,
     IonicModule,
     ComponentsModule,
-    PuntosPageRoutingModule
+    MaterialListPageRoutingModule
   ],
-  declarations: [PuntosPage]
+  declarations: [MaterialListPage]
 })
-export class PuntosPageModule {}
+export class MaterialListPageModule {}

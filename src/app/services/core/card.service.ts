@@ -5,8 +5,7 @@ import { Tarea } from '@app/interfaces/tarea.interface';
 import { Transaccion } from '@app/interfaces/transaccion.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { GlobalsService } from '@app/services/core/globals.service';
-import { Estado } from '@app/constants/constants';
+import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 
 @Injectable({
@@ -19,8 +18,7 @@ export class CardService {
 
   constructor(
     private activitiesService: ActivitiesService,
-    private transactionsService: TransactionsService,
-    private globals: GlobalsService,
+    private transactionsService: TransactionsService
   ) {}
 
   setActivities(activities: Card[]): Signal<Card[]> {
@@ -223,27 +221,27 @@ export class CardService {
   updateVisibleProperties(card: Card) {
     let summary: string = '';
     if ((card.quantity ?? 0) > 0) {
-      summary = `${card.quantity} ${this.globals.unidadCantidad}`;
+      summary = `${card.quantity} ${Utils.quantityUnit}`;
     }
     if ((card.weight ?? 0) > 0) {
       if (summary !== '')
-        summary += `/${card.weight} ${this.globals.unidadPeso}`;
+        summary += `/${card.weight} ${Utils.weightUnit}`;
       else
-        summary = `${card.weight} ${this.globals.unidadPeso}`;
+        summary = `${card.weight} ${Utils.weightUnit}`;
     }
     if ((card.volume ?? 0) > 0) {
       if (summary !== '')
-        summary += `/${card.volume} ${this.globals.unidadVolumen}`;
+        summary += `/${card.volume} ${Utils.volumeUnit}`;
       else
-        summary = `${card.volume} ${this.globals.unidadVolumen}`;
+        summary = `${card.volume} ${Utils.volumeUnit}`;
     }
     card.summary = summary;
     card.color = Utils.getStateColor(card.status);
-    card.showReject = card.type !== 'task' && card.status === Estado.Pendiente && card.successItems === 0;
-    card.showApprove = card.type !== 'task' && card.status === Estado.Pendiente && (card.successItems ?? 0) > 0;
+    card.showReject = card.type !== 'task' && card.status === STATUS.PENDING && card.successItems === 0;
+    card.showApprove = card.type !== 'task' && card.status === STATUS.PENDING && (card.successItems ?? 0) > 0;
     card.showItems = card.type !== 'task';
-    card.showSummary = card.status !== Estado.Rechazado;
-    if (card.status !== Estado.Pendiente)
+    card.showSummary = card.status !== STATUS.REJECTED;
+    if (card.status !== STATUS.PENDING)
       card.actionName = "Ver";
   }
 }

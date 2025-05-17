@@ -3,8 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
 import { Insumo } from '@app/interfaces/insumo.interface';
-import { CRUDOperacion, Permisos } from '@app/constants/constants';
-import { GlobalsService } from '@app/services/core/globals.service';
+import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { SuppliesService } from '@app/services/masterdata/supplies.service';
 import { Utils } from '@app/utils/utils';
 
@@ -25,7 +24,6 @@ export class SuppliesComponent  implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private globals: GlobalsService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private suppliesService: SuppliesService,
@@ -38,7 +36,7 @@ export class SuppliesComponent  implements OnInit {
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
     this.supplies = await this.suppliesService.list();
-    this.enableNew = (await Utils.getPermission(Permisos.AppInsumo))?.includes(CRUDOperacion.Create);
+    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){
@@ -66,7 +64,7 @@ export class SuppliesComponent  implements OnInit {
 
   async create() {
     const formData = this.formData.value;
-    const insumo: Insumo = { IdInsumo: Utils.newId(), Nombre: formData.Nombre, IdEstado: 'A'};
+    const insumo: Insumo = { IdInsumo: Utils.generateId(), Nombre: formData.Nombre, IdEstado: 'A'};
     const created = await this.suppliesService.create(insumo);
     if (created)
     {
@@ -77,7 +75,7 @@ export class SuppliesComponent  implements OnInit {
       }
       else{
         this.supplies = await this.suppliesService.list();
-        await Utils.presentToast(`Insumo ${formData.Nombre} creado`, 'middle');
+        await Utils.showToast(`Insumo ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

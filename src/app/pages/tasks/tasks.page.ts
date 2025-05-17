@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, signal, Signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
-import { Estado } from '@app/constants/constants';
+import { STATUS } from '@app/constants/constants';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
@@ -26,7 +26,7 @@ import { ComponentsModule } from '@app/components/components.module';
   imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule]
 })
 export class TasksPage implements OnInit {
-  activity = signal<Card>({id:'', title: '', status: Estado.Pendiente, type:'activity'});
+  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
   transactions = signal<Card[]>([]);
   tasks = signal<Card[]>([]);
   transactionId: string = '';
@@ -67,9 +67,9 @@ export class TasksPage implements OnInit {
       transacciones = transacciones.filter(x => x.IdTransaccion == this.transactionId);
       const transaccion = transacciones[0];
       if (transaccion)
-        this.showAdd = transaccion.IdEstado == Estado.Pendiente;
+        this.showAdd = transaccion.IdEstado == STATUS.PENDING;
     } else {
-      this.showAdd = this.activity().status == Estado.Pendiente;
+      this.showAdd = this.activity().status == STATUS.PENDING;
     }
     const mappedTransactions = await this.cardService.mapTransacciones(transacciones);
     const tareas = await this.tasksService.listSugeridas(this.activity().id);
@@ -195,7 +195,7 @@ export class TasksPage implements OnInit {
         const taskToUpdate = tasks.find(t => t.id === task.id);
         if (taskToUpdate) {
           taskToUpdate.status = data.IdEstado;
-          if (data.IdEstado == Estado.Aprobado) {
+          if (data.IdEstado == STATUS.APPROVED) {
             taskToUpdate.quantity = data.Cantidad;
             taskToUpdate.weight = data.Peso;
             taskToUpdate.volume = data.Volumen;
@@ -210,12 +210,12 @@ export class TasksPage implements OnInit {
           const transactionToUpdate = transactions.find(t => t.id === task.parentId);
           if (transactionToUpdate) {
             transactionToUpdate.pendingItems = (transactionToUpdate.pendingItems ?? 0) - 1;
-            if (data.IdEstado === Estado.Aprobado) {
+            if (data.IdEstado === STATUS.APPROVED) {
               transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
               transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
               transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
               transactionToUpdate.volume = (transactionToUpdate.volume ?? 0) + (data.Volumen ?? 0);
-            } else if (data.IdEstado === Estado.Rechazado) {
+            } else if (data.IdEstado === STATUS.REJECTED) {
               transactionToUpdate.rejectedItems = (transactionToUpdate.rejectedItems ?? 0) + 1;
             }
             this.cardService.updateVisibleProperties(transactionToUpdate);
@@ -227,12 +227,12 @@ export class TasksPage implements OnInit {
       this.activity.update(activity => {
         if (activity) {
           activity.pendingItems = (activity.pendingItems ?? 0) - 1;
-          if (data.IdEstado === Estado.Aprobado) {
+          if (data.IdEstado === STATUS.APPROVED) {
               activity.successItems = (activity.successItems ?? 0) + 1;
               activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
               activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
               activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
-          } else if (data.IdEstado === Estado.Rechazado) {
+          } else if (data.IdEstado === STATUS.REJECTED) {
               activity.rejectedItems = (activity.rejectedItems ?? 0) + 1;
           }
         }
@@ -273,12 +273,12 @@ export class TasksPage implements OnInit {
       if (data != null) {
         await Utils.showLoading('Actualizando información');
 
-        const pendientes = this.tasks().filter(x => x.parentId == id && x.status == Estado.Pendiente).length;
+        const pendientes = this.tasks().filter(x => x.parentId == id && x.status == STATUS.PENDING).length;
 
         this.transactions.update(transactions => {
           const transaccion = transactions.find(x => x.id == id);
           if (transaccion) {
-            transaccion.status = Estado.Aprobado;
+            transaccion.status = STATUS.APPROVED;
             transaccion.rejectedItems = (transaccion.rejectedItems ?? 0) + (transaccion.pendingItems ?? 0);
             transaccion.pendingItems = 0;
             this.cardService.updateVisibleProperties(transaccion);
@@ -287,9 +287,9 @@ export class TasksPage implements OnInit {
         });
 
         this.tasks.update(tasks => {
-          const filteredTasks = tasks.filter(x => x.parentId == id && x.status == Estado.Pendiente);
+          const filteredTasks = tasks.filter(x => x.parentId == id && x.status == STATUS.PENDING);
           filteredTasks.forEach(task => {
-            task.status = Estado.Rechazado;
+            task.status = STATUS.REJECTED;
             this.cardService.updateVisibleProperties(task);
           });
           return tasks;
@@ -344,12 +344,12 @@ export class TasksPage implements OnInit {
     {
       await Utils.showLoading('Actualizando información');
 
-      const pendientes = this.tasks().filter(x => x.parentId == id && x.status == Estado.Pendiente).length;
+      const pendientes = this.tasks().filter(x => x.parentId == id && x.status == STATUS.PENDING).length;
 
       this.transactions.update(transactions => {
         const transaccion = transactions.find(x => x.id == id);
         if (transaccion) {
-          transaccion.status = Estado.Aprobado;
+          transaccion.status = STATUS.APPROVED;
           transaccion.rejectedItems = (transaccion.rejectedItems ?? 0) + (transaccion.pendingItems ?? 0);
           transaccion.pendingItems = 0;
           this.cardService.updateVisibleProperties(transaccion);
@@ -358,9 +358,9 @@ export class TasksPage implements OnInit {
       });
 
       this.tasks.update(tasks => {
-        const filteredTasks = tasks.filter(x => x.parentId == id && x.status == Estado.Pendiente);
+        const filteredTasks = tasks.filter(x => x.parentId == id && x.status == STATUS.PENDING);
         filteredTasks.forEach(task => {
-          task.status = Estado.Rechazado;
+          task.status = STATUS.REJECTED;
           this.cardService.updateVisibleProperties(task);
         });
         return tasks;
@@ -394,16 +394,16 @@ export class TasksPage implements OnInit {
       await Utils.hideLoading();
 
       if (success) {
-        await Utils.presentToast('Sincronización exitosa', "middle");
+        await Utils.showToast('Sincronización exitosa', "middle");
         // Recargar los datos después de una sincronización exitosa
         await this.ionViewWillEnter();
       } else {
-        await Utils.presentToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
+        await Utils.showToast('No hay conexión con el servidor. Intente de nuevo más tarde', "middle");
       }
     } catch (error) {
       await Utils.hideLoading();
       console.error('Error durante la sincronización:', error);
-      await Utils.presentToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
+      await Utils.showToast('Error durante la sincronización. Intente de nuevo más tarde', "middle");
     }
   }
 }

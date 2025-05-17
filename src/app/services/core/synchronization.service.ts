@@ -10,10 +10,9 @@ import { Servicio } from '../../interfaces/servicio.interface';
 import { Tercero } from '../../interfaces/tercero.interface';
 import { Tratamiento } from '../../interfaces/tratamiento.interface';
 import { Vehiculo } from '../../interfaces/vehiculo.interface';
-import { GlobalsService } from './globals.service';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { environment } from '../../../environments/environment';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { LoggerService } from './logger.service';
 import { InventoryApiService } from '../api/inventoryApi.service';
 import { Utils } from '@app/utils/utils';
@@ -148,7 +147,7 @@ export class SynchronizationService {
       const treatments: Tratamiento[] = await this.storage.get('Tratamientos');
 
       if (packaging) {
-        const newPackaging = packaging.filter(x => x.CRUD === CRUDOperacion.Create);
+        const newPackaging = packaging.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
         for (const item of newPackaging) {
           await this.masterdataService.createPackaging(item);
           item.CRUD = undefined;
@@ -157,7 +156,7 @@ export class SynchronizationService {
       }
 
       if (treatments) {
-        const newTreatments = treatments.filter(x => x.CRUD === CRUDOperacion.Create);
+        const newTreatments = treatments.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
         for (const item of newTreatments) {
           item.CRUD = undefined;
           item.CRUDDate = undefined;
@@ -165,7 +164,7 @@ export class SynchronizationService {
       }
 
       if (materials) {
-        const newMaterials = materials.filter(x => x.CRUD === CRUDOperacion.Create);
+        const newMaterials = materials.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
         for (const item of newMaterials) {
           await this.masterdataService.createMaterial(item);
           item.CRUD = undefined;
@@ -174,7 +173,7 @@ export class SynchronizationService {
       }
 
       if (thirdParties) {
-        const newThirdParties = thirdParties.filter(x => x.CRUD === CRUDOperacion.Create);
+        const newThirdParties = thirdParties.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
         for (const item of newThirdParties) {
           await this.masterdataService.createThirdParty(item);
           item.CRUD = undefined;
@@ -183,7 +182,7 @@ export class SynchronizationService {
       }
 
       if (points) {
-        const newPoints = points.filter(x => x.CRUD === CRUDOperacion.Create);
+        const newPoints = points.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
         for (const item of newPoints) {
           item.CRUD = undefined;
           item.CRUDDate = undefined;
@@ -209,7 +208,7 @@ export class SynchronizationService {
       if (transaction) {
         // Process activities
         for (const activity of transaction.Actividades) {
-          if (activity.CRUD === CRUDOperacion.Read) {
+          if (activity.CRUD === CRUD_OPERATIONS.READ) {
             if (activity.LongitudInicial) {
               const [latitude, longitude] = await Utils.getCurrentPosition();
               activity.LatitudInicial = latitude;
@@ -222,7 +221,7 @@ export class SynchronizationService {
             }
           }
 
-          if (activity.CRUD === CRUDOperacion.Create) {
+          if (activity.CRUD === CRUD_OPERATIONS.CREATE) {
             if (activity.LongitudInicial) {
               const [latitude, longitude] = await Utils.getCurrentPosition();
               activity.LatitudInicial = latitude;
@@ -237,7 +236,7 @@ export class SynchronizationService {
         }
 
         // Process transactions
-        for (const trans of transaction.Transacciones.filter((t: any) => t.CRUD === CRUDOperacion.Create)) {
+        for (const trans of transaction.Transacciones.filter((t: any) => t.CRUD === CRUD_OPERATIONS.CREATE)) {
           if (trans.Latitud) {
             const [latitude, longitude] = await Utils.getCurrentPosition();
             trans.Latitud = latitude;
@@ -252,13 +251,13 @@ export class SynchronizationService {
 
         // Process tasks
         for (const task of transaction.Tareas.filter((t: any) => t.CRUD != null)) {
-          if (task.CRUD === CRUDOperacion.Create) {
+          if (task.CRUD === CRUD_OPERATIONS.CREATE) {
             if (!await this.transactionsService.createTask(task)) {
               await this.storage.set('Transaction', transaction);
               await this.countPendingTransactions();
               return false;
             }
-          } else if (task.CRUD === CRUDOperacion.Update) {
+          } else if (task.CRUD === CRUD_OPERATIONS.UPDATE) {
             if (!await this.transactionsService.updateTask(task)) {
               await this.storage.set('Transaction', transaction);
               await this.countPendingTransactions();

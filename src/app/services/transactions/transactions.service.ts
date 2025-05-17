@@ -3,7 +3,7 @@ import { StorageService } from '../core/storage.service';
 import { Transaccion } from '../../interfaces/transaccion.interface';
 import { TasksService } from './tasks.service';
 import { Tarea } from '../../interfaces/tarea.interface';
-import { CRUDOperacion, EntradaSalida, Estado } from '@app/constants/constants';
+  import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Transaction } from '../../interfaces/transaction.interface';
@@ -25,14 +25,14 @@ export class TransactionsService {
 
     const resultado = tareas.reduce(
       (acumulador, tarea) => {
-        if (tarea.IdEstado === Estado.Aprobado) {
+        if (tarea.IdEstado === STATUS.APPROVED) {
           acumulador.aprobados += 1;
           acumulador.cantidad += tarea.Cantidad ?? 0;
           acumulador.peso += tarea.Peso ?? 0;
           acumulador.volumen += tarea.Volumen ?? 0;
-        } else if (tarea.IdEstado === Estado.Pendiente) {
+        } else if (tarea.IdEstado === STATUS.PENDING) {
           acumulador.pendientes += 1;
-        } else if (tarea.IdEstado === Estado.Rechazado) {
+        } else if (tarea.IdEstado === STATUS.REJECTED) {
           acumulador.rechazados += 1;
         }
         return acumulador;
@@ -78,12 +78,12 @@ export class TransactionsService {
               ubicacion = `${punto.Direccion}`;
             }
             transaccion.Ubicacion = ubicacion;
-            if (transaccion.EntradaSalida == EntradaSalida.Transferencia)
-              operacion = EntradaSalida.Transferencia;
-            else if (transaccion.EntradaSalida == EntradaSalida.Entrada)
-              operacion = EntradaSalida.Entrada;
-            else if (transaccion.EntradaSalida == EntradaSalida.Salida)
-              operacion = EntradaSalida.Salida;
+            if (transaccion.EntradaSalida == INPUT_OUTPUT.TRANSFERENCE)
+              operacion = INPUT_OUTPUT.TRANSFERENCE;
+            else if (transaccion.EntradaSalida == INPUT_OUTPUT.INPUT)
+              operacion = INPUT_OUTPUT.INPUT;
+            else if (transaccion.EntradaSalida == INPUT_OUTPUT.OUTPUT)
+              operacion = INPUT_OUTPUT.OUTPUT;
         }
       } else if (transaccion && transaccion.IdTercero != null) {
         const tercero = terceros.find(x => x.IdPersona == transaccion.IdTercero);
@@ -92,7 +92,7 @@ export class TransactionsService {
           transaccion.Icono = 'person';
         }
       }
-      transaccion.Accion = Utils.getAccionEntradaSalida(operacion ?? '');
+      transaccion.Accion = Utils.getInputOutputAction(operacion ?? '');
       transaccion.Titulo = `${transaccion.Solicitudes}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
     });
@@ -139,7 +139,7 @@ export class TransactionsService {
 
     if (transaction) {
       transaccion.FechaInicial = now;
-      transaccion.CRUD = CRUDOperacion.Create;
+      transaccion.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Transacciones.push(transaccion);
       await this.storage.set('Transaction', transaction);
     }
@@ -153,7 +153,7 @@ export class TransactionsService {
     {
       const current = transaction.Transacciones.find((trx) => trx.IdActividad == transaccion.IdActividad && trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
-        current.CRUD = CRUDOperacion.Update;
+        current.CRUD = CRUD_OPERATIONS.UPDATE;
         current.IdEstado = transaccion.IdEstado;
         if (current.FechaInicial == null) current.FechaInicial = now;
         current.FechaFinal = now;
@@ -166,11 +166,11 @@ export class TransactionsService {
         current.CostoCombustible = transaccion.CostoCombustible;
         current.Kilometraje = transaccion.Kilometraje;
 
-        const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == Estado.Pendiente && x.CRUD == null);
+        const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == STATUS.PENDING && x.CRUD == null);
         tareas.forEach(x => {
-          x.IdEstado = Estado.Rechazado,
+          x.IdEstado = STATUS.REJECTED,
           x.FechaEjecucion = now,
-          x.CRUD = CRUDOperacion.Update
+          x.CRUD = CRUD_OPERATIONS.UPDATE
         });
 
         await this.storage.set("Transaction", transaction);

@@ -3,9 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController, NavParams } from '@ionic/angular';
 import { MaterialsComponent } from '../materials/materials.component';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
-import { TipoServicio } from '@app/constants/constants';
+import { SERVICE_TYPES } from '@app/constants/constants';
 import { InventoryService } from '@app/services/transactions/inventory.service';
-import { Utils } from '@app/utils/utils';
 
 @Component({
   selector: 'app-residue-transform',
@@ -61,7 +60,7 @@ export class ResidueTransformComponent  implements OnInit {
 
   changeService(serviceId: string) {
     this.serviceId = serviceId;
-    if (serviceId === TipoServicio.Tratamiento){
+    if (serviceId === SERVICE_TYPES.TREATMENT){
       this.tituloDivisor ='Convertir en';
       this.tituloBoton ='Convertir';
     }

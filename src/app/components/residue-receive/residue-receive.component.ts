@@ -3,13 +3,12 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
-import { GlobalsService } from '@app/services/core/globals.service';
 import { MaterialsComponent } from '../materials/materials.component';
 import { PackagesComponent } from '../packages/packages.component';
 import { StakeholdersComponent } from '../stakeholders/stakeholders.component';
 import { PointsComponent } from '../points/points.component';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
-import { EntradaSalida, Estado, TipoServicio } from '@app/constants/constants';
+import { INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
@@ -18,7 +17,7 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { InventoryService } from '@app/services/transactions/inventory.service';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 
 @Component({
@@ -53,7 +52,6 @@ export class ResidueReceiveComponent implements OnInit {
 
   constructor (
     private formBuilder: FormBuilder,
-    private globales: GlobalsService,
     private modalCtrl: ModalController,
     private sanitizer: DomSanitizer,
     private activitiesService: ActivitiesService,
@@ -72,10 +70,10 @@ export class ResidueReceiveComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.showTransport = await Utils.allowServicio(TipoServicio.Transporte);
-    this.showCollect = await Utils.allowServicio(TipoServicio.Recoleccion);
-    this.showProduce = await Utils.allowServicio(TipoServicio.Generacion);
-    this.showReceive = await Utils.allowServicio(TipoServicio.Recepcion);
+    this.showTransport = await Utils.allowService(SERVICE_TYPES.TRANSPORT);
+    this.showCollect = await Utils.allowService(SERVICE_TYPES.RELOCATION);
+    this.showProduce = await Utils.allowService(SERVICE_TYPES.GENERATION);
+    this.showReceive = await Utils.allowService(SERVICE_TYPES.RECEPTION);
   }
 
   async confirm() {
@@ -87,7 +85,7 @@ export class ResidueReceiveComponent implements OnInit {
     let idRecurso: string = '';
     let titulo: string = '';
     let idTransaccion: string = '';
-    let entradaSalida: string = EntradaSalida.Transferencia;
+    let entradaSalida: string = INPUT_OUTPUT.TRANSFERENCE;
     let estaEnJornada: boolean = true;
     const data = this.formData.value;
     const now = new Date();
@@ -99,13 +97,13 @@ export class ResidueReceiveComponent implements OnInit {
       this.fecha = new Date();
     }
 
-    if (this.serviceId == TipoServicio.Generacion)
+    if (this.serviceId == SERVICE_TYPES.GENERATION)
       this.idPropietario = await Utils.getPersonId() ?? '';
-    if (this.serviceId == TipoServicio.Recepcion || this.serviceId == TipoServicio.Generacion)
+    if (this.serviceId == SERVICE_TYPES.RECEPTION || this.serviceId == SERVICE_TYPES.GENERATION)
       this.idPuntoRecoleccion = this.idPuntoRecepcion;
 
     const residuo: Residuo = {
-      IdResiduo: Utils.newId(),
+      IdResiduo: Utils.generateId(),
       IdMaterial: this.idMaterial,
       IdPropietario: this.idPropietario,
       IdDeposito: this.idPuntoRecepcion,
@@ -116,7 +114,7 @@ export class ResidueReceiveComponent implements OnInit {
       Peso: data.Peso,
       IdEmbalaje: this.idEmbalaje,
       CantidadEmbalaje: data.CantidadEmbalaje,
-      IdEstado: Estado.Activo,
+      IdEstado: STATUS.ACTIVE,
       Material: this.material,
       Ubicacion: '',
       Volumen: data.Volumen,
@@ -124,14 +122,14 @@ export class ResidueReceiveComponent implements OnInit {
 
     await this.inventoryService.createResiduo(residuo);
 
-    if (this.serviceId == TipoServicio.Generacion) {
+    if (this.serviceId == SERVICE_TYPES.GENERATION) {
       actividad = {
-        IdActividad: Utils.newId(),
+        IdActividad: Utils.generateId(),
         IdServicio: this.serviceId,
         IdRecurso: this.idPuntoRecoleccion,
         Titulo: this.puntoRecoleccion,
-        CRUD: CRUDOperacion.Create,
-        IdEstado: Estado.Pendiente,
+        CRUD: CRUD_OPERATIONS.CREATE,
+        IdEstado: STATUS.PENDING,
         NavegarPorTransaccion: false,
         FechaInicial: isoDate,
         FechaOrden: isoToday
@@ -140,20 +138,20 @@ export class ResidueReceiveComponent implements OnInit {
     }
 
     if (actividad) {
-      estaEnJornada = Utils.verificarFechaJornada(today ?? null, today, this.fecha);
+      estaEnJornada = Utils.verifyWorkDay(today ?? null, today, this.fecha);
       if (estaEnJornada) {
         const tarea: Tarea = {
-          IdTarea: Utils.newId(),
+          IdTarea: Utils.generateId(),
           IdActividad: actividad.IdActividad,
           IdMaterial: this.idMaterial,
           IdResiduo: residuo.IdResiduo,
           IdDeposito: this.idPuntoRecepcion,
           IdTercero: this.idPropietario,
-          IdEstado: Estado.Aprobado,
+          IdEstado: STATUS.APPROVED,
           IdRecurso: actividad.IdRecurso,
           FechaEjecucion: isoDate,
-          CRUD: CRUDOperacion.Create,
-          EntradaSalida: EntradaSalida.Entrada,
+          CRUD: CRUD_OPERATIONS.CREATE,
+          EntradaSalida: INPUT_OUTPUT.INPUT,
           Cantidad: data.Cantidad,
           Peso: data.Peso,
           Volumen: data.Volumen,
@@ -163,7 +161,7 @@ export class ResidueReceiveComponent implements OnInit {
         await this.tasksService.create(tarea);
       } else {
         const transaccion: Transaccion = {
-          IdTransaccion: Utils.newId(),
+          IdTransaccion: Utils.generateId(),
           IdActividad: actividad.IdActividad,
           //IdMaterial: this.idMaterial,
           //IdResiduo: residuo.IdResiduo,
@@ -173,11 +171,11 @@ export class ResidueReceiveComponent implements OnInit {
           //IdActividad: actividad.IdActividad,
           //IdDeposito: this.idPuntoRecepcion,
           //IdTercero: this.idPropietario,
-          IdEstado: Estado.Pendiente,
+          IdEstado: STATUS.PENDING,
           IdRecurso: actividad.IdRecurso,
           //FechaEjecucion: isoDate,
-          CRUD: CRUDOperacion.Create,
-          EntradaSalida: EntradaSalida.Entrada,
+          CRUD: CRUD_OPERATIONS.CREATE,
+          EntradaSalida: INPUT_OUTPUT.INPUT,
           //Cantidad: data.Cantidad,
           //Peso: data.Peso,
           //Volumen: data.Volumen,
@@ -189,14 +187,14 @@ export class ResidueReceiveComponent implements OnInit {
       }
     }
 
-    if (this.serviceId == TipoServicio.Transporte) {
+    if (this.serviceId == SERVICE_TYPES.TRANSPORT) {
       actividad = {
-        IdActividad: Utils.newId(),
-        IdServicio: TipoServicio.Transporte,
+        IdActividad: Utils.generateId(),
+        IdServicio: SERVICE_TYPES.TRANSPORT,
         IdRecurso: this.idVehiculo ?? '',
         Titulo: this.vehiculo,
-        CRUD: CRUDOperacion.Create,
-        IdEstado: Estado.Pendiente,
+        CRUD: CRUD_OPERATIONS.CREATE,
+        IdEstado: STATUS.PENDING,
         NavegarPorTransaccion: false,
         FechaInicial: isoDate,
         FechaOrden: isoToday
@@ -204,17 +202,17 @@ export class ResidueReceiveComponent implements OnInit {
       await this.activitiesService.create(actividad);
 
       const transaccion: Transaccion = {
-        IdTransaccion: Utils.newId(),
+        IdTransaccion: Utils.generateId(),
         IdActividad: actividad.IdActividad,
         //IdMaterial: this.idMaterial,
         //IdResiduo: residuo.IdResiduo,
         //IdDeposito: this.idPuntoRecepcion,
         //IdTercero: this.idPropietario,
-        IdEstado: Estado.Pendiente,
+          IdEstado: STATUS.PENDING,
         IdRecurso: actividad.IdRecurso,
         //FechaEjecucion: isoDate,
-        CRUD: CRUDOperacion.Create,
-        EntradaSalida: EntradaSalida.Entrada,
+        CRUD: CRUD_OPERATIONS.CREATE,
+        EntradaSalida: INPUT_OUTPUT.INPUT,
         //Cantidad: data.Cantidad,
         //Peso: data.Peso,
         //Volumen: data.Volumen,

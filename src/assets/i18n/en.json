@@ -1,0 +1,44 @@
+{
+  "COMMON": {
+    "BACK": "Back",
+    "CANCEL": "Cancel",
+    "SAVE": "Save",
+    "DELETE": "Delete",
+    "EDIT": "Edit",
+    "SEARCH": "Search",
+    "LOADING": "Loading...",
+    "LANGUAGE": "Language"
+  },
+  "AUTH": {
+    "LOGIN": "Login",
+    "LOGOUT": "Logout",
+    "USERNAME": "Username",
+    "PASSWORD": "Password",
+    "FORGOT_PASSWORD": "Forgot Password?",
+    "RECOVER_PASSWORD": "Recover Password",
+    "ERRORS": {
+      "TITLE": "Authentication Error",
+      "INVALID_CREDENTIALS": "Invalid credentials",
+      "NO_CONNECTION": "No server connection",
+      "SERVER_ERROR": "Server error"
+    }
+  },
+  "TREATMENTS": {
+    "TITLE": "Treatments",
+    "SELECT_TREATMENT": "Select treatments",
+    "CREATE": "Create",
+    "NAME": "Name",
+    "DESCRIPTION": "Description",
+    "SERVICE": "Service"
+  },
+  "SERVICES": {
+    "TITLE": "Services",
+    "SELECT_SERVICES": "Select the services you provide"
+  },
+  "POINTS": {
+    "TITLE": "Route",
+    "NEW": "New Point",
+    "EDIT": "Edit Point",
+    "DELETE": "Delete Point"
+  }
+}

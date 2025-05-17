@@ -11,7 +11,7 @@ import { ResidueTransformComponent } from 'src/app/components/residue-transform/
 import { ResiduePublishComponent } from 'src/app/components/residue-publish/residue-publish.component';
 import { ResidueReceiveComponent } from 'src/app/components/residue-receive/residue-receive.component';
 import { ResidueTransferComponent } from 'src/app/components/residue-transfer/residue-transfer.component';
-import { CRUDOperacion, Estado, Permisos } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STATUS, PERMISSIONS } from '@app/constants/constants';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
@@ -39,11 +39,11 @@ export class InventoryPage implements OnInit {
     }
 
   async ngOnInit() {
-    var cuenta = await Utils.getCuenta();
+    var cuenta = await Utils.getAccount();
 
     if (!cuenta) return;
 
-    this.permiteAgregar = (await Utils.getPermission(Permisos.AppInventario))?.includes(CRUDOperacion.Create);
+    this.permiteAgregar = (await Utils.getPermission(PERMISSIONS.APP_INVENTORY))?.includes(CRUD_OPERATIONS.CREATE);
     this.menuCtrl.enable(true);
   }
 
@@ -89,7 +89,7 @@ export class InventoryPage implements OnInit {
       // }
     }
 
-    await Utils.presentToast('Residuo eliminado','middle');
+    await Utils.showToast('Residuo eliminado','middle');
   }
 
   async moveResiduo(idResiduo: string){
@@ -109,7 +109,7 @@ export class InventoryPage implements OnInit {
       }
     }
 
-    await Utils.presentToast('Residuo trasladado','middle');
+    await Utils.showToast('Residuo trasladado','middle');
   }
 
   async receiveResiduo(){
@@ -128,7 +128,7 @@ export class InventoryPage implements OnInit {
       //}
     }
 
-    await Utils.presentToast('Residuo recibido','middle');
+    await Utils.showToast('Residuo recibido','middle');
   }
 
   async shareResiduo(idResiduo: string){
@@ -197,7 +197,7 @@ export class InventoryPage implements OnInit {
     if (!material) return;
 
     let actionButtons: ActionSheetButton[] = [];
-    if (residuo?.IdEstado == Estado.Activo ){
+    if (residuo?.IdEstado == STATUS.ACTIVE ){
       if (material.Aprovechable) {
         actionButtons = [
           {
@@ -319,7 +319,7 @@ export class InventoryPage implements OnInit {
             break;
         }
       }
-    } else if (residuo.IdEstado == Estado.Pendiente) {
+    } else if (residuo.IdEstado == STATUS.PENDING) {
     await this.transferResiduo(idResiduo);
     }
   }

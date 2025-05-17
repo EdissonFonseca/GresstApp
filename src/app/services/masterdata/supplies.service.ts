@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Insumo } from '@app/interfaces/insumo.interface';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 
@@ -23,11 +23,11 @@ export class SuppliesService  {
     try{
       const posted = await this.masterdataService.createSupply(insumo);
       if (!posted) {
-        insumo.CRUD = CRUDOperacion.Create;
+        insumo.CRUD = CRUD_OPERATIONS.CREATE;
         insumo.CRUDDate = new Date();
       }
     } catch {
-      insumo.CRUD = CRUDOperacion.Create;
+      insumo.CRUD = CRUD_OPERATIONS.CREATE;
       insumo.CRUDDate = new Date();
     }
     finally

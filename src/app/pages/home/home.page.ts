@@ -111,7 +111,7 @@ export class HomePage implements OnInit {
    */
   private async handleError(error: any) {
     console.error('Error en HomePage:', error);
-    await Utils.presentToast(
+    await Utils.showToast(
       'Error al cargar los datos. Por favor, intente de nuevo.',
       'middle'
     );
@@ -130,7 +130,7 @@ export class HomePage implements OnInit {
         console.log('✅ [Home] Datos actualizados');
       } else {
         console.log('ℹ️ [Home] Modo sin conexión activado');
-        await Utils.presentToast(
+        await Utils.showToast(
           'Está trabajando sin conexión',
           'middle'
         );
@@ -159,7 +159,7 @@ export class HomePage implements OnInit {
       await this.router.navigate(['/login']);
     } catch (error) {
       console.error('❌ [Home] Error en logout:', error);
-        await Utils.presentToast(
+        await Utils.showToast(
         'Error al cerrar sesión',
         'middle'
       );

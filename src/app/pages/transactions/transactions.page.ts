@@ -4,7 +4,7 @@ import { ActionSheetController, ModalController, NavController } from '@ionic/an
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { Estado, TipoServicio } from '@app/constants/constants';
+import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Card } from '@app/interfaces/card';
@@ -26,7 +26,7 @@ import { ComponentsModule } from '@app/components/components.module';
   imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule]
 })
 export class TransactionsPage implements OnInit {
-  activity = signal<Card>({id:'', title: '', status: Estado.Pendiente, type:'activity'});
+  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
   transactions = signal<Card[]>([]);
   showAdd: boolean = true;
   showNavigation: boolean = true;
@@ -53,9 +53,9 @@ export class TransactionsPage implements OnInit {
       }
       const actividad = await this.activitiesService.get(this.activity().id);
       if (actividad) {
-        this.showAdd = actividad.IdEstado == Estado.Pendiente;
-        this.showNavigation = actividad.IdServicio == TipoServicio.Transporte;
-        this.showSupport = actividad.IdServicio == TipoServicio.Transporte;
+        this.showAdd = actividad.IdEstado == STATUS.PENDING;
+        this.showNavigation = actividad.IdServicio == SERVICE_TYPES.TRANSPORT;
+        this.showSupport = actividad.IdServicio == SERVICE_TYPES.TRANSPORT;
       }
     }
   }
@@ -111,7 +111,7 @@ export class TransactionsPage implements OnInit {
   }
 
   async showSupports() {
-    var cuenta = await Utils.getCuenta();
+    var cuenta = await Utils.getAccount();
     var actividad = await this.activitiesService.get(this.activity().id);
     const baseUrl = `${environment.filesUrl}/Cuentas/${cuenta.IdPersonaCuenta}/Soportes/Ordenes/${actividad?.IdOrden}/`;
     const documentsArray = actividad?.Soporte?.split(';');
@@ -207,16 +207,16 @@ export class TransactionsPage implements OnInit {
     if (data != null) {
       this.activity.update(activity => {
         if (activity) {
-          activity.status = Estado.Aprobado;
+          activity.status = STATUS.APPROVED;
           this.cardService.updateVisibleProperties(activity);
         }
         return activity;
       });
 
       this.transactions.update(transactions => {
-        const filteredTransactions = transactions.filter(x => x.parentId == this.activity().id && x.status == Estado.Pendiente);
+          const filteredTransactions = transactions.filter(x => x.parentId == this.activity().id && x.status == STATUS.PENDING);
         filteredTransactions.forEach(transaction => {
-          transaction.status = Estado.Rechazado;
+          transaction.status = STATUS.REJECTED;
           this.cardService.updateVisibleProperties(transaction);
         });
         return transactions;
@@ -235,9 +235,9 @@ export class TransactionsPage implements OnInit {
 
   async synchronize() {
     if (await this.sessionService.refresh()){
-      await Utils.presentToast('Sincronización exitosa', "middle");
+      await Utils.showToast('Sincronización exitosa', "middle");
     } else {
-      await Utils.presentToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
+      await Utils.showToast('Sincronización fallida. Intente de nuevo mas tarde', "middle");
     }
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUDOperacion } from '@app/constants/constants';
+import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Material } from '@app/interfaces/material.interface';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 
@@ -34,11 +34,11 @@ export class MaterialsService {
     try{
       const posted = await this.masterdataService.createMaterial(material);
       if (!posted) {
-        material.CRUD = CRUDOperacion.Create;
+        material.CRUD = CRUD_OPERATIONS.CREATE;
         material.CRUDDate = new Date();
       }
     } catch {
-      material.CRUD = CRUDOperacion.Create;
+      material.CRUD = CRUD_OPERATIONS.CREATE;
       material.CRUDDate = new Date();
     }
     finally
