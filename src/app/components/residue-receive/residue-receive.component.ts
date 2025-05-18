@@ -19,6 +19,7 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-residue-receive',
@@ -57,7 +58,8 @@ export class ResidueReceiveComponent implements OnInit {
     private activitiesService: ActivitiesService,
     private transactionsService: TransactionsService,
     private tasksService: TasksService,
-    private inventoryService: InventoryService
+    private inventoryService: InventoryService,
+    private authorizationService: AuthorizationService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -70,10 +72,10 @@ export class ResidueReceiveComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.showTransport = await Utils.allowService(SERVICE_TYPES.TRANSPORT);
-    this.showCollect = await Utils.allowService(SERVICE_TYPES.RELOCATION);
-    this.showProduce = await Utils.allowService(SERVICE_TYPES.GENERATION);
-    this.showReceive = await Utils.allowService(SERVICE_TYPES.RECEPTION);
+    this.showTransport = await this.authorizationService .allowService(SERVICE_TYPES.TRANSPORT);
+    this.showCollect = await this.authorizationService.allowService(SERVICE_TYPES.RELOCATION);
+    this.showProduce = await this.authorizationService.allowService(SERVICE_TYPES.GENERATION);
+    this.showReceive = await this.authorizationService.allowService(SERVICE_TYPES.RECEPTION);
   }
 
   async confirm() {
@@ -98,7 +100,7 @@ export class ResidueReceiveComponent implements OnInit {
     }
 
     if (this.serviceId == SERVICE_TYPES.GENERATION)
-      this.idPropietario = await Utils.getPersonId() ?? '';
+      this.idPropietario = await this.authorizationService.getPersonId() ?? '';
     if (this.serviceId == SERVICE_TYPES.RECEPTION || this.serviceId == SERVICE_TYPES.GENERATION)
       this.idPuntoRecoleccion = this.idPuntoRecepcion;
 
@@ -273,7 +275,7 @@ export class ResidueReceiveComponent implements OnInit {
    }
 
    async selectPuntoRecepcion() {
-    const idPersona = await Utils.getPersonId();
+    const idPersona = await this.authorizationService.getPersonId();
 
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,

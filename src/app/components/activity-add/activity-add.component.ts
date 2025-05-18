@@ -7,6 +7,7 @@ import { PointsComponent } from '../points/points.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-activity-add',
@@ -35,6 +36,7 @@ export class ActivityAddComponent  implements OnInit {
     private navParams: NavParams,
     private activitiesService: ActivitiesService,
     private formBuilder: FormBuilder,
+    private authorizationService: AuthorizationService
   ) {
     this.frmActivity = this.formBuilder.group({
       IdRecurso: ['', [Validators.required]]
@@ -100,7 +102,7 @@ export class ActivityAddComponent  implements OnInit {
   }
 
   async selectVehicle() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: VehiclesComponent,
       componentProps: {
@@ -121,7 +123,7 @@ export class ActivityAddComponent  implements OnInit {
    }
 
    async selectTarget() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -144,7 +146,7 @@ export class ActivityAddComponent  implements OnInit {
    }
 
    async selectSource() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {

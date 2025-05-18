@@ -6,6 +6,7 @@ import { Insumo } from '@app/interfaces/insumo.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { SuppliesService } from '@app/services/masterdata/supplies.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-supplies',
@@ -27,6 +28,7 @@ export class SuppliesComponent  implements OnInit {
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private suppliesService: SuppliesService,
+    private authorizationService: AuthorizationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -36,7 +38,7 @@ export class SuppliesComponent  implements OnInit {
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
     this.supplies = await this.suppliesService.list();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){

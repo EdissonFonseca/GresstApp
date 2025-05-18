@@ -5,6 +5,7 @@ import { ModalController, NavController } from '@ionic/angular';
 import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-stakeholders',
@@ -25,7 +26,8 @@ export class StakeholdersComponent  implements OnInit {
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private thirdpartiesService: ThirdpartiesService,
-    private navCtrl: NavController
+    private navCtrl: NavController,
+    private authorizationService: AuthorizationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -37,7 +39,7 @@ export class StakeholdersComponent  implements OnInit {
 
   async ngOnInit() {
     this.terceros = await this.thirdpartiesService.list();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_THIRD_PARTY))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_THIRD_PARTY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){

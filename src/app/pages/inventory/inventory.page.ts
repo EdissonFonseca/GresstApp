@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
-import { ActionSheetButton, ActionSheetController, ActionSheetOptions, MenuController, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetButton, ActionSheetController, MenuController, ModalController, NavController } from '@ionic/angular';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { ResidueMoveComponent } from 'src/app/components/residue-move/residue-move.component';
 import { ResidueDismissComponent } from 'src/app/components/residue-dismiss/residue-dismiss.component';
@@ -16,6 +16,7 @@ import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-inventory',
@@ -35,15 +36,16 @@ export class InventoryPage implements OnInit {
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
     private actionSheetCtrl: ActionSheetController,
+    private authorizationService: AuthorizationService
     ) {
     }
 
   async ngOnInit() {
-    var cuenta = await Utils.getAccount();
+    var cuenta = await this.authorizationService.getAccount();
 
     if (!cuenta) return;
 
-    this.permiteAgregar = (await Utils.getPermission(PERMISSIONS.APP_INVENTORY))?.includes(CRUD_OPERATIONS.CREATE);
+    this.permiteAgregar = (await this.authorizationService.getPermission(PERMISSIONS.APP_INVENTORY))?.includes(CRUD_OPERATIONS.CREATE);
     this.menuCtrl.enable(true);
   }
 

@@ -3,7 +3,7 @@ import { Storage } from '@ionic/storage-angular';
 import { Network } from '@capacitor/network';
 import { AuthenticationApiService } from '../api/authenticationApi.service';
 import { SynchronizationService } from './synchronization.service';
-import { AUTH_KEYS, STORAGE } from '../../constants/constants';
+import { STORAGE } from '../../constants/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { HttpService } from '../api/http.service';
 import { LoggerService } from './logger.service';
@@ -41,7 +41,7 @@ export class SessionService {
    */
   async isActive(): Promise<boolean> {
     try {
-      const username = await this.storage.get(AUTH_KEYS.USERNAME);
+      const username = await this.storage.get(STORAGE.USERNAME);
       return username !== null;
     } catch (error) {
       this.logger.error('Error checking session status', error);
@@ -56,12 +56,7 @@ export class SessionService {
   async isOnline(): Promise<boolean> {
     try {
       const status = await Network.getStatus();
-      if (status.connected) {
-        return await this.authService.isApiAvailable();
-      }
-      else {
-        return false;
-      }
+      return status.connected;
     } catch (error) {
       this.logger.error('Error checking online status', error);
       return false;

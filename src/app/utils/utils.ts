@@ -1,12 +1,8 @@
 import { Geolocation } from '@capacitor/geolocation';
-import { GEOLOCATION, INPUT_OUTPUT, SERVICES, ERRORS, VALIDATION, FILES, DATETIME, CRUD_OPERATIONS, STATUSES, STORAGE } from '../constants/constants';
+import { GEOLOCATION, INPUT_OUTPUT, SERVICES, ERRORS,  FILES, STATUSES, STORAGE } from '../constants/constants';
 import { LoggerService } from '../services/core/logger.service';
 import { Injectable } from '@angular/core';
-import { StorageService } from '../services/core/storage.service';
 import { Platform, ToastController, LoadingController, AlertController } from '@ionic/angular';
-import { PERMISSIONS } from '@app/constants/constants';
-import { Interlocutor } from '../interfaces/interlocutor.interface';
-import { MasterDataApiService } from '../services/api/masterdataApi.service';
 
 /**
  * Utility functions used throughout the application
@@ -16,11 +12,9 @@ import { MasterDataApiService } from '../services/api/masterdataApi.service';
 })
 export class Utils {
   private static logger: LoggerService;
-  private static storage: StorageService;
   private static toastController: ToastController;
   private static loadingController: LoadingController;
   private static loading: HTMLIonLoadingElement;
-  private static masterdataService: MasterDataApiService;
   private static alertController: AlertController;
 
   // Global variables
@@ -38,24 +32,13 @@ export class Utils {
 
   constructor(
     private platform: Platform,
-    private storageService: StorageService,
     private toastController: ToastController,
     private loadingController: LoadingController,
     private alertController: AlertController,
-    masterdataService: MasterDataApiService
   ) {
-    Utils.initializeLogger(this.platform);
-    Utils.storage = this.storageService;
     Utils.toastController = toastController;
     Utils.loadingController = loadingController;
     Utils.alertController = alertController;
-    Utils.masterdataService = masterdataService;
-  }
-
-  private static initializeLogger(platform: Platform): void {
-    if (!Utils.logger) {
-      Utils.logger = new LoggerService(platform);
-    }
   }
 
   /**
@@ -75,68 +58,6 @@ export class Utils {
     } catch (error) {
       Utils.logger?.error('Error getting current position', error);
       throw new Error(ERRORS.GEOLOCATION);
-    }
-  }
-
-  /**
-   * Formats a date according to the specified format
-   * @param {Date} date - The date to format
-   * @param {string} format - The format to use (defaults to DATETIME_FORMAT)
-   * @returns {string} The formatted date string
-   */
-  static formatDate(date: Date, format: string = DATETIME.DATETIME_FORMAT): string {
-    try {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-
-      return format
-        .replace('YYYY', String(year))
-        .replace('MM', month)
-        .replace('DD', day)
-        .replace('HH', hours)
-        .replace('mm', minutes)
-        .replace('ss', seconds);
-    } catch (error) {
-      Utils.logger?.error('Error formatting date', { date, format, error });
-      return date.toISOString();
-    }
-  }
-
-  /**
-   * Validates a password against the configured rules
-   * @param {string} password - The password to validate
-   * @returns {boolean} True if the password is valid
-   */
-  static validatePassword(password: string): boolean {
-    try {
-      if (password.length < VALIDATION.MIN_PASSWORD_LENGTH ||
-          password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
-        return false;
-      }
-
-      return new RegExp(VALIDATION.PASSWORD_PATTERN).test(password);
-    } catch (error) {
-      Utils.logger?.error('Error validating password', error);
-      return false;
-    }
-  }
-
-  /**
-   * Validates a username against the configured rules
-   * @param {string} username - The username to validate
-   * @returns {boolean} True if the username is valid
-   */
-  static validateUsername(username: string): boolean {
-    try {
-      return username.length >= VALIDATION.MIN_USERNAME_LENGTH &&
-             username.length <= VALIDATION.MAX_USERNAME_LENGTH;
-    } catch (error) {
-      Utils.logger?.error('Error validating username', error);
-      return false;
     }
   }
 
@@ -164,19 +85,6 @@ export class Utils {
    */
   static generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  /**
-   * Gets the permission string for a given permission name
-   * @param permissionName The name of the permission to check
-   * @returns The permission string or empty string if not found
-   */
-  static async getPermission(permissionName: string): Promise<string> {
-    const account = await Utils.storage.get(STORAGE.ACCOUNT);
-    if (account?.permisos) {
-      return account.permisos[permissionName] || '';
-    }
-    return '';
   }
 
   /**
@@ -244,33 +152,6 @@ export class Utils {
   }
 
   /**
-   * Gets the current user's person ID from the account
-   * @returns The person ID or undefined if not found
-   */
-  static async getPersonId(): Promise<string | undefined> {
-    const account = await Utils.storage.get(STORAGE.ACCOUNT);
-    return account?.IdPersonaCuenta;
-  }
-
-  /**
-   * Get the account from storage
-   * @returns The account object
-   */
-  static async getAccount(): Promise<any> {
-    return await Utils.storage.get(STORAGE.ACCOUNT);
-  }
-
-  /**
-   * Check if a service is allowed
-   * @param serviceId The service ID to check
-   * @returns True if the service is allowed
-   */
-  static async allowService(serviceId: string): Promise<boolean> {
-    const account = await Utils.storage.get(STORAGE.ACCOUNT);
-    return account?.servicios?.includes(serviceId) ?? false;
-  }
-
-  /**
    * Get the name of a service
    * @param serviceId The service ID
    * @returns The service name
@@ -323,16 +204,6 @@ export class Utils {
   }
 
   /**
-   * Check if the user has permission to add activities
-   * @returns True if the user has permission to add activities
-   */
-  static async allowAddActivity(): Promise<boolean> {
-    const acopio = (await Utils.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
-    const transporte = (await Utils.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
-    return acopio || transporte;
-  }
-
-  /**
    * Check if mileage should be requested
    * @returns True if mileage should be requested
    */
@@ -346,19 +217,5 @@ export class Utils {
    */
   static set requestMileage(value: boolean) {
     Utils._requestMileage = value;
-  }
-
-  /**
-   * Gets interlocutors for a specific inventory item
-   * @param {string} idResiduo - Inventory item ID
-   * @returns {Promise<Interlocutor[]>} Array of interlocutors
-   */
-  static async getInterlocutors(idResiduo: string): Promise<Interlocutor[]> {
-    try {
-      return await Utils.masterdataService.getCounterparts(idResiduo);
-    } catch (error) {
-      Utils.logger.error('Error getting interlocutors', { idResiduo, error });
-      throw error;
-    }
   }
 }

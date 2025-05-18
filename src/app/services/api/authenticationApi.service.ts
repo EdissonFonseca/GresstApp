@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpService } from './http.service';
-import { SynchronizationService } from '../core/synchronization.service';
-import { Storage } from '@ionic/storage-angular';
+import { StorageService } from '../core/storage.service';
 import { LoggerService } from '../core/logger.service';
-import { AUTH_KEYS } from '@app/constants/constants';
+import { STORAGE } from '@app/constants/constants';
 
 /**
  * Interface representing the token response from the authentication server
@@ -30,14 +29,13 @@ export class AuthenticationApiService {
 
   constructor(
     private http: HttpService,
-    private syncService: SynchronizationService,
-    private storage: Storage,
+    private storage: StorageService,
     private logger: LoggerService
   ) {
   }
 
   async isLoggedIn(): Promise<boolean> {
-    const isLoggedIn = await this.storage.get(AUTH_KEYS.IS_LOGGED_IN);
+    const isLoggedIn = await this.storage.get(STORAGE.IS_LOGGED_IN);
     return isLoggedIn;
   }
 
@@ -74,10 +72,10 @@ export class AuthenticationApiService {
         throw new Error('Invalid login response');
       }
 
-      await this.storage.set(AUTH_KEYS.ACCESS_TOKEN, response.data.AccessToken);
-      await this.storage.set(AUTH_KEYS.REFRESH_TOKEN, response.data.RefreshToken);
-      await this.storage.set(AUTH_KEYS.USERNAME, username);
-      await this.storage.set(AUTH_KEYS.IS_LOGGED_IN, true);
+      await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
+      await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
+      await this.storage.set(STORAGE.USERNAME, username);
+      await this.storage.set(STORAGE.IS_LOGGED_IN, true);
 
       return true;
     } catch (error) {
@@ -160,8 +158,8 @@ export class AuthenticationApiService {
    */
   async refreshToken(): Promise<boolean> {
     try {
-      const refreshToken = await this.storage.get(AUTH_KEYS.REFRESH_TOKEN);
-      const username = await this.storage.get(AUTH_KEYS.USERNAME);
+      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
+      const username = await this.storage.get(STORAGE.USERNAME);
 
       if (!refreshToken || !username) {
         this.logger.error('No refresh token or username found during refresh', { refreshToken, username });
@@ -178,8 +176,8 @@ export class AuthenticationApiService {
         return false;
       }
 
-      await this.storage.set(AUTH_KEYS.ACCESS_TOKEN, response.data.AccessToken);
-      await this.storage.set(AUTH_KEYS.REFRESH_TOKEN, response.data.RefreshToken);
+      await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
+      await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
       return true;
     } catch (error) {
       this.logger.error('Error refreshing token', error);

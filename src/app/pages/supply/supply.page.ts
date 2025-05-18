@@ -3,8 +3,8 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { Insumo } from '@app/interfaces/insumo.interface';
 import { SuppliesService } from '@app/services/masterdata/supplies.service';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
-import { Utils } from '@app/utils/utils';
 import { SuppliesComponent } from '@app/components/supplies/supplies.component';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 /**
  * Supplies page component
@@ -22,7 +22,8 @@ export class SupplyPage implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private suppliesService: SuppliesService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private authorizationService: AuthorizationService
   ) {}
 
   /**
@@ -30,7 +31,7 @@ export class SupplyPage implements OnInit {
    */
   async ngOnInit() {
     this.supplies = await this.suppliesService.list();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async openAddSupply() {

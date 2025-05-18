@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { ComponentsModule } from '@app/components/components.module';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-transactions',
@@ -42,6 +43,7 @@ export class TransactionsPage implements OnInit {
     public sessionService: SessionService,
     private modalCtrl: ModalController,
     private actionSheet: ActionSheetController,
+    private authorizationService: AuthorizationService
   ) {}
 
   async ngOnInit() {
@@ -111,7 +113,7 @@ export class TransactionsPage implements OnInit {
   }
 
   async showSupports() {
-    var cuenta = await Utils.getAccount();
+    var cuenta = await this.authorizationService.getAccount();
     var actividad = await this.activitiesService.get(this.activity().id);
     const baseUrl = `${environment.filesUrl}/Cuentas/${cuenta.IdPersonaCuenta}/Soportes/Ordenes/${actividad?.IdOrden}/`;
     const documentsArray = actividad?.Soporte?.split(';');

@@ -4,7 +4,7 @@ import { LoggerService } from '../core/logger.service';
 import { environment } from '../../../environments/environment';
 import { Storage } from '@ionic/storage-angular';
 import { jwtDecode } from 'jwt-decode';
-import { AUTH_KEYS } from '@app/constants/constants';
+import { STORAGE } from '@app/constants/constants';
 
 interface RetryConfig {
   maxRetries: number;
@@ -81,14 +81,14 @@ export class HttpService {
     };
 
     if (this.needsAuth(url)) {
-      const token = await this.storage.get(AUTH_KEYS.ACCESS_TOKEN);
+      const token = await this.storage.get(STORAGE.ACCESS_TOKEN);
 
       if (token) {
         // Check if token is expired before using it
         if (this.isTokenExpired(token)) {
           this.logger.info('Token expired, refreshing before request');
           await this.refreshToken();
-          const newToken = await this.storage.get(AUTH_KEYS.ACCESS_TOKEN);
+          const newToken = await this.storage.get(STORAGE.ACCESS_TOKEN);
           if (newToken) {
             headers['Authorization'] = `Bearer ${newToken}`;
           }
@@ -112,8 +112,8 @@ export class HttpService {
 
     this.isRefreshing = true;
     try {
-      const refreshToken = await this.storage.get(AUTH_KEYS.REFRESH_TOKEN);
-      const username = await this.storage.get(AUTH_KEYS.USERNAME);
+      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
+      const username = await this.storage.get(STORAGE.USERNAME);
 
       if (!refreshToken || !username) {
         throw new Error('No refresh token or username found');
@@ -132,8 +132,8 @@ export class HttpService {
       });
 
       if (response.status === 200 && response.data) {
-        await this.storage.set(AUTH_KEYS.ACCESS_TOKEN, response.data.AccessToken);
-        await this.storage.set(AUTH_KEYS.REFRESH_TOKEN, response.data.RefreshToken);
+          await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
+        await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
       } else {
         throw new Error('Failed to refresh token');
       }
@@ -187,7 +187,6 @@ export class HttpService {
     data?: any
   ): Promise<{ status: number; data: T }> {
     const fullUrl = `${this.apiUrl}${url}`;
-    console.log('fullUrl', fullUrl);
     let retryCount = 0;
 
     while (true) {

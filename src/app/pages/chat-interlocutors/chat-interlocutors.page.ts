@@ -3,6 +3,7 @@ import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { NavController } from '@ionic/angular';
 import { Interlocutor } from 'src/app/interfaces/interlocutor.interface';
 import { Utils } from '@app/utils/utils';
+import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 
 @Component({
   selector: 'app-chat-interlocutors',
@@ -16,6 +17,7 @@ export class ChatInterlocutorsPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
+    private masterdataService: MasterDataApiService
   ) {
   }
 
@@ -24,7 +26,7 @@ export class ChatInterlocutorsPage implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.idResiduo = params["IdResiduo"]
     });
-    this.interlocutores = await Utils.getInterlocutors(this.idResiduo);
+    this.interlocutores = await this.masterdataService.getCounterparts(this.idResiduo);
     await Utils.hideLoading();
   }
 

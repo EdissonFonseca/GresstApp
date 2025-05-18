@@ -62,7 +62,7 @@ export class InventoryApiService {
    */
   async getBank(): Promise<any> {
     try {
-      const response = await this.http.get('/inventory/banco');
+      const response = await this.http.get('/appinventory/banco');
       return response.data;
     } catch (error) {
       this.logger.error('Error getting bank information', error);
@@ -76,7 +76,7 @@ export class InventoryApiService {
    */
   async get(): Promise<Residuo[]> {
     try {
-      const response = await this.http.get<Residuo[]>('/inventory/get');
+      const response = await this.http.get<Residuo[]>('/appinventory/get');
       return response.data;
     } catch (error) {
       this.logger.error('Error getting inventory items', error);
@@ -92,7 +92,7 @@ export class InventoryApiService {
    */
   async getMessages(idResiduo: string, idInterlocutor: string): Promise<Mensaje[]> {
     try {
-      const response = await this.http.get<Mensaje[]>(`/inventory/mensajes/${idResiduo}/${idInterlocutor}`);
+      const response = await this.http.get<Mensaje[]>(`/appinventory/mensajes/${idResiduo}/${idInterlocutor}`);
       return response.data;
     } catch (error) {
       this.logger.error('Error getting messages', { idResiduo, idInterlocutor, error });
@@ -107,7 +107,7 @@ export class InventoryApiService {
    */
   async getCounterparts(idResiduo: string): Promise<Interlocutor[]> {
     try {
-      const response = await this.http.get<Interlocutor[]>(`/inventory/interlocutores/${idResiduo}`);
+      const response = await this.http.get<Interlocutor[]>(`/appinventory/interlocutores/${idResiduo}`);
       return response.data;
     } catch (error) {
       this.logger.error('Error getting counterparts', { idResiduo, error });
@@ -122,7 +122,7 @@ export class InventoryApiService {
    */
   async post(inventario: Inventario): Promise<boolean> {
     try {
-      const response = await this.http.post<{ IdInventario: string }>('/inventory/post', inventario);
+      const response = await this.http.post<{ IdInventario: string }>('/appinventory/post', inventario);
       if (response.status === 201 && response.data) {
         inventario.IdInventario = response.data.IdInventario;
         return true;
@@ -141,7 +141,7 @@ export class InventoryApiService {
    */
   async patch(inventario: Inventario): Promise<boolean> {
     try {
-      const response = await this.http.post('/inventory/patch', inventario);
+      const response = await this.http.post('/appinventory/patch', inventario);
       return response.status === 200;
     } catch (error) {
       this.logger.error('Error updating inventory item', { inventario, error });

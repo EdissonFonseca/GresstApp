@@ -3,6 +3,7 @@ import { IonicModule, ModalController, MenuController, ActionSheetController } f
 import { InventoryPage } from './inventory.page';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 import { Utils } from '@app/utils/utils';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
@@ -18,6 +19,8 @@ describe('InventoryPage', () => {
   let modalControllerSpy: jasmine.SpyObj<ModalController>;
   let menuControllerSpy: jasmine.SpyObj<MenuController>;
   let actionSheetControllerSpy: jasmine.SpyObj<ActionSheetController>;
+  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
+  let utilsSpy: jasmine.SpyObj<typeof Utils>;
 
   const mockResiduo: Residuo = {
     IdResiduo: '1',
@@ -38,12 +41,19 @@ describe('InventoryPage', () => {
     Aprovechable: true
   };
 
+  const mockAccount = {
+    Id: '1',
+    Name: 'Test Account'
+  };
+
   beforeEach(async () => {
     const invSpy = jasmine.createSpyObj('InventoryService', ['list', 'getResiduo']);
     const matSpy = jasmine.createSpyObj('MaterialsService', ['get']);
     const modalSpy = jasmine.createSpyObj('ModalController', ['create']);
     const menuSpy = jasmine.createSpyObj('MenuController', ['enable']);
     const actionSheetSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
+    const authSpy = jasmine.createSpyObj('AuthorizationService', ['getAccount', 'getPermission']);
+    const utilsSpyObj = jasmine.createSpyObj('Utils', ['showToast']);
 
     await TestBed.configureTestingModule({
       declarations: [InventoryPage],
@@ -56,7 +66,9 @@ describe('InventoryPage', () => {
         { provide: MaterialsService, useValue: matSpy },
         { provide: ModalController, useValue: modalSpy },
         { provide: MenuController, useValue: menuSpy },
-        { provide: ActionSheetController, useValue: actionSheetSpy }
+        { provide: ActionSheetController, useValue: actionSheetSpy },
+        { provide: AuthorizationService, useValue: authSpy },
+        { provide: Utils, useValue: utilsSpyObj }
       ]
     }).compileComponents();
 
@@ -65,6 +77,8 @@ describe('InventoryPage', () => {
     modalControllerSpy = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
     menuControllerSpy = TestBed.inject(MenuController) as jasmine.SpyObj<MenuController>;
     actionSheetControllerSpy = TestBed.inject(ActionSheetController) as jasmine.SpyObj<ActionSheetController>;
+    authorizationServiceSpy = TestBed.inject(AuthorizationService) as jasmine.SpyObj<AuthorizationService>;
+    utilsSpy = TestBed.inject(Utils) as unknown as jasmine.SpyObj<typeof Utils>;
   });
 
   beforeEach(() => {
@@ -83,6 +97,19 @@ describe('InventoryPage', () => {
     expect(component.permiteAgregar).toBe(true);
   });
 
+  it('should load account and permissions on init', fakeAsync(() => {
+    authorizationServiceSpy.getAccount.and.returnValue(Promise.resolve(mockAccount));
+    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
+
+    component.ngOnInit();
+    tick();
+
+    expect(authorizationServiceSpy.getAccount).toHaveBeenCalled();
+    expect(authorizationServiceSpy.getPermission).toHaveBeenCalledWith(PERMISSIONS.APP_INVENTORY);
+    expect(component.permiteAgregar).toBe(true);
+    expect(menuControllerSpy.enable).toHaveBeenCalledWith(true);
+  }));
+
   it('should load inventory items on ionViewWillEnter', fakeAsync(() => {
     const mockResiduos = [mockResiduo];
     inventoryServiceSpy.list.and.returnValue(Promise.resolve(mockResiduos));
@@ -92,19 +119,6 @@ describe('InventoryPage', () => {
 
     expect(inventoryServiceSpy.list).toHaveBeenCalled();
     expect(component.residuos).toEqual(mockResiduos);
-  }));
-
-  it('should check permissions on init', fakeAsync(() => {
-    spyOn(Utils, 'getAccount').and.returnValue(Promise.resolve({}));
-    spyOn(Utils, 'getPermission').and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
-
-    component.ngOnInit();
-    tick();
-
-    expect(Utils.getAccount).toHaveBeenCalled();
-    expect(Utils.getPermission).toHaveBeenCalledWith(PERMISSIONS.APP_INVENTORY);
-    expect(component.permiteAgregar).toBe(true);
-    expect(menuControllerSpy.enable).toHaveBeenCalledWith(true);
   }));
 
   it('should handle input search', fakeAsync(() => {
@@ -139,4 +153,62 @@ describe('InventoryPage', () => {
     const imagePath = component.getImagen('1');
     expect(imagePath).toBe('../../../assets/img/bagblue.png');
   });
+
+  it('should handle delete residuo', fakeAsync(() => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { success: true } }));
+    modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+    component.deleteResiduo('1');
+    tick();
+
+    expect(modalControllerSpy.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+    expect(utilsSpy.showToast).toHaveBeenCalledWith('Residuo eliminado', 'middle');
+  }));
+
+  it('should handle move residuo', fakeAsync(() => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { Target: 'New Location' } }));
+    modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+    component.residuos = [mockResiduo];
+    component.moveResiduo('1');
+    tick();
+
+    expect(modalControllerSpy.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+    expect(component.residuos[0].Ubicacion).toBe('New Location');
+    expect(utilsSpy.showToast).toHaveBeenCalledWith('Residuo trasladado', 'middle');
+  }));
+
+  it('should handle receive residuo', fakeAsync(() => {
+    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+    modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: mockResiduo }));
+    modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+    component.receiveResiduo();
+    tick();
+
+    expect(modalControllerSpy.create).toHaveBeenCalled();
+    expect(modalSpy.present).toHaveBeenCalled();
+    expect(component.residuos).toContain(mockResiduo);
+    expect(utilsSpy.showToast).toHaveBeenCalledWith('Residuo recibido', 'middle');
+  }));
+
+  it('should handle search input', fakeAsync(() => {
+    const mockResiduos = [
+      { ...mockResiduo, Material: 'Test Material' },
+      { ...mockResiduo, Material: 'Other Material' }
+    ];
+    inventoryServiceSpy.list.and.returnValue(Promise.resolve(mockResiduos));
+
+    const event = { target: { value: 'test' } };
+    component.handleInput(event);
+    tick();
+
+    expect(inventoryServiceSpy.list).toHaveBeenCalled();
+    expect(component.residuos.length).toBe(1);
+    expect(component.residuos[0].Material).toBe('Test Material');
+  }));
 });

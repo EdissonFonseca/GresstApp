@@ -1,15 +1,4 @@
 /**
- * Authentication-related storage keys
- * Used for managing user authentication state and tokens
- */
-export const AUTH_KEYS = {
-  ACCESS_TOKEN: 'AccessToken',
-  REFRESH_TOKEN: 'RefreshToken',
-  USERNAME: 'Username',
-  IS_LOGGED_IN: 'isLoggedIn'
-};
-
-/**
  * CRUD (Create, Read, Update, Delete) operation types
  * Used to identify the type of operation being performed on data
  */
@@ -209,13 +198,14 @@ export const STATUSES: { IdEstado: string, Nombre: string, Color: string }[] = [
  * Storage keys for local data persistence
  * Defines the keys used for storing data in local storage
  */
-export const STORAGE= {
+export const STORAGE = {
   ACCESS_TOKEN: 'AccessToken',
   ACCOUNT: 'Account',
   ACTIVITIES: 'Activities',
   EMAIL: 'Email',
   FULLNAME: 'Fullname',
   INVENTORY: 'Inventory',
+  IS_LOGGED_IN: 'IsLoggedIn',
   MASTER_DATA: 'MasterData',
   MATERIALS: 'Materials',
   PACKAGES: 'Packages',
@@ -228,6 +218,7 @@ export const STORAGE= {
   THIRD_PARTIES: 'ThirdParties',
   TREATMENTS: 'Treatments',
   USERNAME: 'Username',
+  USER_LANGUAGE: 'UserLanguage',
   VEHICLES: 'Vehicles',
   VERIFICATION_CODE: 'Code',
 }

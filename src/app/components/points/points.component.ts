@@ -6,6 +6,7 @@ import { THIRD_PARTY_TYPES, CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-points',
@@ -30,11 +31,12 @@ export class PointsComponent  implements OnInit, OnChanges {
     private pointsService: PointsService,
     private thirdpartiesService: ThirdpartiesService,
     private modalCtrl: ModalController,
+    private authorizationService: AuthorizationService
   ) { }
 
   async ngOnInit() {
     await this.filterPoints();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_POINT))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_POINT))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -84,7 +86,7 @@ export class PointsComponent  implements OnInit, OnChanges {
   }
 
   async select(idPunto: string, idTercero: string, tercero: string, nombre: string) {
-    const idPersona = await Utils.getPersonId();
+    const idPersona = await this.authorizationService.getPersonId();
 
     this.selectedValue = idPunto;
     if (idPersona == idTercero)

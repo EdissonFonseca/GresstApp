@@ -7,6 +7,7 @@ import { PERMISSIONS, STORAGE } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '@app/services/core/session.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-menu',
@@ -35,7 +36,8 @@ export class MenuComponent  implements OnInit {
     private router: Router,
     private menuCtrl: MenuController,
     private alertController: AlertController,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private authorizationService: AuthorizationService
   ) { }
 
   async ngOnInit() {
@@ -44,16 +46,16 @@ export class MenuComponent  implements OnInit {
     this.idTercero = cuenta.IdPersona;
     this.account = cuenta.Nombre;
     this.user = cuenta.NombreUsuario;
-    this.showCertificado = await Utils.getPermission(PERMISSIONS.APP_CERTIFICATE) != '';
-    this.showCuenta = await Utils.getPermission(PERMISSIONS.APP_ACCOUNT) != '';
-    this.showEmbalajes = await Utils.getPermission(PERMISSIONS.APP_PACKAGE) != '';
-    this.showInsumos = await Utils.getPermission(PERMISSIONS.APP_SUPPLY) != '';
-    this.showMateriales = await Utils.getPermission(PERMISSIONS.APP_MATERIAL) != '';
-    this.showServicios = await Utils.getPermission(PERMISSIONS.APP_SERVICE) != '';
-    this.showPuntos = await Utils.getPermission(PERMISSIONS.APP_POINT) != '';
-    this.showTerceros = await Utils.getPermission(PERMISSIONS.APP_THIRD_PARTY) != '';
-    this.showTratamientos = await Utils.getPermission(PERMISSIONS.APP_TREATMENT) != '';
-    this.showVehiculos = await Utils.getPermission(PERMISSIONS.APP_VEHICLE) != '';
+    this.showCertificado = await this.authorizationService.getPermission(PERMISSIONS.APP_CERTIFICATE) != '';
+    this.showCuenta = await this.authorizationService.getPermission(PERMISSIONS.APP_ACCOUNT) != '';
+    this.showEmbalajes = await this.authorizationService.getPermission(PERMISSIONS.APP_PACKAGE) != '';
+    this.showInsumos = await this.authorizationService.getPermission(PERMISSIONS.APP_SUPPLY) != '';
+    this.showMateriales = await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL) != '';
+    this.showServicios = await this.authorizationService.getPermission(PERMISSIONS.APP_SERVICE) != '';
+    this.showPuntos = await this.authorizationService.getPermission(PERMISSIONS.APP_POINT) != '';
+    this.showTerceros = await this.authorizationService.getPermission(PERMISSIONS.APP_THIRD_PARTY) != '';
+    this.showTratamientos = await this.authorizationService.getPermission(PERMISSIONS.APP_TREATMENT) != '';
+    this.showVehiculos = await this.authorizationService.getPermission(PERMISSIONS.APP_VEHICLE) != '';
 
     this.debug == !environment.production;
   }

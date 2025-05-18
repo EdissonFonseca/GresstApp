@@ -6,6 +6,7 @@ import { Embalaje } from 'src/app/interfaces/embalaje.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-packages',
@@ -27,6 +28,7 @@ export class PackagesComponent  implements OnInit {
     private packagingService: PackagingService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
+    private authorizationService: AuthorizationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -38,7 +40,7 @@ export class PackagesComponent  implements OnInit {
     this.route.queryParams.subscribe(params => {
     });
     this.packages = await this.packagingService.list();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_PACKAGE))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_PACKAGE))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){

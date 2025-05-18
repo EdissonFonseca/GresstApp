@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ThirdPartiesPage } from './third-parties.page';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ComponentsModule } from '@app/components/components.module';
 import { StakeholdersComponent } from '@app/components/stakeholders/stakeholders.component';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
@@ -37,16 +39,13 @@ describe('ThirdPartiesPage', () => {
     }
   ];
 
-  beforeEach(waitForAsync(() => {
-    thirdpartiesServiceSpy = jasmine.createSpyObj('ThirdpartiesService', ['list']);
-    thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
-
-    spyOn(Utils, 'getPermission').and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
-
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       declarations: [ThirdPartiesPage],
       imports: [
         IonicModule.forRoot(),
+        RouterTestingModule,
+        ReactiveFormsModule,
         ComponentsModule
       ],
       providers: [
@@ -57,10 +56,25 @@ describe('ThirdPartiesPage', () => {
     fixture = TestBed.createComponent(ThirdPartiesPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  }));
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should initialize successfully', () => {
+    expect(component).toBeDefined();
+    expect(fixture).toBeDefined();
+  });
+
+  it('should have required imports', () => {
+    const compiled = fixture.debugElement.nativeElement;
+    expect(compiled).toBeTruthy();
+  });
+
+  it('should render without errors', () => {
+    const compiled = fixture.debugElement.nativeElement;
+    expect(compiled.innerHTML).toBeDefined();
   });
 
   it('should initialize with stakeholders component', () => {

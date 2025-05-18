@@ -10,6 +10,8 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { AppLifecycleService } from './services/core/app-lifecycle.service';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { StorageService } from './services/core/storage.service';
+import { TranslateService } from '@ngx-translate/core';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient) {
@@ -35,8 +37,30 @@ export function HttpLoaderFactory(http: HttpClient) {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideAnimationsAsync(),
-    AppLifecycleService
+    AppLifecycleService,
+    StorageService,
+    TranslateService
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(
+    private translate: TranslateService,
+    private storage: StorageService
+  ) {
+    this.initializeApp();
+  }
+
+  private async initializeApp() {
+    try {
+      // Initialize translations
+      this.translate.setDefaultLang('es');
+      await this.translate.use('es').toPromise();
+
+      // Initialize storage
+      await this.storage.init();
+    } catch (error) {
+      console.error('Error initializing app:', error);
+    }
+  }
+}

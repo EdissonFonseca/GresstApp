@@ -5,6 +5,7 @@ import { Material } from '@app/interfaces/material.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-materials',
@@ -29,6 +30,7 @@ export class MaterialsComponent  implements OnInit {
     private materialsService: MaterialsService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
+    private authorizationService: AuthorizationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -42,7 +44,7 @@ export class MaterialsComponent  implements OnInit {
 
   async ngOnInit() {
     this.materials = await this.materialsService.list();
-    this.enableNew = (await Utils.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
+    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async handleInput(event: any){

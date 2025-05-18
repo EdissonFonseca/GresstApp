@@ -3,7 +3,7 @@ import { Storage } from '@ionic/storage-angular';
 import { HttpService } from './http.service';
 import { LoggerService } from '../core/logger.service';
 import { environment } from '../../../environments/environment';
-import { AUTH_KEYS } from '@app/constants/constants';
+import { STORAGE } from '@app/constants/constants';
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
@@ -53,7 +53,7 @@ export class AuthorizationApiService {
   async get(): Promise<UserPermissions> {
     try {
       console.log('get');
-      const response = await this.http.get<UserPermissions>('/authorization/get');
+      const response = await this.http.get<UserPermissions>('/authorization/get/app');
       return response.data;
     } catch (error) {
       this.logger.error('Error getting user permissions', error);
@@ -67,7 +67,7 @@ export class AuthorizationApiService {
    */
   async isTokenValid(): Promise<boolean> {
     try {
-      const token = await this.storage.get(AUTH_KEYS.ACCESS_TOKEN);
+      const token = await this.storage.get(STORAGE.ACCESS_TOKEN);
       if (!token) {
         return false;
       }

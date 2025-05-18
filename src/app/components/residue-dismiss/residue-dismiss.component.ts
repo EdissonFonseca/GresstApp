@@ -12,6 +12,7 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-residue-dismiss',
@@ -43,6 +44,7 @@ export class ResidueDismissComponent  implements OnInit {
     private tasksService: TasksService,
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
+    private authorizationService: AuthorizationService
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
@@ -66,7 +68,7 @@ export class ResidueDismissComponent  implements OnInit {
 
     if (!this.residue) return;
 
-    const personId = await Utils.getPersonId();
+    const personId = await this.authorizationService.getPersonId();
     actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
     if (!actividad) {
       actividad = {IdActividad: Utils.generateId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
@@ -113,7 +115,7 @@ export class ResidueDismissComponent  implements OnInit {
   }
 
    async selectPlant() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -133,7 +135,7 @@ export class ResidueDismissComponent  implements OnInit {
    }
 
    async selectStore() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
@@ -155,7 +157,7 @@ export class ResidueDismissComponent  implements OnInit {
    }
 
    async selectTreatment() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: TreatmentsComponent,
       componentProps: {

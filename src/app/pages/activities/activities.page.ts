@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { ComponentsModule } from '@app/components/components.module';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-activities',
@@ -35,12 +36,13 @@ export class ActivitiesPage implements OnInit {
     private synchronizationService: SynchronizationService,
     private modalCtrl: ModalController,
     private alertCtrl: AlertController,
-    private actionSheet: ActionSheetController
+    private actionSheet: ActionSheetController,
+    private authorizationService: AuthorizationService
     ) {
   }
 
   async ngOnInit() {
-    this.showAdd = await Utils.allowAddActivity();
+    this.showAdd = await this.authorizationService.allowAddActivity();
   }
 
   async ionViewWillEnter() {
@@ -146,14 +148,14 @@ export class ActivitiesPage implements OnInit {
   async openAddActivity() {
     const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
-    const acopio = (await Utils.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
+    const acopio = (await this.authorizationService.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
     if (acopio) {
       var servicio = SERVICES.find(x => x.serviceId == SERVICE_TYPES.COLLECTION);
       if (servicio)
         actionSheetDict[SERVICE_TYPES.COLLECTION] = { icon: servicio.Icon, name: servicio.Name };
     }
 
-    const transporte = (await Utils.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
+    const transporte = (await this.authorizationService.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
     if (transporte) {
       var servicio = SERVICES.find(x => x.serviceId == SERVICE_TYPES.TRANSPORT);
       if (servicio)

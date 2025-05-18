@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { StorageService } from './storage.service';
+import { STORAGE } from 'src/app/constants/constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TranslationService {
-  private readonly LANGUAGE_KEY = 'user_language';
   private readonly DEFAULT_LANGUAGE = 'es';
 
   constructor(
@@ -17,18 +17,26 @@ export class TranslationService {
   }
 
   private async initializeLanguage(): Promise<void> {
-    // Set default language
-    this.translate.setDefaultLang(this.DEFAULT_LANGUAGE);
+    try {
+      // Set default language
+      this.translate.setDefaultLang(this.DEFAULT_LANGUAGE);
 
-    // Try to get saved language from storage
-    const savedLanguage = await this.storage.get(this.LANGUAGE_KEY);
-    if (savedLanguage) {
-      this.setLanguage(savedLanguage);
-    } else {
-      // If no saved language, use browser language or default
-      const browserLang = this.translate.getBrowserLang();
-      const language = browserLang?.match(/en|es/) ? browserLang : this.DEFAULT_LANGUAGE;
-      this.setLanguage(language);
+      // Try to get saved language from storage
+      const savedLanguage = await this.storage.get(STORAGE.USER_LANGUAGE);
+      if (savedLanguage) {
+        await this.setLanguage(savedLanguage);
+      } else {
+        // If no saved language, use browser language or default
+        const browserLang = this.translate.getBrowserLang();
+        const language = browserLang?.match(/en|es/) ? browserLang : this.DEFAULT_LANGUAGE;
+        await this.setLanguage(language);
+      }
+
+      console.log('Translation service initialized with language:', this.translate.currentLang);
+    } catch (error) {
+      console.error('Error initializing translation service:', error);
+      // Fallback to default language
+      await this.setLanguage(this.DEFAULT_LANGUAGE);
     }
   }
 
@@ -37,8 +45,14 @@ export class TranslationService {
    * @param lang Language code (es|en)
    */
   async setLanguage(lang: string): Promise<void> {
-    await this.translate.use(lang).toPromise();
-    await this.storage.set(this.LANGUAGE_KEY, lang);
+    try {
+      await this.translate.use(lang).toPromise();
+      await this.storage.set(STORAGE.USER_LANGUAGE, lang);
+      console.log('Language set to:', lang);
+    } catch (error) {
+      console.error('Error setting language:', error);
+      throw error;
+    }
   }
 
   /**

@@ -7,6 +7,7 @@ import { Material } from 'src/app/interfaces/material.interface';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 @Component({
   selector: 'app-residue-move',
@@ -33,6 +34,7 @@ export class ResidueMoveComponent  implements OnInit {
     private modalCtrl: ModalController,
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
+    private authorizationService: AuthorizationService
   ) {
     this.residueId = this.navParams.get("ResidueId");
   }
@@ -68,7 +70,7 @@ export class ResidueMoveComponent  implements OnInit {
   }
 
   async selectTarget() {
-    const idTercero = await Utils.getPersonId();
+    const idTercero = await this.authorizationService.getPersonId();
     const modal =   await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {

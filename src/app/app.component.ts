@@ -1,32 +1,62 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthenticationApiService } from './services/api/authenticationApi.service';
 import { Platform } from '@ionic/angular';
-import { TranslationService } from './services/core/translation.service';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   constructor(
-    private auth: AuthenticationApiService,
     private router: Router,
-    private platform: Platform,
-    private translationService: TranslationService) { }
+    private platform: Platform
+  ) {
+    this.initializeApp();
+  }
 
-    async initializeApp() {
+  async initializeApp() {
+    try {
       await this.platform.ready();
-      await this.checkSession();
+      await SplashScreen.hide();
+      await this.router.navigate(['/login']);
+    } catch (error) {
+      console.error('Error initializing app:', error);
     }
+  }
 
-    private async checkSession() {
-      const loggedIn = await this.auth.isLoggedIn();
-      if (!loggedIn) {
-        await this.router.navigateByUrl('/login', { replaceUrl: true });
-      } else {
-        await this.router.navigateByUrl('/home', { replaceUrl: true });
-      }
-    }
+  ngOnInit() {
+    this.setupPlatformEvents();
+    this.setupTheme();
+  }
+
+  private setupPlatformEvents() {
+    this.platform.pause.subscribe(() => {
+      // Handle app pause
+    });
+
+    this.platform.resume.subscribe(() => {
+      // Handle app resume
+    });
+
+    this.platform.backButton.subscribe(() => {
+      // Handle back button
+    });
+  }
+
+  private setupTheme() {
+    // Check for system dark mode preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    this.toggleDarkTheme(prefersDark.matches);
+
+    // Listen for changes to the prefers-color-scheme media query
+    prefersDark.addEventListener('change', (mediaQuery) => {
+      this.toggleDarkTheme(mediaQuery.matches);
+    });
+  }
+
+  private toggleDarkTheme(shouldAdd: boolean) {
+    document.body.classList.toggle('dark-theme', shouldAdd);
+  }
 }
