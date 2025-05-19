@@ -110,7 +110,7 @@ export class SessionService {
    */
   async close(): Promise<boolean> {
     try {
-      const uploadSuccess = await this.syncService.uploadTransactions();
+      const uploadSuccess = await this.syncService.uploadData();
       if (uploadSuccess) {
         await this.storage.clear();
         return true;

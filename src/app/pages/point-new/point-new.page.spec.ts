@@ -1,12 +1,15 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
 import { PointNewPage } from './point-new.page';
 import { ActivatedRoute } from '@angular/router';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { SynchronizationService } from '@app/services/core/synchronization.service';
-import { Punto } from 'src/app/interfaces/punto.interface';
+import { Punto } from '@app/interfaces/punto.interface';
 import { INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
+import { Utils } from '@app/utils/utils';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('PointNewPage', () => {
   let component: PointNewPage;
@@ -54,7 +57,7 @@ describe('PointNewPage', () => {
     navCtrlSpy = jasmine.createSpyObj('NavController', ['navigateForward']);
     pointsServiceSpy = jasmine.createSpyObj('PointsService', ['list']);
     transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['create']);
-    synchronizationServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadTransactions']);
+    synchronizationServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadData']);
     routeSpy = jasmine.createSpyObj('ActivatedRoute', [], {
       queryParams: {
         subscribe: jasmine.createSpy('subscribe').and.callFake((callback) => {
@@ -68,8 +71,12 @@ describe('PointNewPage', () => {
     transactionsServiceSpy.create.and.returnValue(Promise.resolve());
 
     await TestBed.configureTestingModule({
-      declarations: [PointNewPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        ReactiveFormsModule,
+        PointNewPage
+      ],
       providers: [
         { provide: NavController, useValue: navCtrlSpy },
         { provide: PointsService, useValue: pointsServiceSpy },
@@ -92,24 +99,22 @@ describe('PointNewPage', () => {
     expect(component.idActividad).toBe('123');
   });
 
-  it('should load points on initialization', fakeAsync(() => {
-    component.ngOnInit();
-    tick();
+  it('should load points on initialization', async () => {
+    await component.ngOnInit();
     expect(pointsServiceSpy.list).toHaveBeenCalled();
     expect(component.puntos).toEqual(mockPuntos);
-  }));
+  });
 
-  it('should filter points based on search input', fakeAsync(async () => {
+  it('should filter points based on search input', async () => {
     const searchEvent = {
       target: {
         value: 'Punto 1'
       }
     };
     await component.handleInput(searchEvent);
-    tick();
     expect(component.puntos.length).toBe(1);
     expect(component.puntos[0].Nombre).toBe('Punto 1');
-  }));
+  });
 
   it('should select a point', () => {
     const idPunto = '1';
@@ -120,21 +125,38 @@ describe('PointNewPage', () => {
     expect(component.punto).toBe(`${tercero} - ${nombre}`);
   });
 
-  it('should create transaction and navigate on confirm', fakeAsync(async () => {
+  it('should create transaction and navigate on confirm', async () => {
+    spyOn(Utils, 'generateId').and.returnValue('test-id');
     component.idActividad = '123';
     component.idPunto = '1';
     await component.confirm();
-    tick();
 
     expect(transactionsServiceSpy.create).toHaveBeenCalledWith(jasmine.objectContaining({
       IdActividad: '123',
+      IdTransaccion: 'test-id',
       EntradaSalida: INPUT_OUTPUT.INPUT,
       IdServicio: SERVICE_TYPES.COLLECTION,
       IdEstado: STATUS.PENDING
     }));
-    expect(synchronizationServiceSpy.uploadTransactions).toHaveBeenCalled();
+    expect(synchronizationServiceSpy.uploadData).toHaveBeenCalled();
     expect(navCtrlSpy.navigateForward).toHaveBeenCalledWith('/route', {
       queryParams: { IdActividad: '123' }
     });
-  }));
+  });
+
+  it('should handle error when loading points', async () => {
+    pointsServiceSpy.list.and.returnValue(Promise.reject('Error'));
+    spyOn(Utils, 'showToast');
+    await component.ngOnInit();
+    expect(Utils.showToast).toHaveBeenCalledWith('Error al cargar los puntos', 'top');
+  });
+
+  it('should handle error when creating transaction', async () => {
+    transactionsServiceSpy.create.and.returnValue(Promise.reject('Error'));
+    spyOn(Utils, 'showToast');
+    component.idActividad = '123';
+    component.idPunto = '1';
+    await component.confirm();
+    expect(Utils.showToast).toHaveBeenCalledWith('Error al crear la transacción', 'top');
+  });
 });

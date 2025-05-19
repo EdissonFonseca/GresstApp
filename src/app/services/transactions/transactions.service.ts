@@ -3,11 +3,13 @@ import { StorageService } from '../core/storage.service';
 import { Transaccion } from '../../interfaces/transaccion.interface';
 import { TasksService } from './tasks.service';
 import { Tarea } from '../../interfaces/tarea.interface';
-  import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, STORAGE } from '@app/constants/constants';
+  import { CRUD_OPERATIONS, DATA_TYPE, INPUT_OUTPUT, STATUS, STORAGE } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { Utils } from '@app/utils/utils';
+import { RequestsService } from '../core/requests.service';
+import { SynchronizationService } from '../core/synchronization.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +20,8 @@ export class TransactionsService {
     private tasksService: TasksService,
     private pointsService: PointsService,
     private thirdpartiesService: ThirdpartiesService,
+    private requestsService: RequestsService,
+    private synchronizationService: SynchronizationService
   ) {}
 
   async getSummary(idActividad: string, idTransaccion: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso: number; volumen:number }> {
@@ -139,9 +143,10 @@ export class TransactionsService {
 
     if (transaction) {
       transaccion.FechaInicial = now;
-      transaccion.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Transacciones.push(transaccion);
       await this.storage.set(STORAGE.TRANSACTION, transaction);
+      await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.CREATE, transaccion);
+      await this.synchronizationService.uploadData();
     }
   }
 
@@ -153,7 +158,6 @@ export class TransactionsService {
     {
       const current = transaction.Transacciones.find((trx) => trx.IdActividad == transaccion.IdActividad && trx.IdTransaccion == transaccion.IdTransaccion);
       if (current) {
-        current.CRUD = CRUD_OPERATIONS.UPDATE;
         current.IdEstado = transaccion.IdEstado;
         if (current.FechaInicial == null) current.FechaInicial = now;
         current.FechaFinal = now;
@@ -166,14 +170,15 @@ export class TransactionsService {
         current.CostoCombustible = transaccion.CostoCombustible;
         current.Kilometraje = transaccion.Kilometraje;
 
-        const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == STATUS.PENDING && x.CRUD == null);
+        const tareas = transaction.Tareas.filter(x => x.IdActividad == transaccion.IdActividad && x.IdTransaccion == transaccion.IdTransaccion && x.IdEstado == STATUS.PENDING);
         tareas.forEach(x => {
           x.IdEstado = STATUS.REJECTED,
-          x.FechaEjecucion = now,
-          x.CRUD = CRUD_OPERATIONS.UPDATE
+          x.FechaEjecucion = now
         });
 
         await this.storage.set(STORAGE.TRANSACTION, transaction);
+        await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.UPDATE, transaccion);
+        await this.synchronizationService.uploadData();
       }
     }
   }

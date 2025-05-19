@@ -6,7 +6,4 @@ export interface Consumo{
   Longitud: string | null;
   Cantidad: number;
   Valor?: number | null;
-
-  CRUD?: string | null;
-  CRUDDate?: string | null;
 }

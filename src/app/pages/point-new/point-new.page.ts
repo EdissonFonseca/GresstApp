@@ -68,9 +68,6 @@ export class PointNewPage implements OnInit {
       };
     await this.transactionsService.create(transaccion);
 
-    //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-    this.synchronizationService.uploadTransactions();
-
     const navigationExtras: NavigationExtras = {
       queryParams: {
         IdActividad: this.idActividad

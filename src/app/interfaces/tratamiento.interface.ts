@@ -4,6 +4,4 @@ export interface Tratamiento {
   Descripcion?: string;
   IdServicio: string;
   Nombre: string;
-  CRUD?: string | null;
-  CRUDDate?: Date | null;
 }

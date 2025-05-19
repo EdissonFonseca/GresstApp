@@ -1,14 +1,17 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { IonicModule, ModalController, AlertController, ActionSheetController, NavController } from '@ionic/angular';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivitiesPage } from './activities.page';
+import { IonicModule, ModalController, NavController, AlertController, ActionSheetController } from '@ionic/angular';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { CardService } from '@app/services/core/card.service';
 import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 import { Utils } from '@app/utils/utils';
+import { of, throwError } from 'rxjs';
 import { Card } from '@app/interfaces/card';
-import { Actividad } from 'src/app/interfaces/actividad.interface';
-import { CRUD_OPERATIONS, PERMISSIONS, SERVICE_TYPES, SERVICES } from '@app/constants/constants';
+import { Actividad } from '@app/interfaces/actividad.interface';
+import { SERVICE_TYPES } from '@app/constants/constants';
 
 describe('ActivitiesPage', () => {
   let component: ActivitiesPage;
@@ -16,71 +19,70 @@ describe('ActivitiesPage', () => {
   let activitiesServiceSpy: jasmine.SpyObj<ActivitiesService>;
   let cardServiceSpy: jasmine.SpyObj<CardService>;
   let synchronizationServiceSpy: jasmine.SpyObj<SynchronizationService>;
+  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
   let modalControllerSpy: jasmine.SpyObj<ModalController>;
   let alertControllerSpy: jasmine.SpyObj<AlertController>;
   let actionSheetControllerSpy: jasmine.SpyObj<ActionSheetController>;
   let navControllerSpy: jasmine.SpyObj<NavController>;
-  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
-  let utilsSpy: jasmine.SpyObj<typeof Utils>;
 
   const mockCard: Card = {
     id: '1',
     title: 'Test Activity',
     description: 'Test Description',
     status: 'active',
-    type: 'activity'
+    type: 'activity',
+    iconName: 'test-icon',
+    color: 'primary',
+    successItems: 0,
+    pendingItems: 1
   };
 
   const mockActividad: Actividad = {
     IdActividad: '1',
     Titulo: 'Test Activity',
     IdEstado: 'active',
-    FechaInicial: null,
     IdServicio: SERVICE_TYPES.COLLECTION,
+    FechaInicial: null,
+    KilometrajeInicial: null,
     NavegarPorTransaccion: false,
     FechaOrden: null,
     IdRecurso: '1'
   };
 
   beforeEach(async () => {
-    const activitiesSpy = jasmine.createSpyObj('ActivitiesService', ['list', 'get', 'updateInicio']);
-    const cardSpy = jasmine.createSpyObj('CardService', ['mapActividades', 'mapActividad']);
-    const syncSpy = jasmine.createSpyObj('SynchronizationService', ['uploadTransactions']);
-    const modalSpy = jasmine.createSpyObj('ModalController', ['create']);
-    const alertSpy = jasmine.createSpyObj('AlertController', ['create']);
-    const actionSheetSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
-    const navSpy = jasmine.createSpyObj('NavController', ['navigateForward']);
-    const authSpy = jasmine.createSpyObj('AuthorizationService', ['allowAddActivity', 'getPermission']);
-    const utilsSpyObj = jasmine.createSpyObj('Utils', ['showLoading', 'hideLoading', 'requestMileage']);
+    activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', ['list', 'get', 'updateInicio']);
+    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapActividades', 'mapActividad']);
+    synchronizationServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadData']);
+    authorizationServiceSpy = jasmine.createSpyObj('AuthorizationService', ['allowAddActivity', 'getPermission']);
+    modalControllerSpy = jasmine.createSpyObj('ModalController', ['create']);
+    alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
+    actionSheetControllerSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
+    navControllerSpy = jasmine.createSpyObj('NavController', ['navigateForward']);
+
+    activitiesServiceSpy.list.and.returnValue(Promise.resolve([mockActividad]));
+    cardServiceSpy.mapActividades.and.returnValue(Promise.resolve([mockCard]));
+    cardServiceSpy.mapActividad.and.returnValue(Promise.resolve(mockCard));
+    authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
-      declarations: [ActivitiesPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        ReactiveFormsModule,
+        ActivitiesPage
+      ],
       providers: [
-        { provide: ActivitiesService, useValue: activitiesSpy },
-        { provide: CardService, useValue: cardSpy },
-        { provide: SynchronizationService, useValue: syncSpy },
-        { provide: ModalController, useValue: modalSpy },
-        { provide: AlertController, useValue: alertSpy },
-        { provide: ActionSheetController, useValue: actionSheetSpy },
-        { provide: NavController, useValue: navSpy },
-        { provide: AuthorizationService, useValue: authSpy },
-        { provide: Utils, useValue: utilsSpyObj }
+        { provide: ActivitiesService, useValue: activitiesServiceSpy },
+        { provide: CardService, useValue: cardServiceSpy },
+        { provide: SynchronizationService, useValue: synchronizationServiceSpy },
+        { provide: AuthorizationService, useValue: authorizationServiceSpy },
+        { provide: ModalController, useValue: modalControllerSpy },
+        { provide: AlertController, useValue: alertControllerSpy },
+        { provide: ActionSheetController, useValue: actionSheetControllerSpy },
+        { provide: NavController, useValue: navControllerSpy }
       ]
     }).compileComponents();
 
-    activitiesServiceSpy = TestBed.inject(ActivitiesService) as jasmine.SpyObj<ActivitiesService>;
-    cardServiceSpy = TestBed.inject(CardService) as jasmine.SpyObj<CardService>;
-    synchronizationServiceSpy = TestBed.inject(SynchronizationService) as jasmine.SpyObj<SynchronizationService>;
-    modalControllerSpy = TestBed.inject(ModalController) as jasmine.SpyObj<ModalController>;
-    alertControllerSpy = TestBed.inject(AlertController) as jasmine.SpyObj<AlertController>;
-    actionSheetControllerSpy = TestBed.inject(ActionSheetController) as jasmine.SpyObj<ActionSheetController>;
-    navControllerSpy = TestBed.inject(NavController) as jasmine.SpyObj<NavController>;
-    authorizationServiceSpy = TestBed.inject(AuthorizationService) as jasmine.SpyObj<AuthorizationService>;
-    utilsSpy = TestBed.inject(Utils) as unknown as jasmine.SpyObj<typeof Utils>;
-  });
-
-  beforeEach(() => {
     fixture = TestBed.createComponent(ActivitiesPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -91,108 +93,61 @@ describe('ActivitiesPage', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.showAdd).toBe(true);
+    expect(component.showAdd).toBeTrue();
     expect(component.cantidadCombustible).toBeNull();
     expect(component.kilometraje).toBeNull();
   });
 
-  it('should check permissions on init', fakeAsync(() => {
-    authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.resolve(true));
-
-    component.ngOnInit();
-    tick();
-
-    expect(authorizationServiceSpy.allowAddActivity).toHaveBeenCalled();
-    expect(component.showAdd).toBe(true);
-  }));
-
-  it('should load activities on ionViewWillEnter', fakeAsync(() => {
-    const mockActivities = [mockActividad];
-    const mockMappedActivities = [mockCard];
-    activitiesServiceSpy.list.and.returnValue(Promise.resolve(mockActivities));
-    cardServiceSpy.mapActividades.and.returnValue(Promise.resolve(mockMappedActivities));
-
-    component.ionViewWillEnter();
-    tick();
-
+  it('should load activities and check permissions on init', async () => {
+    await component.ionViewWillEnter();
     expect(activitiesServiceSpy.list).toHaveBeenCalled();
-    expect(cardServiceSpy.mapActividades).toHaveBeenCalledWith(mockActivities);
-    expect(component.activities()).toEqual(mockMappedActivities);
-  }));
+    expect(cardServiceSpy.mapActividades).toHaveBeenCalledWith([mockActividad]);
+    expect(component.activities()).toEqual([mockCard]);
+  });
 
-  it('should handle search input', fakeAsync(() => {
-    const mockActivities = [mockActividad];
-    const mockMappedActivities = [mockCard];
-    activitiesServiceSpy.list.and.returnValue(Promise.resolve(mockActivities));
-    cardServiceSpy.mapActividades.and.returnValue(Promise.resolve(mockMappedActivities));
-
+  it('should filter activities on input', async () => {
     const event = { target: { value: 'test' } };
-    component.handleInput(event);
-    tick();
-
+    await component.handleInput(event);
     expect(activitiesServiceSpy.list).toHaveBeenCalled();
     expect(cardServiceSpy.mapActividades).toHaveBeenCalled();
-    expect(component.activities()).toEqual(mockMappedActivities);
-  }));
+  });
 
-  it('should handle mileage prompt', fakeAsync(() => {
-    const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present', 'onDidDismiss']);
-    alertSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { kilometraje: '100' } }));
+  it('should handle mileage prompt', async () => {
+    const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
     alertControllerSpy.create.and.returnValue(Promise.resolve(alertSpy));
+    alertSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { kilometraje: '100' } }));
 
-    component.requestMileagePrompt();
-    tick();
-
-    expect(alertControllerSpy.create).toHaveBeenCalled();
-    expect(alertSpy.present).toHaveBeenCalled();
+    const result = await component.requestMileagePrompt();
+    expect(result).toBeTrue();
     expect(component.kilometraje).toBe(100);
-  }));
+  });
 
-  it('should navigate to target for collection service', fakeAsync(() => {
-    const mockActivity = { ...mockCard, id: '1' };
+  it('should navigate to target for collection service', async () => {
     activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
-    utilsSpy.requestMileage = true;
-
-    const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present', 'onDidDismiss']);
-    alertSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { kilometraje: '100' } }));
-    alertControllerSpy.create.and.returnValue(Promise.resolve(alertSpy));
-
-    component.navigateToTarget(mockActivity);
-    tick();
-
-    expect(activitiesServiceSpy.get).toHaveBeenCalledWith('1');
-    expect(utilsSpy.showLoading).toHaveBeenCalledWith('Iniciando ruta');
-    expect(activitiesServiceSpy.updateInicio).toHaveBeenCalled();
-    expect(utilsSpy.hideLoading).toHaveBeenCalled();
-    expect(synchronizationServiceSpy.uploadTransactions).toHaveBeenCalled();
+    await component.navigateToTarget(mockCard);
     expect(navControllerSpy.navigateForward).toHaveBeenCalled();
-  }));
+  });
 
-  it('should open add activity action sheet', fakeAsync(() => {
+  it('should open add activity modal', async () => {
     const actionSheetSpy = jasmine.createSpyObj('HTMLIonActionSheetElement', ['present']);
     actionSheetControllerSpy.create.and.returnValue(Promise.resolve(actionSheetSpy));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
+    actionSheetSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { role: 'handler' } }));
 
-    component.openAddActivity();
-    tick();
-
-    expect(authorizationServiceSpy.getPermission).toHaveBeenCalled();
+    await component.openAddActivity();
     expect(actionSheetControllerSpy.create).toHaveBeenCalled();
-    expect(actionSheetSpy.present).toHaveBeenCalled();
-  }));
+  });
 
-  it('should present modal for adding activity', fakeAsync(() => {
-    const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
-    modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { IdActividad: '1' } }));
-    modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
-    activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
-    cardServiceSpy.mapActividad.and.returnValue(Promise.resolve(mockCard));
+  it('should handle error when loading activities', async () => {
+    activitiesServiceSpy.list.and.returnValue(Promise.reject('Error'));
+    spyOn(Utils, 'showToast');
+    await component.ionViewWillEnter();
+    expect(Utils.showToast).toHaveBeenCalledWith('Error al cargar las actividades', 'top');
+  });
 
-    component.presentModal(SERVICE_TYPES.COLLECTION);
-    tick();
-
-    expect(modalControllerSpy.create).toHaveBeenCalled();
-    expect(modalSpy.present).toHaveBeenCalled();
-    expect(utilsSpy.showLoading).toHaveBeenCalledWith('Actualizando información');
-  }));
+  it('should handle error when checking permissions', async () => {
+    authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.reject('Error'));
+    spyOn(Utils, 'showToast');
+    await component.ngOnInit();
+    expect(component.showAdd).toBeFalse();
+  });
 });

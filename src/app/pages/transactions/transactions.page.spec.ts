@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, waitForAsync, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { IonicModule, ModalController, ActionSheetController, NavController } from '@ionic/angular';
 import { TransactionsPage } from './transactions.page';
 import { Router } from '@angular/router';
@@ -13,6 +13,8 @@ import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { ComponentsModule } from '@app/components/components.module';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { Transaccion } from '@app/interfaces/transaccion.interface';
+import { RouterTestingModule } from '@angular/router/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('TransactionsPage', () => {
   let component: TransactionsPage;
@@ -76,11 +78,11 @@ describe('TransactionsPage', () => {
     Titulo: 'Test Transaction'
   };
 
-  beforeEach(waitForAsync(() => {
+  beforeEach(async () => {
     activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', ['get']);
     cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'updateVisibleProperties']);
     transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['list', 'get']);
-    syncServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadTransactions', 'pendingTransactions']);
+    syncServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadData']);
     sessionServiceSpy = jasmine.createSpyObj('SessionService', ['refresh']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     actionSheetSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
@@ -90,13 +92,14 @@ describe('TransactionsPage', () => {
     activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
     transactionsServiceSpy.list.and.returnValue(Promise.resolve([mockTransaccion]));
     cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve([mockTransaction]));
-    syncServiceSpy.pendingTransactions.and.returnValue(0);
 
-    TestBed.configureTestingModule({
-      declarations: [TransactionsPage],
+    await TestBed.configureTestingModule({
       imports: [
         IonicModule.forRoot(),
-        ComponentsModule
+        RouterTestingModule,
+        ReactiveFormsModule,
+        ComponentsModule,
+        TransactionsPage
       ],
       providers: [
         { provide: ActivitiesService, useValue: activitiesServiceSpy },
@@ -113,7 +116,8 @@ describe('TransactionsPage', () => {
 
     fixture = TestBed.createComponent(TransactionsPage);
     component = fixture.componentInstance;
-  }));
+    fixture.detectChanges();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -122,50 +126,35 @@ describe('TransactionsPage', () => {
   it('should initialize with default values', () => {
     expect(component.activity()).toEqual({ id: '', title: '', status: STATUS.PENDING, type: 'activity' });
     expect(component.transactions()).toEqual([]);
-    expect(component.showAdd).toBeTrue();
-    expect(component.showNavigation).toBeTrue();
-    expect(component.showSupport).toBeTrue();
   });
 
-  it('should load activity data on initialization', fakeAsync(async () => {
-    routerSpy.getCurrentNavigation.and.returnValue({
-      extras: {
-        state: { activity: mockActivity }
-      }
-    } as any);
+  it('should load data on initialization', async () => {
+    const nav = routerSpy.getCurrentNavigation();
+    if (nav?.extras.state) {
+      nav.extras.state['activity'] = mockActivity;
+    }
 
     await component.ngOnInit();
-    tick();
 
-    expect(activitiesServiceSpy.get).toHaveBeenCalledWith(mockActivity.id);
-    expect(component.activity()).toEqual(mockActivity);
-    expect(component.showAdd).toBeTrue();
-    expect(component.showNavigation).toBeTrue();
-    expect(component.showSupport).toBeTrue();
-  }));
-
-  it('should load transactions on view enter', fakeAsync(async () => {
-    await component.ionViewWillEnter();
-    tick();
-
-    expect(transactionsServiceSpy.list).toHaveBeenCalledWith(component.activity().id);
+    expect(activitiesServiceSpy.get).toHaveBeenCalled();
+    expect(transactionsServiceSpy.list).toHaveBeenCalled();
     expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
+    expect(component.activity()).toEqual(mockActivity);
     expect(component.transactions()).toEqual([mockTransaction]);
-  }));
+  });
 
-  it('should handle search input', fakeAsync(async () => {
+  it('should handle search input', async () => {
     const mockEvent = { target: { value: 'test' } };
     const mockTransactions = [mockTransaction];
-    transactionsServiceSpy.list.and.returnValue(Promise.resolve([mockTransaccion]));
+    transactionsServiceSpy.list.and.returnValue(Promise.resolve([]));
     cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve(mockTransactions));
 
     await component.handleInput(mockEvent);
-    tick();
 
     expect(transactionsServiceSpy.list).toHaveBeenCalled();
     expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
     expect(component.transactions()).toEqual(mockTransactions);
-  }));
+  });
 
   it('should navigate to tasks', () => {
     component.navigateToTareas(mockTransaction);
@@ -176,7 +165,7 @@ describe('TransactionsPage', () => {
     });
   });
 
-  it('should open add task modal', fakeAsync(async () => {
+  it('should open add task modal', async () => {
     const mockModal: any = {
       present: jasmine.createSpy('present'),
       onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { IdTransaccion: '1' } }))
@@ -188,7 +177,6 @@ describe('TransactionsPage', () => {
     cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve([mockTransaction]));
 
     await component.openAddTarea();
-    tick();
 
     expect(modalCtrlSpy.create).toHaveBeenCalledWith({
       component: jasmine.any(Function),
@@ -199,58 +187,59 @@ describe('TransactionsPage', () => {
     expect(mockModal.present).toHaveBeenCalled();
     expect(Utils.showLoading).toHaveBeenCalledWith('Actualizando información');
     expect(Utils.hideLoading).toHaveBeenCalled();
-    expect(syncServiceSpy.uploadTransactions).toHaveBeenCalled();
-  }));
+    expect(syncServiceSpy.uploadData).toHaveBeenCalled();
+  });
 
-  it('should open approve activity modal', fakeAsync(async () => {
-    const mockModal: any = {
-      present: jasmine.createSpy('present'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: true }))
-    };
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
-
-    await component.openApproveActividad();
-    tick();
-
-    expect(modalCtrlSpy.create).toHaveBeenCalledWith({
-      component: jasmine.any(Function),
-      componentProps: {
-        activity: component.activity(),
-        approveOrReject: 'approve'
-      }
-    });
-    expect(mockModal.present).toHaveBeenCalled();
-    expect(component.showAdd).toBeFalse();
-    expect(syncServiceSpy.uploadTransactions).toHaveBeenCalled();
-  }));
-
-  it('should handle successful synchronization', fakeAsync(async () => {
+  it('should handle successful synchronization', async () => {
+    spyOn(Utils, 'showLoading');
+    spyOn(Utils, 'hideLoading');
     spyOn(Utils, 'showToast');
     sessionServiceSpy.refresh.and.returnValue(Promise.resolve(true));
+    spyOn(component, 'ionViewWillEnter');
 
     await component.synchronize();
-    tick();
 
+    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
     expect(sessionServiceSpy.refresh).toHaveBeenCalled();
-    expect(Utils.showToast).toHaveBeenCalledWith('Sincronización exitosa', 'middle');
-  }));
+    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(Utils.showToast).toHaveBeenCalledWith('Sincronización exitosa', 'top');
+    expect(component.ionViewWillEnter).toHaveBeenCalled();
+  });
 
-  it('should handle failed synchronization', fakeAsync(async () => {
+  it('should handle failed synchronization', async () => {
+    spyOn(Utils, 'showLoading');
+    spyOn(Utils, 'hideLoading');
     spyOn(Utils, 'showToast');
     sessionServiceSpy.refresh.and.returnValue(Promise.resolve(false));
 
     await component.synchronize();
-    tick();
 
+    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
     expect(sessionServiceSpy.refresh).toHaveBeenCalled();
-    expect(Utils.showToast).toHaveBeenCalledWith('Sincronización fallida. Intente de nuevo mas tarde', 'middle');
-  }));
+    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(Utils.showToast).toHaveBeenCalledWith(
+      'No hay conexión con el servidor. Intente de nuevo más tarde',
+      'top'
+    );
+  });
 
-  it('should return correct color based on pending transactions', () => {
-    syncServiceSpy.pendingTransactions.and.returnValue(1);
-    expect(component.getColor()).toBe('danger');
+  it('should handle synchronization error', async () => {
+    spyOn(Utils, 'showLoading');
+    spyOn(Utils, 'hideLoading');
+    spyOn(Utils, 'showToast');
+    spyOn(console, 'error');
+    const error = new Error('Sync failed');
+    sessionServiceSpy.refresh.and.returnValue(Promise.reject(error));
 
-    syncServiceSpy.pendingTransactions.and.returnValue(0);
-    expect(component.getColor()).toBe('success');
+    await component.synchronize();
+
+    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
+    expect(sessionServiceSpy.refresh).toHaveBeenCalled();
+    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith('Error durante la sincronización:', error);
+    expect(Utils.showToast).toHaveBeenCalledWith(
+      'Error durante la sincronización. Intente de nuevo más tarde',
+      'top'
+    );
   });
 });

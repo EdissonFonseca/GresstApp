@@ -119,8 +119,6 @@ export class ActivitiesPage implements OnInit {
           await Utils.showLoading('Iniciando ruta');
           await this.activitiesService.updateInicio(actividad);
           await Utils.hideLoading();
-          //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-          this.synchronizationService.uploadTransactions();
         }
 
         if (actividad.NavegarPorTransaccion) {
@@ -209,9 +207,6 @@ export class ActivitiesPage implements OnInit {
         return activities;
       });
       await Utils.hideLoading();
-
-      //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
     }
   }
 

@@ -5,6 +5,4 @@ export interface Inventario {
   IdRecurso: string;
   IdServicio: string;
   Titulo: string;
-  CRUD?: string;
-  CRUDDate?: Date;
 }

@@ -22,7 +22,7 @@ import { Utils } from '@app/utils/utils';
   templateUrl: './residue-transfer.component.html',
   styleUrls: ['./residue-transfer.component.scss'],
 })
-export class ResidueTransferComponent  implements OnInit {
+export class ResidueTransferComponent implements OnInit {
   colorSend: string = 'primary';
   colorCarry: string = 'medium';
   colorFind: string = 'medium';
@@ -40,7 +40,6 @@ export class ResidueTransferComponent  implements OnInit {
   unidadCantidad: string = 'un';
   unidadPeso: string = 'kg';
   unidadVolumen: string = 'lt';
-
 
   constructor(
     private modalCtrl: ModalController,
@@ -67,7 +66,7 @@ export class ResidueTransferComponent  implements OnInit {
   }
 
   async confirm() {
-    let actividad: Actividad | undefined = undefined;
+    let actividad: Actividad | undefined;
     let transaccion: Transaccion | undefined = undefined;
     const now = new Date();
     const isoDate = now.toISOString();
@@ -78,65 +77,77 @@ export class ResidueTransferComponent  implements OnInit {
 
     if (this.serviceId == SERVICE_TYPES.DELIVERY || this.serviceId == SERVICE_TYPES.TRANSPORT) {
       const punto = await this.pointsService.get(this.residue.IdDeposito ?? '');
-      if (this.serviceId == SERVICE_TYPES.DELIVERY){
+      if (this.serviceId == SERVICE_TYPES.DELIVERY) {
         actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.DELIVERY, this.residue.IdDeposito ?? '');
         if (!actividad) {
-          if (punto){
-            actividad = {IdActividad: Utils.generateId(), IdServicio: SERVICE_TYPES.DELIVERY, IdRecurso: this.residue.IdDeposito ?? '', Titulo: punto.Nombre, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
+          if (punto) {
+            actividad = {
+              IdActividad: Utils.generateId(),
+              IdServicio: SERVICE_TYPES.DELIVERY,
+              IdRecurso: this.residue.IdDeposito ?? '',
+              Titulo: punto.Nombre,
+              IdEstado: STATUS.PENDING,
+              NavegarPorTransaccion: false,
+              FechaInicial: isoDate,
+              FechaOrden: isoToday
+            };
             await this.activitiesService.create(actividad);
           }
         }
-        if (actividad){
+        if (actividad) {
           transaccion = await this.transactionsService.getByTercero(actividad.IdActividad, this.stakeholderId);
           if (!transaccion) {
             transaccion = {
               IdActividad: actividad.IdActividad,
               IdTransaccion: Utils.generateId(),
-
               IdEstado: STATUS.PENDING,
               EntradaSalida: INPUT_OUTPUT.OUTPUT,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
               IdTercero: this.stakeholderId,
-              CRUD: CRUD_OPERATIONS.CREATE,
-              Titulo: '' // TODO
+              Titulo: `${this.residue.Material} - ${this.stakeholder}`
             };
             await this.transactionsService.create(transaccion);
           }
         }
       } else {
-        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.TRANSPORT, this.residue.IdVehiculo ?? '');
-        if (!actividad){
-          actividad = {IdActividad: Utils.generateId(), IdServicio: SERVICE_TYPES.TRANSPORT, IdRecurso: this.vehicleId ?? '', Titulo: this.vehicleId, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
-          actividad.CRUD = CRUD_OPERATIONS.CREATE;
+        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.TRANSPORT, this.vehicleId);
+        if (!actividad) {
+          actividad = {
+            IdActividad: Utils.generateId(),
+            IdServicio: SERVICE_TYPES.TRANSPORT,
+            IdRecurso: this.vehicleId,
+            Titulo: this.vehicle,
+            IdEstado: STATUS.PENDING,
+            NavegarPorTransaccion: false,
+            FechaInicial: isoDate,
+            FechaOrden: isoToday
+          };
           await this.activitiesService.create(actividad);
         }
-        if (actividad){
+        if (actividad) {
           transaccion = await this.transactionsService.getByTercero(actividad.IdActividad, this.stakeholderId);
           if (!transaccion) {
             transaccion = {
               IdActividad: actividad.IdActividad,
               IdTransaccion: Utils.generateId(),
-
               IdEstado: STATUS.PENDING,
               EntradaSalida: INPUT_OUTPUT.INPUT,
               IdTercero: this.stakeholderId,
               IdDeposito: this.pointId,
               IdRecurso: actividad.IdRecurso,
               IdServicio: actividad.IdServicio,
-              CRUD: CRUD_OPERATIONS.CREATE,
-              Titulo: '' // TODO
+              Titulo: `${this.residue.Material} - ${this.stakeholder}`
             };
             await this.transactionsService.create(transaccion);
           }
         }
       }
-      if (actividad) {
+      if (actividad && transaccion) {
         const tarea: Tarea = {
           IdActividad: actividad.IdActividad,
-          IdTransaccion: transaccion?.IdTransaccion,
+          IdTransaccion: transaccion.IdTransaccion,
           IdTarea: Utils.generateId(),
-
           IdMaterial: this.residue.IdMaterial,
           IdResiduo: this.residue.IdResiduo,
           IdRecurso: actividad.IdRecurso,
@@ -145,22 +156,19 @@ export class ResidueTransferComponent  implements OnInit {
           IdDeposito: this.pointId,
           IdTercero: this.stakeholderId,
           IdEstado: STATUS.APPROVED,
-          CRUD: CRUD_OPERATIONS.CREATE,
           EntradaSalida: INPUT_OUTPUT.OUTPUT,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
-          Fotos: [],
+          Fotos: []
         };
         await this.tasksService.create(tarea);
       }
       this.residue.IdEstado = STATUS.INACTIVE;
       this.residue.IdDeposito = this.pointId;
       await this.inventoryService.updateResiduo(this.residue);
-    } else {
-
     }
-    this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad });
+    this.modalCtrl.dismiss({ ActivityId: actividad?.IdActividad });
   }
 
   cancel() {
@@ -176,10 +184,11 @@ export class ResidueTransferComponent  implements OnInit {
   }
 
   async selectPoint() {
-    const modal =   await this.modalCtrl.create({
+    const modal = await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
-      },
+        showHeader: false
+      }
     });
 
     modal.onDidDismiss().then((data) => {
@@ -191,13 +200,14 @@ export class ResidueTransferComponent  implements OnInit {
     });
 
     return await modal.present();
-   }
+  }
 
   async selectStakeholder() {
-    const modal =   await this.modalCtrl.create({
+    const modal = await this.modalCtrl.create({
       component: StakeholdersComponent,
       componentProps: {
-      },
+        showHeader: false
+      }
     });
 
     modal.onDidDismiss().then((data) => {
@@ -208,13 +218,14 @@ export class ResidueTransferComponent  implements OnInit {
     });
 
     return await modal.present();
-   }
+  }
 
-   async selectVehicle() {
-    const modal =   await this.modalCtrl.create({
+  async selectVehicle() {
+    const modal = await this.modalCtrl.create({
       component: VehiclesComponent,
       componentProps: {
-      },
+        showHeader: false
+      }
     });
 
     modal.onDidDismiss().then((data) => {
@@ -225,5 +236,5 @@ export class ResidueTransferComponent  implements OnInit {
     });
 
     return await modal.present();
-   }
+  }
 }

@@ -33,6 +33,5 @@ export interface Actividad{
   Titulo: string;
 
   Accion?: string;
-  CRUD?: string | null;
   Icono?: string;
 }

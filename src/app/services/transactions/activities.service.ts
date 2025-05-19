@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
-import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE } from '@app/constants/constants';
+import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE, DATA_TYPE } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { Utils } from '@app/utils/utils';
+import { RequestsService } from '../core/requests.service';
+import { SynchronizationService } from '../core/synchronization.service';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +15,8 @@ export class ActivitiesService {
   constructor(
     private storage: StorageService,
     private tasksService: TasksService,
+    private requestsService: RequestsService,
+    private synchronizationService: SynchronizationService
   ) {}
 
   async getSummary(idActividad: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso:number; volumen:number; }> {
@@ -82,14 +86,15 @@ export class ActivitiesService {
     const [latitud, longitud] = await Utils.getCurrentPosition();
     const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
-    actividad.CRUD = CRUD_OPERATIONS.CREATE;
     actividad.FechaInicial = now;
     actividad.LatitudInicial = latitud;
     actividad.LatitudInicial = longitud;
 
     transaction.Actividades.push(actividad);
     await this.storage.set(STORAGE.TRANSACTION, transaction);
-  }
+    await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
+    await this.synchronizationService.uploadData();
+}
 
   async update(actividad: Actividad) {
     const now = new Date().toISOString();
@@ -98,7 +103,6 @@ export class ActivitiesService {
     const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
     {
-      current.CRUD = CRUD_OPERATIONS.UPDATE;
       current.FechaFinal = now;
       current.IdEstado = actividad.IdEstado;
       current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
@@ -109,20 +113,18 @@ export class ActivitiesService {
       current.ResponsableNombre = actividad.ResponsableNombre;
       current.ResponsableObservaciones = actividad.ResponsableObservaciones;
 
-      const tareas = transaction.Tareas.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING && x.CRUD == null);
-      tareas.forEach(x => {
-        x.IdEstado = STATUS.REJECTED,
-        x.CRUD = CRUD_OPERATIONS.UPDATE
-      });
+      const tareas = transaction.Tareas.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING);
+      tareas.forEach(x => { x.IdEstado = STATUS.REJECTED });
 
-      const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING && x.CRUD == null);
+      const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING);
       transacciones.forEach(x => {
         x.FechaInicial = now,
-        x.IdEstado = STATUS.REJECTED,
-        x.CRUD = CRUD_OPERATIONS.UPDATE
+        x.IdEstado = STATUS.REJECTED
       });
 
       await this.storage.set(STORAGE.TRANSACTION, transaction);
+      await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
+      await this.synchronizationService.uploadData();
     }
   }
 
@@ -133,13 +135,14 @@ export class ActivitiesService {
     const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
     if (current)
     {
-      current.CRUD = CRUD_OPERATIONS.READ;
       current.FechaInicial = now;
       current.IdEstado = actividad.IdEstado;
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
       await this.storage.set(STORAGE.TRANSACTION, transaction);
+      await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
+      await this.synchronizationService.uploadData();
     }
   }
 }

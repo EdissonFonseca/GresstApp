@@ -172,7 +172,7 @@ export class MasterDataApiService {
    * @param {Embalaje} packaging - Packaging to create
    * @returns {Promise<boolean>} True if creation successful
    */
-  async createPackaging(packaging: Embalaje): Promise<boolean> {
+  async createPackage(packaging: Embalaje): Promise<boolean> {
     try {
       const response = await this.http.post<{ IdEmbalaje: string }>('/masterdata/embalajes', packaging);
       if (response.status === 201 && response.data) {
@@ -187,11 +187,58 @@ export class MasterDataApiService {
   }
 
   /**
+   * Creates a new packaging type
+   * @param {Embalaje} packaging - Packaging to create
+   * @returns {Promise<boolean>} True if creation successful
+   */
+  async createPoint(point: Punto): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdPunto: string }>('/masterdata/puntos', point);
+      if (response.status === 201 && response.data) {
+        point.IdDeposito = response.data.IdPunto;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating point', { point, error });
+      throw error;
+    }
+  }
+
+  async updatePoint(point: Punto): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdPunto: string }>('/masterdata/puntos', point);
+      if (response.status === 201 && response.data) {
+        point.IdDeposito = response.data.IdPunto;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating point', { point, error });
+      throw error;
+    }
+  }
+
+  /**
    * Creates a new supply
    * @param {Insumo} supply - Supply to create
    * @returns {Promise<boolean>} True if creation successful
    */
   async createSupply(supply: Insumo): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdInsumo: string }>('/masterdata/insumos', supply);
+      if (response.status === 201 && response.data) {
+        supply.IdInsumo = response.data.IdInsumo;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating supply', { supply, error });
+      throw error;
+    }
+  }
+
+  async updateSupply(supply: Insumo): Promise<boolean> {
     try {
       const response = await this.http.post<{ IdInsumo: string }>('/masterdata/insumos', supply);
       if (response.status === 201 && response.data) {
@@ -239,6 +286,79 @@ export class MasterDataApiService {
       return false;
     } catch (error) {
       this.logger.error('Error creating third party', { thirdParty, error });
+      throw error;
+    }
+  }
+  async updateThirdParty(thirdParty: Tercero): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdPersona: string }>('/masterdata/terceros', thirdParty);
+      if (response.status === 201 && response.data) {
+        thirdParty.IdPersona = response.data.IdPersona;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating third party', { thirdParty, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new material
+   * @param {Material} material - Material to create
+   * @returns {Promise<boolean>} True if creation successful
+   */
+  async updateMaterial(material: Material): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdMaterial: string }>('/masterdata/materiales', material);
+      if (response.status === 201 && response.data) {
+        material.IdMaterial = response.data.IdMaterial;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating material', { material, error });
+      throw error;
+    }
+  }
+
+  async updatePackage(embalaje: Embalaje): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdEmbalaje: string }>('/masterdata/embalajes', embalaje);
+      if (response.status === 201 && response.data) {
+        embalaje.IdEmbalaje = response.data.IdEmbalaje;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating material', { embalaje, error });
+      throw error;
+    }
+  }
+
+  async createTreatment(treatment: Tratamiento): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdTratamiento: string }>('/masterdata/tratamientos', treatment);
+      if (response.status === 201 && response.data) {
+        treatment.IdTratamiento = response.data.IdTratamiento;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating material', { treatment, error });
+      throw error;
+    }
+  }
+  async updateTreatment(treatment: Tratamiento): Promise<boolean> {
+    try {
+      const response = await this.http.post<{ IdTratamiento: string }>('/masterdata/tratamientos', treatment);
+      if (response.status === 201 && response.data) {
+        treatment.IdTratamiento = response.data.IdTratamiento;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating material', { treatment, error });
       throw error;
     }
   }

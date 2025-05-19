@@ -14,7 +14,6 @@ describe('ThirdPartiesPage', () => {
   let component: ThirdPartiesPage;
   let fixture: ComponentFixture<ThirdPartiesPage>;
   let thirdpartiesServiceSpy: jasmine.SpyObj<ThirdpartiesService>;
-  let stakeholdersComponent: StakeholdersComponent;
 
   const mockTerceros: Tercero[] = [
     {
@@ -40,13 +39,15 @@ describe('ThirdPartiesPage', () => {
   ];
 
   beforeEach(async () => {
+    thirdpartiesServiceSpy = jasmine.createSpyObj('ThirdpartiesService', ['list']);
+
     await TestBed.configureTestingModule({
-      declarations: [ThirdPartiesPage],
       imports: [
         IonicModule.forRoot(),
         RouterTestingModule,
         ReactiveFormsModule,
-        ComponentsModule
+        ComponentsModule,
+        ThirdPartiesPage
       ],
       providers: [
         { provide: ThirdpartiesService, useValue: thirdpartiesServiceSpy }
@@ -99,5 +100,19 @@ describe('ThirdPartiesPage', () => {
     const compiled = fixture.nativeElement;
     const title = compiled.querySelector('ion-title');
     expect(title.textContent).toContain('Terceros');
+  });
+
+  it('should load third parties on initialization', async () => {
+    thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
+    await component.ngOnInit();
+    expect(thirdpartiesServiceSpy.list).toHaveBeenCalled();
+  });
+
+  it('should handle error when loading third parties', async () => {
+    const error = new Error('Failed to load third parties');
+    thirdpartiesServiceSpy.list.and.returnValue(Promise.reject(error));
+    spyOn(console, 'error');
+    await component.ngOnInit();
+    expect(console.error).toHaveBeenCalledWith('Error loading third parties:', error);
   });
 });

@@ -9,6 +9,4 @@ export interface Material{
   PrecioServicio?: number;
   TipoCaptura: string;
   TipoMedicion: string;
-  CRUD?: string | null;
-  CRUDDate?: Date | null;
 }

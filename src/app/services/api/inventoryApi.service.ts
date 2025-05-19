@@ -120,7 +120,7 @@ export class InventoryApiService {
    * @param {Inventario} inventario - Inventory item to create
    * @returns {Promise<boolean>} True if creation successful
    */
-  async post(inventario: Inventario): Promise<boolean> {
+  async create(inventario: Inventario): Promise<boolean> {
     try {
       const response = await this.http.post<{ IdInventario: string }>('/appinventory/post', inventario);
       if (response.status === 201 && response.data) {
@@ -139,7 +139,7 @@ export class InventoryApiService {
    * @param {Inventario} inventario - Inventory item to update
    * @returns {Promise<boolean>} True if update successful
    */
-  async patch(inventario: Inventario): Promise<boolean> {
+  async update(inventario: Inventario): Promise<boolean> {
     try {
       const response = await this.http.post('/appinventory/patch', inventario);
       return response.status === 200;

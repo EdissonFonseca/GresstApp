@@ -33,7 +33,6 @@ export interface Tarea{
   Volumen?: number;
 
   Accion?: string;
-  CRUD?: string | null;
   Embalaje?: string;
   Material?: string;
   Tratamiento?: string;

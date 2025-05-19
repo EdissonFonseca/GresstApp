@@ -30,6 +30,5 @@ export interface Transaccion {
   Ubicacion?: string;
 
   Accion?: string;
-  CRUD?: string | null;
   Icono?: string;
 }

@@ -9,15 +9,20 @@ export const CRUD_OPERATIONS = {
   READ: 'R'
 }
 
-/**
- * Date and time formats used throughout the application
- * Standardizes date and time display and storage formats
- */
-export const DATETIME= {
-  DATE_FORMAT: 'YYYY-MM-DD',
-  TIME_FORMAT: 'HH:mm:ss',
-  DATETIME_FORMAT: 'YYYY-MM-DD HH:mm:ss',
-  TIMESTAMP_FORMAT: 'YYYY-MM-DDTHH:mm:ss.SSSZ',
+export const DATA_TYPE = {
+  ACTIVITY: 'Activity',
+  INVENTORY: 'Inventory',
+  MATERIAL: 'Material',
+  PACKAGE: 'Package',
+  POINT: 'Point',
+  RESIDUE: 'Residue',
+  SERVICE: 'Service',
+  SUPPLY: 'Supply',
+  THIRD_PARTY: 'ThirdParty',
+  TASK: 'Task',
+  TRANSACTION: 'Transaction',
+  TREATMENT: 'Treatment',
+  VEHICLE: 'Vehicle',
 }
 
 /**
@@ -36,7 +41,7 @@ export const ERRORS= {
  * File upload configuration settings
  * Defines limits and restrictions for file uploads
  */
-export const FILES= {
+export const FILES = {
   MAX_SIZE: 5 * 1024 * 1024, // 5MB
   ALLOWED_TYPES: ['image/jpeg', 'image/png', 'application/pdf'],
   MAX_FILES: 5,
@@ -212,6 +217,7 @@ export const STORAGE = {
   PERMISSIONS: 'Permissions',
   POINTS: 'Points',
   REFRESH_TOKEN: 'RefreshToken',
+  REQUESTS: 'Requests',
   SERVICES: 'Services',
   SUPPLIES: 'Supplies',
   TRANSACTION: 'Transaction',

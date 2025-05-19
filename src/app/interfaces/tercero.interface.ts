@@ -8,6 +8,4 @@ export interface Tercero {
   Transportador?: boolean | null;
   Nombre: string;
   Telefono: string;
-  CRUD?: string | null;
-  CRUDDate?: Date | null;
 }

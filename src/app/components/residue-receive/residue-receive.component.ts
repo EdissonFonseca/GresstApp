@@ -17,7 +17,6 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { InventoryService } from '@app/services/transactions/inventory.service';
-import { CRUD_OPERATIONS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 
@@ -82,12 +81,6 @@ export class ResidueReceiveComponent implements OnInit {
     if (!this.formData.valid) return;
 
     let actividad: Actividad | undefined;
-    let transaccion: Transaccion | undefined;
-    let tarea: Tarea;
-    let idRecurso: string = '';
-    let titulo: string = '';
-    let idTransaccion: string = '';
-    let entradaSalida: string = INPUT_OUTPUT.TRANSFERENCE;
     let estaEnJornada: boolean = true;
     const data = this.formData.value;
     const now = new Date();
@@ -130,7 +123,6 @@ export class ResidueReceiveComponent implements OnInit {
         IdServicio: this.serviceId,
         IdRecurso: this.idPuntoRecoleccion,
         Titulo: this.puntoRecoleccion,
-        CRUD: CRUD_OPERATIONS.CREATE,
         IdEstado: STATUS.PENDING,
         NavegarPorTransaccion: false,
         FechaInicial: isoDate,
@@ -152,7 +144,6 @@ export class ResidueReceiveComponent implements OnInit {
           IdEstado: STATUS.APPROVED,
           IdRecurso: actividad.IdRecurso,
           FechaEjecucion: isoDate,
-          CRUD: CRUD_OPERATIONS.CREATE,
           EntradaSalida: INPUT_OUTPUT.INPUT,
           Cantidad: data.Cantidad,
           Peso: data.Peso,
@@ -165,6 +156,11 @@ export class ResidueReceiveComponent implements OnInit {
         const transaccion: Transaccion = {
           IdTransaccion: Utils.generateId(),
           IdActividad: actividad.IdActividad,
+          IdEstado: STATUS.PENDING,
+          IdRecurso: actividad.IdRecurso,
+          EntradaSalida: INPUT_OUTPUT.INPUT,
+          IdServicio: actividad.IdServicio,
+          Titulo: this.puntoRecepcion,
           //IdMaterial: this.idMaterial,
           //IdResiduo: residuo.IdResiduo,
           //IdDeposito: this.idPuntoRecepcion,
@@ -173,17 +169,11 @@ export class ResidueReceiveComponent implements OnInit {
           //IdActividad: actividad.IdActividad,
           //IdDeposito: this.idPuntoRecepcion,
           //IdTercero: this.idPropietario,
-          IdEstado: STATUS.PENDING,
-          IdRecurso: actividad.IdRecurso,
           //FechaEjecucion: isoDate,
-          CRUD: CRUD_OPERATIONS.CREATE,
-          EntradaSalida: INPUT_OUTPUT.INPUT,
           //Cantidad: data.Cantidad,
           //Peso: data.Peso,
           //Volumen: data.Volumen,
-          IdServicio: actividad.IdServicio,
           //Fotos: [],
-          Titulo: this.puntoRecepcion,
         };
         await this.transactionsService.create(transaccion);
       }
@@ -195,7 +185,6 @@ export class ResidueReceiveComponent implements OnInit {
         IdServicio: SERVICE_TYPES.TRANSPORT,
         IdRecurso: this.idVehiculo ?? '',
         Titulo: this.vehiculo,
-        CRUD: CRUD_OPERATIONS.CREATE,
         IdEstado: STATUS.PENDING,
         NavegarPorTransaccion: false,
         FechaInicial: isoDate,
@@ -206,21 +195,20 @@ export class ResidueReceiveComponent implements OnInit {
       const transaccion: Transaccion = {
         IdTransaccion: Utils.generateId(),
         IdActividad: actividad.IdActividad,
+        IdEstado: STATUS.PENDING,
+        IdRecurso: actividad.IdRecurso,
+        EntradaSalida: INPUT_OUTPUT.INPUT,
+        IdServicio: actividad.IdServicio,
+        Titulo: this.vehiculo,
         //IdMaterial: this.idMaterial,
         //IdResiduo: residuo.IdResiduo,
         //IdDeposito: this.idPuntoRecepcion,
         //IdTercero: this.idPropietario,
-          IdEstado: STATUS.PENDING,
-        IdRecurso: actividad.IdRecurso,
         //FechaEjecucion: isoDate,
-        CRUD: CRUD_OPERATIONS.CREATE,
-        EntradaSalida: INPUT_OUTPUT.INPUT,
         //Cantidad: data.Cantidad,
         //Peso: data.Peso,
         //Volumen: data.Volumen,
-        IdServicio: actividad.IdServicio,
         //Fotos: [],
-        Titulo: this.vehiculo,
       };
       await this.transactionsService.create(transaccion);
     }

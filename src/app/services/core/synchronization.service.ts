@@ -12,10 +12,15 @@ import { Tratamiento } from '../../interfaces/tratamiento.interface';
 import { Vehiculo } from '../../interfaces/vehiculo.interface';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { environment } from '../../../environments/environment';
-import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
+import { CRUD_OPERATIONS, DATA_TYPE, STORAGE } from '@app/constants/constants';
 import { LoggerService } from './logger.service';
-import { InventoryApiService } from '../api/inventoryApi.service';
+import { Inventario, InventoryApiService } from '../api/inventoryApi.service';
 import { Utils } from '@app/utils/utils';
+import { APIRequest } from '@app/interfaces/APIRequest.interface';
+import { Actividad } from '@app/interfaces/actividad.interface';
+import { Insumo } from '@app/interfaces/insumo.interface';
+import { Tarea } from '@app/interfaces/tarea.interface';
+import { Transaccion } from '@app/interfaces/transaccion.interface';
 
 /**
  * Service responsible for managing data synchronization between local storage and server.
@@ -42,20 +47,8 @@ export class SynchronizationService {
    * @returns {Promise<void>}
    */
   async countPendingTransactions(): Promise<void> {
-    this.pendingTransactions.set(0);
-    try {
-      const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-      if (transaction) {
-        this.pendingTransactions.set(
-          transaction.Actividades.filter((actividad) => actividad.CRUD != null).length +
-          transaction.Transacciones.filter((transaccion) => transaccion.CRUD != null).length +
-          transaction.Tareas.filter((tarea) => tarea.CRUD != null).length
-        );
-      }
-    } catch (error) {
-      this.logger.error('Error counting pending transactions', error);
-      this.pendingTransactions.set(0);
-    }
+    const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
+    this.pendingTransactions.set(requests.length);
   }
 
   /**
@@ -133,147 +126,128 @@ export class SynchronizationService {
     }
   }
 
-  /**
-   * Uploads new master data records to the server
-   * @returns {Promise<boolean>} True if upload was successful
-   * @throws {Error} If the upload fails
-   */
-  async uploadMasterData(): Promise<boolean> {
-    try {
-      const packaging: Embalaje[] = await this.storage.get(STORAGE.PACKAGES);
-      const materials: Material[] = await this.storage.get(STORAGE.MATERIALS);
-      const points: Punto[] = await this.storage.get(STORAGE.POINTS);
-      const thirdParties: Tercero[] = await this.storage.get(STORAGE.THIRD_PARTIES);
-      const treatments: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
-
-      if (packaging) {
-        const newPackaging = packaging.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
-        for (const item of newPackaging) {
-          await this.masterdataService.createPackaging(item);
-          item.CRUD = undefined;
-          item.CRUDDate = undefined;
-        }
-      }
-
-      if (treatments) {
-        const newTreatments = treatments.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
-        for (const item of newTreatments) {
-          item.CRUD = undefined;
-          item.CRUDDate = undefined;
-        }
-      }
-
-      if (materials) {
-        const newMaterials = materials.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
-        for (const item of newMaterials) {
-          await this.masterdataService.createMaterial(item);
-          item.CRUD = undefined;
-          item.CRUDDate = undefined;
-        }
-      }
-
-      if (thirdParties) {
-        const newThirdParties = thirdParties.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
-        for (const item of newThirdParties) {
-          await this.masterdataService.createThirdParty(item);
-          item.CRUD = undefined;
-          item.CRUDDate = undefined;
-        }
-      }
-
-      if (points) {
-        const newPoints = points.filter(x => x.CRUD === CRUD_OPERATIONS.CREATE);
-        for (const item of newPoints) {
-          item.CRUD = undefined;
-          item.CRUDDate = undefined;
-        }
-      }
-
-      return true;
-    } catch (error) {
-      this.logger.error('Error uploading master data', error);
-      throw error;
-    }
-  }
 
   /**
-   * Uploads pending transactions to the server
-   * @returns {Promise<boolean>} True if upload was successful
-   * @throws {Error} If the upload fails
+   * Uploads pending API requests in chronological order
+   * Processes each request based on its type and CRUD operation
+   * Stops processing if any request fails
+   * @returns {Promise<boolean>} True if all requests were processed successfully
    */
-  async uploadTransactions(): Promise<boolean> {
+  async uploadData(): Promise<boolean> {
     try {
-      const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
+      // Get and sort requests by CRUDDate
+      const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
+      requests.sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
 
-      if (transaction) {
-        // Process activities
-        for (const activity of transaction.Actividades) {
-          if (activity.CRUD === CRUD_OPERATIONS.READ) {
-            if (activity.LongitudInicial) {
-              const [latitude, longitude] = await Utils.getCurrentPosition();
-              activity.LatitudInicial = latitude;
-              activity.LongitudInicial = longitude;
-            }
-            if (!await this.transactionsService.createInitialActivity(activity)) {
-              await this.storage.set(STORAGE.TRANSACTION, transaction);
-              await this.countPendingTransactions();
-              return false;
-            }
+      for (const request of requests) {
+        try {
+          let success = false;
+
+          // Process request based on object type and CRUD operation
+          switch (request.Object) {
+            case DATA_TYPE.ACTIVITY:
+              const activity = request.Data as Actividad;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.transactionsService.createActivity(activity);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.transactionsService.updateActivity(activity);
+              }
+              break;
+            case DATA_TYPE.INVENTORY:
+              const inventory = request.Data as Inventario;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.inventoryService.create(inventory);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.inventoryService.update(inventory);
+              }
+              break;
+            case DATA_TYPE.MATERIAL:
+              const material = request.Data as Material;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createMaterial(material);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updateMaterial(material);
+              }
+              break;
+            case DATA_TYPE.PACKAGE:
+              const packaging = request.Data as Embalaje;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createPackage(packaging);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updatePackage(packaging);
+              }
+              break;
+            case DATA_TYPE.POINT:
+              const point = request.Data as Punto;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createPoint(point);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updatePoint(point);
+              }
+              break;
+            case DATA_TYPE.SUPPLY:
+              const supply = request.Data as Insumo;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createSupply(supply);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updateSupply(supply);
+              }
+              break;
+            case DATA_TYPE.TASK:
+              const task = request.Data as Tarea;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.transactionsService.createTask(task);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.transactionsService.updateTask(task);
+              }
+              break;
+            case DATA_TYPE.THIRD_PARTY:
+              const thirdParty = request.Data as Tercero;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createThirdParty(thirdParty);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updateThirdParty(thirdParty);
+              }
+              break;
+            case DATA_TYPE.TRANSACTION:
+              const transaction = request.Data as Transaccion;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.transactionsService.createTransaction(transaction);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.transactionsService.updateTransaction(transaction);
+              }
+              break;
+            case DATA_TYPE.TREATMENT:
+              const treatment = request.Data as Tratamiento;
+              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
+                success = await this.masterdataService.createTreatment(treatment);
+              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.masterdataService.updateTreatment(treatment);
+              }
+              break;
+            default:
+              this.logger.warn('Unknown object type in request', { request });
+              continue;
           }
 
-          if (activity.CRUD === CRUD_OPERATIONS.CREATE) {
-            if (activity.LongitudInicial) {
-              const [latitude, longitude] = await Utils.getCurrentPosition();
-              activity.LatitudInicial = latitude;
-              activity.LongitudInicial = longitude;
-            }
-            if (!await this.transactionsService.createActivity(activity)) {
-              await this.storage.set(STORAGE.TRANSACTION, transaction);
-              await this.countPendingTransactions();
-              return false;
-            }
-          }
-        }
-
-        // Process transactions
-        for (const trans of transaction.Transacciones.filter((t: any) => t.CRUD === CRUD_OPERATIONS.CREATE)) {
-          if (trans.Latitud) {
-            const [latitude, longitude] = await Utils.getCurrentPosition();
-            trans.Latitud = latitude;
-            trans.Longitud = longitude;
-          }
-          if (!await this.transactionsService.createTransaction(trans)) {
-            await this.storage.set(STORAGE.TRANSACTION, transaction);
-            await this.countPendingTransactions();
+          if (success) {
+            // Remove processed request from storage
+            const updatedRequests = requests.filter(r => r !== request);
+            await this.storage.set(STORAGE.REQUESTS, updatedRequests);
+          } else {
+            this.logger.error('Failed to process request', { request });
             return false;
           }
+        } catch (error) {
+          this.logger.error('Error processing request', { request, error });
+          return false;
         }
-
-        // Process tasks
-        for (const task of transaction.Tareas.filter((t: any) => t.CRUD != null)) {
-          if (task.CRUD === CRUD_OPERATIONS.CREATE) {
-            if (!await this.transactionsService.createTask(task)) {
-              await this.storage.set(STORAGE.TRANSACTION, transaction);
-              await this.countPendingTransactions();
-              return false;
-            }
-          } else if (task.CRUD === CRUD_OPERATIONS.UPDATE) {
-            if (!await this.transactionsService.updateTask(task)) {
-                await this.storage.set(STORAGE.TRANSACTION, transaction);
-              await this.countPendingTransactions();
-              return false;
-            }
-          }
-        }
-
-        await this.storage.set(STORAGE.TRANSACTION, transaction);
-        await this.countPendingTransactions();
       }
 
       return true;
     } catch (error) {
-      this.logger.error('Error uploading transactions', error);
-      throw error;
+      this.logger.error('Error in uploadData', error);
+      return false;
     }
   }
 }
