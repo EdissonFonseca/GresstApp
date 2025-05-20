@@ -10,7 +10,6 @@ import { CardListComponent } from "./card-list/card-list.component";
 import { HeaderComponent } from "./header/header.component";
 import { LocationComponent } from "./location/location.component";
 import { LocationSelectComponent } from "./location-select/location-select.component";
-import { MaterialsComponent } from "./materials/materials.component";
 import { MenuComponent } from "./menu/menu.component";
 import { PackagesComponent } from "./packages/packages.component";
 import { PointComponent } from "./point/point.component";
@@ -36,8 +35,71 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
 const components = [];
 
 @NgModule({
-  declarations: [ ActivityAddComponent, ActivityApproveComponent, CardComponent, CardListComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskEditComponent, TransactionApproveComponent, TreatmentsComponent, VehiclesComponent],
-  imports:      [ CommonModule, IonicModule, FormsModule, ReactiveFormsModule ],
-  exports:      [ ActivityAddComponent, ActivityApproveComponent, CardComponent, CardListComponent, HeaderComponent, LocationComponent, LocationSelectComponent, MaterialsComponent, MenuComponent, PackagesComponent, PointComponent, PointsComponent, ResidueDismissComponent, ResidueMoveComponent, ResiduePublishComponent, ResidueReceiveComponent, ResidueTransferComponent, ResidueTransformComponent, ResiduesComponent, SearchComponent, ServicesComponent, SignPadComponent, StakeholdersComponent, SuppliesComponent, TaskAddComponent, TaskEditComponent, TransactionApproveComponent, TreatmentsComponent, VehiclesComponent],
+  declarations: [
+    ActivityAddComponent,
+    ActivityApproveComponent,
+    CardComponent,
+    CardListComponent,
+    HeaderComponent,
+    LocationComponent,
+    LocationSelectComponent,
+    MenuComponent,
+    PackagesComponent,
+    PointComponent,
+    PointsComponent,
+    ResidueMoveComponent,
+    ResiduePublishComponent,
+    ResidueReceiveComponent,
+    ResidueTransferComponent,
+    ResidueTransformComponent,
+    ResiduesComponent,
+    SearchComponent,
+    ServicesComponent,
+    SignPadComponent,
+    StakeholdersComponent,
+    SuppliesComponent,
+    TaskAddComponent,
+    TaskEditComponent,
+    TransactionApproveComponent,
+    TreatmentsComponent,
+    VehiclesComponent
+  ],
+  imports: [
+    CommonModule,
+    IonicModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ResidueDismissComponent
+  ],
+  exports: [
+    ActivityAddComponent,
+    ActivityApproveComponent,
+    CardComponent,
+    CardListComponent,
+    HeaderComponent,
+    LocationComponent,
+    LocationSelectComponent,
+    MenuComponent,
+    PackagesComponent,
+    PointComponent,
+    PointsComponent,
+    ResidueDismissComponent,
+    ResidueMoveComponent,
+    ResiduePublishComponent,
+    ResidueReceiveComponent,
+    ResidueTransferComponent,
+    ResidueTransformComponent,
+    ResiduesComponent,
+    SearchComponent,
+    ServicesComponent,
+    SignPadComponent,
+    StakeholdersComponent,
+    SuppliesComponent,
+    TaskAddComponent,
+    TaskEditComponent,
+    TransactionApproveComponent,
+    TreatmentsComponent,
+    VehiclesComponent
+  ],
 })
 export class ComponentsModule {}

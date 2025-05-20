@@ -34,12 +34,8 @@ export class MaterialsService {
     try{
       const posted = await this.masterdataService.createMaterial(material);
       if (!posted) {
-        material.CRUD = CRUD_OPERATIONS.CREATE;
-        material.CRUDDate = new Date();
       }
     } catch {
-      material.CRUD = CRUD_OPERATIONS.CREATE;
-      material.CRUDDate = new Date();
     }
     finally
     {

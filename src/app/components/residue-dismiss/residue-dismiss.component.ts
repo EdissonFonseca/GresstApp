@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ModalController, NavParams } from '@ionic/angular';
+import { IonicModule, ModalController, NavParams } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CRUD_OPERATIONS, INPUT_OUTPUT, STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { PointsComponent } from '../points/points.component';
@@ -18,8 +20,14 @@ import { AuthorizationService } from '@app/services/core/authorization.services'
   selector: 'app-residue-dismiss',
   templateUrl: './residue-dismiss.component.html',
   styleUrls: ['./residue-dismiss.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonicModule,
+    FormsModule
+  ]
 })
-export class ResidueDismissComponent  implements OnInit {
+export class ResidueDismissComponent implements OnInit {
   colorDismiss: string = 'primary';
   colorDispose: string = 'medium';
   colorStore: string = 'medium';
@@ -46,39 +54,73 @@ export class ResidueDismissComponent  implements OnInit {
     private materialsService: MaterialsService,
     private authorizationService: AuthorizationService
   ) {
-    this.residueId = this.navParams.get("ResidueId");
+    this.residueId = this.navParams.get("ResidueId") || '';
   }
 
   async ngOnInit() {
-    this.residue = await this.inventoryService.getResiduo(this.residueId);
-    if (!this.residue) return;
+    try {
+      this.residue = await this.inventoryService.getResiduo(this.residueId);
+      if (!this.residue) {
+        Utils.showToast('No se encontró el residuo', 'top');
+        this.cancel();
+        return;
+      }
 
-    this.unidadCantidad = Utils.quantityUnit;
-    this.unidadPeso = Utils.weightUnit;
-    this.unidadVolumen = Utils.volumeUnit;
-    this.material = await this.materialsService.get(this.residue.IdMaterial);
+      this.unidadCantidad = Utils.quantityUnit;
+      this.unidadPeso = Utils.weightUnit;
+      this.unidadVolumen = Utils.volumeUnit;
+      this.material = await this.materialsService.get(this.residue.IdMaterial);
+    } catch (error) {
+      console.error('Error initializing component:', error);
+      Utils.showToast('Error al cargar los datos del residuo', 'top');
+      this.cancel();
+    }
   }
 
   async confirm() {
-    let actividad: Actividad | undefined = undefined;
-    const now = new Date();
-    const isoDate = now.toISOString();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const isoToday = today.toISOString();
+    try {
+      if (!this.residue) {
+        Utils.showToast('No hay residuo seleccionado', 'top');
+        return;
+      }
 
-    if (!this.residue) return;
+      if (!this.date) {
+        Utils.showToast('Debe seleccionar una fecha', 'top');
+        return;
+      }
 
-    const personId = await this.authorizationService.getPersonId();
-    actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
-    if (!actividad) {
-      actividad = {IdActividad: Utils.generateId(), IdServicio: this.serviceId, IdRecurso: this.pointId, Titulo: this.point, CRUD: CRUD_OPERATIONS.CREATE, IdEstado: STATUS.PENDING, NavegarPorTransaccion: false, FechaInicial: isoDate, FechaOrden: isoToday};
-      await this.activitiesService.create(actividad);
-    }
-    if (actividad) {
-      const tarea: Tarea = {
+      if (!this.pointId) {
+        Utils.showToast('Debe seleccionar un punto', 'top');
+        return;
+      }
+
+      let actividad: Actividad | undefined = undefined;
+      const now = new Date();
+      const isoDate = now.toISOString();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const isoToday = today.toISOString();
+
+      const personId = await this.authorizationService.getPersonId();
+      actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
+
+      if (!actividad) {
+        actividad = {
+          IdActividad: Utils.generateId(),
+          IdServicio: this.serviceId,
+          IdRecurso: this.pointId,
+          Titulo: this.point,
+          IdEstado: STATUS.PENDING,
+          NavegarPorTransaccion: false,
+          FechaInicial: isoDate,
+          FechaOrden: isoToday
+        };
+        await this.activitiesService.create(actividad);
+      }
+
+      if (actividad) {
+        const tarea: Tarea = {
           IdTarea: Utils.generateId(),
           IdActividad: actividad.IdActividad,
-
           IdMaterial: this.residue.IdMaterial,
           IdResiduo: this.residue.IdResiduo,
           IdDeposito: this.pointId,
@@ -86,20 +128,24 @@ export class ResidueDismissComponent  implements OnInit {
           IdEstado: STATUS.APPROVED,
           IdRecurso: actividad.IdRecurso,
           FechaEjecucion: isoDate,
-          CRUD: CRUD_OPERATIONS.CREATE,
           EntradaSalida: INPUT_OUTPUT.OUTPUT,
           Cantidad: this.residue.Cantidad,
           Peso: this.residue.Peso,
           Volumen: this.residue.Volumen,
           IdServicio: actividad.IdServicio,
-          Fotos: [],
+          Fotos: []
         };
         await this.tasksService.create(tarea);
+      }
+
+      this.residue.IdEstado = STATUS.INACTIVE;
+      this.residue.IdDeposito = this.pointId;
+      await this.inventoryService.updateResiduo(this.residue);
+      this.modalCtrl.dismiss({ ActivityId: actividad?.IdActividad });
+    } catch (error) {
+      console.error('Error confirming residue dismiss:', error);
+      Utils.showToast('Error al procesar la solicitud', 'top');
     }
-    this.residue.IdEstado = STATUS.INACTIVE;
-    this.residue.IdDeposito = this.pointId;
-    await this.inventoryService.updateResiduo(this.residue);
-    this.modalCtrl.dismiss({ActivityId: actividad?.IdActividad });
   }
 
   cancel() {
@@ -108,70 +154,89 @@ export class ResidueDismissComponent  implements OnInit {
 
   changeService(serviceId: string) {
     this.serviceId = serviceId;
+    this.point = '';
+    this.pointId = '';
+    this.treatment = '';
+    this.treatmentId = '';
   }
 
   dateTimeChanged(event: any) {
     this.date = event.detail.value;
   }
 
-   async selectPlant() {
-    const idTercero = await this.authorizationService.getPersonId();
-    const modal =   await this.modalCtrl.create({
-      component: PointsComponent,
-      componentProps: {
-        IdTercero: idTercero,
-      },
-    });
+  async selectPlant() {
+    try {
+      const idTercero = await this.authorizationService.getPersonId();
+      const modal = await this.modalCtrl.create({
+        component: PointsComponent,
+        componentProps: {
+          IdTercero: idTercero,
+        },
+      });
 
-    modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.pointId = data.data.id;
-        this.point = data.data.name;
-        this.stakeholderId = data.data.owner;
-      }
-    });
+      modal.onDidDismiss().then((data) => {
+        if (data && data.data) {
+          this.pointId = data.data.id;
+          this.point = data.data.name;
+          this.stakeholderId = data.data.owner;
+        }
+      });
 
-    return await modal.present();
-   }
-
-   async selectStore() {
-    const idTercero = await this.authorizationService.getPersonId();
-    const modal =   await this.modalCtrl.create({
-      component: PointsComponent,
-      componentProps: {
-        IdTercero: idTercero,
-        Almacenamiento: true,
-        Disposicion: true,
-      },
-    });
-
-    modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.pointId = data.data.id;
-        this.point = data.data.name;
-        this.stakeholderId = data.data.owner;
-      }
-    });
-
-    return await modal.present();
-   }
-
-   async selectTreatment() {
-    const idTercero = await this.authorizationService.getPersonId();
-    const modal =   await this.modalCtrl.create({
-      component: TreatmentsComponent,
-      componentProps: {
-        IdTercero: idTercero
-      },
-    });
-
-    modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.treatmentId = data.data.id;
-        this.treatment = data.data.name;
-      }
-    });
-
-    return await modal.present();
-   }
+      return await modal.present();
+    } catch (error) {
+      console.error('Error selecting plant:', error);
+      Utils.showToast('Error al seleccionar la planta', 'top');
+    }
   }
+
+  async selectStore() {
+    try {
+      const idTercero = await this.authorizationService.getPersonId();
+      const modal = await this.modalCtrl.create({
+        component: PointsComponent,
+        componentProps: {
+          IdTercero: idTercero,
+          Almacenamiento: true,
+          Disposicion: true,
+        },
+      });
+
+      modal.onDidDismiss().then((data) => {
+        if (data && data.data) {
+          this.pointId = data.data.id;
+          this.point = data.data.name;
+          this.stakeholderId = data.data.owner;
+        }
+      });
+
+      return await modal.present();
+    } catch (error) {
+      console.error('Error selecting store:', error);
+      Utils.showToast('Error al seleccionar el almacén', 'top');
+    }
+  }
+
+  async selectTreatment() {
+    try {
+      const idTercero = await this.authorizationService.getPersonId();
+      const modal = await this.modalCtrl.create({
+        component: TreatmentsComponent,
+        componentProps: {
+          IdTercero: idTercero
+        },
+      });
+
+      modal.onDidDismiss().then((data) => {
+        if (data && data.data) {
+          this.treatmentId = data.data.id;
+          this.treatment = data.data.name;
+        }
+      });
+
+      return await modal.present();
+    } catch (error) {
+      console.error('Error selecting treatment:', error);
+      Utils.showToast('Error al seleccionar el tratamiento', 'top');
+    }
+  }
+}

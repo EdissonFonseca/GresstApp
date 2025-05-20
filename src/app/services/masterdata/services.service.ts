@@ -34,7 +34,7 @@ export class ServicesService {
     const selectedServicio = SERVICES.find(x => x.serviceId == idServicio);
     if (selectedServicio != null)
     {
-      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Name, CRUDDate: new Date() };
+      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Name};
       servicios.push(servicio);
       await this.storage.set(STORAGE.SERVICES, servicios);
     }

@@ -249,7 +249,6 @@ export class TasksService {
     const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
 
     if (transaction){
-      tarea.CRUD = CRUD_OPERATIONS.CREATE;
       transaction.Tareas.push(tarea);
       await this.storage.set(STORAGE.TRANSACTION, transaction);
     }
@@ -268,7 +267,6 @@ export class TasksService {
         tareaUpdate = transaction.Tareas.find((t) => t.IdActividad == idActividad && t.IdTransaccion == idTransaccion && t.Item == tarea.Item);
       if (tareaUpdate)
       {
-        tareaUpdate.CRUD = CRUD_OPERATIONS.UPDATE;
         tareaUpdate.Cantidad = tarea.Cantidad;
         tareaUpdate.IdEmbalaje = tarea.IdEmbalaje;
         tareaUpdate.IdTratamiento = tarea.IdTratamiento;

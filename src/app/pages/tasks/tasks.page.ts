@@ -158,7 +158,7 @@ export class TasksPage implements OnInit {
         await Utils.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
     }
   }
 
@@ -243,7 +243,7 @@ export class TasksPage implements OnInit {
       await Utils.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
     }
   }
 
@@ -309,7 +309,7 @@ export class TasksPage implements OnInit {
       await Utils.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
 
     } catch (error) {
       console.error(error);
@@ -379,7 +379,7 @@ export class TasksPage implements OnInit {
       await Utils.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
 
     }
   }

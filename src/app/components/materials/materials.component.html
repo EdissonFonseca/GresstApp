@@ -1,68 +1,117 @@
 <ion-header *ngIf="showHeader">
   <ion-toolbar>
-      <ion-buttons slot="start">
-        <ion-button (click)="cancel()">Cancelar</ion-button>
-      </ion-buttons>
-    </ion-toolbar>
-  </ion-header>
-  <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
-  <ion-item *ngIf="materials.length != 0 && !showNew && enableNew">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()">Cancelar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-searchbar
+    (ionInput)="handleInput($event)"
+    [(ngModel)]="searchText"
+    placeholder="Buscar material">
+  </ion-searchbar>
+
+  <ion-item *ngIf="materials.length !== 0 && !showNew && enableNew">
     <ion-button (click)="new()">
       <ion-icon name="add"></ion-icon>
       Nuevo
     </ion-button>
   </ion-item>
-  <ion-content *ngIf="(materials.length == 0 || showNew) && enableNew">
-    <ion-item-divider> Nuevo</ion-item-divider>
+
+  <ion-content *ngIf="(materials.length === 0 || showNew) && enableNew">
+    <ion-item-divider>Nuevo Material</ion-item-divider>
     <form [formGroup]="formData">
       <ion-list [inset]="true">
         <ion-item>
-          <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
+          <ion-input
+            formControlName="Nombre"
+            label="Nombre"
+            labelPlacement="stacked"
+            placeholder="Ingrese el nombre del material">
+          </ion-input>
         </ion-item>
+
         <ion-item>
-          <ion-input formControlName="Referencia" label="Referencia" labelPlacement="stacked"></ion-input>
+          <ion-input
+            formControlName="Referencia"
+            label="Referencia"
+            labelPlacement="stacked"
+            placeholder="Ingrese la referencia del material">
+          </ion-input>
         </ion-item>
+
         <ion-item>
-          <ion-select formControlName="Captura" label="Medida de Captura" labelPlacement="stacked" helperText="El producto llega del/al tercero por (cantidad/peso/volumen)">
-            <ion-select-option>Cantidad</ion-select-option>
-            <ion-select-option>Peso</ion-select-option>
-            <ion-select-option>Volúmen</ion-select-option>
+          <ion-select
+            formControlName="Captura"
+            label="Medida de Captura"
+            labelPlacement="stacked"
+            helperText="El producto llega del/al tercero por (cantidad/peso/volumen)">
+            <ion-select-option value="Cantidad">Cantidad</ion-select-option>
+            <ion-select-option value="Peso">Peso</ion-select-option>
+            <ion-select-option value="Volumen">Volumen</ion-select-option>
           </ion-select>
         </ion-item>
+
         <ion-item>
-          <ion-select formControlName="Medicion" label="Medida de Almacenamiento" labelPlacement="stacked" placeholder="La misma de captura" (ionChange)="onChangeMedida($event.target.value)">
-            <ion-select-option>Cantidad</ion-select-option>
-            <ion-select-option>Peso</ion-select-option>
-            <ion-select-option>Volúmen</ion-select-option>
+          <ion-select
+            formControlName="Medicion"
+            label="Medida de Almacenamiento"
+            labelPlacement="stacked"
+            placeholder="La misma de captura">
+            <ion-select-option value="Cantidad">Cantidad</ion-select-option>
+            <ion-select-option value="Peso">Peso</ion-select-option>
+            <ion-select-option value="Volumen">Volumen</ion-select-option>
           </ion-select>
         </ion-item>
+
         <ion-item *ngIf="showFactor">
-          <ion-input formControlName="Factor" type="numeric" label="Factor de conversion" labelPlacement="stacked"></ion-input>
+          <ion-input
+            formControlName="Factor"
+            type="number"
+            label="Factor de conversión"
+            labelPlacement="stacked"
+            placeholder="Ingrese el factor de conversión">
+          </ion-input>
         </ion-item>
+
         <ion-item>
-          <ion-toggle formControlName="Aprovechable" labelPlacement="end"> <ion-label size="small">Residuo Aprovechable?</ion-label>
+          <ion-toggle
+            formControlName="Aprovechable"
+            labelPlacement="end">
+            <ion-label size="small">Residuo Aprovechable</ion-label>
           </ion-toggle>
         </ion-item>
+
         <ion-item>
-          <ion-item>
-            <ion-button (click)="create()">
-              <ion-icon name="save-outline"></ion-icon>
-              Crear
-            </ion-button>
-            <ion-button (click)="search()">
-              <ion-icon name="close"></ion-icon>
-              Cancelar
-            </ion-button>
-          </ion-item>
+          <ion-button (click)="create()" [disabled]="!formData.valid">
+            <ion-icon name="save-outline"></ion-icon>
+            Crear
+          </ion-button>
+          <ion-button (click)="search()">
+            <ion-icon name="close"></ion-icon>
+            Cancelar
+          </ion-button>
         </ion-item>
       </ion-list>
     </form>
   </ion-content>
-  <ion-content>
-    <ion-list *ngFor="let material of materials">
-      <ion-item (click)="select(material.IdMaterial, material.Nombre, material.TipoCaptura, material.TipoMedicion, material.Factor ?? 0)">
-        <ion-icon name="checkmark-outline" *ngIf="selectedValue === material.IdMaterial"></ion-icon>
-        <ion-label>{{ material.Nombre }}</ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-content>
+
+  <ion-list>
+    <ion-item
+      *ngFor="let material of materials"
+      (click)="select(material.IdMaterial, material.Nombre, material.TipoCaptura, material.TipoMedicion, material.Factor ?? 0)"
+      [class.selected]="selectedValue === material.IdMaterial">
+      <ion-icon
+        name="checkmark-outline"
+        *ngIf="selectedValue === material.IdMaterial"
+        color="primary">
+      </ion-icon>
+      <ion-label>
+        <h2>{{ material.Nombre }}</h2>
+        <p *ngIf="material.Referencia">Ref: {{ material.Referencia }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

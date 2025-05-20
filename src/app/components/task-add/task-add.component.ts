@@ -367,7 +367,6 @@ export class TaskAddComponent implements OnInit {
             idTransaccion = transaccion.IdTransaccion;
             fecha = isoDate;
           } else {
-            transaccionActual.CRUD = CRUD_OPERATIONS.UPDATE;
             await this.transactionsService.update(transaccionActual);
             idTransaccion = transaccionActual.IdTransaccion;
             fecha = transaccionActual.FechaInicial ?? isoDate;

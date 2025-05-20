@@ -1,11 +1,22 @@
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
-    </ion-buttons>
     <ion-title>Materiales</ion-title>
   </ion-toolbar>
 </ion-header>
+
 <ion-content>
-  <app-materials [showHeader]="false"></app-materials>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <app-materials
+    [showHeader]="false"
+    (materialSelected)="onMaterialSelected($event)">
+  </app-materials>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="addMaterial()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

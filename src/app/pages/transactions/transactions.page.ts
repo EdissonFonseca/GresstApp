@@ -190,7 +190,7 @@ export class TransactionsPage implements OnInit {
       await Utils.hideLoading();
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
     }
   }
 
@@ -227,7 +227,7 @@ export class TransactionsPage implements OnInit {
       this.showAdd = false;
 
       //Este llamado se hace sin await para que no bloquee la pantalla y se haga en segundo plano
-      this.synchronizationService.uploadTransactions();
+      this.synchronizationService.uploadData();
     }
   }
 

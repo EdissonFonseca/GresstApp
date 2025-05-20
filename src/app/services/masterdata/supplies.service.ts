@@ -23,12 +23,8 @@ export class SuppliesService  {
     try{
       const posted = await this.masterdataService.createSupply(insumo);
       if (!posted) {
-        insumo.CRUD = CRUD_OPERATIONS.CREATE;
-        insumo.CRUDDate = new Date();
       }
     } catch {
-      insumo.CRUD = CRUD_OPERATIONS.CREATE;
-      insumo.CRUDDate = new Date();
     }
     finally
     {

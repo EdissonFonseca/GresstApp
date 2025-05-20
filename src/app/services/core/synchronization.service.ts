@@ -15,7 +15,6 @@ import { environment } from '../../../environments/environment';
 import { CRUD_OPERATIONS, DATA_TYPE, STORAGE } from '@app/constants/constants';
 import { LoggerService } from './logger.service';
 import { Inventario, InventoryApiService } from '../api/inventoryApi.service';
-import { Utils } from '@app/utils/utils';
 import { APIRequest } from '@app/interfaces/APIRequest.interface';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { Insumo } from '@app/interfaces/insumo.interface';

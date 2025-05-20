@@ -1,6 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ModalController } from '@ionic/angular';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
+import { IonicModule, ModalController } from '@ionic/angular';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Material } from '@app/interfaces/material.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
@@ -11,11 +12,27 @@ import { AuthorizationService } from '@app/services/core/authorization.services'
   selector: 'app-materials',
   templateUrl: './materials.component.html',
   styleUrls: ['./materials.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    IonicModule,
+    ReactiveFormsModule,
+    FormsModule
+  ],
+  schemas: []
 })
-export class MaterialsComponent  implements OnInit {
+export class MaterialsComponent implements OnInit {
   @Input() showHeader: boolean = true;
+  @Output() materialSelected = new EventEmitter<{
+    id: string;
+    name: string;
+    capture: string;
+    measure: string;
+    factor: number;
+  }>();
+
   formData: FormGroup;
-  materials : Material[] = [];
+  materials: Material[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   selectedCaptura: string = '';
@@ -37,39 +54,74 @@ export class MaterialsComponent  implements OnInit {
       Captura: ['', Validators.required],
       Medicion: [],
       Factor: [],
-      Aprovechable: [],
       Referencia: [],
+      Aprovechable: [false]
     });
   }
 
   async ngOnInit() {
-    this.materials = await this.materialsService.list();
-    this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
+    await this.loadMaterials();
   }
 
-  async handleInput(event: any){
-    this.selectedName = event.target.value;
-    this.searchText = this.selectedName;
-    const query = event.target.value.toLowerCase();
-    this.formData.patchValue({Nombre: this.selectedName});
-
-    const materials = await this.materialsService.list();
-    this.materials = materials.filter((material) => material.Nombre .toLowerCase().indexOf(query) > -1);
+  async loadMaterials() {
+    try {
+      this.materials = await this.materialsService.list();
+      this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
+    } catch (error) {
+      console.error('Error loading materials:', error);
+      Utils.showToast('Error al cargar los materiales', 'middle');
+    }
   }
 
-  select(idMaterial: string, nombre: string, captura: string, medicion: string, factor: number | null) {
-    this.selectedValue = idMaterial;
-    this.selectedName = nombre;
-    this.selectedCaptura = captura;
-    this.selectedMedicion = medicion;
-    this.selectedFactor = factor;
-    const data = {id: this.selectedValue, name: this.selectedName, capture: this.selectedCaptura, measure: this.selectedMedicion, factor: this.selectedFactor};
-    this.modalCtrl.dismiss(data);
+  async handleInput(event: any) {
+    try {
+      this.selectedName = event.target.value;
+      this.searchText = this.selectedName;
+      const query = event.target.value.toLowerCase();
+      this.formData.patchValue({ Nombre: this.selectedName });
+
+      const materials = await this.materialsService.list();
+      this.materials = materials.filter((material) => material.Nombre.toLowerCase().indexOf(query) > -1);
+    } catch (error) {
+      console.error('Error searching materials:', error);
+      Utils.showToast('Error al buscar materiales', 'middle');
+    }
+  }
+
+  async select(idMaterial: string, nombre: string, captura: string, medicion: string, factor: number) {
+    try {
+      this.selectedValue = idMaterial;
+      this.selectedName = nombre;
+      this.selectedCaptura = captura;
+      this.selectedMedicion = medicion;
+      this.selectedFactor = factor;
+
+      const data = {
+        id: this.selectedValue,
+        name: this.selectedName,
+        capture: this.selectedCaptura,
+        measure: this.selectedMedicion,
+        factor: this.selectedFactor
+      };
+
+      this.materialSelected.emit(data);
+      this.modalCtrl.dismiss(data);
+    } catch (error) {
+      console.error('Error selecting material:', error);
+      Utils.showToast('Error al seleccionar el material', 'middle');
+    }
   }
 
   new() {
     this.showNew = true;
-    this.formData.setValue({Nombre: null, Referencia: null, Captura: null, Medicion:null, Factor: null, Aprovechable:false});
+    this.formData.reset({
+      Nombre: null,
+      Referencia: null,
+      Captura: null,
+      Medicion: null,
+      Factor: null,
+      Aprovechable: false
+    });
   }
 
   cancel() {
@@ -81,72 +133,60 @@ export class MaterialsComponent  implements OnInit {
   }
 
   async create() {
-    if (this.formData.valid)
-    {
-      const formData = this.formData.value;
-      let medicion;
-      let captura;
-      let factor;
+    if (this.formData.valid) {
+      try {
+        const formData = this.formData.value;
+        let medicion = formData.Medicion || formData.Captura;
+        let captura = formData.Captura;
+        let factor = formData.Factor || 1;
 
-      captura = formData.Captura;
-      if (formData.Medicion == undefined || formData.Medicion == null)
-        medicion = captura;
-      else
-        medicion = formData.Medicion;
+        medicion = this.convertMedida(medicion);
+        captura = this.convertMedida(captura);
 
-      if (formData.Factor == undefined || formData.Factor == null)
-        factor = 1;
-      else
-        factor = formData.Factor;
+        const material: Material = {
+          IdMaterial: Utils.generateId(),
+          Nombre: formData.Nombre,
+          TipoCaptura: captura,
+          Factor: factor,
+          TipoMedicion: medicion,
+          Aprovechable: formData.Aprovechable,
+          Referencia: formData.Referencia
+        };
 
-      switch(medicion) {
-          case "Cantidad":
-            medicion = "C";
-            break;
-          case "Peso":
-            medicion = "P";
-            break;
-          default:
-            medicion = "V";
-            break;
-      }
-
-      switch(captura) {
-        case "Cantidad":
-          captura = "C";
-          break;
-        case "Peso":
-          captura = "P";
-          break;
-        default:
-          captura = "V";
-          break;
-      }
-
-      const material: Material = {IdMaterial: Utils.generateId(), Nombre: formData.Nombre, TipoCaptura: captura, Factor: factor, TipoMedicion: medicion, Aprovechable: formData.Aprovechable, Referencia: formData.Referencia};
-      const created = await this.materialsService.create(material);
-      if (created)
-      {
-        const data = {id: material.IdMaterial, name: this.selectedName};
-        if (this.showHeader){
-          this.modalCtrl.dismiss(data);
-          this.selectedValue = material.IdMaterial;
+        const created = await this.materialsService.create(material);
+        if (created) {
+          const data = { id: material.IdMaterial, name: material.Nombre };
+          if (this.showHeader) {
+            this.modalCtrl.dismiss(data);
+            this.selectedValue = material.IdMaterial;
+          } else {
+            await this.loadMaterials();
+            await Utils.showToast(`Material ${material.Nombre} creado`, 'middle');
+            this.selectedValue = '';
+          }
         }
-        else{
-          this.materials = await this.materialsService.list();
-          await Utils.showToast(`Material ${formData.Nombre} creado`, 'middle');
-          this.selectedValue = '';
-          this.searchText = '';
-        }
-        this.formData.setValue({Nombre: null, Captura: null, Medicion: null, Factor:1, Aprovechable:false, Referencia:null });
-        this.showNew = false;
+      } catch (error) {
+        console.error('Error creating material:', error);
+        Utils.showToast('Error al crear el material', 'middle');
       }
+    }
+  }
+
+  private convertMedida(medida: string): string {
+    switch (medida) {
+      case 'Cantidad':
+        return 'C';
+      case 'Peso':
+        return 'P';
+      case 'Volumen':
+        return 'V';
+      default:
+        return medida;
     }
   }
 
   async onChangeMedida(unidadMedida: string) {
     const formData = this.formData.value;
-
     this.showFactor = !(unidadMedida == undefined || unidadMedida == null || unidadMedida == formData.Captura);
   }
 }
