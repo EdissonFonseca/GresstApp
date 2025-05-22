@@ -42,15 +42,6 @@ export class SynchronizationService {
   ) {}
 
   /**
-   * Counts and updates the number of pending transactions in local storage
-   * @returns {Promise<void>}
-   */
-  async countPendingTransactions(): Promise<void> {
-    const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
-    this.pendingTransactions.set(requests.length);
-  }
-
-  /**
    * Downloads and stores authorization data from the server
    * @throws {Error} If the download fails
    */

@@ -1,11 +1,11 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { SynchronizationService } from '../../services/core/synchronization.service';
 import { IonTabs } from '@ionic/angular';
 import { signal } from '@angular/core';
 import { StorageService } from '../../services/core/storage.service';
 import { STORAGE } from '@app/constants/constants';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
+import { SessionService } from '@app/services/core/session.service';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
@@ -33,7 +33,7 @@ export class HomePage implements OnInit {
   nombreUsuario = signal<string>('');
 
   constructor(
-    public synchronizationService: SynchronizationService,
+    public sessionService: SessionService,
     private storage: StorageService,
     private userNotificationService: UserNotificationService,
     private translate: TranslateService
@@ -46,7 +46,7 @@ export class HomePage implements OnInit {
   async ngOnInit() {
     try {
       await this.initializeData();
-      await this.synchronizationService.countPendingTransactions();
+      await this.sessionService.countPendingTransactions();
     } catch (error) {
       await this.handleError(error);
     }
@@ -88,7 +88,7 @@ export class HomePage implements OnInit {
    */
   get syncStatus(): number {
     try {
-      return this.synchronizationService.pendingTransactions();
+      return this.sessionService.pendingTransactions();
     } catch (error) {
       console.error('Error getting sync status:', error);
       return 0;
@@ -163,7 +163,7 @@ export class HomePage implements OnInit {
    */
   async ionViewWillEnter() {
     try {
-      await this.synchronizationService.countPendingTransactions();
+      await this.sessionService.countPendingTransactions();
     } catch (error) {
       console.error('Error in ionViewWillEnter:', error);
       this.handleError(error);

@@ -10,8 +10,6 @@ import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.compon
 import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/core/card.service';
 import { SessionService } from '@app/services/core/session.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
-import { Utils } from '@app/utils/utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -55,7 +53,6 @@ export class TasksPage implements OnInit {
     private transactionsService: TransactionsService,
     private tasksService: TasksService,
     public sessionService: SessionService,
-    public synchronizationService: SynchronizationService,
     private userNotificationService: UserNotificationService,
     private translate: TranslateService
   ) {}
@@ -218,7 +215,7 @@ export class TasksPage implements OnInit {
         await this.userNotificationService.hideLoading();
 
         // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
+        this.sessionService.uploadData();
       }
     } catch (error) {
       console.error('Error adding task:', error);
@@ -316,7 +313,7 @@ export class TasksPage implements OnInit {
         await this.userNotificationService.hideLoading();
 
         // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
+        this.sessionService.uploadData();
       }
     } catch (error) {
       console.error('Error editing task:', error);
@@ -394,7 +391,7 @@ export class TasksPage implements OnInit {
         await this.userNotificationService.hideLoading();
 
         // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
+        this.sessionService.uploadData();
       }
     } catch (error) {
       console.error('Error approving transaction:', error);
@@ -473,7 +470,7 @@ export class TasksPage implements OnInit {
         await this.userNotificationService.hideLoading();
 
         // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
+        this.sessionService.uploadData();
       }
     } catch (error) {
       console.error('Error rejecting transaction:', error);
@@ -489,7 +486,7 @@ export class TasksPage implements OnInit {
    * @returns string - The color code for the synchronization status
    */
   getColor() {
-    return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+    return this.sessionService.pendingTransactions() > 0 ? 'danger' : 'success';
   }
 
   /**

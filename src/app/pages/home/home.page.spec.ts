@@ -1,41 +1,48 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { HomePage } from './home.page';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
+import { SessionService } from '@app/services/core/session.service';
 import { ComponentsModule } from '@app/components/components.module';
 import { RouterTestingModule } from '@angular/router/testing';
 import { StorageService } from '@app/services/core/storage.service';
-import { GlobalesService } from '@app/services/globales.service';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { STORAGE } from '@app/constants/constants';
 
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
-  let synchronizationServiceSpy: jasmine.SpyObj<SynchronizationService>;
+  let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
-  let globalesServiceSpy: jasmine.SpyObj<GlobalesService>;
+  let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
+  let translateServiceSpy: jasmine.SpyObj<TranslateService>;
 
   beforeEach(async () => {
-    const syncSpy = jasmine.createSpyObj('SynchronizationService', ['countPendingTransactions', 'pendingTransactions']);
+    const sessionSpy = jasmine.createSpyObj('SessionService', ['countPendingTransactions', 'pendingTransactions']);
     const storageSpy = jasmine.createSpyObj('StorageService', ['get']);
-    const globalesSpy = jasmine.createSpyObj('GlobalesService', ['presentToast']);
+    const notificationSpy = jasmine.createSpyObj('UserNotificationService', ['showToast']);
+    const translateSpy = jasmine.createSpyObj('TranslateService', ['instant']);
 
     await TestBed.configureTestingModule({
       declarations: [HomePage],
       imports: [
         IonicModule.forRoot(),
         ComponentsModule,
-        RouterTestingModule
+        RouterTestingModule,
+        TranslateModule.forRoot()
       ],
       providers: [
-        { provide: SynchronizationService, useValue: syncSpy },
+        { provide: SessionService, useValue: sessionSpy },
         { provide: StorageService, useValue: storageSpy },
-        { provide: GlobalesService, useValue: globalesSpy }
+        { provide: UserNotificationService, useValue: notificationSpy },
+        { provide: TranslateService, useValue: translateSpy }
       ]
     }).compileComponents();
 
-    synchronizationServiceSpy = TestBed.inject(SynchronizationService) as jasmine.SpyObj<SynchronizationService>;
+    sessionServiceSpy = TestBed.inject(SessionService) as jasmine.SpyObj<SessionService>;
     storageServiceSpy = TestBed.inject(StorageService) as jasmine.SpyObj<StorageService>;
-    globalesServiceSpy = TestBed.inject(GlobalesService) as jasmine.SpyObj<GlobalesService>;
+    userNotificationServiceSpy = TestBed.inject(UserNotificationService) as jasmine.SpyObj<UserNotificationService>;
+    translateServiceSpy = TestBed.inject(TranslateService) as jasmine.SpyObj<TranslateService>;
   });
 
   beforeEach(() => {
@@ -57,7 +64,7 @@ describe('HomePage', () => {
   it('should count pending transactions on init', fakeAsync(() => {
     component.ngOnInit();
     tick();
-    expect(synchronizationServiceSpy.countPendingTransactions).toHaveBeenCalled();
+    expect(sessionServiceSpy.countPendingTransactions).toHaveBeenCalled();
   }));
 
   it('should load user data on init', fakeAsync(() => {
@@ -67,7 +74,7 @@ describe('HomePage', () => {
     component.ngOnInit();
     tick();
 
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('User');
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.USERNAME);
     expect(component.nombreUsuario()).toBe('Test User');
   }));
 
@@ -78,20 +85,20 @@ describe('HomePage', () => {
     component.ngOnInit();
     tick();
 
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Cuenta');
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.ACCOUNT);
     expect(component.nombreCuenta()).toBe('Test Account');
   }));
 
   it('should handle errors during initialization', fakeAsync(() => {
+    const errorMessage = 'Error loading data';
+    translateServiceSpy.instant.and.returnValue(errorMessage);
     storageServiceSpy.get.and.returnValue(Promise.reject('Error'));
 
     component.ngOnInit();
     tick();
 
-    expect(globalesServiceSpy.presentToast).toHaveBeenCalledWith(
-      'Error al cargar los datos. Por favor, intente de nuevo.',
-      'middle'
-    );
+    expect(translateServiceSpy.instant).toHaveBeenCalledWith('HOME.MESSAGES.LOAD_ERROR');
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith(errorMessage, 'middle');
   }));
 
   it('should update header title and help popup', () => {
@@ -108,10 +115,10 @@ describe('HomePage', () => {
 
   it('should get sync status', () => {
     const mockPendingTransactions = 5;
-    synchronizationServiceSpy.pendingTransactions.and.returnValue(mockPendingTransactions);
+    sessionServiceSpy.pendingTransactions.and.returnValue(mockPendingTransactions);
 
     expect(component.syncStatus).toBe(mockPendingTransactions);
-    expect(synchronizationServiceSpy.pendingTransactions).toHaveBeenCalled();
+    expect(sessionServiceSpy.pendingTransactions).toHaveBeenCalled();
   });
 
   it('should handle tab selection in setHeader', () => {
@@ -124,6 +131,53 @@ describe('HomePage', () => {
     expect(component.currentTab()).toBe('inventario');
   });
 
+  it('should handle errors in onTabChange', () => {
+    const error = new Error('Test error');
+    spyOn(console, 'error');
+    translateServiceSpy.instant.and.returnValue('Error message');
+
+    component.onTabChange({ tab: 'invalid' });
+    expect(console.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
+  });
+
+  it('should handle errors in setHeader', () => {
+    const error = new Error('Test error');
+    spyOn(console, 'error');
+    translateServiceSpy.instant.and.returnValue('Error message');
+
+    component.setHeader('', '');
+    expect(console.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
+  });
+
+  it('should handle errors in syncStatus getter', () => {
+    const error = new Error('Test error');
+    spyOn(console, 'error');
+    sessionServiceSpy.pendingTransactions.and.throwError(error);
+
+    const status = component.syncStatus;
+    expect(status).toBe(0);
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('should count pending transactions on ionViewWillEnter', fakeAsync(() => {
+    component.ionViewWillEnter();
+    tick();
+    expect(sessionServiceSpy.countPendingTransactions).toHaveBeenCalled();
+  }));
+
+  it('should handle errors in ionViewWillEnter', fakeAsync(() => {
+    const error = new Error('Test error');
+    sessionServiceSpy.countPendingTransactions.and.rejectWith(error);
+    translateServiceSpy.instant.and.returnValue('Error message');
+
+    component.ionViewWillEnter();
+    tick();
+
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
+  }));
+
   describe('tabs integration', () => {
     it('should have tabs component initialized', () => {
       expect(component.tabs).toBeTruthy();
@@ -132,8 +186,8 @@ describe('HomePage', () => {
     it('should have correct tab buttons', () => {
       const tabButtons = fixture.debugElement.nativeElement.querySelectorAll('ion-tab-button');
       expect(tabButtons.length).toBe(2);
-      expect(tabButtons[0].textContent).toContain('Jornada');
-      expect(tabButtons[1].textContent).toContain('Inventario');
+      expect(tabButtons[0].textContent).toContain('HOME.TABS.SHIFT');
+      expect(tabButtons[1].textContent).toContain('HOME.TABS.INVENTORY');
     });
   });
 });

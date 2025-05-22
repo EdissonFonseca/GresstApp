@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Network } from '@capacitor/network';
 import { SynchronizationService } from './synchronization.service';
 import { STORAGE } from '../../constants/constants';
@@ -7,6 +7,7 @@ import { HttpService } from '../api/http.service';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
+import { APIRequest } from '@app/interfaces/APIRequest.interface';
 /**
  * Interface representing the structure of backup data
  * Contains all essential data that needs to be backed up during force quit
@@ -26,6 +27,7 @@ interface BackupData {
 })
 export class SessionService {
   private readonly apiUrl = environment.apiUrl;
+  pendingTransactions = signal<number>(0);
 
   constructor(
     private storage: StorageService,
@@ -55,6 +57,15 @@ export class SessionService {
   }
 
   /**
+   * Counts and updates the number of pending transactions in local storage
+   * @returns {Promise<void>}
+   */
+  async countPendingTransactions(): Promise<void> {
+    const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
+    this.pendingTransactions.set(requests.length);
+  }
+
+  /**
    * Initializes the application session
    * Downloads all necessary data from the server including authorizations,
    * inventory, master data, and transactions
@@ -66,7 +77,7 @@ export class SessionService {
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
       await this.syncService.downloadTransactions();
-      await this.syncService.countPendingTransactions();
+      await this.countPendingTransactions();
       await this.storage.set(STORAGE.REQUESTS, []);
       await this.storage.set(STORAGE.START_DATE, new Date().toISOString());
     } catch (error) {
@@ -92,7 +103,7 @@ export class SessionService {
           await this.syncService.downloadInventory();
           await this.syncService.downloadMasterData();
           await this.syncService.downloadTransactions();
-          await this.syncService.countPendingTransactions();
+          await this.countPendingTransactions();
         }
         return true;
       }
