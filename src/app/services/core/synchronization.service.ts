@@ -184,7 +184,13 @@ export class SynchronizationService {
                 success = await this.masterdataService.updatePoint(point);
               }
               break;
-            case DATA_TYPE.SUPPLY:
+              case DATA_TYPE.START_ACTIVITY:
+                const startActivity = request.Data as Actividad;
+                if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                  success = await this.transactionsService.updateInitialActivity(startActivity);
+                }
+                break;
+              case DATA_TYPE.SUPPLY:
               const supply = request.Data as Insumo;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
                 success = await this.masterdataService.createSupply(supply);
@@ -249,4 +255,5 @@ export class SynchronizationService {
       return false;
     }
   }
+
 }

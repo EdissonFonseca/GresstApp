@@ -6,8 +6,7 @@ import { InventoryApiService } from '@app/services/api/inventoryApi.service';
 import { StorageService } from '@app/services/core/storage.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { Utils } from '@app/utils/utils';
-import { STORAGE } from '@app/constants/constants';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-bank',
   templateUrl: './bank.page.html',
@@ -21,13 +20,14 @@ export class BankPage implements OnInit {
     private navCtrl: NavController,
     private inventoryService: InventoryApiService,
     private authenticationService: AuthenticationApiService,
+    private userNotificationService: UserNotificationService
   ) {
   }
 
   async ngOnInit() {
-    await Utils.showLoading('Sincronizando ...');
+    await this.userNotificationService.showLoading('Sincronizando ...');
     this.materiales = await this.inventoryService.getBank();
-    await Utils.hideLoading();
+    await this.userNotificationService.hideLoading();
   }
 
   getImagen(idResiduo: string){
@@ -46,12 +46,12 @@ export class BankPage implements OnInit {
   async handleInput(event: any){
     const query = event.target.value.toLowerCase();
 
-    await Utils.showLoading('Sincronizando ...');
+    await this.userNotificationService.showLoading('Sincronizando ...');
     const materialesList : Banco[] = await this.inventoryService.getBank();
 
     this.materiales = materialesList.filter((mat) => mat.Nombre.toLowerCase().indexOf(query) > -1);
 
-    await Utils.hideLoading();
+    await this.userNotificationService.hideLoading();
   }
 
   async handleClear(){

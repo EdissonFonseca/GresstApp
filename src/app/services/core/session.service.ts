@@ -1,25 +1,25 @@
 import { Injectable } from '@angular/core';
-import { Storage } from '@ionic/storage-angular';
 import { Network } from '@capacitor/network';
-import { AuthenticationApiService } from '../api/authenticationApi.service';
 import { SynchronizationService } from './synchronization.service';
 import { STORAGE } from '../../constants/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { HttpService } from '../api/http.service';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
-
+import { StorageService } from './storage.service';
+/**
+ * Interface representing the structure of backup data
+ * Contains all essential data that needs to be backed up during force quit
+ */
 interface BackupData {
-  timestamp: string;
-  transactions: any[];
-  masterData: any[];
-  inventory: any[];
-  authorizations: any[];
+  timestamp: string;      // ISO timestamp of when the backup was created
+  requests: any[];    // Array of pending transactions
 }
 
 /**
  * Service responsible for managing user session state and synchronization.
  * Handles session initialization, refresh, and cleanup operations.
+ * Manages online/offline state and data synchronization between local storage and server.
  */
 @Injectable({
   providedIn: 'root'
@@ -28,95 +28,102 @@ export class SessionService {
   private readonly apiUrl = environment.apiUrl;
 
   constructor(
-    private storage: Storage,
-    private authService: AuthenticationApiService,
+    private storage: StorageService,
     private syncService: SynchronizationService,
     private readonly http: HttpService,
     private readonly logger: LoggerService
   ) { }
 
   /**
-   * Checks if there is an active session
-   * @returns {Promise<boolean>} True if there is an active session
-   */
-  async isActive(): Promise<boolean> {
-    try {
-      const username = await this.storage.get(STORAGE.USERNAME);
-      return username !== null;
-    } catch (error) {
-      this.logger.error('Error checking session status', error);
-      return false;
-    }
-  }
-
-  /**
    * Checks if the application is online and can reach the API
-   * @returns {Promise<boolean>} True if the API is available
+   * Uses Capacitor's Network plugin to determine connectivity status
+   * @returns {Promise<boolean>} True if the device has network connectivity
    */
   async isOnline(): Promise<boolean> {
-    try {
-      const status = await Network.getStatus();
-      return status.connected;
-    } catch (error) {
-      this.logger.error('Error checking online status', error);
-      return false;
-    }
+    const status = await Network.getStatus();
+    return status.connected;
   }
 
   /**
-   * Loads initial data after login
-   * Downloads authorizations, inventory, master data and transactions
-   * @returns {Promise<boolean>} True if load was successful
+   * Verifies if a user is currently logged in
+   * Checks for the presence of a username in local storage
+   * @returns {Promise<boolean>} True if a username exists in storage
    */
-  async load(): Promise<boolean> {
+  async isLoggedIn(): Promise<boolean> {
+    const username = await this.storage.get(STORAGE.USERNAME);
+    return username !== null;
+  }
+
+  /**
+   * Initializes the application session
+   * Downloads all necessary data from the server including authorizations,
+   * inventory, master data, and transactions
+   * @returns {Promise<boolean>} True if initialization was successful
+   */
+  async start(): Promise<boolean> {
     try {
       await this.syncService.downloadAuthorizations();
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
       await this.syncService.downloadTransactions();
       await this.syncService.countPendingTransactions();
-
-      return true;
+      await this.storage.set(STORAGE.REQUESTS, []);
+      await this.storage.set(STORAGE.START_DATE, new Date().toISOString());
     } catch (error) {
       this.logger.error('Error loading initial data', error);
       return false;
     }
+
+    return true;
   }
 
   /**
-   * Refreshes data for an existing session
-   * Downloads latest authorizations, inventory, master data and transactions
-   * @returns {Promise<boolean>} True if refresh was successful
+   * Synchronizes local data with the server
+   * First uploads any pending data, then downloads fresh data from server
+   * Only proceeds if device is online
+   * @returns {Promise<boolean>} True if synchronization was successful
    */
-  async refresh(): Promise<boolean> {
+  async synchronize(): Promise<boolean> {
     try {
-      await this.syncService.downloadAuthorizations();
-      await this.syncService.downloadInventory();
-      await this.syncService.downloadMasterData();
-      await this.syncService.downloadTransactions();
-      await this.syncService.countPendingTransactions();
-
-      return true;
+      const isOnline = await this.isOnline();
+      if (isOnline) {
+        if (await this.uploadData()) {
+          await this.syncService.downloadAuthorizations();
+          await this.syncService.downloadInventory();
+          await this.syncService.downloadMasterData();
+          await this.syncService.downloadTransactions();
+          await this.syncService.countPendingTransactions();
+        }
+        return true;
+      }
+      return false;
     } catch (error) {
-      this.logger.error('Error refreshing session data', error);
+      this.logger.error('Error synchronizing data', error);
       return false;
     }
+  }
+
+  /**
+   * Uploads pending data to the server
+   * @returns {Promise<boolean>} True if upload was successful
+   */
+  async uploadData(): Promise<boolean> {
+    return this.syncService.uploadData();
   }
 
   /**
    * Attempts to close the session by uploading pending transactions
    * Clears local storage if upload is successful
-   * @returns {Promise<boolean>} True if close was successful
+   * @returns {Promise<boolean>} True if session was closed successfully
    */
-  async close(): Promise<boolean> {
+  async end(): Promise<boolean> {
     try {
       const uploadSuccess = await this.syncService.uploadData();
       if (uploadSuccess) {
         await this.storage.clear();
         return true;
       }
-
-      this.logger.warn('Failed to upload pending transactions');
+      this.logger.warn('Failed to upload pending data');
       return false;
     } catch (error) {
       this.logger.error('Error closing session', error);
@@ -127,24 +134,20 @@ export class SessionService {
   /**
    * Forces application exit by creating a backup of current transactions
    * Creates both local and server backups before clearing storage
+   * Local backup is stored in the device's documents directory
+   * Server backup is attempted but not required for successful exit
    * @returns {Promise<void>}
    * @throws {Error} If backup creation fails
    */
   async forceQuit(): Promise<void> {
     try {
       // Get data from storage
-      const transactions = await this.storage.get(STORAGE.TRANSACTION) || [];
-      const masterData = await this.storage.get(STORAGE.PACKAGES) || [];
-      const inventory = await this.storage.get(STORAGE.INVENTORY) || [];
-      const authorizations = await this.storage.get(STORAGE.ACCOUNT) || [];
+      const requests = await this.storage.get(STORAGE.REQUESTS);
 
       // Create backup data object
       const backupData: BackupData = {
         timestamp: new Date().toISOString(),
-        transactions,
-        masterData,
-        inventory,
-        authorizations
+        requests: requests
       };
 
       // Convert to JSON
@@ -154,29 +157,40 @@ export class SessionService {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       const fileName = `gresst-backup-${timestamp}.json`;
 
+      console.log('Backup data: ' + jsonData);
+      console.log('Backup to: ' + fileName);
+
+      // Convert string to base64
+      const base64Data = btoa(jsonData);
+
       // Save file to documents directory
       await Filesystem.writeFile({
         path: fileName,
-        data: jsonData,
+        data: base64Data,
         directory: Directory.Documents,
         recursive: true
       });
 
       this.logger.info('Local backup created successfully', { fileName });
 
-      // Attempt server backup
-      try {
-        await this.http.post('/transactions/backup', backupData);
-        this.logger.info('Server backup created successfully');
-      } catch (error) {
-        this.logger.error('Error creating server backup', error);
-        // Continue with local backup only
+      // In browser environment, create a downloadable link
+      if (typeof window !== 'undefined') {
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
       }
 
       // Clear storage
       await this.storage.clear();
       this.logger.info('Storage cleared successfully');
     } catch (error) {
+      console.log('Error in forceQuit', error);
       this.logger.error('Error in forceQuit', error);
       throw error;
     }

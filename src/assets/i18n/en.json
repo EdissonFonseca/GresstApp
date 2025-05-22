@@ -50,5 +50,108 @@
     "NEW": "New Point",
     "EDIT": "Edit Point",
     "DELETE": "Delete Point"
+  },
+  "MENU": {
+    "USER": "User",
+    "MASTER_DATA": "Master Data",
+    "PACKAGING": "Packaging",
+    "SUPPLIES": "Supplies",
+    "MATERIALS": "Materials",
+    "SERVICES": "Services",
+    "POINTS": "Points",
+    "THIRD_PARTIES": "Third Parties",
+    "TREATMENTS": "Treatments",
+    "VEHICLES": "Vehicles",
+    "SYNCHRONIZE": "Synchronize",
+    "SESSION": "Session",
+    "CLOSE": "Close",
+    "FORCE_CLOSE": "Force Close",
+    "CERTIFICATES": "Certificates",
+    "USER_MANUAL": "User Manual",
+    "LEGAL_INFO": "Legal Information",
+    "TERMS_CONDITIONS": "Terms and Conditions",
+    "MESSAGES": {
+      "GENERATING_BACKUP": "Generating backup ...",
+      "SYNCHRONIZING": "Synchronizing ...",
+      "LOGOUT_ERROR": "Error closing session. You can force close the application if you are sure you don't want to synchronize data with the server",
+      "SYNC_ERROR": "Error synchronizing",
+      "FORCE_QUIT_TITLE": "Logout",
+      "FORCE_QUIT_MESSAGE": "Are you sure you want to force quit? Unsynchronized data will be saved in a backup file.",
+      "FORCE_QUIT_CONFIRM": "Yes, logout",
+      "FORCE_QUIT_CANCEL": "No, cancel",
+      "FORCE_QUIT_ERROR": "Error forcing quit",
+      "INIT_ERROR": "Error initializing menu",
+      "NAVIGATION_ERROR": "Navigation error"
+    }
+  },
+  "HEADER": {
+    "MESSAGES": {
+      "SYNCHRONIZING": "Synchronizing ...",
+      "SYNC_SUCCESS": "Synchronization successful",
+      "SYNC_ERROR": "Synchronization failed. Please try again later",
+      "HELP_ERROR": "Error showing help"
+    }
+  },
+  "HOME": {
+    "TABS": {
+      "SHIFT": "Shift",
+      "INVENTORY": "Inventory"
+    },
+    "MESSAGES": {
+      "LOAD_ERROR": "Error loading data. Please try again."
+    }
+  },
+  "ACTIVITIES": {
+    "SEARCH": "Search...",
+    "MESSAGES": {
+      "STARTING_ROUTE": "Starting route",
+      "UPDATING_INFO": "Updating information",
+      "PERMISSION_ERROR": "Error checking permissions",
+      "LOAD_ERROR": "Error loading activities",
+      "FILTER_ERROR": "Error filtering activities",
+      "INITIAL_MILEAGE": "Initial mileage",
+      "MILEAGE": "Mileage",
+      "MILEAGE_ERROR": "Error requesting mileage",
+      "NAVIGATION_ERROR": "Error navigating to activity",
+      "SERVICES": "Services",
+      "ADD_ERROR": "Error adding activity",
+      "MODAL_ERROR": "Error showing form",
+      "START_ERROR": "Error starting activity. Continuing with navigation..."
+    }
+  },
+  "TRANSACTIONS": {
+    "SEARCH": "Search...",
+    "MESSAGES": {
+      "INIT_ERROR": "Error initializing transactions page",
+      "LOAD_ERROR": "Error loading transactions",
+      "FILTER_ERROR": "Error filtering transactions",
+      "NAVIGATION_ERROR": "Navigation error",
+      "NO_DOCUMENTS": "No documents available",
+      "DOCUMENTS": "Documents",
+      "DOCUMENTS_ERROR": "Error showing documents",
+      "UPDATING_INFO": "Updating information",
+      "ADD_ERROR": "Error adding transaction",
+      "MODAL_ERROR": "Error showing form",
+      "APPROVE_ERROR": "Error approving activity",
+      "SYNC_SUCCESS": "Synchronization successful",
+      "SYNC_ERROR": "Synchronization failed. Please try again later"
+    }
+  },
+  "TASKS": {
+    "SEARCH": "Search...",
+    "MESSAGES": {
+      "INIT_ERROR": "Error initializing tasks page",
+      "LOAD_ERROR": "Error loading tasks",
+      "FILTER_ERROR": "Error filtering tasks",
+      "UPDATING_INFO": "Updating information",
+      "ADD_ERROR": "Error adding task",
+      "EDIT_ERROR": "Error editing task",
+      "APPROVE_ERROR": "Error approving transaction",
+      "REJECT_ERROR": "Error rejecting transaction",
+      "MODAL_ERROR": "Error showing form",
+      "SYNC_SUCCESS": "Synchronization successful",
+      "SYNC_ERROR": "Synchronization failed. Please try again later",
+      "NO_CONNECTION": "No connection to server. Please try again later"
+    }
   }
 }

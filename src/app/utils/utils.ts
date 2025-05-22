@@ -98,60 +98,6 @@ export class Utils {
   }
 
   /**
-   * Present a toast message
-   * @param message The message to display
-   * @param position The position of the toast (top, middle, bottom)
-   */
-  static async showToast(message: string, position: 'top' | 'middle' | 'bottom' = 'bottom'): Promise<void> {
-    const toast = await Utils.toastController.create({
-      message,
-      duration: 3000,
-      position,
-      color: 'dark'
-    });
-    await toast.present();
-  }
-
-  /**
-   * Show a loading indicator
-   * @param message The message to display in the loading indicator
-   */
-  static async showLoading(message: string): Promise<void> {
-    Utils.loading = await Utils.loadingController.create({
-      message,
-      spinner: 'circular'
-    });
-    await Utils.loading.present();
-  }
-
-  /**
-   * Hide the loading indicator
-   */
-  static async hideLoading(): Promise<void> {
-    if (Utils.loading) {
-      await Utils.loading.dismiss();
-    }
-  }
-
-  /**
-   * Shows an alert dialog with the specified header and message
-   * @param header - The alert header text
-   * @param message - The alert message text
-   */
-  static async showAlert(header: string, message: string): Promise<void> {
-    try {
-      const alert = await Utils.alertController.create({
-        header,
-        message,
-        buttons: ['OK']
-      });
-      await alert.present();
-    } catch (error) {
-      Utils.logger?.error('Error showing alert', error);
-    }
-  }
-
-  /**
    * Get the name of a service
    * @param serviceId The service ID
    * @returns The service name

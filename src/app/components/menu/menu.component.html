@@ -6,44 +6,51 @@
   </ion-header>
   <ion-content>
     <ion-list lines="none">
-      <ion-item-divider>Usuario</ion-item-divider>
-      <ion-item *ngIf="showCuenta" (click)="navigateTo('cuenta')">
+      <ion-item-divider>{{ 'MENU.USER' | translate }}</ion-item-divider>
+      <ion-item *ngIf="showAccount" (click)="navigateTo('account')">
         <ion-icon name="people-outline"></ion-icon>
         {{ account }}
       </ion-item>
-      <ion-item (click)="navigateTo('perfil')">
+      <ion-item (click)="navigateTo('profile')">
         <ion-icon name="person-outline"></ion-icon>
         {{ user }}
       </ion-item>
-      <ion-item-divider>Datos Maestros</ion-item-divider>
-      <ion-item *ngIf="showEmbalajes" (click)="navigateTo('embalajes')">Embalajes</ion-item>
-      <ion-item *ngIf="showInsumos" (click)="navigateTo('insumos')">Insumos</ion-item>
-      <ion-item *ngIf="showMateriales" (click)="navigateTo('materiales')">Materiales</ion-item>
-      <ion-item *ngIf="showServicios" (click)="navigateTo('servicios')">Servicios</ion-item>
-      <ion-item *ngIf="showPuntos" (click)="navigateToPuntos()">Puntos</ion-item>
-      <ion-item *ngIf="showTerceros" (click)="navigateTo('terceros')">Terceros</ion-item>
-      <ion-item *ngIf="showTratamientos" (click)="navigateTo('tratamientos')">Tratamientos</ion-item>
-      <ion-item *ngIf="showVehiculos" (click)="navigateTo('vehiculos')">Vehículos</ion-item>
-      <ion-item (click)="sincronizar()">
-        <ion-icon name="sync-outline"></ion-icon>Sincronizar
+      <ion-item-divider>{{ 'MENU.MASTER_DATA' | translate }}</ion-item-divider>
+      <ion-item *ngIf="showPackage" (click)="navigateTo('packaging')">{{ 'MENU.PACKAGING' | translate }}</ion-item>
+      <ion-item *ngIf="showSupply" (click)="navigateTo('supplies')">{{ 'MENU.SUPPLIES' | translate }}</ion-item>
+      <ion-item *ngIf="showMaterial" (click)="navigateTo('materials')">{{ 'MENU.MATERIALS' | translate }}</ion-item>
+      <ion-item *ngIf="showService" (click)="navigateTo('services')">{{ 'MENU.SERVICES' | translate }}</ion-item>
+      <ion-item *ngIf="showPoint" (click)="navigateToPoints()">{{ 'MENU.POINTS' | translate }}</ion-item>
+      <ion-item *ngIf="showThirdParty" (click)="navigateTo('third-parties')">{{ 'MENU.THIRD_PARTIES' | translate }}</ion-item>
+      <ion-item *ngIf="showTreatment" (click)="navigateTo('treatments')">{{ 'MENU.TREATMENTS' | translate }}</ion-item>
+      <ion-item *ngIf="showVehicle" (click)="navigateTo('vehicles')">{{ 'MENU.VEHICLES' | translate }}</ion-item>
+      <ion-item (click)="synchronize()">
+        <ion-icon name="sync-outline"></ion-icon>{{ 'MENU.SYNCHRONIZE' | translate }}
       </ion-item>
-      <ion-item-divider>Sesión</ion-item-divider>
-      <ion-item (click)="logout()">
-        <ion-icon name="power-outline"></ion-icon>        Cerrar
+      <ion-item-divider>{{ 'MENU.SESSION' | translate }}</ion-item-divider>
+      <ion-item *ngIf="!showForceQuit" (click)="logout()">
+        <ion-icon name="power-outline"></ion-icon>{{ 'MENU.CLOSE' | translate }}
       </ion-item>
-      </ion-list>
+      <ion-item *ngIf="showForceQuit" (click)="forceQuit()">
+        <ion-icon name="power-outline" color="danger"></ion-icon>{{ 'MENU.FORCE_CLOSE' | translate }}
+      </ion-item>
+    </ion-list>
   </ion-content>
   <ion-footer>
-    <ion-item *ngIf="showCertificado" (click)="navigateTo('certificados-buscar')">
-      <ion-icon name="shield-checkmark-outline"></ion-icon>Certificados
+    <ion-item *ngIf="showCertificate" (click)="navigateTo('certificados-buscar')">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'MENU.CERTIFICATES' | translate }}
+    </ion-item>
+    <ion-item href="https://docs.app.gresst.com">
+      <ion-icon color="medium" name="help-circle-outline"></ion-icon>
+      {{ 'MENU.USER_MANUAL' | translate }}
     </ion-item>
     <ion-item href="https://gresst.com/Content/Gresst%20-%20Manual%20y%20Política%20de%20Protección%20de%20Datos%20del%20Producto.htm">
       <ion-icon color="medium" name="information-outline"></ion-icon>
-      Informarción legal
+      {{ 'MENU.LEGAL_INFO' | translate }}
     </ion-item>
     <ion-item href="https://gresst.com/Content/Gresst%20-%20Términos%20y%20Condiciones.htm">
       <ion-icon color="medium" name="ribbon-outline"></ion-icon>
-      Términos y condiciones
+      {{ 'MENU.TERMS_CONDITIONS' | translate }}
     </ion-item>
-</ion-footer>
+  </ion-footer>
 </ion-menu>

@@ -52,7 +52,6 @@ export class AuthorizationApiService {
    */
   async get(): Promise<UserPermissions> {
     try {
-      console.log('get');
       const response = await this.http.get<UserPermissions>('/authorization/get/app');
       return response.data;
     } catch (error) {

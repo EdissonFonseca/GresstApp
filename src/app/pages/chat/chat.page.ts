@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Mensaje } from 'src/app/interfaces/mensaje.interface';
 import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
 import { Utils } from '@app/utils/utils';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.page.html',
@@ -19,11 +19,12 @@ export class ChatPage implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private masterdataService: MasterDataApiService
+    private masterdataService: MasterDataApiService,
+    private userNotificationService: UserNotificationService
   ) { }
 
   async ngOnInit() {
-    await Utils.showLoading('Sincronizando ....');
+    await this.userNotificationService.showLoading('Sincronizando ....');
     this.route.queryParams.subscribe(params => {
       this.idResiduo = params["IdResiduo"],
       this.idInterlocutor = params["IdInterlocutor"],
@@ -31,7 +32,7 @@ export class ChatPage implements OnInit {
     });
     this.messages = await this.masterdataService.getMessages(this.idResiduo, this.idInterlocutor);
 
-    await Utils.hideLoading();
+    await this.userNotificationService.hideLoading();
   }
 
 

@@ -6,7 +6,7 @@ import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-activity-approve',
   templateUrl: './activity-approve.component.html',
@@ -32,6 +32,7 @@ export class ActivityApproveComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
     private activitiesService: ActivitiesService,
+    private userNotificationService: UserNotificationService,
     private modalCtrl:ModalController
   ) {
     this.frmActividad = this.formBuilder.group({
@@ -121,28 +122,28 @@ export class ActivityApproveComponent  implements OnInit {
   }
 
   async confirm() {
-    await Utils.showLoading('Enviando información');
+    await this.userNotificationService.showLoading('Enviando información');
     const actividad = await this.getFormData();
 
     if (!actividad) return;
 
     actividad.IdEstado = STATUS.APPROVED;
     this.activitiesService.update(actividad);
-    Utils.hideLoading();
-    Utils.showToast('Actividad aprobada', "top");
+    this.userNotificationService.hideLoading();
+    this.userNotificationService.showToast('Actividad aprobada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 
   async reject() {
-    await Utils.showLoading('Enviando información');
+    await this.userNotificationService.showLoading('Enviando información');
     const actividad = await this.getFormData();
 
     if (!actividad) return;
 
     actividad.IdEstado = STATUS.REJECTED;
     this.activitiesService.update(actividad);
-    Utils.hideLoading();
-    Utils.showToast('Actividad rechazada', "top");
+    this.userNotificationService.hideLoading();
+    this.userNotificationService.showToast('Actividad rechazada', "top");
     this.modalCtrl.dismiss(actividad);
   }
 }

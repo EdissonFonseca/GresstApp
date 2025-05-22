@@ -7,7 +7,7 @@ import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { SuppliesService } from '@app/services/masterdata/supplies.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-supplies',
   templateUrl: './supplies.component.html',
@@ -28,7 +28,8 @@ export class SuppliesComponent  implements OnInit {
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
     private suppliesService: SuppliesService,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -77,7 +78,7 @@ export class SuppliesComponent  implements OnInit {
       }
       else{
         this.supplies = await this.suppliesService.list();
-        await Utils.showToast(`Insumo ${formData.Nombre} creado`, 'middle');
+        await this.userNotificationService.showToast(`Insumo ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

@@ -6,7 +6,7 @@ import { SessionService } from '@app/services/core/session.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { Utils } from '@app/utils/utils';
 import { TranslateService } from '@ngx-translate/core';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 /**
  * Login page component that handles user authentication and offline mode support.
  * Implements session persistence and automatic token refresh.
@@ -32,7 +32,8 @@ export class LoginPage implements OnInit {
     private router: Router,
     private loadingController: LoadingController,
     private sessionService: SessionService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private userNotificationService: UserNotificationService
   ) {
     this.loginForm = this.formBuilder.group({
       username: ['', [Validators.required, Validators.email]],
@@ -73,33 +74,24 @@ export class LoginPage implements OnInit {
       if (isOnline) {
         const success = await this.authService.login(username, password);
         if (success) {
-          await this.sessionService.load();
+          await this.sessionService.start();
           await this.router.navigate(['/home']);
         } else {
           throw new Error('INVALID_CREDENTIALS');
         }
       } else {
-        const alreadyLoggedIn = await this.sessionService.isActive();
-        if (alreadyLoggedIn) {
-          await this.router.navigate(['/home']);
-        } else {
-          throw new Error('NO_CONNECTION');
-        }
+        throw new Error('NO_CONNECTION');
       }
     } catch (error: any) {
       let errorMessage = '';
 
-      if (error.message === 'NO_CONNECTION') {
-        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
-      } else if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
+      if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
         errorMessage = this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS');
-      } else if (error.status === 0) {
-        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION');
       } else {
         errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
       }
 
-      await Utils.showAlert(
+      await this.userNotificationService.showAlert(
         this.translate.instant('AUTH.ERRORS.TITLE'),
         errorMessage
       );

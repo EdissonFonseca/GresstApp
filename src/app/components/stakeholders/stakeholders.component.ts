@@ -6,7 +6,7 @@ import { Tercero } from 'src/app/interfaces/tercero.interface';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-stakeholders',
   templateUrl: './stakeholders.component.html',
@@ -27,7 +27,8 @@ export class StakeholdersComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private thirdpartiesService: ThirdpartiesService,
     private navCtrl: NavController,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -87,7 +88,7 @@ export class StakeholdersComponent  implements OnInit {
         }
         else{
           this.terceros = await this.thirdpartiesService.list();
-          await Utils.showToast(`Tercero ${formData.Nombre} creado`, 'middle');
+          await this.userNotificationService.showToast(`Tercero ${formData.Nombre} creado`, 'middle');
           this.selectedValue = '';
           this.searchText = '';
         }

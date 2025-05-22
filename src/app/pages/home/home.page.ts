@@ -3,14 +3,14 @@ import { SynchronizationService } from '../../services/core/synchronization.serv
 import { IonTabs } from '@ionic/angular';
 import { signal } from '@angular/core';
 import { StorageService } from '../../services/core/storage.service';
-import { SessionService } from '@app/services/core/session.service';
-import { Router } from '@angular/router';
-import { Utils } from '@app/utils/utils';
 import { STORAGE } from '@app/constants/constants';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { TranslateService } from '@ngx-translate/core';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
  * Handles tab navigation between actividades and inventario sections.
+ * Manages user session data and synchronization status.
  */
 @Component({
   selector: 'app-home',
@@ -18,152 +18,155 @@ import { STORAGE } from '@app/constants/constants';
   styleUrls: ['./home.page.scss'],
 })
 export class HomePage implements OnInit {
+  /** Title displayed in the header */
   @Input() title = 'Jornada';
+  /** ID of the help popup to be displayed */
   @Input() helpPopup = 'help-inventario';
+  /** Reference to the tabs component */
   @ViewChild('tabs', { static: true }) tabs: IonTabs | undefined;
 
-  // State management using signals
+  /** Current active tab using Angular signals */
   currentTab = signal<string>('actividades');
+  /** Account name using Angular signals */
   nombreCuenta = signal<string>('');
+  /** User name using Angular signals */
   nombreUsuario = signal<string>('');
 
   constructor(
     public synchronizationService: SynchronizationService,
     private storage: StorageService,
-    private sessionService: SessionService,
-    private router: Router
+    private userNotificationService: UserNotificationService,
+    private translate: TranslateService
   ) {}
 
   /**
    * Initialize component data and count pending transactions
+   * @throws {Error} If initialization fails
    */
   async ngOnInit() {
     try {
       await this.initializeData();
-      this.synchronizationService.countPendingTransactions();
+      await this.synchronizationService.countPendingTransactions();
     } catch (error) {
       await this.handleError(error);
     }
   }
 
   /**
-   * Handle tab changes
+   * Handle tab changes and update the current tab state
+   * @param event - The tab change event
    */
   onTabChange(event: any) {
-    this.currentTab.set(event.tab);
+    try {
+      this.currentTab.set(event.tab);
+    } catch (error) {
+      console.error('Error changing tab:', error);
+      this.handleError(error);
+    }
   }
 
   /**
-   * Update header title and help popup
+   * Update header title and help popup based on the selected tab
+   * @param title - The new title to display
+   * @param helpPopup - The new help popup ID
    */
   setHeader(title: string, helpPopup: string) {
-    this.title = title;
-    this.helpPopup = helpPopup;
-    this.currentTab.set(this.tabs?.getSelected() || 'actividades');
+    try {
+      this.title = title;
+      this.helpPopup = helpPopup;
+      const selectedTab = this.tabs?.getSelected() || 'actividades';
+      this.currentTab.set(selectedTab);
+    } catch (error) {
+      console.error('Error setting header:', error);
+      this.handleError(error);
+    }
   }
 
   /**
    * Get current sync status
+   * @returns {number} Number of pending transactions
    */
-  get syncStatus() {
-    return this.synchronizationService.pendingTransactions();
+  get syncStatus(): number {
+    try {
+      return this.synchronizationService.pendingTransactions();
+    } catch (error) {
+      console.error('Error getting sync status:', error);
+      return 0;
+    }
   }
 
   /**
-   * Initialize component data
+   * Initialize component data by loading user and account information
+   * @private
    */
   private async initializeData() {
-    await Promise.all([
-      this.loadUserData(),
-      this.loadAccountData()
-    ]);
+    try {
+      await Promise.all([
+        this.loadUserData(),
+        this.loadAccountData()
+      ]);
+    } catch (error) {
+      console.error('Error initializing data:', error);
+      throw error;
+    }
   }
 
   /**
    * Load user data from storage
+   * @private
    */
   private async loadUserData() {
     try {
       const user = await this.storage.get(STORAGE.USERNAME);
-      if (user) {
-        this.nombreUsuario.set(user.Nombre || '');
+      if (!user) {
+        throw new Error('User data not found');
       }
+      this.nombreUsuario.set(user.Nombre || '');
     } catch (error) {
       console.error('Error loading user data:', error);
+      throw error;
     }
   }
 
   /**
    * Load account data from storage
+   * @private
    */
   private async loadAccountData() {
     try {
       const cuenta = await this.storage.get(STORAGE.ACCOUNT);
-      if (cuenta) {
-        this.nombreCuenta.set(cuenta.NombreCuenta || '');
+      if (!cuenta) {
+        throw new Error('Account data not found');
       }
+      this.nombreCuenta.set(cuenta.NombreCuenta || '');
     } catch (error) {
       console.error('Error loading account data:', error);
+      throw error;
     }
   }
 
   /**
    * Handle errors in the component
+   * @param error - The error to handle
+   * @private
    */
   private async handleError(error: any) {
-    console.error('Error en HomePage:', error);
-    await Utils.showToast(
-      'Error al cargar los datos. Por favor, intente de nuevo.',
+    console.error('Error in HomePage:', error);
+    await this.userNotificationService.showToast(
+      this.translate.instant('HOME.MESSAGES.LOAD_ERROR'),
       'middle'
     );
   }
 
+  /**
+   * Lifecycle hook that is called when the page is about to enter
+   */
   async ionViewWillEnter() {
-    console.log('🔄 [Home] Verificando estado de la aplicación...');
     try {
-      console.log('🌐 [Home] Verificando conexión...');
-      const isOnline = await this.sessionService.isOnline();
-      console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
-
-      if (isOnline) {
-        console.log('🔄 [Home] Actualizando datos...');
-        await this.sessionService.refresh();
-        console.log('✅ [Home] Datos actualizados');
-      } else {
-        console.log('ℹ️ [Home] Modo sin conexión activado');
-        await Utils.showToast(
-          'Está trabajando sin conexión',
-          'middle'
-        );
-      }
+      await this.synchronizationService.countPendingTransactions();
     } catch (error) {
-      console.error('❌ [Home] Error verificando estado:', error);
-    }
-  }
-
-  async logout() {
-    console.log('🚪 [Home] Iniciando proceso de logout...');
-    try {
-      console.log('🌐 [Home] Verificando conexión...');
-      const isOnline = await this.sessionService.isOnline();
-      console.log('📡 [Home] Estado de conexión:', isOnline ? 'En línea' : 'Sin conexión');
-
-      if (isOnline) {
-        console.log('🔄 [Home] Cerrando sesión...');
-        await this.sessionService.close();
-        console.log('✅ [Home] Sesión cerrada exitosamente');
-      } else {
-        console.log('ℹ️ [Home] Modo sin conexión, cerrando sesión local...');
-        await this.sessionService.close();
-      }
-
-      await this.router.navigate(['/login']);
-    } catch (error) {
-      console.error('❌ [Home] Error en logout:', error);
-        await Utils.showToast(
-        'Error al cerrar sesión',
-        'middle'
-      );
+      console.error('Error in ionViewWillEnter:', error);
+      this.handleError(error);
     }
   }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { SessionService } from './services/core/session.service';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,8 @@ import { SplashScreen } from '@capacitor/splash-screen';
 export class AppComponent implements OnInit {
   constructor(
     private router: Router,
-    private platform: Platform
+    private platform: Platform,
+    private sessionService: SessionService
   ) {
     this.initializeApp();
   }
@@ -20,9 +22,16 @@ export class AppComponent implements OnInit {
     try {
       await this.platform.ready();
       await SplashScreen.hide();
-      await this.router.navigate(['/login']);
+
+      const isLoggedIn = await this.sessionService.isLoggedIn();
+      if (isLoggedIn) {
+        await this.router.navigate(['/home']);
+      } else {
+        await this.router.navigate(['/login']);
+      }
     } catch (error) {
       console.error('Error initializing app:', error);
+      await this.router.navigate(['/login']);
     }
   }
 

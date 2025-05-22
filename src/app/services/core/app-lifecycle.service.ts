@@ -71,7 +71,7 @@ export class AppLifecycleService {
         return;
       }
 
-      const isAuthenticated = await this.sessionService.isActive();
+      const isAuthenticated = await this.sessionService.isLoggedIn();
       if (!isAuthenticated) {
         // Redirect to login if session is invalid
         await this.router.navigate(['/login']);

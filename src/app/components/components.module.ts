@@ -2,6 +2,7 @@ import { IonicModule } from "@ionic/angular";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ActivityAddComponent } from "./activity-add/activity-add.component";
 import { ActivityApproveComponent } from "./activity-approve/activity-approve.component";
@@ -69,7 +70,8 @@ const components = [];
     IonicModule,
     FormsModule,
     ReactiveFormsModule,
-    ResidueDismissComponent
+    ResidueDismissComponent,
+    TranslateModule
   ],
   exports: [
     ActivityAddComponent,

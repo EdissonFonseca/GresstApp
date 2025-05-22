@@ -34,25 +34,6 @@ export class AuthenticationApiService {
   ) {
   }
 
-  async isLoggedIn(): Promise<boolean> {
-    const isLoggedIn = await this.storage.get(STORAGE.IS_LOGGED_IN);
-    return isLoggedIn;
-  }
-
-  /**
-   * Checks if the API is available and responding
-   * @returns {Promise<boolean>} True if API is available and responding
-   */
-  async isApiAvailable(): Promise<boolean> {
-    try {
-      const response = await this.http.get<{ isAuthenticated: boolean }>('/authentication/ping');
-      return response.status === 200;
-    } catch (error) {
-      this.logger.error('API availability check failed', error);
-      return false;
-    }
-  }
-
   /**
    * Authenticates a user with the provided credentials
    * @param {string} username - User's email address
@@ -67,15 +48,17 @@ export class AuthenticationApiService {
         Password: password
       });
 
+      if (response.status !== 200) {
+        throw new Error('AUTH.ERRORS.SERVER_ERROR');
+      }
+
       if (!response.data.AccessToken || !response.data.RefreshToken) {
-        this.logger.error('Invalid login response', { response });
-        throw new Error('Invalid login response');
+        return false;
       }
 
       await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
       await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
       await this.storage.set(STORAGE.USERNAME, username);
-      await this.storage.set(STORAGE.IS_LOGGED_IN, true);
 
       return true;
     } catch (error) {

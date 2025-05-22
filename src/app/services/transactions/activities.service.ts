@@ -141,7 +141,7 @@ export class ActivitiesService {
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
       await this.storage.set(STORAGE.TRANSACTION, transaction);
-      await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
+      await this.requestsService.create(DATA_TYPE.START_ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
     }
   }

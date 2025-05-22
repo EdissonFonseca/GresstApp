@@ -1,21 +1,21 @@
-<app-header [pageTitle]="title" [helpPopup]="helpPopup"></app-header>
+<app-header [pageTitle]="title"></app-header>
 <app-menu></app-menu>
 <ion-content id="main-content">
   <ion-tabs #tabs (ionTabsDidChange)="onTabChange($event)">
     <ion-tab-bar slot="bottom">
       <ion-tab-button
         tab="actividades"
-        (click)="setHeader('Jornada','help-jornada')"
+        (click)="setHeader('HOME.TABS.SHIFT', 'help-jornada')"
         [class.active]="currentTab() === 'actividades'">
         <ion-icon src="../../../assets/icon/workhistory.svg"></ion-icon>
-        Jornada
+        {{ 'HOME.TABS.SHIFT' | translate }}
       </ion-tab-button>
       <ion-tab-button
         tab="inventario"
-        (click)="setHeader('Inventario','help-inventario')"
+        (click)="setHeader('HOME.TABS.INVENTORY', 'help-inventario')"
         [class.active]="currentTab() === 'inventario'">
         <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
-        Inventario
+        {{ 'HOME.TABS.INVENTORY' | translate }}
       </ion-tab-button>
     </ion-tab-bar>
   </ion-tabs>

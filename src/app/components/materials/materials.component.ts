@@ -7,7 +7,7 @@ import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-materials',
   templateUrl: './materials.component.html',
@@ -47,7 +47,8 @@ export class MaterialsComponent implements OnInit {
     private materialsService: MaterialsService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -69,7 +70,7 @@ export class MaterialsComponent implements OnInit {
       this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
     } catch (error) {
       console.error('Error loading materials:', error);
-      Utils.showToast('Error al cargar los materiales', 'middle');
+      this.userNotificationService.showToast('Error al cargar los materiales', 'middle');
     }
   }
 
@@ -84,7 +85,7 @@ export class MaterialsComponent implements OnInit {
       this.materials = materials.filter((material) => material.Nombre.toLowerCase().indexOf(query) > -1);
     } catch (error) {
       console.error('Error searching materials:', error);
-      Utils.showToast('Error al buscar materiales', 'middle');
+      this.userNotificationService.showToast('Error al buscar materiales', 'middle');
     }
   }
 
@@ -108,7 +109,7 @@ export class MaterialsComponent implements OnInit {
       this.modalCtrl.dismiss(data);
     } catch (error) {
       console.error('Error selecting material:', error);
-      Utils.showToast('Error al seleccionar el material', 'middle');
+      this.userNotificationService.showToast('Error al seleccionar el material', 'middle');
     }
   }
 
@@ -161,13 +162,13 @@ export class MaterialsComponent implements OnInit {
             this.selectedValue = material.IdMaterial;
           } else {
             await this.loadMaterials();
-            await Utils.showToast(`Material ${material.Nombre} creado`, 'middle');
+            await this.userNotificationService.showToast(`Material ${material.Nombre} creado`, 'middle');
             this.selectedValue = '';
           }
         }
       } catch (error) {
         console.error('Error creating material:', error);
-        Utils.showToast('Error al crear el material', 'middle');
+        this.userNotificationService.showToast('Error al crear el material', 'middle');
       }
     }
   }

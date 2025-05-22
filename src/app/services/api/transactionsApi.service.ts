@@ -187,10 +187,10 @@ export class TransactionsApiService {
    * @param {Actividad} activity - Initial activity to create
    * @returns {Promise<boolean>} True if creation successful
    */
-  async createInitialActivity(activity: Actividad): Promise<boolean> {
+  async updateInitialActivity(activity: Actividad): Promise<boolean> {
     try {
-      const response = await this.http.post<ActivityResponse>('/apptransactions/createactividad', activity);
-      if (response.status === 201 && response.data) {
+      const response = await this.http.post<ActivityResponse>('/apptransactions/updateactividadInicio', activity);
+      if ((response.status === 200 || response.status === 201) && response.data) {
         activity.IdActividad = response.data.IdActividad;
         this.logger.info('Initial activity created successfully', { activityId: activity.IdActividad });
         return true;

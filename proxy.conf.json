@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://qa.api.gresst.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

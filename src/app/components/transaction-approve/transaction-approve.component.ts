@@ -6,7 +6,7 @@ import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { STATUS } from '@app/constants/constants';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Utils } from '@app/utils/utils';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-transaction-approve',
   templateUrl: './transaction-approve.component.html',
@@ -33,7 +33,8 @@ export class TransactionApproveComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
     private modalCtrl:ModalController,
-    private transactionsService: TransactionsService
+    private transactionsService: TransactionsService,
+    private userNotificationService: UserNotificationService
   ) {
     this.frmTransaccion = this.formBuilder.group({
       Identificacion: '',
@@ -121,11 +122,11 @@ export class TransactionApproveComponent  implements OnInit {
     var transaccion = await this.getFormData();
     if (!transaccion) return;
 
-    await Utils.showLoading('Enviando información');
+    await this.userNotificationService.showLoading('Enviando información');
     transaccion.IdEstado = STATUS.APPROVED;
     await this.transactionsService.update(transaccion);
-    Utils.hideLoading();
-    Utils.showToast('Transaccion aprobada', "top");
+    this.userNotificationService.hideLoading();
+    this.userNotificationService.showToast('Transaccion aprobada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 
@@ -133,11 +134,11 @@ export class TransactionApproveComponent  implements OnInit {
     var transaccion = await this.getFormData();
     if (!transaccion) return;
 
-    await Utils.showLoading('Enviando información');
+    await this.userNotificationService.showLoading('Enviando información');
     transaccion.IdEstado = STATUS.REJECTED;
     await this.transactionsService.update(transaccion);
-    Utils.hideLoading();
-    Utils.showToast('Transaccion rechazada', "top");
+    this.userNotificationService.hideLoading();
+    this.userNotificationService.showToast('Transaccion rechazada', "top");
     this.modalCtrl.dismiss(transaccion);
   }
 }

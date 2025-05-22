@@ -2,7 +2,7 @@
 </ion-header>
 <ion-content [fullscreen]="true" color="light">
   <ion-toolbar>
-    <ion-searchbar (ionInput)="handleInput($event)" placeholder="Buscar..." show-clear-button="focus"></ion-searchbar>
+    <ion-searchbar (ionInput)="handleInput($event)" [placeholder]="'ACTIVITIES.SEARCH' | translate" show-clear-button="focus"></ion-searchbar>
   </ion-toolbar>
   <app-card-list [cards]="activities()" (edit)="navigateToTarget($event)"></app-card-list>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">

@@ -25,11 +25,12 @@ export class HttpService {
   private isRefreshing = false;
   private readonly apiUrl = environment.apiUrl;
   private readonly noAuthEndpoints = [
-    '/ping',
-    '/auth/login',
-    '/auth/register',
-    '/auth/forgot-password',
-    '/auth/reset-password'
+    '/authentication/ping',
+    '/authentication/login',
+    '/authentication/register',
+    '/authentication/existuser',
+    '/authentication/reset-password',
+    '/authentication/refreshtoken'
   ];
 
   private readonly retryConfig: RetryConfig = {

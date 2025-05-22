@@ -15,7 +15,7 @@ import { TasksService } from '@app/services/transactions/tasks.service';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-residue-dismiss',
   templateUrl: './residue-dismiss.component.html',
@@ -52,7 +52,8 @@ export class ResidueDismissComponent implements OnInit {
     private tasksService: TasksService,
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
   ) {
     this.residueId = this.navParams.get("ResidueId") || '';
   }
@@ -61,7 +62,7 @@ export class ResidueDismissComponent implements OnInit {
     try {
       this.residue = await this.inventoryService.getResiduo(this.residueId);
       if (!this.residue) {
-        Utils.showToast('No se encontró el residuo', 'top');
+        this.userNotificationService.showToast('No se encontró el residuo', 'top');
         this.cancel();
         return;
       }
@@ -72,7 +73,7 @@ export class ResidueDismissComponent implements OnInit {
       this.material = await this.materialsService.get(this.residue.IdMaterial);
     } catch (error) {
       console.error('Error initializing component:', error);
-      Utils.showToast('Error al cargar los datos del residuo', 'top');
+      this.userNotificationService.showToast('Error al cargar los datos del residuo', 'top');
       this.cancel();
     }
   }
@@ -80,17 +81,17 @@ export class ResidueDismissComponent implements OnInit {
   async confirm() {
     try {
       if (!this.residue) {
-        Utils.showToast('No hay residuo seleccionado', 'top');
+        this.userNotificationService.showToast('No hay residuo seleccionado', 'top');
         return;
       }
 
       if (!this.date) {
-        Utils.showToast('Debe seleccionar una fecha', 'top');
+        this.userNotificationService.showToast('Debe seleccionar una fecha', 'top');
         return;
       }
 
       if (!this.pointId) {
-        Utils.showToast('Debe seleccionar un punto', 'top');
+        this.userNotificationService.showToast('Debe seleccionar un punto', 'top');
         return;
       }
 
@@ -144,7 +145,7 @@ export class ResidueDismissComponent implements OnInit {
       this.modalCtrl.dismiss({ ActivityId: actividad?.IdActividad });
     } catch (error) {
       console.error('Error confirming residue dismiss:', error);
-      Utils.showToast('Error al procesar la solicitud', 'top');
+      this.userNotificationService.showToast('Error al procesar la solicitud', 'top');
     }
   }
 
@@ -185,7 +186,7 @@ export class ResidueDismissComponent implements OnInit {
       return await modal.present();
     } catch (error) {
       console.error('Error selecting plant:', error);
-      Utils.showToast('Error al seleccionar la planta', 'top');
+      this.userNotificationService.showToast('Error al seleccionar la planta', 'top');
     }
   }
 
@@ -212,7 +213,7 @@ export class ResidueDismissComponent implements OnInit {
       return await modal.present();
     } catch (error) {
       console.error('Error selecting store:', error);
-      Utils.showToast('Error al seleccionar el almacén', 'top');
+      this.userNotificationService.showToast('Error al seleccionar el almacén', 'top');
     }
   }
 
@@ -236,7 +237,7 @@ export class ResidueDismissComponent implements OnInit {
       return await modal.present();
     } catch (error) {
       console.error('Error selecting treatment:', error);
-      Utils.showToast('Error al seleccionar el tratamiento', 'top');
+      this.userNotificationService.showToast('Error al seleccionar el tratamiento', 'top');
     }
   }
 }

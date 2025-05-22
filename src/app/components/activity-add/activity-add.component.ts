@@ -8,6 +8,7 @@ import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 
 @Component({
   selector: 'app-activity-add',
@@ -36,6 +37,7 @@ export class ActivityAddComponent  implements OnInit {
     private navParams: NavParams,
     private activitiesService: ActivitiesService,
     private formBuilder: FormBuilder,
+    private userNotificationService: UserNotificationService,
     private authorizationService: AuthorizationService
   ) {
     this.frmActivity = this.formBuilder.group({
@@ -61,12 +63,12 @@ export class ActivityAddComponent  implements OnInit {
     const isoToday = today.toISOString();
     let titulo: string = '';
 
-    Utils.showLoading('Creando actividad...');
+    await this.userNotificationService.showLoading('Creando actividad...');
     if (this.idServicio == SERVICE_TYPES.TRANSPORT && this.idRecurso != ''){
       const lista = await this.activitiesService.list();
       const actividades = lista.filter(x => x.IdServicio == this.idServicio && x.IdRecurso == this.idRecurso && x.IdEstado == STATUS.PENDING);
       if (actividades.length > 0) {
-        Utils.showToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
+        this.userNotificationService.showToast('Ya existe un servicio activo para el vehiculo seleccionado', 'middle');
         this.idRecurso = '';
         this.recurso = '';
         return;
@@ -88,7 +90,7 @@ export class ActivityAddComponent  implements OnInit {
       NavegarPorTransaccion: true,
     };
     await this.activitiesService.create(actividad);
-    Utils.hideLoading();
+    this.userNotificationService.hideLoading();
 
     this.modalCtrl.dismiss(actividad);
   }

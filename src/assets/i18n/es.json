@@ -50,5 +50,108 @@
     "NEW": "Nuevo Punto",
     "EDIT": "Editar Punto",
     "DELETE": "Eliminar Punto"
+  },
+  "MENU": {
+    "USER": "Usuario",
+    "MASTER_DATA": "Datos Maestros",
+    "PACKAGING": "Embalajes",
+    "SUPPLIES": "Insumos",
+    "MATERIALS": "Materiales",
+    "SERVICES": "Servicios",
+    "POINTS": "Puntos",
+    "THIRD_PARTIES": "Terceros",
+    "TREATMENTS": "Tratamientos",
+    "VEHICLES": "Vehículos",
+    "SYNCHRONIZE": "Sincronizar",
+    "SESSION": "Sesión",
+    "CLOSE": "Cerrar",
+    "FORCE_CLOSE": "Forzar Cierre",
+    "CERTIFICATES": "Certificados",
+    "USER_MANUAL": "Manual de usuario",
+    "LEGAL_INFO": "Información legal",
+    "TERMS_CONDITIONS": "Términos y condiciones",
+    "MESSAGES": {
+      "GENERATING_BACKUP": "Generando respaldo ...",
+      "SYNCHRONIZING": "Sincronizando ...",
+      "LOGOUT_ERROR": "Error al cerrar sesión. Puede forzar el cierre de la aplicación si está seguro de no sincronizar los datos con el servidor",
+      "SYNC_ERROR": "Error al sincronizar",
+      "FORCE_QUIT_TITLE": "Cerrar sesión",
+      "FORCE_QUIT_MESSAGE": "¿Está seguro que desea forzar la salida? Los datos no sincronizados se guardarán en un archivo de respaldo.",
+      "FORCE_QUIT_CONFIRM": "Sí, cerrar sesión",
+      "FORCE_QUIT_CANCEL": "No, cancelar",
+      "FORCE_QUIT_ERROR": "Error al forzar la salida",
+      "INIT_ERROR": "Error al inicializar el menú",
+      "NAVIGATION_ERROR": "Error al navegar"
+    }
+  },
+  "HEADER": {
+    "MESSAGES": {
+      "SYNCHRONIZING": "Sincronizando ...",
+      "SYNC_SUCCESS": "Sincronización exitosa",
+      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde",
+      "HELP_ERROR": "Error al mostrar la ayuda"
+    }
+  },
+  "HOME": {
+    "TABS": {
+      "SHIFT": "Jornada",
+      "INVENTORY": "Inventario"
+    },
+    "MESSAGES": {
+      "LOAD_ERROR": "Error al cargar los datos. Por favor, intente de nuevo."
+    }
+  },
+  "ACTIVITIES": {
+    "SEARCH": "Buscar...",
+    "MESSAGES": {
+      "STARTING_ROUTE": "Iniciando ruta",
+      "UPDATING_INFO": "Actualizando información",
+      "PERMISSION_ERROR": "Error al verificar permisos",
+      "LOAD_ERROR": "Error al cargar las actividades",
+      "FILTER_ERROR": "Error al filtrar las actividades",
+      "INITIAL_MILEAGE": "Kilometraje inicial",
+      "MILEAGE": "Kilometraje",
+      "MILEAGE_ERROR": "Error al solicitar el kilometraje",
+      "NAVIGATION_ERROR": "Error al navegar a la actividad",
+      "SERVICES": "Servicios",
+      "ADD_ERROR": "Error al agregar la actividad",
+      "MODAL_ERROR": "Error al mostrar el formulario",
+      "START_ERROR": "Error al iniciar la actividad. Continuando con la navegación..."
+    }
+  },
+  "TRANSACTIONS": {
+    "SEARCH": "Buscar...",
+    "MESSAGES": {
+      "INIT_ERROR": "Error al inicializar la página de transacciones",
+      "LOAD_ERROR": "Error al cargar las transacciones",
+      "FILTER_ERROR": "Error al filtrar las transacciones",
+      "NAVIGATION_ERROR": "Error al navegar",
+      "NO_DOCUMENTS": "No hay documentos disponibles",
+      "DOCUMENTS": "Documentos",
+      "DOCUMENTS_ERROR": "Error al mostrar los documentos",
+      "UPDATING_INFO": "Actualizando información",
+      "ADD_ERROR": "Error al agregar la transacción",
+      "MODAL_ERROR": "Error al mostrar el formulario",
+      "APPROVE_ERROR": "Error al aprobar la actividad",
+      "SYNC_SUCCESS": "Sincronización exitosa",
+      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde"
+    }
+  },
+  "TASKS": {
+    "SEARCH": "Buscar...",
+    "MESSAGES": {
+      "INIT_ERROR": "Error al inicializar la página de tareas",
+      "LOAD_ERROR": "Error al cargar las tareas",
+      "FILTER_ERROR": "Error al filtrar las tareas",
+      "UPDATING_INFO": "Actualizando información",
+      "ADD_ERROR": "Error al agregar la tarea",
+      "EDIT_ERROR": "Error al editar la tarea",
+      "APPROVE_ERROR": "Error al aprobar la transacción",
+      "REJECT_ERROR": "Error al rechazar la transacción",
+      "MODAL_ERROR": "Error al mostrar el formulario",
+      "SYNC_SUCCESS": "Sincronización exitosa",
+      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde",
+      "NO_CONNECTION": "No hay conexión con el servidor. Intente de nuevo más tarde"
+    }
   }
 }

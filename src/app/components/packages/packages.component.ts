@@ -7,7 +7,7 @@ import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-packages',
   templateUrl: './packages.component.html',
@@ -28,7 +28,8 @@ export class PackagesComponent  implements OnInit {
     private packagingService: PackagingService,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
       Nombre: ['', Validators.required],
@@ -87,7 +88,7 @@ export class PackagesComponent  implements OnInit {
       }
       else{
         this.packages = await this.packagingService.list();
-        await Utils.showToast(`Embalaje ${formData.Nombre} creado`, 'middle');
+        await this.userNotificationService.showToast(`Embalaje ${formData.Nombre} creado`, 'middle');
         this.selectedValue = '';
         this.searchText = '';
       }

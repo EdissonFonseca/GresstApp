@@ -17,7 +17,7 @@ import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { Utils } from '@app/utils/utils';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-inventory',
   templateUrl: './inventory.page.html',
@@ -36,7 +36,8 @@ export class InventoryPage implements OnInit {
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
     private actionSheetCtrl: ActionSheetController,
-    private authorizationService: AuthorizationService
+    private authorizationService: AuthorizationService,
+    private userNotificationService: UserNotificationService
     ) {
     }
 
@@ -91,7 +92,7 @@ export class InventoryPage implements OnInit {
       // }
     }
 
-    await Utils.showToast('Residuo eliminado','middle');
+    await this.userNotificationService.showToast('Residuo eliminado','middle');
   }
 
   async moveResiduo(idResiduo: string){
@@ -111,7 +112,7 @@ export class InventoryPage implements OnInit {
       }
     }
 
-    await Utils.showToast('Residuo trasladado','middle');
+    await this.userNotificationService.showToast('Residuo trasladado','middle');
   }
 
   async receiveResiduo(){
@@ -130,7 +131,7 @@ export class InventoryPage implements OnInit {
       //}
     }
 
-    await Utils.showToast('Residuo recibido','middle');
+    await this.userNotificationService.showToast('Residuo recibido','middle');
   }
 
   async shareResiduo(idResiduo: string){

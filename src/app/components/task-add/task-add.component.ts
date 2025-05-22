@@ -16,7 +16,7 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { Utils } from '@app/utils/utils';
-
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 @Component({
   selector: 'app-task-add',
   templateUrl: './task-add.component.html',
@@ -70,6 +70,7 @@ export class TaskAddComponent implements OnInit {
     private transactionsService: TransactionsService,
     private tasksService: TasksService,
     private inventoryService: InventoryService,
+    private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
       Cantidad: [],
@@ -339,7 +340,7 @@ export class TaskAddComponent implements OnInit {
               idTransaccion = transaccionActual.IdTransaccion;
               fecha = transaccionActual.FechaInicial ?? isoDate;
             } else {
-              Utils.showToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
+              this.userNotificationService.showToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
               return;
             }
           }
