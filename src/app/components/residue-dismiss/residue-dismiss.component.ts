@@ -60,7 +60,7 @@ export class ResidueDismissComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      this.residue = await this.inventoryService.getResiduo(this.residueId);
+      this.residue = await this.inventoryService.getResidue(this.residueId);
       if (!this.residue) {
         this.userNotificationService.showToast('No se encontró el residuo', 'top');
         this.cancel();
@@ -102,7 +102,7 @@ export class ResidueDismissComponent implements OnInit {
       const isoToday = today.toISOString();
 
       const personId = await this.authorizationService.getPersonId();
-      actividad = await this.activitiesService.getByServicio(this.serviceId, this.pointId);
+      actividad = await this.activitiesService.getByServiceAndResource(this.serviceId, this.pointId);
 
       if (!actividad) {
         actividad = {
@@ -141,7 +141,7 @@ export class ResidueDismissComponent implements OnInit {
 
       this.residue.IdEstado = STATUS.INACTIVE;
       this.residue.IdDeposito = this.pointId;
-      await this.inventoryService.updateResiduo(this.residue);
+      await this.inventoryService.updateResidue(this.residue);
       this.modalCtrl.dismiss({ ActivityId: actividad?.IdActividad });
     } catch (error) {
       console.error('Error confirming residue dismiss:', error);

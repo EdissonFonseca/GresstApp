@@ -268,6 +268,11 @@ export class TaskAddComponent implements OnInit {
 
   async submit() {
     const actividad = await this.activitiesService.get(this.idActividad);
+    if (!actividad) {
+      this.userNotificationService.showToast('No se encontró la actividad','middle');
+      return;
+    }
+
     let tarea: Tarea | undefined = undefined;
     let idTransaccion: string | null = null;
     let idResiduo: string | null = null;
@@ -302,12 +307,12 @@ export class TaskAddComponent implements OnInit {
         Imagen: this.imageUrl,
         Ubicacion: '' //TODO
       };
-      await this.inventoryService.createResiduo(residuo);
+      await this.inventoryService.createResidue(residuo);
       idResiduo = residuo.IdResiduo;
 
       if (!this.idTransaccion) {
         if (actividad.IdServicio === SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT){
-          const transaccionActual = await this.transactionsService.getByPunto(this.idActividad, this.idPuntoEntrada);
+          const transaccionActual = await this.transactionsService.getByPoint(this.idActividad, this.idPuntoEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdActividad: this.idActividad,
@@ -345,7 +350,7 @@ export class TaskAddComponent implements OnInit {
             }
           }
         } else if (actividad.IdServicio == SERVICE_TYPES.RECEPTION) {
-          const transaccionActual = await this.transactionsService.getByTercero(this.idActividad, this.idTerceroEntrada);
+          const transaccionActual = await this.transactionsService.getByThirdParty(this.idActividad, this.idTerceroEntrada);
           if (!transaccionActual) {
             const transaccion: Transaccion = {
               IdActividad: this.idActividad,

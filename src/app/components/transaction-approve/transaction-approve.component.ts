@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { ModalController  } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { STATUS } from '@app/constants/constants';

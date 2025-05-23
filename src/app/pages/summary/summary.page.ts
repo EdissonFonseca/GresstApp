@@ -3,7 +3,7 @@ import { NavController } from '@ionic/angular';
 import { CardService } from '@app/services/core/card.service';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 
 /**
  * Page component for summary view

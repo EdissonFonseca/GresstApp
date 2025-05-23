@@ -1,42 +1,86 @@
+<!-- Header section with navigation and actions -->
 <ion-header>
+  <!-- Main toolbar with navigation and action buttons -->
   <ion-toolbar class="header-green">
+    <!-- Back button for navigation -->
     <ion-buttons slot="start">
-      <ion-back-button [text]="'COMMON.BACK' | translate"></ion-back-button>
+      <ion-back-button
+        [text]="'COMMON.BACK' | translate"
+        aria-label="Volver a la página anterior">
+      </ion-back-button>
     </ion-buttons>
-    <ion-title>
+
+    <!-- Page title showing current activity -->
+    <ion-title color="light">
       {{ activity().title }}
     </ion-title>
+
+    <!-- Action buttons for data synchronization -->
     <ion-buttons slot="end">
-      <ion-button (click)="synchronize()">
-        <ion-icon name="sync-outline" [color]="getColor()"></ion-icon>
+      <ion-button
+        (click)="synchronize()"
+        aria-label="Sincronizar datos"
+        [disabled]="isSynchronizing">
+        <ion-icon
+          name="sync-outline"
+          [color]="getColor()"
+          aria-hidden="true">
+        </ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Search toolbar for filtering tasks -->
   <ion-toolbar>
     <ion-searchbar
       (ionInput)="handleInput($event)"
       [placeholder]="'TASKS.SEARCH' | translate"
-      show-clear-button="focus">
+      show-clear-button="focus"
+      aria-label="Buscar tareas"
+      role="search">
     </ion-searchbar>
   </ion-toolbar>
 </ion-header>
+
+<!-- Main content section with tasks list -->
 <ion-content [fullscreen]="true" color="light">
-  <ion-item-group *ngFor="let transaction of transactions()">
-    <app-card
-      [card]="transaction"
-      [allowApprove]="true"
-      [allowNavigate]="false"
-      (approve)="openApproveTransaccion($event)"
-      (reject)="openRejectTransaccion($event)">
-    </app-card>
-    <app-card-list
-      [cards]="filterTareas(transaction.id)"
-      (edit)="openEditTarea($event)">
-    </app-card-list>
-  </ion-item-group>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
-    <ion-fab-button (click)="openAddTarea()">
-      <ion-icon name="add"></ion-icon>
+  <!-- Transactions and tasks list container -->
+  <ng-container *ngIf="transactions() | async as transactionCards">
+    <ng-container *ngFor="let transaction of transactionCards">
+      <!-- Transaction card with approval options -->
+      <app-card
+        [card]="transaction"
+        [allowApprove]="true"
+        [allowNavigate]="false"
+        (approve)="openApproveTransaccion($event)"
+        (reject)="openRejectTransaccion($event)"
+        aria-label="Detalles de la transacción">
+      </app-card>
+
+      <!-- Tasks list for current transaction -->
+      <app-card-list
+        [cards]="filterTareas(transaction.id)"
+        (edit)="openEditTarea($event)"
+        aria-label="Lista de tareas"
+        role="list">
+      </app-card-list>
+    </ng-container>
+  </ng-container>
+
+  <!-- Floating action button for adding new tasks -->
+  <ion-fab
+    slot="fixed"
+    vertical="bottom"
+    horizontal="end"
+    *ngIf="showAdd"
+    aria-label="Agregar nueva tarea">
+    <ion-fab-button
+      (click)="openAddTarea()"
+      aria-label="Crear nueva tarea">
+      <ion-icon
+        name="add"
+        aria-hidden="true">
+      </ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>

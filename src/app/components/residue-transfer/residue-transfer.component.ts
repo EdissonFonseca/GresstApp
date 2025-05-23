@@ -55,7 +55,7 @@ export class ResidueTransferComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventoryService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResidue(this.residueId);
     if (!this.residue) return;
 
     this.unidadCantidad = Utils.quantityUnit;
@@ -78,7 +78,7 @@ export class ResidueTransferComponent implements OnInit {
     if (this.serviceId == SERVICE_TYPES.DELIVERY || this.serviceId == SERVICE_TYPES.TRANSPORT) {
       const punto = await this.pointsService.get(this.residue.IdDeposito ?? '');
       if (this.serviceId == SERVICE_TYPES.DELIVERY) {
-        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.DELIVERY, this.residue.IdDeposito ?? '');
+        actividad = await this.activitiesService.getByServiceAndResource(SERVICE_TYPES.DELIVERY, this.residue.IdDeposito ?? '');
         if (!actividad) {
           if (punto) {
             actividad = {
@@ -95,7 +95,7 @@ export class ResidueTransferComponent implements OnInit {
           }
         }
         if (actividad) {
-          transaccion = await this.transactionsService.getByTercero(actividad.IdActividad, this.stakeholderId);
+          transaccion = await this.transactionsService.getByThirdParty(actividad.IdActividad, this.stakeholderId);
           if (!transaccion) {
             transaccion = {
               IdActividad: actividad.IdActividad,
@@ -111,7 +111,7 @@ export class ResidueTransferComponent implements OnInit {
           }
         }
       } else {
-        actividad = await this.activitiesService.getByServicio(SERVICE_TYPES.TRANSPORT, this.vehicleId);
+        actividad = await this.activitiesService.getByServiceAndResource(SERVICE_TYPES.TRANSPORT, this.vehicleId);
         if (!actividad) {
           actividad = {
             IdActividad: Utils.generateId(),
@@ -126,7 +126,7 @@ export class ResidueTransferComponent implements OnInit {
           await this.activitiesService.create(actividad);
         }
         if (actividad) {
-          transaccion = await this.transactionsService.getByTercero(actividad.IdActividad, this.stakeholderId);
+          transaccion = await this.transactionsService.getByThirdParty(actividad.IdActividad, this.stakeholderId);
           if (!transaccion) {
             transaccion = {
               IdActividad: actividad.IdActividad,
@@ -166,7 +166,7 @@ export class ResidueTransferComponent implements OnInit {
       }
       this.residue.IdEstado = STATUS.INACTIVE;
       this.residue.IdDeposito = this.pointId;
-      await this.inventoryService.updateResiduo(this.residue);
+      await this.inventoryService.updateResidue(this.residue);
     }
     this.modalCtrl.dismiss({ ActivityId: actividad?.IdActividad });
   }

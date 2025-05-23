@@ -1,31 +1,61 @@
-import { Injectable } from '@angular/core';
-import { StorageService } from '@app/services/core/storage.service';
+import { Injectable, signal } from '@angular/core';
 import { Tratamiento } from '@app/interfaces/tratamiento.interface';
+import { StorageService } from '@app/services/core/storage.service';
 import { STORAGE } from '@app/constants/constants';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TreatmentsService {
-  constructor(
-    private storage: StorageService,
-  ) {}
+  private treatments = signal<Tratamiento[]>([]);
+  public treatments$ = this.treatments.asReadonly();
 
+  constructor(private storage: StorageService) {
+    this.loadTreatments();
+  }
 
-  async get(idTratamiento: string): Promise<Tratamiento | undefined> {
-    const tratamientos: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
+  private async loadTreatments() {
+    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
+    this.treatments.set(masterData?.Tratamientos || []);
+  }
 
-    if (tratamientos) {
-      const tratamiento = tratamientos.find((tratamiento) => tratamiento.IdTratamiento === idTratamiento);
-      return tratamiento || undefined;
+  private async saveTreatments() {
+    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
+    if (masterData) {
+      masterData.Tratamientos = this.treatments();
+      await this.storage.set(STORAGE.MASTER_DATA, masterData);
     }
+  }
 
-    return undefined;
+  async get(id: string): Promise<Tratamiento | undefined> {
+    return this.treatments().find(t => t.IdTratamiento === id);
   }
 
   async list(): Promise<Tratamiento[]> {
-    const tratamientos: Tratamiento[] = await this.storage.get(STORAGE.TREATMENTS);
+    return this.treatments();
+  }
 
-    return tratamientos;
+  async create(treatment: Tratamiento): Promise<void> {
+    const currentTreatments = this.treatments();
+    currentTreatments.push(treatment);
+    this.treatments.set(currentTreatments);
+    await this.saveTreatments();
+  }
+
+  async update(treatment: Tratamiento): Promise<void> {
+    const currentTreatments = this.treatments();
+    const index = currentTreatments.findIndex(t => t.IdTratamiento === treatment.IdTratamiento);
+    if (index !== -1) {
+      currentTreatments[index] = treatment;
+      this.treatments.set(currentTreatments);
+      await this.saveTreatments();
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    const currentTreatments = this.treatments();
+    const filteredTreatments = currentTreatments.filter(t => t.IdTratamiento !== id);
+    this.treatments.set(filteredTreatments);
+    await this.saveTreatments();
   }
 }

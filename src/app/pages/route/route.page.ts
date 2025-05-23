@@ -42,7 +42,8 @@ export class RoutePage implements OnInit {
       this.idActividad = params["IdActividad"];
       console.log('📌 ID Actividad:', this.idActividad);
     });
-    this.puntos = await this.pointsService.getPuntosFromTareasPendientes(this.idActividad);
+    const puntosSignal = await this.pointsService.getPointsFromPendingTasks$(this.idActividad);
+    this.puntos = puntosSignal();
     console.log('📍 Puntos obtenidos:', this.puntos);
     await this.loadGoogleMaps();
   }

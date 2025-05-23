@@ -40,7 +40,7 @@ export class ResidueMoveComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventoryService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResidue(this.residueId);
 
     if (!this.residue) return;
 
@@ -56,7 +56,7 @@ export class ResidueMoveComponent  implements OnInit {
 
     this.residue.IdDeposito = this.targetId;
     this.residue.IdVehiculo = this.vehicleId;
-    this.inventoryService.updateResiduo(this.residue);
+    this.inventoryService.updateResidue(this.residue);
 
     this.modalCtrl.dismiss({TargetId: this.targetId, VehicleId: this.vehicleId, Target: this.target });
   }

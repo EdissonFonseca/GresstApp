@@ -1,12 +1,12 @@
-import { Component, EventEmitter, inject, Input, OnInit, output, Output, SimpleChanges } from '@angular/core';
-import { Card } from '@app/interfaces/card';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Card } from '@app/interfaces/card.interface';
 
 @Component({
   selector: 'app-card',
   templateUrl: './card.component.html',
-  styleUrls: ['./card.component.scss'],
+  styleUrls: ['./card.component.scss']
 })
-export class CardComponent  implements OnInit {
+export class CardComponent implements OnInit {
   @Input() card!: Card;
   @Input() allowNavigate: boolean = true;
   @Input() allowApprove: boolean = true;
@@ -14,8 +14,7 @@ export class CardComponent  implements OnInit {
   @Output() approve = new EventEmitter<string>();
   @Output() reject = new EventEmitter<string>();
 
-  constructor(
-  ) { }
+  constructor() { }
 
   ngOnInit() {
   }
@@ -34,5 +33,4 @@ export class CardComponent  implements OnInit {
   onReject(id: string) {
     this.reject?.emit(id);
   }
-
 }

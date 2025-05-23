@@ -31,7 +31,7 @@ export class ResiduePublishComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventoryService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResidue(this.residueId);
 
     this.formData.patchValue({
       Quantity: this.residue?.Cantidad

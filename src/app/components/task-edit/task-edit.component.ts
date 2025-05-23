@@ -93,7 +93,7 @@ export class TaskEditComponent implements OnInit {
     let volumen: number | null = null;
 
     this.fotosPorMaterial = Utils.photosByMaterial;
-    this.task = await this.tasksService.get(this.activityId, this.transactionId, this.taskId);
+    this.task = await this.tasksService.get(this.taskId);
     if (this.task)
     {
       this.status = this.task.IdEstado;
@@ -143,7 +143,7 @@ export class TaskEditComponent implements OnInit {
       }
 
       if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
-        const residuo = await this.inventoryService.getResiduo(this.residueId);
+        const residuo = await this.inventoryService.getResidue(this.residueId);
         if (residuo) {
           cantidad = residuo.Cantidad ?? 0;
           peso = residuo.Peso ?? 0;
@@ -187,7 +187,7 @@ export class TaskEditComponent implements OnInit {
         this.captura = material.TipoCaptura;
       }
 
-      const residuo = await this.inventoryService.getResiduo(this.residueId);
+      const residuo = await this.inventoryService.getResidue(this.residueId);
       if (residuo) {
         cantidad = residuo.Cantidad ?? 0;
         peso = residuo.Peso ?? 0;
@@ -229,7 +229,7 @@ export class TaskEditComponent implements OnInit {
 
     if (!actividad) return;
 
-    tarea = await this.tasksService.get(this.activityId, this.transactionId, this.taskId);
+    tarea = await this.tasksService.get(this.taskId);
     if (tarea) { //Si hay tarea
       tarea.Cantidad = data.Cantidad;
       tarea.FechaEjecucion = isoDate;
@@ -240,7 +240,7 @@ export class TaskEditComponent implements OnInit {
       tarea.Volumen = data.Volumen;
       tarea.Valor = data.Valor;
       tarea.Fotos = this.fotos;
-      this.tasksService.update(this.activityId, this.transactionId, tarea);
+      this.tasksService.update(tarea);
 
       if (this.inputOutput == INPUT_OUTPUT.INPUT) { //Tarea -> Entrada
         idResiduo = Utils.generateId();
@@ -267,13 +267,13 @@ export class TaskEditComponent implements OnInit {
           Imagen: this.imageUrl,
           Ubicacion: '' //TODO
         };
-        await this.inventoryService.createResiduo(residuo);
+        await this.inventoryService.createResidue(residuo);
       } else { //Tarea -> Salida
         idResiduo = this.residueId;
-        const residuo = await this.inventoryService.getResiduo(idResiduo);
+        const residuo = await this.inventoryService.getResidue(idResiduo);
         if (residuo){
           residuo.IdEstado = STATUS.INACTIVE;
-          this.inventoryService.updateResiduo(residuo);
+          this.inventoryService.updateResidue(residuo);
         }
       }
     } else { //No hay tarea - Agregado
@@ -301,7 +301,7 @@ export class TaskEditComponent implements OnInit {
             FechaIngreso: isoDate,
             Ubicacion: '' //TODO
           };
-          await this.inventoryService.createResiduo(residuo);
+          await this.inventoryService.createResidue(residuo);
           tarea = {
             IdActividad: this.activityId,
             IdTransaccion: this.transactionId,
@@ -323,7 +323,7 @@ export class TaskEditComponent implements OnInit {
           };
           await this.tasksService.create(tarea);
         } else { //No hay tarea -> Salida
-          const residuo = await this.inventoryService.getResiduo(this.residueId);
+          const residuo = await this.inventoryService.getResidue(this.residueId);
           if (residuo) {
             tarea = {
               IdActividad: this.activityId,
@@ -347,7 +347,7 @@ export class TaskEditComponent implements OnInit {
             await this.tasksService.create(tarea);
 
             residuo.IdEstado = STATUS.INACTIVE;
-              await this.inventoryService.updateResiduo(residuo);
+              await this.inventoryService.updateResidue(residuo);
           }
         }
       }
@@ -360,13 +360,13 @@ export class TaskEditComponent implements OnInit {
     const isoDate = now.toISOString();
 
     const data = this.frmTarea.value;
-    const tarea = await this.tasksService.get(this.activityId, this.transactionId, this.taskId);
+    const tarea = await this.tasksService.get(this.taskId);
     if (tarea)
     {
       tarea.Observaciones = data.Observaciones;
       tarea.IdEstado = STATUS.REJECTED;
       tarea.FechaEjecucion = isoDate;
-      this.tasksService.update(this.activityId, this.transactionId, tarea);
+      this.tasksService.update(tarea);
     }
     this.modalCtrl.dismiss(tarea);
   }

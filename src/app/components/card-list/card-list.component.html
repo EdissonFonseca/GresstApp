@@ -1,3 +1,17 @@
-<ion-list *ngFor="let card of cards" inset="true">
-  <app-card [card]="card" [allowApprove]="false" (edit)="onEdit(card)" (approve)="onApprove(card.id)" (reject)="onReject(card.id)"></app-card>
+<!-- Card list container -->
+<ion-list role="list">
+  <!-- Iterate through each card in the list -->
+  <ng-container *ngFor="let card of cards">
+    <!-- Individual card component -->
+    <app-card
+      [card]="card"
+      [allowNavigate]="allowNavigate"
+      [allowApprove]="allowApprove"
+      (edit)="onEdit(card)"
+      (approve)="onApprove(card.id)"
+      (reject)="onReject(card.id)"
+      role="listitem"
+      [attr.aria-label]="card.title"
+    ></app-card>
+  </ng-container>
 </ion-list>

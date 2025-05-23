@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Punto } from '@app/interfaces/punto.interface';
 import { Transaction } from '@app/interfaces/transaction.interface';
@@ -9,68 +9,69 @@ import { STORAGE } from '@app/constants/constants';
   providedIn: 'root',
 })
 export class PointsService {
+  private points = signal<Punto[]>([]);
+  private transaction = signal<Transaction | null>(null);
+
   constructor(
     private storage: StorageService,
-  ) {}
+  ) {
+    this.loadPoints();
+    this.loadTransaction();
+  }
+
+  private async loadPoints() {
+    const puntos = await this.storage.get(STORAGE.POINTS) as Punto[];
+    this.points.set(puntos || []);
+  }
+
+  private async loadTransaction() {
+    const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
+    this.transaction.set(transaction);
+  }
 
   async get(idPunto: string): Promise<Punto | undefined> {
-    const puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
-
-    if (puntos) {
-      const punto = puntos.find((punto) => punto.IdDeposito === idPunto);
-      return punto || undefined;
-    }
-
-    return undefined;
+    return this.points().find(punto => punto.IdDeposito === idPunto);
   }
 
   async list(): Promise<Punto[]> {
-    const puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
-
-    return puntos;
+    return this.points();
   }
 
-  async getPuntosFromTareas(idActividad: string){
-    let puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
-
-    if (transaction && tareas)
-    {
-      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null);
-      const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdDeposito ?? '');
-      puntos = puntos.filter((punto) => idsPuntos.includes(punto.IdDeposito));
-    }
-    return puntos;
+  points$() {
+    return this.points();
   }
 
-  async getPuntosFromTareasPendientes(idActividad: string){
-    console.log('🔍 Obteniendo puntos de tareas para actividad:', idActividad);
+  getPointsFromTasks$(idActividad: string) {
+    return computed(() => {
+      const currentTransaction = this.transaction();
+      const puntos = this.points();
 
-    let puntos: Punto[] = await this.storage.get(STORAGE.POINTS);
-    console.log('📦 Puntos en storage:', puntos);
+      if (!currentTransaction) return puntos;
 
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    console.log('📄 Transaction:', transaction);
+      const tareas = currentTransaction.Tareas.filter(item => item.IdActividad === idActividad);
+      if (!tareas.length) return puntos;
 
-    const tareas: Tarea[] = transaction.Tareas.filter((item) => item.IdActividad == idActividad)!;
-    console.log('📋 Tareas filtradas:', tareas);
-    console.log('📋 Estado de las tareas:', tareas.map(t => ({ IdTarea: t.IdTarea, IdEstado: t.IdEstado, IdDeposito: t.IdDeposito })));
+      const tareasPuntos = tareas.filter(x => x.IdDeposito != null);
+      const idsPuntos = tareasPuntos.map(tarea => tarea.IdDeposito ?? '');
 
-    if (transaction && tareas)
-    {
-      // Obtener todos los puntos, no solo los pendientes
-      const tareasPuntos = tareas.filter((x) => x.IdDeposito != null);
-      console.log('📍 Tareas con puntos:', tareasPuntos);
-      console.log('📍 Estado de las tareas con puntos:', tareasPuntos.map(t => ({ IdTarea: t.IdTarea, IdEstado: t.IdEstado, IdDeposito: t.IdDeposito })));
-
-      const idsPuntos: string[] = tareasPuntos.map((tarea) => tarea.IdDeposito ?? '');
-      console.log('🔑 IDs de puntos:', idsPuntos);
-
-      puntos = puntos.filter((punto) => idsPuntos.includes(punto.IdDeposito));
-      console.log('🎯 Puntos filtrados:', puntos);
-    }
-    return puntos;
+      return puntos.filter(punto => idsPuntos.includes(punto.IdDeposito));
+    });
   }
 
+  getPointsFromPendingTasks$(idActividad: string) {
+    return computed(() => {
+      const currentTransaction = this.transaction();
+      const puntos = this.points();
+
+      if (!currentTransaction) return puntos;
+
+      const tareas = currentTransaction.Tareas.filter(item => item.IdActividad === idActividad);
+      if (!tareas.length) return puntos;
+
+      const tareasPuntos = tareas.filter(x => x.IdDeposito != null);
+      const idsPuntos = tareasPuntos.map(tarea => tarea.IdDeposito ?? '');
+
+      return puntos.filter(punto => idsPuntos.includes(punto.IdDeposito));
+    });
+  }
 }

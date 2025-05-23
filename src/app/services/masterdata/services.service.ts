@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { Servicio } from '@app/interfaces/servicio.interface';
 import { SERVICES, STORAGE } from '@app/constants/constants';
@@ -7,46 +7,52 @@ import { SERVICES, STORAGE } from '@app/constants/constants';
   providedIn: 'root',
 })
 export class ServicesService {
+  private services = signal<Servicio[]>([]);
+  public services$ = this.services.asReadonly();
+
   constructor(
     private storage: StorageService,
-  ) {}
+  ) {
+    this.loadServices();
+  }
+
+  private async loadServices() {
+    const servicios = await this.storage.get(STORAGE.SERVICES) as Servicio[];
+    this.services.set(servicios || []);
+  }
+
+  private async saveServices() {
+    const currentServices = this.services();
+    await this.storage.set(STORAGE.SERVICES, currentServices);
+  }
 
   async get(idServicio: string): Promise<Servicio | undefined> {
-    const servicios: Servicio[] = await this.storage.get(STORAGE.SERVICES);
-
-    if (servicios) {
-      const servicio = servicios.find((servicio) => servicio.IdServicio === idServicio);
-      return servicio || undefined;
-    }
-
-    return undefined;
+    return this.services().find(servicio => servicio.IdServicio === idServicio);
   }
 
   async list(): Promise<Servicio[]> {
-    const servicios: Servicio[] = await this.storage.get(STORAGE.SERVICES);
-
-    return servicios;
+    return this.services();
   }
 
   async create(idServicio: string) {
-    const servicios: Servicio[] = await this.storage.get(STORAGE.SERVICES);
+    const selectedServicio = SERVICES.find(x => x.serviceId === idServicio);
+    if (selectedServicio) {
+      const servicio: Servicio = {
+        IdServicio: idServicio,
+        Nombre: selectedServicio.Name
+      };
 
-    const selectedServicio = SERVICES.find(x => x.serviceId == idServicio);
-    if (selectedServicio != null)
-    {
-      const servicio: Servicio = { IdServicio: idServicio, Nombre: selectedServicio.Name};
-      servicios.push(servicio);
-      await this.storage.set(STORAGE.SERVICES, servicios);
+      const currentServices = this.services();
+      currentServices.push(servicio);
+      this.services.set(currentServices);
+      await this.saveServices();
     }
   }
 
-  // #endregion
-
   async delete(idServicio: string) {
-    let servicios: Servicio[] = await this.storage.get(STORAGE.SERVICES);
-
-    servicios = servicios.filter(x=> x.IdServicio !== idServicio);
-    await this.storage.set(STORAGE.SERVICES, servicios);
+    const currentServices = this.services();
+    const filteredServices = currentServices.filter(x => x.IdServicio !== idServicio);
+    this.services.set(filteredServices);
+    await this.saveServices();
   }
-
 }

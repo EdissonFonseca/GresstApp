@@ -1,6 +1,6 @@
 import { Injectable, Signal, signal } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { Tarea } from '@app/interfaces/tarea.interface';
 import { Transaccion } from '@app/interfaces/transaccion.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
@@ -12,56 +12,10 @@ import { Utils } from '@app/utils/utils';
   providedIn: 'root'
 })
 export class CardService {
-  private activitiesSignal = signal<Card[]>([]);
-  private transactionsSignal = signal<Card[]>([]);
-  private tasksSignal = signal<Card[]>([]);
-
   constructor(
     private activitiesService: ActivitiesService,
     private transactionsService: TransactionsService
   ) {}
-
-  setActivities(activities: Card[]): Signal<Card[]> {
-    this.activitiesSignal.set(activities);
-    return this.activitiesSignal;
-  }
-
-  updateActivity(activity: Card) {
-    const cards = this.activitiesSignal();
-    const index = cards.findIndex(card => card.id === activity.id);
-    if (index !== -1) {
-      cards[index] = activity;
-      this.activitiesSignal.set([...cards]);
-    }
-  }
-
-  setTransactions(transactions: Card[]): Signal<Card[]> {
-    this.transactionsSignal.set(transactions);
-    return this.transactionsSignal;
-  }
-
-  updateTransaction(transaction: Card) {
-    const cards = this.transactionsSignal();
-    const index = cards.findIndex(card => card.id === transaction.id);
-    if (index !== -1) {
-      cards[index] = transaction;
-      this.transactionsSignal.set([...cards]);
-    }
-  }
-
-  setTasks(tasks: Card[]): Signal<Card[]> {
-    this.tasksSignal.set(tasks);
-    return this.tasksSignal
-  }
-
-  updateTask(task: Card) {
-    const cards = this.tasksSignal();
-    const index = cards.findIndex(card => card.id === task.id);
-    if (index !== -1) {
-      cards[index] = task;
-      this.tasksSignal.set([...cards]);
-    }
-  }
 
   async mapActividades(actividades: Actividad[]): Promise<Card[]> {
     const cards = await Promise.all(actividades.map(async actividad => {

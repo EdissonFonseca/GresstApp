@@ -33,11 +33,8 @@ import { TransactionApproveComponent } from "./transaction-approve/transaction-a
 import { TreatmentsComponent } from "./treatments/treatments.component";
 import { VehiclesComponent } from "./vehicles/vehicles.component";
 
-const components = [];
-
 @NgModule({
   declarations: [
-    ActivityAddComponent,
     ActivityApproveComponent,
     CardComponent,
     CardListComponent,
@@ -70,11 +67,11 @@ const components = [];
     IonicModule,
     FormsModule,
     ReactiveFormsModule,
-    ResidueDismissComponent,
-    TranslateModule
+    TranslateModule,
+    ActivityAddComponent,
+    ResidueDismissComponent
   ],
   exports: [
-    ActivityAddComponent,
     ActivityApproveComponent,
     CardComponent,
     CardListComponent,
@@ -85,7 +82,6 @@ const components = [];
     PackagesComponent,
     PointComponent,
     PointsComponent,
-    ResidueDismissComponent,
     ResidueMoveComponent,
     ResiduePublishComponent,
     ResidueReceiveComponent,
@@ -101,7 +97,9 @@ const components = [];
     TaskEditComponent,
     TransactionApproveComponent,
     TreatmentsComponent,
-    VehiclesComponent
+    VehiclesComponent,
+    ActivityAddComponent,
+    ResidueDismissComponent
   ],
 })
 export class ComponentsModule {}

@@ -43,11 +43,15 @@ export class ResidueTransformComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.residue = await this.inventoryService.getResiduo(this.residueId);
+    this.residue = await this.inventoryService.getResidue(this.residueId);
 
-    this.frm.patchValue({
-      Quantity: this.residue?.Cantidad
-    });
+    if (this.residue) {
+      this.frm.patchValue({
+        Quantity: this.residue.Cantidad
+      });
+    } else {
+      this.modalCtrl.dismiss(null, 'error');
+    }
   }
 
   confirm() {

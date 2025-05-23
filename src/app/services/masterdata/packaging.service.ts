@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
 import { Embalaje } from '@app/interfaces/embalaje.interface';
@@ -9,42 +9,46 @@ import { LoggerService } from '@app/services/core/logger.service';
   providedIn: 'root',
 })
 export class PackagingService {
+  private packages = signal<Embalaje[]>([]);
+  public packages$ = this.packages.asReadonly();
+
   constructor(
     private storage: StorageService,
     private masterdataService: MasterDataApiService,
     private readonly logger: LoggerService
-  ) {}
+  ) {
+    this.loadPackages();
+  }
 
-  async get(idEmbalaje: string): Promise<Embalaje | undefined> {
+  private async loadPackages() {
     try {
-      if (!idEmbalaje) {
-        throw new Error('ID de embalaje no proporcionado');
-      }
-
-      const embalajes: Embalaje[] = await this.storage.get(STORAGE.PACKAGES);
-      if (!embalajes) {
-        return undefined;
-      }
-
-      const embalaje = embalajes.find((embalaje) => embalaje.IdEmbalaje === idEmbalaje);
-      return embalaje || undefined;
+      const embalajes = await this.storage.get(STORAGE.PACKAGES) as Embalaje[];
+      this.packages.set(embalajes || []);
     } catch (error) {
-      this.logger.error('Error getting packaging', { idEmbalaje, error });
+      this.logger.error('Error loading packages', error);
+      this.packages.set([]);
+    }
+  }
+
+  private async savePackages() {
+    try {
+      const currentPackages = this.packages();
+      await this.storage.set(STORAGE.PACKAGES, currentPackages);
+    } catch (error) {
+      this.logger.error('Error saving packages', error);
       throw error;
     }
   }
 
-  async list(): Promise<Embalaje[]> {
-    try {
-      const master: Embalaje[] = await this.storage.get(STORAGE.PACKAGES);
-      if (!master) {
-        return [];
-      }
-      return master.sort((a, b) => a.Nombre.localeCompare(b.Nombre));
-    } catch (error) {
-      this.logger.error('Error listing packaging', error);
-      throw error;
+  async get(idEmbalaje: string): Promise<Embalaje | undefined> {
+    if (!idEmbalaje) {
+      return undefined;
     }
+    return this.packages().find(embalaje => embalaje.IdEmbalaje === idEmbalaje);
+  }
+
+  async list(): Promise<Embalaje[]> {
+    return [...this.packages()].sort((a, b) => a.Nombre.localeCompare(b.Nombre));
   }
 
   async create(embalaje: Embalaje): Promise<boolean> {
@@ -55,11 +59,13 @@ export class PackagingService {
 
       const posted = await this.masterdataService.createPackage(embalaje);
       if (!posted) {
+        return false;
       }
 
-      const embalajes: Embalaje[] = await this.storage.get(STORAGE.PACKAGES) || [];
-      embalajes.push(embalaje);
-      await this.storage.set(STORAGE.PACKAGES, embalajes);
+      const currentPackages = this.packages();
+      currentPackages.push(embalaje);
+      this.packages.set(currentPackages);
+      await this.savePackages();
       return true;
     } catch (error) {
       this.logger.error('Error creating packaging', { embalaje, error });
@@ -75,13 +81,15 @@ export class PackagingService {
 
       const posted = await this.masterdataService.updatePackage(embalaje);
       if (!posted) {
+        return false;
       }
 
-      const embalajes: Embalaje[] = await this.storage.get(STORAGE.PACKAGES) || [];
-      const index = embalajes.findIndex(e => e.IdEmbalaje === embalaje.IdEmbalaje);
+      const currentPackages = this.packages();
+      const index = currentPackages.findIndex(e => e.IdEmbalaje === embalaje.IdEmbalaje);
       if (index !== -1) {
-        embalajes[index] = embalaje;
-        await this.storage.set(STORAGE.PACKAGES, embalajes);
+        currentPackages[index] = embalaje;
+        this.packages.set(currentPackages);
+        await this.savePackages();
       }
       return true;
     } catch (error) {

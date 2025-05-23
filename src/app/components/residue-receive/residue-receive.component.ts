@@ -115,7 +115,7 @@ export class ResidueReceiveComponent implements OnInit {
       Volumen: data.Volumen,
     };
 
-    await this.inventoryService.createResiduo(residuo);
+    await this.inventoryService.createResidue(residuo);
 
     if (this.serviceId == SERVICE_TYPES.GENERATION) {
       actividad = {

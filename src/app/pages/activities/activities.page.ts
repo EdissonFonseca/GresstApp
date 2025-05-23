@@ -1,6 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { CardService } from '@app/services/core/card.service';
 import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
@@ -19,17 +19,27 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 /**
  * Interface for activity navigation parameters
+ * Defines the structure for navigation data when moving between activities
  */
 interface ActivityNavigationParams {
+  /** The activity card to be displayed */
   activity: Card;
+  /** Optional mode parameter for navigation */
   mode?: string;
+  /** The target route for navigation */
   route: string;
 }
 
 /**
- * ActivitiesPage component that displays and manages a list of activities.
- * Handles activity listing, filtering, creation, and navigation to activity details.
- * Supports different service types (collection, transport) and manages activity states.
+ * ActivitiesPage Component
+ *
+ * Manages and displays a list of activities with the following features:
+ * - Activity listing and filtering
+ * - Activity creation and management
+ * - Navigation between activities and tasks
+ * - Support for different service types (collection, transport)
+ * - Activity state management
+ * - Mileage tracking and initialization
  */
 @Component({
   selector: 'app-activities',
@@ -39,15 +49,28 @@ interface ActivityNavigationParams {
   imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule, TranslateModule]
 })
 export class ActivitiesPage implements OnInit {
-  /** Signal containing the list of activities displayed as cards */
-  activities = signal<Card[]>([]);
+  /** Signal containing the list of activities from the service */
+  private activitiesSignal = this.activitiesService.activities;
+
+  /** Computed property that transforms activities into cards for display */
+  activities = computed(() => {
+    const activityList = this.activitiesSignal();
+    return this.cardService.mapActividades(activityList);
+  });
+
   /** Flag indicating whether the add activity button should be shown */
   showAdd: boolean = true;
-  /** Current fuel quantity value */
+
+  /** Current fuel quantity value for the activity */
   fuelQuantity: number | null = null;
-  /** Current mileage value */
+
+  /** Current mileage value for the activity */
   mileage: number | null = null;
 
+  /**
+   * Constructor for ActivitiesPage
+   * Initializes required services and dependencies
+   */
   constructor(
     private navCtrl: NavController,
     private activitiesService: ActivitiesService,
@@ -61,11 +84,13 @@ export class ActivitiesPage implements OnInit {
   ) {}
 
   /**
-   * Initialize component by checking user permissions for adding activities
+   * Initialize component
+   * Checks user permissions and loads initial activities
    */
   async ngOnInit() {
     try {
       this.showAdd = await this.authorizationService.allowAddActivity();
+      await this.activitiesService.load();
     } catch (error) {
       console.error('Error checking activity permissions:', error);
       this.showAdd = false;
@@ -77,14 +102,12 @@ export class ActivitiesPage implements OnInit {
   }
 
   /**
-   * Load activities when the page is about to enter
-   * Maps activities to card format for display
+   * Lifecycle hook called when the page is about to enter
+   * Loads activities data
    */
   async ionViewWillEnter() {
     try {
-      let activityList = await this.activitiesService.list();
-      const mappedActivities = await this.cardService.mapActividades(activityList);
-      this.activities.set(mappedActivities);
+      await this.activitiesService.load();
     } catch (error) {
       console.error('Error loading activities:', error);
       await this.userNotificationService.showToast(
@@ -96,17 +119,16 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Handle search input to filter activities
+   * Updates the displayed list based on the search query
    * @param event - The input event containing the search query
    */
   async handleInput(event: any) {
     try {
       const query = event.target.value.toLowerCase();
-      let activityList = await this.activitiesService.list();
-      activityList = activityList.filter((activity) =>
+      const activityList = this.activitiesSignal().filter((activity: Actividad) =>
         activity.Titulo.toLowerCase().indexOf(query) > -1
       );
-      const mappedActivities = await this.cardService.mapActividades(activityList);
-      this.activities.set(mappedActivities);
+      this.activitiesService.activities.set(activityList);
     } catch (error) {
       console.error('Error filtering activities:', error);
       await this.userNotificationService.showToast(
@@ -169,6 +191,7 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Initialize activity start process if needed
+   * Handles mileage input and activity start time
    * @param activity - The activity to initialize
    * @returns Promise<boolean> - True if initialization was successful or not needed
    */
@@ -184,7 +207,7 @@ export class ActivitiesPage implements OnInit {
         }
 
         await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.STARTING_ROUTE'));
-        await this.activitiesService.updateInicio(activity);
+        await this.activitiesService.updateStart(activity);
         await this.userNotificationService.hideLoading();
       }
       return true;
@@ -201,6 +224,7 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Get navigation parameters based on activity type
+   * Determines the appropriate route and parameters for navigation
    * @param activity - The activity to navigate to
    * @param activityCard - The activity card
    * @returns ActivityNavigationParams - Navigation parameters
@@ -222,11 +246,12 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Navigate to the appropriate target based on activity type and state
+   * Handles different service types and initializes activity if needed
    * @param activity - The activity card to navigate to
    */
   async navigateToTarget(activity: Card) {
     try {
-      const activityData: Actividad = await this.activitiesService.get(activity.id);
+      const activityData = await this.activitiesService.get(activity.id);
       if (!activityData) {
         throw new Error('Activity not found');
       }
@@ -268,11 +293,13 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Open the add activity action sheet with available service options
+   * Checks user permissions and displays appropriate service options
    */
   async openAddActivity() {
     try {
       const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
+      // Check collection service permissions
       const hasCollectionPermission = (await this.authorizationService.getPermission(PERMISSIONS.APP_COLLECTION))?.includes(CRUD_OPERATIONS.CREATE);
       if (hasCollectionPermission) {
         const service = SERVICES.find(x => x.serviceId == SERVICE_TYPES.COLLECTION);
@@ -281,6 +308,7 @@ export class ActivitiesPage implements OnInit {
         }
       }
 
+      // Check transport service permissions
       const hasTransportPermission = (await this.authorizationService.getPermission(PERMISSIONS.APP_TRANSPORT))?.includes(CRUD_OPERATIONS.CREATE);
       if (hasTransportPermission) {
         const service = SERVICES.find(x => x.serviceId == SERVICE_TYPES.TRANSPORT);
@@ -289,6 +317,7 @@ export class ActivitiesPage implements OnInit {
         }
       }
 
+      // Create action sheet buttons
       const buttons = Object.keys(actionSheetDict).map(key => ({
         text: actionSheetDict[key].name,
         icon: actionSheetDict[key].icon,
@@ -312,6 +341,7 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Present the activity add modal for a specific service type
+   * Handles activity creation and updates
    * @param key - The service type key
    */
   async presentModal(key: string) {
@@ -329,36 +359,23 @@ export class ActivitiesPage implements OnInit {
       if (data) {
         await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.UPDATING_INFO'));
 
-        this.activities.update(activities => {
-          const card = activities.find(x => x.id == data.IdActividad);
-          if (!card) {
-            this.activitiesService.get(data.IdActividad)
-              .then(async newActivity => {
-                if (newActivity) {
-                  const mappedActivity = await this.cardService.mapActividad(newActivity);
-                  if (mappedActivity) {
-                    activities.push(mappedActivity);
-                  }
-                }
-              })
-              .catch(error => {
-                console.error('Error adding new activity:', error);
-                this.userNotificationService.showToast(
-                  this.translate.instant('ACTIVITIES.MESSAGES.ADD_ERROR'),
-                  'middle'
-                );
-              });
-          } else {
-            card.successItems = (card.successItems ?? 0) + 1;
-          }
-          return activities;
-        });
+        const currentActivities = this.activitiesSignal();
+        const activity = currentActivities.find((x: Actividad) => x.IdActividad === data.IdActividad);
+
+        if (activity) {
+          // Update activity in service
+          await this.activitiesService.update(activity);
+          // Reload activities to reflect changes
+          await this.activitiesService.load();
+        }
+
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error presenting modal:', error);
+      console.error('Error updating activity:', error);
+      await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.MODAL_ERROR'),
+        this.translate.instant('ACTIVITIES.MESSAGES.UPDATE_ERROR'),
         'middle'
       );
     }

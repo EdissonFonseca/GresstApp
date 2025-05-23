@@ -133,7 +133,7 @@ export class HttpService {
       });
 
       if (response.status === 200 && response.data) {
-          await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
+        await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
         await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
       } else {
         throw new Error('Failed to refresh token');

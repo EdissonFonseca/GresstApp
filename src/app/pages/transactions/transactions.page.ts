@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal } from '@angular/core';
+import { Component, Input, OnInit, signal, computed } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
@@ -7,7 +7,7 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { CardService } from '@app/services/core/card.service';
 import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { SessionService } from '@app/services/core/session.service';
@@ -36,8 +36,16 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class TransactionsPage implements OnInit {
   /** Signal containing the current activity displayed as a card */
   activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
-  /** Signal containing the list of transactions displayed as cards */
-  transactions = signal<Card[]>([]);
+
+  /** Signal containing the list of transactions from the service */
+  private transactionsSignal = this.transactionsService.transactions;
+
+  /** Computed property that transforms transactions into cards */
+  transactions = computed(async () => {
+    const transactionList = this.transactionsSignal();
+    return await this.cardService.mapTransacciones(transactionList);
+  });
+
   /** Flag indicating whether the add transaction button should be shown */
   showAdd: boolean = true;
   /** Flag indicating whether the navigation button should be shown */
@@ -70,6 +78,7 @@ export class TransactionsPage implements OnInit {
         const newActivity = nav.extras.state['activity'];
         if (newActivity) {
           this.activity.set(newActivity);
+          await this.transactionsService.loadTransactions(this.activity().id);
         }
         const activityData = await this.activitiesService.get(this.activity().id);
         if (activityData) {
@@ -89,13 +98,10 @@ export class TransactionsPage implements OnInit {
 
   /**
    * Load transactions when the page is about to enter
-   * Maps transactions to card format for display
    */
   async ionViewWillEnter() {
     try {
-      const transactionList = await this.transactionsService.list(this.activity().id);
-      const mappedTransactions = await this.cardService.mapTransacciones(transactionList);
-      this.transactions.set(mappedTransactions);
+      await this.transactionsService.loadTransactions(this.activity().id);
     } catch (error) {
       console.error('Error loading transactions:', error);
       await this.userNotificationService.showToast(
@@ -112,15 +118,11 @@ export class TransactionsPage implements OnInit {
   async handleInput(event: any) {
     try {
       const query = event.target.value.toLowerCase();
-      let transactionList = await this.transactionsService.list(this.activity().id);
-      const filteredTransactions = transactionList.filter(transaction =>
+      const transactionList = this.transactionsSignal().filter(transaction =>
         (transaction.Punto?.toLowerCase().includes(query) ||
          transaction.Tercero?.toLowerCase().includes(query))
       );
-      this.transactions.set(filteredTransactions.length > 0
-        ? await this.cardService.mapTransacciones(filteredTransactions)
-        : await this.cardService.mapTransacciones(transactionList)
-      );
+      this.transactionsService.transactions.set(transactionList);
     } catch (error) {
       console.error('Error filtering transactions:', error);
       await this.userNotificationService.showToast(
@@ -248,14 +250,16 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Open the add task modal
+   * Present the task add modal for a specific transaction
+   * @param transaction - The transaction card
    */
-  async openAddTarea() {
+  async presentModal(transaction: Card) {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          idActividad: this.activity().id,
+          IdActividad: this.activity().id,
+          IdTransaccion: transaction.id
         },
       });
 
@@ -263,101 +267,49 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
-        );
+        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
 
-        this.transactions.update(transactions => {
-          const card = transactions.find(x => x.id == data.IdTransaccion);
-          if (!card) {
-            this.transactionsService.get(this.activity().id, data.IdTransaccion)
-              .then(async newTransaction => {
-                if (newTransaction) {
-                  const mappedTransaction = await this.cardService.mapTransaccion(newTransaction);
-                  if (mappedTransaction) {
-                    transactions.push(mappedTransaction);
-                  }
-                }
-              })
-              .catch(error => {
-                console.error('Error adding new transaction:', error);
-                this.userNotificationService.showToast(
-                  this.translate.instant('TRANSACTIONS.MESSAGES.ADD_ERROR'),
-                  'middle'
-                );
-              });
-          } else {
-            card.successItems = (card.successItems ?? 0) + 1;
-          }
-          return transactions;
-        });
-
-        this.activity.update(activity => {
-          if (activity) {
-            activity.successItems = (activity.successItems ?? 0) + 1;
-            activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
-            activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
-            activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
-          }
-          this.cardService.updateVisibleProperties(activity);
-          return activity;
-        });
+        // Recargar las transacciones para reflejar los cambios
+        await this.transactionsService.loadTransactions(this.activity().id);
 
         await this.userNotificationService.hideLoading();
-
-        // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
       }
     } catch (error) {
-      console.error('Error opening add task modal:', error);
+      console.error('Error updating transaction:', error);
+      await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
-        this.translate.instant('TRANSACTIONS.MESSAGES.MODAL_ERROR'),
+        this.translate.instant('TRANSACTIONS.MESSAGES.UPDATE_ERROR'),
         'middle'
       );
     }
   }
 
   /**
-   * Open the activity approval modal
+   * Open the activity approve modal
    */
   async openApproveActividad() {
     try {
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,
         componentProps: {
-          activity: this.activity(),
-          approveOrReject: 'approve',
+          IdActividad: this.activity().id
         },
       });
 
       await modal.present();
 
       const { data } = await modal.onDidDismiss();
-      if (data != null) {
-        this.activity.update(activity => {
-          if (activity) {
-            activity.status = STATUS.APPROVED;
-            this.cardService.updateVisibleProperties(activity);
-          }
-          return activity;
-        });
+      if (data) {
+        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
 
-        this.transactions.update(transactions => {
-          const filteredTransactions = transactions.filter(x => x.parentId == this.activity().id && x.status == STATUS.PENDING);
-          filteredTransactions.forEach(transaction => {
-            transaction.status = STATUS.REJECTED;
-            this.cardService.updateVisibleProperties(transaction);
-          });
-          return transactions;
-        });
+        // Recargar las transacciones para reflejar los cambios
+        await this.transactionsService.loadTransactions(this.activity().id);
 
-        this.showAdd = false;
-
-        // This call is made without await to not block the screen and run in background
-        this.synchronizationService.uploadData();
+        await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error opening approve activity modal:', error);
+      console.error('Error approving activity:', error);
+      await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.APPROVE_ERROR'),
         'middle'

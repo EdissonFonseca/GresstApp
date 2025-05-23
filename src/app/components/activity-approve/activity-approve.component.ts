@@ -1,18 +1,19 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { ModalController } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
+
 @Component({
   selector: 'app-activity-approve',
   templateUrl: './activity-approve.component.html',
-  styleUrls: ['./activity-approve.component.scss'],
+  styleUrls: ['./activity-approve.component.scss']
 })
-export class ActivityApproveComponent  implements OnInit {
+export class ActivityApproveComponent implements OnInit {
   @Input() showMileage: boolean = true;
   @Input() showName: boolean = true;
   @Input() showPin: boolean = true;
@@ -33,7 +34,7 @@ export class ActivityApproveComponent  implements OnInit {
     private renderer: Renderer2,
     private activitiesService: ActivitiesService,
     private userNotificationService: UserNotificationService,
-    private modalCtrl:ModalController
+    private modalCtrl: ModalController
   ) {
     this.frmActividad = this.formBuilder.group({
       Identificacion: '',
@@ -87,7 +88,6 @@ export class ActivityApproveComponent  implements OnInit {
     this.modalCtrl.dismiss(null);
   }
 
-
   getSignature(): string | null {
     const context = this.canvas.getContext('2d');
     const canvasWidth = this.canvas.width;
@@ -97,14 +97,14 @@ export class ActivityApproveComponent  implements OnInit {
     const hasContent = Array.from(imageData).some(channel => channel !== 0);
 
     if (!hasContent) {
-        return null;
+      return null;
     }
 
     const signatureData = this.canvas.toDataURL();
     return signatureData;
   }
 
-  async getFormData(): Promise<Actividad | undefined>{
+  async getFormData(): Promise<Actividad | undefined> {
     const data = this.frmActividad.value;
     const actividad = await this.activitiesService.get(this.activity?.id ?? '');
 

@@ -1,33 +1,103 @@
+<!-- Header section with navigation and actions -->
 <ion-header>
+  <!-- Main toolbar with navigation and action buttons -->
   <ion-toolbar class="header-green">
+    <!-- Back button -->
     <ion-buttons slot="start">
-      <ion-back-button (click)="goBack()"></ion-back-button>
+      <ion-back-button
+        (click)="goBack()"
+        aria-label="Go back">
+      </ion-back-button>
     </ion-buttons>
+
+    <!-- Page title -->
     <ion-title color="light">
       {{ activity().title }}
     </ion-title>
+
+    <!-- Action buttons -->
     <ion-buttons slot="end">
-      <ion-button *ngIf="showSupport" (click)="showSupports()">
-        <ion-icon name="reader-outline" size="large"></ion-icon>
+      <!-- Support button -->
+      <ion-button
+        *ngIf="showSupport"
+        (click)="showSupports()"
+        aria-label="Show supports">
+        <ion-icon
+          name="reader-outline"
+          size="large"
+          aria-hidden="true">
+        </ion-icon>
       </ion-button>
-      <ion-button *ngIf="showNavigation" (click)="navigateToMap()">
-        <ion-icon name="navigate-circle-outline" size="large"></ion-icon>
+
+      <!-- Navigation button -->
+      <ion-button
+        *ngIf="showNavigation"
+        (click)="navigateToMap()"
+        aria-label="Navigate to map">
+        <ion-icon
+          name="navigate-circle-outline"
+          size="large"
+          aria-hidden="true">
+        </ion-icon>
       </ion-button>
-      <ion-button (click)="synchronize()">
-        <ion-icon name="sync-outline" color="getColor()"></ion-icon>
+
+      <!-- Synchronize button -->
+      <ion-button
+        (click)="synchronize()"
+        aria-label="Synchronize data">
+        <ion-icon
+          name="sync-outline"
+          [color]="getColor()"
+          aria-hidden="true">
+        </ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Search toolbar -->
   <ion-toolbar>
-    <ion-searchbar (ionInput)="handleInput($event)" [placeholder]="'TRANSACTIONS.SEARCH' | translate" show-clear-button="focus"></ion-searchbar>
+    <ion-searchbar
+      (ionInput)="handleInput($event)"
+      [placeholder]="'TRANSACTIONS.SEARCH' | translate"
+      show-clear-button="focus"
+      aria-label="Search transactions">
+    </ion-searchbar>
   </ion-toolbar>
-  <app-card [card]="activity()" [allowNavigate]="false" [allowApprove]="true" (approve)="openApproveActividad()"></app-card>
+
+  <!-- Activity card -->
+  <app-card
+    [card]="activity()"
+    [allowNavigate]="false"
+    [allowApprove]="true"
+    (approve)="openApproveActividad()"
+    aria-label="Activity details">
+  </app-card>
 </ion-header>
+
+<!-- Main content section -->
 <ion-content [fullscreen]="true" color="light">
-  <app-card-list [cards]="transactions()" (edit)="navigateToTareas($event)"></app-card-list>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
-    <ion-fab-button (click)="openAddTarea()">
-      <ion-icon name="add"></ion-icon>
+  <!-- Transactions list -->
+  <ng-container *ngIf="transactions() | async as transactionCards">
+    <app-card-list
+      [cards]="transactionCards"
+      (edit)="navigateToTareas($event)"
+      aria-label="Transactions list">
+    </app-card-list>
+  </ng-container>
+
+  <!-- Add transaction button -->
+  <ion-fab
+    slot="fixed"
+    vertical="bottom"
+    horizontal="end"
+    *ngIf="showAdd"
+    aria-label="Add new transaction">
+    <ion-fab-button (click)="presentModal(activity())">
+      <ion-icon
+        name="add"
+        aria-label="Add icon"
+        aria-hidden="true">
+      </ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>

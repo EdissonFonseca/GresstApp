@@ -1,13 +1,38 @@
+<!-- Header section -->
 <ion-header>
+  <!-- Header content will be added here -->
 </ion-header>
+
+<!-- Main content section -->
 <ion-content [fullscreen]="true" color="light">
+  <!-- Search toolbar -->
   <ion-toolbar>
-    <ion-searchbar (ionInput)="handleInput($event)" [placeholder]="'ACTIVITIES.SEARCH' | translate" show-clear-button="focus"></ion-searchbar>
+    <ion-searchbar
+      (ionInput)="handleInput($event)"
+      [placeholder]="'ACTIVITIES.SEARCH' | translate"
+      show-clear-button="focus"
+      aria-label="Search activities">
+    </ion-searchbar>
   </ion-toolbar>
-  <app-card-list [cards]="activities()" (edit)="navigateToTarget($event)"></app-card-list>
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end" *ngIf="showAdd">
-    <ion-fab-button (click)="openAddActivity()" >
-      <ion-icon name="add"></ion-icon>
+
+  <!-- Activity cards list -->
+  <ng-container *ngIf="activities() | async as activityCards">
+    <app-card-list
+      [cards]="activityCards"
+      (edit)="navigateToTarget($event)"
+      aria-label="Activities list">
+    </app-card-list>
+  </ng-container>
+
+  <!-- Add activity button -->
+  <ion-fab
+    slot="fixed"
+    vertical="bottom"
+    horizontal="end"
+    *ngIf="showAdd"
+    aria-label="Add new activity">
+    <ion-fab-button (click)="openAddActivity()">
+      <ion-icon name="add" aria-label="Add icon"></ion-icon>
     </ion-fab-button>
   </ion-fab>
 </ion-content>

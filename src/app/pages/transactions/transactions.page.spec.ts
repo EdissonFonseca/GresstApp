@@ -8,7 +8,7 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { SessionService } from '@app/services/core/session.service';
 import { Utils } from '@app/utils/utils';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { ComponentsModule } from '@app/components/components.module';
 import { Actividad } from '@app/interfaces/actividad.interface';

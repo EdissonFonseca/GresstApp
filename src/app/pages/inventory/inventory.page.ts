@@ -193,10 +193,10 @@ export class InventoryPage implements OnInit {
   // }
 
   async openMenu(idResiduo: string) {
-    const residuo = await this.inventoryService.getResiduo(idResiduo);
+    const residuo = await this.inventoryService.getResidue(idResiduo);
     if (!residuo) return;
 
-      const material = await this.materialsService.get(residuo.IdMaterial);
+    const material = await this.materialsService.get(residuo.IdMaterial);
     if (!material) return;
 
     let actionButtons: ActionSheetButton[] = [];

@@ -8,7 +8,7 @@ import { TasksService } from '@app/services/transactions/tasks.service';
 import { SessionService } from '@app/services/core/session.service';
 import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { Utils } from '@app/utils/utils';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { STATUS } from '@app/constants/constants';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';

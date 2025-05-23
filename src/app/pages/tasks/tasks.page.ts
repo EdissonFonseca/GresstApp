@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, Signal } from '@angular/core';
+import { Component, Input, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { STATUS } from '@app/constants/constants';
@@ -7,7 +7,6 @@ import { ModalController } from '@ionic/angular';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { TaskEditComponent } from 'src/app/components/task-edit/task-edit.component';
-import { Card } from '@app/interfaces/card';
 import { CardService } from '@app/services/core/card.service';
 import { SessionService } from '@app/services/core/session.service';
 import { CommonModule } from '@angular/common';
@@ -17,31 +16,69 @@ import { RouterModule } from '@angular/router';
 import { ComponentsModule } from '@app/components/components.module';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Card } from '@app/interfaces/card.interface';
+import { Transaccion } from '@app/interfaces/transaccion.interface';
+import { Tarea } from '@app/interfaces/tarea.interface';
 
 /**
- * TasksPage component that displays and manages tasks for a specific activity or transaction.
- * Handles task listing, filtering, creation, editing, and approval/rejection of transactions.
+ * TasksPage Component
+ *
+ * Manages and displays tasks for a specific activity or transaction.
+ * Provides functionality for:
+ * - Viewing and filtering tasks
+ * - Adding new tasks
+ * - Editing existing tasks
+ * - Approving/rejecting transactions
+ * - Synchronizing data with the server
  */
 @Component({
   selector: 'app-tasks',
   templateUrl: './tasks.page.html',
   styleUrls: ['./tasks.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule, TranslateModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule,
+    ComponentsModule,
+    TranslateModule
+  ]
 })
 export class TasksPage implements OnInit {
   /** Signal containing the current activity displayed as a card */
   activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
-  /** Signal containing the list of transactions displayed as cards */
-  transactions = signal<Card[]>([]);
-  /** Signal containing the list of tasks displayed as cards */
-  tasks = signal<Card[]>([]);
+
+  /** Signal containing the list of transactions from the service */
+  private transactionsSignal = this.transactionsService.transactions;
+
+  /** Signal containing the list of tasks from the service */
+  private tasksSignal = this.tasksService.tasks$;
+
+  /** Flag indicating if synchronization is in progress */
+  isSynchronizing: boolean = false;
+
+  /** Computed property that transforms transactions into cards for display */
+  transactions = computed(async () => {
+    const transactionList = this.transactionsSignal();
+    return await this.cardService.mapTransacciones(transactionList);
+  });
+
+  /** Computed property that transforms tasks into cards for display */
+  tasks = computed(() => {
+    const taskList = this.tasksSignal();
+    return this.cardService.mapTareas(taskList);
+  });
+
   /** ID of the current transaction being viewed */
   transactionId: string = '';
+
   /** Title of the current activity */
   title: string = '';
+
   /** Flag indicating whether the add task button should be shown */
   showAdd: boolean = true;
+
   /** Mode of operation ('A' for activity, 'T' for transaction) */
   mode: string = 'A';
 
@@ -59,6 +96,7 @@ export class TasksPage implements OnInit {
 
   /**
    * Initialize component by loading activity data and setting up mode
+   * Called when the component is created
    */
   async ngOnInit() {
     try {
@@ -72,6 +110,7 @@ export class TasksPage implements OnInit {
         if (newActivity) {
           this.title = newActivity.title;
           this.activity.set(newActivity);
+          await this.loadData();
         }
       }
     } catch (error) {
@@ -85,25 +124,11 @@ export class TasksPage implements OnInit {
 
   /**
    * Load tasks and transactions when the page is about to enter
+   * Called before the page is displayed
    */
   async ionViewWillEnter() {
     try {
-      let transactionList = await this.transactionsService.list(this.activity().id);
-      if (this.transactionId) {
-        transactionList = transactionList.filter(x => x.IdTransaccion == this.transactionId);
-        const transaction = transactionList[0];
-        if (transaction) {
-          this.showAdd = transaction.IdEstado == STATUS.PENDING;
-        }
-      } else {
-        this.showAdd = this.activity().status == STATUS.PENDING;
-      }
-      const mappedTransactions = await this.cardService.mapTransacciones(transactionList);
-      const suggestedTasks = await this.tasksService.listSugeridas(this.activity().id);
-      const mappedTasks = this.cardService.mapTareas(suggestedTasks);
-
-      this.transactions.set(mappedTransactions);
-      this.tasks.set(mappedTasks);
+      await this.loadData();
     } catch (error) {
       console.error('Error loading tasks:', error);
       await this.userNotificationService.showToast(
@@ -114,38 +139,63 @@ export class TasksPage implements OnInit {
   }
 
   /**
+   * Load all necessary data for the page
+   * - Loads transactions for the current activity
+   * - Loads tasks for the current activity/transaction
+   * - Sets up edit permissions based on status
+   */
+  private async loadData() {
+    try {
+      await this.transactionsService.loadTransactions(this.activity().id);
+      await this.tasksService.load(this.activity().id, this.transactionId);
+
+      if (this.transactionId) {
+        const transactionList = this.transactionsSignal();
+        const transaction = transactionList.find(x => x.IdTransaccion === this.transactionId);
+        if (transaction) {
+          this.showAdd = transaction.IdEstado === STATUS.PENDING;
+        }
+      } else {
+        this.showAdd = this.activity().status === STATUS.PENDING;
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Filter tasks by transaction ID
    * @param transactionId - The ID of the transaction to filter tasks for
    * @returns Array of tasks belonging to the specified transaction
    */
   filterTareas(transactionId: string): Card[] {
-    return this.tasks().filter(x => x.parentId == transactionId);
+    const taskList = this.tasks();
+    console.log(taskList);
+    return taskList.filter((x: Card) => x.parentId === transactionId);
   }
 
   /**
    * Handle search input to filter tasks and transactions
+   * Updates the displayed lists based on the search query
    * @param event - The input event containing the search query
    */
   async handleInput(event: any) {
     try {
       const query = event.target.value.toLowerCase();
-      let transactionList = await this.transactionsService.list(this.activity().id);
-      const taskList = await this.tasksService.listSugeridas(this.activity().id, this.transactionId);
-      if (this.transactionId) {
-        transactionList = transactionList.filter(x => x.IdTransaccion === this.transactionId);
-      }
-      const filteredTransactions = transactionList.filter(trx =>
+
+      // Filter transactions based on point or third party name
+      const transactionList = this.transactionsSignal().filter((trx: Transaccion) =>
         (trx.Punto?.toLowerCase().includes(query) ||
          trx.Tercero?.toLowerCase().includes(query))
       );
-      this.transactions.set(filteredTransactions.length > 0
-        ? await this.cardService.mapTransacciones(filteredTransactions)
-        : await this.cardService.mapTransacciones(transactionList)
-      );
+      await this.transactionsService.loadTransactions(this.activity().id);
 
-      this.tasks.set(await this.cardService.mapTareas(
-        taskList.filter(task => task.Material?.toLowerCase().includes(query))
-      ));
+      // Filter tasks based on material name
+      const taskList = this.tasksSignal().filter((task: Tarea) =>
+        task.Material?.toLowerCase().includes(query)
+      );
+      await this.tasksService.load(this.activity().id, this.transactionId);
     } catch (error) {
       console.error('Error filtering tasks:', error);
       await this.userNotificationService.showToast(
@@ -157,6 +207,7 @@ export class TasksPage implements OnInit {
 
   /**
    * Open the add task modal
+   * Creates a new task for the current activity/transaction
    */
   async openAddTarea() {
     try {
@@ -176,46 +227,8 @@ export class TasksPage implements OnInit {
           this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
         );
 
-        if (data.IdTransaccion) {
-          const transaction = this.transactions().find(x => x.id == data.IdTransaccion);
-          if (!transaction) {
-            const globalTransaction = await this.transactionsService.get(this.activity().id, data.IdTransaccion);
-            if (globalTransaction) {
-              const mappedTransaction = await this.cardService.mapTransaccion(globalTransaction);
-              this.transactions().push(mappedTransaction);
-            }
-          } else {
-            this.transactions.update(transactions => {
-              const transactionToUpdate = transactions.find(t => t.id === data.IdTransaccion);
-              if (transactionToUpdate) {
-                transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
-                transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
-                transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
-                transactionToUpdate.volume = (transactionToUpdate.volume ?? 0) + (data.Volumen ?? 0);
-                this.cardService.updateVisibleProperties(transactionToUpdate);
-              }
-              return transactions;
-            });
-          }
-        }
-
-        const mappedTask = await this.cardService.mapTarea(data);
-        this.tasks().push(mappedTask);
-
-        this.activity.update(activity => {
-          if (activity) {
-            activity.successItems = (activity.successItems ?? 0) + 1;
-            activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
-            activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
-            activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
-          }
-          this.cardService.updateVisibleProperties(activity);
-          return activity;
-        });
+        await this.loadData();
         await this.userNotificationService.hideLoading();
-
-        // This call is made without await to not block the screen and run in background
-        this.sessionService.uploadData();
       }
     } catch (error) {
       console.error('Error adding task:', error);
@@ -228,6 +241,7 @@ export class TasksPage implements OnInit {
 
   /**
    * Open the edit task modal
+   * Allows editing of an existing task's properties
    * @param task - The task card to edit
    */
   async openEditTarea(task: Card) {
@@ -261,58 +275,10 @@ export class TasksPage implements OnInit {
           this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
         );
 
-        this.tasks.update(tasks => {
-          const taskToUpdate = tasks.find(t => t.id === task.id);
-          if (taskToUpdate) {
-            taskToUpdate.status = data.IdEstado;
-            if (data.IdEstado == STATUS.APPROVED) {
-              taskToUpdate.quantity = data.Cantidad;
-              taskToUpdate.weight = data.Peso;
-              taskToUpdate.volume = data.Volumen;
-            }
-            this.cardService.updateVisibleProperties(taskToUpdate);
-          }
-          return tasks;
-        });
-
-        if (task.parentId != null) {
-          this.transactions.update(transactions => {
-            const transactionToUpdate = transactions.find(t => t.id === task.parentId);
-            if (transactionToUpdate) {
-              transactionToUpdate.pendingItems = (transactionToUpdate.pendingItems ?? 0) - 1;
-              if (data.IdEstado === STATUS.APPROVED) {
-                transactionToUpdate.successItems = (transactionToUpdate.successItems ?? 0) + 1;
-                transactionToUpdate.quantity = (transactionToUpdate.quantity ?? 0) + (data.Cantidad ?? 0);
-                transactionToUpdate.weight = (transactionToUpdate.weight ?? 0) + (data.Peso ?? 0);
-                transactionToUpdate.volume = (transactionToUpdate.volume ?? 0) + (data.Volumen ?? 0);
-              } else if (data.IdEstado === STATUS.REJECTED) {
-                transactionToUpdate.rejectedItems = (transactionToUpdate.rejectedItems ?? 0) + 1;
-              }
-              this.cardService.updateVisibleProperties(transactionToUpdate);
-            }
-            return transactions;
-          });
-        }
-
-        this.activity.update(activity => {
-          if (activity) {
-            activity.pendingItems = (activity.pendingItems ?? 0) - 1;
-            if (data.IdEstado === STATUS.APPROVED) {
-              activity.successItems = (activity.successItems ?? 0) + 1;
-              activity.quantity = (activity.quantity ?? 0) + (data.Cantidad ?? 0);
-              activity.weight = (activity.weight ?? 0) + (data.Peso ?? 0);
-              activity.volume = (activity.volume ?? 0) + (data.Volumen ?? 0);
-            } else if (data.IdEstado === STATUS.REJECTED) {
-              activity.rejectedItems = (activity.rejectedItems ?? 0) + 1;
-            }
-          }
-          this.cardService.updateVisibleProperties(activity);
-          return activity;
-        });
-
+        await this.loadData();
         await this.userNotificationService.hideLoading();
 
-        // This call is made without await to not block the screen and run in background
+        // Upload data in background
         this.sessionService.uploadData();
       }
     } catch (error) {
@@ -326,6 +292,7 @@ export class TasksPage implements OnInit {
 
   /**
    * Open the approve transaction modal
+   * Handles the approval process for a transaction
    * @param id - The ID of the transaction to approve
    */
   async openApproveTransaccion(id: string) {
@@ -335,7 +302,8 @@ export class TasksPage implements OnInit {
         return;
       }
 
-      const currentTransaction = this.transactions().find(x => x.id == id);
+      const transactions = await this.transactions();
+      const currentTransaction = transactions.find((x: Card) => x.id === id);
       if (!currentTransaction) {
         return;
       }
@@ -356,41 +324,11 @@ export class TasksPage implements OnInit {
           this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
         );
 
-        const pendingTasks = this.tasks().filter(x => x.parentId == id && x.status == STATUS.PENDING).length;
-
-        this.transactions.update(transactions => {
-          const transaction = transactions.find(x => x.id == id);
-          if (transaction) {
-            transaction.status = STATUS.APPROVED;
-            transaction.rejectedItems = (transaction.rejectedItems ?? 0) + (transaction.pendingItems ?? 0);
-            transaction.pendingItems = 0;
-            this.cardService.updateVisibleProperties(transaction);
-          }
-          return transactions;
-        });
-
-        this.tasks.update(tasks => {
-          const filteredTasks = tasks.filter(x => x.parentId == id && x.status == STATUS.PENDING);
-          filteredTasks.forEach(task => {
-            task.status = STATUS.REJECTED;
-            this.cardService.updateVisibleProperties(task);
-          });
-          return tasks;
-        });
-
-        this.activity.update(activity => {
-          if (activity) {
-            activity.pendingItems = (activity.pendingItems ?? 0) - pendingTasks > 0 ? (activity.pendingItems ?? 0) - pendingTasks : 0;
-            activity.rejectedItems = (activity.rejectedItems ?? 0) + pendingTasks;
-          }
-          this.cardService.updateVisibleProperties(activity);
-          return activity;
-        });
-
+        await this.loadData();
         this.showAdd = false;
         await this.userNotificationService.hideLoading();
 
-        // This call is made without await to not block the screen and run in background
+        // Upload data in background
         this.sessionService.uploadData();
       }
     } catch (error) {
@@ -404,6 +342,7 @@ export class TasksPage implements OnInit {
 
   /**
    * Open the reject transaction modal
+   * Handles the rejection process for a transaction
    * @param id - The ID of the transaction to reject
    */
   async openRejectTransaccion(id: string) {
@@ -413,7 +352,8 @@ export class TasksPage implements OnInit {
         return;
       }
 
-      const currentTransaction = this.transactions().find(x => x.id == id);
+      const transactions = await this.transactions();
+      const currentTransaction = transactions.find((x: Card) => x.id === id);
       if (!currentTransaction) {
         return;
       }
@@ -435,41 +375,11 @@ export class TasksPage implements OnInit {
           this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
         );
 
-        const pendingTasks = this.tasks().filter(x => x.parentId == id && x.status == STATUS.PENDING).length;
-
-        this.transactions.update(transactions => {
-          const transaction = transactions.find(x => x.id == id);
-          if (transaction) {
-            transaction.status = STATUS.APPROVED;
-            transaction.rejectedItems = (transaction.rejectedItems ?? 0) + (transaction.pendingItems ?? 0);
-            transaction.pendingItems = 0;
-            this.cardService.updateVisibleProperties(transaction);
-          }
-          return transactions;
-        });
-
-        this.tasks.update(tasks => {
-          const filteredTasks = tasks.filter(x => x.parentId == id && x.status == STATUS.PENDING);
-          filteredTasks.forEach(task => {
-            task.status = STATUS.REJECTED;
-            this.cardService.updateVisibleProperties(task);
-          });
-          return tasks;
-        });
-
-        this.activity.update(activity => {
-          if (activity) {
-            activity.pendingItems = (activity.pendingItems ?? 0) - pendingTasks > 0 ? (activity.pendingItems ?? 0) - pendingTasks : 0;
-            activity.rejectedItems = (activity.rejectedItems ?? 0) + pendingTasks;
-          }
-          this.cardService.updateVisibleProperties(activity);
-          return activity;
-        });
-
+        await this.loadData();
         this.showAdd = false;
         await this.userNotificationService.hideLoading();
 
-        // This call is made without await to not block the screen and run in background
+        // Upload data in background
         this.sessionService.uploadData();
       }
     } catch (error) {
@@ -491,35 +401,24 @@ export class TasksPage implements OnInit {
 
   /**
    * Synchronize data with the server
+   * Updates local data with server data
    */
   async synchronize() {
     try {
-      await this.userNotificationService.showLoading(
-        this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
+      this.isSynchronizing = true;
+      await this.loadData();
+      await this.userNotificationService.showToast(
+        this.translate.instant('TASKS.MESSAGES.SYNC_SUCCESS'),
+        'top'
       );
-      const success = await this.sessionService.synchronize();
-      await this.userNotificationService.hideLoading();
-
-      if (success) {
-        await this.userNotificationService.showToast(
-          this.translate.instant('TASKS.MESSAGES.SYNC_SUCCESS'),
-          'middle'
-        );
-        // Reload data after successful synchronization
-        await this.ionViewWillEnter();
-      } else {
-        await this.userNotificationService.showToast(
-          this.translate.instant('TASKS.MESSAGES.NO_CONNECTION'),
-          'middle'
-        );
-      }
     } catch (error) {
-      await this.userNotificationService.hideLoading();
-      console.error('Error during synchronization:', error);
+      console.error('Error synchronizing data:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.SYNC_ERROR'),
         'middle'
       );
+    } finally {
+      this.isSynchronizing = false;
     }
   }
 }

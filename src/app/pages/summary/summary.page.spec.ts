@@ -4,7 +4,7 @@ import { SummaryPage } from './summary.page';
 import { CardService } from '@app/services/core/card.service';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { Card } from '@app/interfaces/card';
+import { Card } from '@app/interfaces/card.interface';
 import { STATUS } from '@app/constants/constants';
 
 describe('SummaryPage', () => {

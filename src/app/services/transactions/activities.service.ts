@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE, DATA_TYPE } from '@app/constants/constants';
@@ -7,102 +7,247 @@ import { TasksService } from '@app/services/transactions/tasks.service';
 import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
+import { LoggerService } from '@app/services/core/logger.service';
 
+/**
+ * ActivitiesService
+ *
+ * Service responsible for managing activities in the system.
+ * Handles CRUD operations for activities, including:
+ * - Creating new activities
+ * - Updating existing activities
+ * - Retrieving activity information
+ * - Managing activity states
+ * - Synchronizing activity data
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class ActivitiesService {
+  /** Signal containing the current transaction */
+  private transaction = signal<Transaction | null>(null);
+  /** Readonly signal for external access to transaction */
+  public transaction$ = this.transaction.asReadonly();
+
+  /** Signal containing the list of activities */
+  public activities = signal<Actividad[]>([]);
+
   constructor(
     private storage: StorageService,
     private tasksService: TasksService,
     private requestsService: RequestsService,
-    private synchronizationService: SynchronizationService
-  ) {}
+    private synchronizationService: SynchronizationService,
+    private readonly logger: LoggerService
+  ) {
+    this.loadTransaction();
+  }
 
+  /**
+   * Loads the current transaction from storage
+   * @private
+   */
+  private async loadTransaction() {
+    try {
+      const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
+      this.transaction.set(transaction);
+    } catch (error) {
+      this.logger.error('Error loading transaction', error);
+      this.transaction.set(null);
+    }
+  }
+
+  /**
+   * Saves the current transaction to storage
+   * @private
+   * @throws Error if saving fails
+   */
+  private async saveTransaction() {
+    try {
+      const currentTransaction = this.transaction();
+      if (currentTransaction) {
+        await this.storage.set(STORAGE.TRANSACTION, currentTransaction);
+        this.transaction.set(currentTransaction);
+      }
+    } catch (error) {
+      this.logger.error('Error saving transaction', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Loads activities from the transaction and updates the activities signal
+   * @returns Promise<void>
+   */
+  async load(): Promise<void> {
+    try {
+      const activities = await this.list();
+      console.log(activities);
+      this.activities.set(activities);
+    } catch (error) {
+      this.logger.error('Error loading activities', error);
+      this.activities.set([]);
+    }
+  }
+
+  /**
+   * Gets a summary of tasks for a specific activity
+   * @param idActividad - The ID of the activity
+   * @returns Promise containing task summary statistics
+   * @throws Error if summary retrieval fails
+   */
   async getSummary(idActividad: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso:number; volumen:number; }> {
-    const tareas = await this.tasksService.list(idActividad);
+    try {
+      const tareas = await this.tasksService.list(idActividad);
 
-    const resultado = tareas.reduce(
-      (acumulador, tarea) => {
-        if (tarea.IdEstado === STATUS.APPROVED) {
-          acumulador.aprobados += 1;
-          acumulador.cantidad += tarea.Cantidad ?? 0;
-          acumulador.peso += tarea.Peso ?? 0;
-          acumulador.volumen += tarea.Volumen ?? 0;
-        } else if (tarea.IdEstado === STATUS.PENDING) {
-          acumulador.pendientes += 1;
-        } else if (tarea.IdEstado === STATUS.REJECTED) {
-          acumulador.rechazados += 1;
-        }
-        return acumulador;
-      },
-      { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
-    );
+      const resultado = tareas.reduce(
+        (acumulador, tarea) => {
+          if (tarea.IdEstado === STATUS.APPROVED) {
+            acumulador.aprobados += 1;
+            acumulador.cantidad += tarea.Cantidad ?? 0;
+            acumulador.peso += tarea.Peso ?? 0;
+            acumulador.volumen += tarea.Volumen ?? 0;
+          } else if (tarea.IdEstado === STATUS.PENDING) {
+            acumulador.pendientes += 1;
+          } else if (tarea.IdEstado === STATUS.REJECTED) {
+            acumulador.rechazados += 1;
+          }
+          return acumulador;
+        },
+        { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
+      );
 
-    return resultado;
+      return resultado;
+    } catch (error) {
+      this.logger.error('Error getting activity summary', { idActividad, error });
+      throw error;
+    }
   }
 
+  /**
+   * Lists all activities in the current transaction
+   * @returns Promise<Actividad[]> Array of activities with service information
+   * @throws Error if listing fails
+   */
   async list(): Promise<Actividad[]> {
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    let actividades: Actividad[] = [];
+    try {
+      const currentTransaction = this.transaction();
+      if (!currentTransaction?.Actividades) return [];
 
-    if (!transaction?.Actividades) return actividades;
+      return currentTransaction.Actividades.map(actividad => {
+        const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
+        return {
+          ...actividad,
+          Icono: servicio?.Icon || '',
+          Accion: servicio?.Action || ''
+        };
+      });
+    } catch (error) {
+      this.logger.error('Error listing activities', error);
+      throw error;
+    }
+  }
 
-    actividades = transaction.Actividades;
-    actividades.forEach((actividad) => {
+  /**
+   * Gets a specific activity by ID
+   * @param idActividad - The ID of the activity to retrieve
+   * @returns Promise<Actividad | undefined> The activity if found, undefined otherwise
+   * @throws Error if retrieval fails
+   */
+  async get(idActividad: string): Promise<Actividad | undefined> {
+    try {
+      const currentTransaction = this.transaction();
+      if (!currentTransaction?.Actividades) return undefined;
+
+      const actividad = currentTransaction.Actividades.find(item => item.IdActividad === idActividad);
+      if (!actividad) return undefined;
+
       const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
-
-      actividad.Icono = servicio?.Icon || '';
-      actividad.Accion = servicio?.Action || '';    });
-
-    return actividades;
+      return {
+        ...actividad,
+        Icono: servicio?.Icon || '',
+        Accion: servicio?.Action || ''
+      };
+    } catch (error) {
+      this.logger.error('Error getting activity', { idActividad, error });
+      throw error;
+    }
   }
 
-  async get(idActividad: string): Promise<Actividad> {
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    let actividades: Actividad[] = [];
+  /**
+   * Gets an activity by service and resource IDs
+   * @param idServicio - The service ID
+   * @param idRecurso - The resource ID
+   * @returns Promise<Actividad | undefined> The activity if found, undefined otherwise
+   * @throws Error if retrieval fails
+   */
+  async getByServiceAndResource(idServicio: string, idRecurso: string): Promise<Actividad | undefined> {
+    try {
+      const currentTransaction = this.transaction();
+      if (!currentTransaction?.Actividades) return undefined;
 
-    actividades = transaction.Actividades;
-    const actividad: Actividad = actividades.find((item) => item.IdActividad == idActividad)!;
-
-    const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
-
-    actividad.Icono = servicio?.Icon || '';
-    actividad.Accion = servicio?.Action || '';
-
-    return actividad;
+      return currentTransaction.Actividades.find(
+        item => item.IdServicio === idServicio && item.IdRecurso === idRecurso
+      );
+    } catch (error) {
+      this.logger.error('Error getting activity by service', { idServicio, idRecurso, error });
+      throw error;
+    }
   }
 
-  async getByServicio(idServicio: string, idRecurso: string) : Promise<Actividad | undefined>{
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    const actividades = transaction.Actividades;
-    const actividad: Actividad = actividades.find((item) => item.IdServicio == idServicio && item.IdRecurso == idRecurso)!;
-    return actividad;
+  /**
+   * Creates a new activity
+   * @param actividad - The activity to create
+   * @returns Promise<boolean> True if creation was successful
+   * @throws Error if creation fails
+   */
+  async create(actividad: Actividad): Promise<boolean> {
+    try {
+      const now = new Date().toISOString();
+      const [latitud, longitud] = await Utils.getCurrentPosition();
+      const currentTransaction = this.transaction();
+
+      if (!currentTransaction) {
+        return false;
+      }
+
+      actividad.FechaInicial = now;
+      actividad.LatitudInicial = latitud;
+      actividad.LatitudInicial = longitud;
+
+      currentTransaction.Actividades.push(actividad);
+      await this.saveTransaction();
+      await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
+      await this.synchronizationService.uploadData();
+      return true;
+    } catch (error) {
+      this.logger.error('Error creating activity', { actividad, error });
+      throw error;
+    }
   }
 
-  // #region Create Methods
-  async create(actividad: Actividad) {
-    const now = new Date().toISOString();
-    const [latitud, longitud] = await Utils.getCurrentPosition();
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
+  /**
+   * Updates an existing activity
+   * @param actividad - The activity to update
+   * @returns Promise<boolean> True if update was successful
+   * @throws Error if update fails
+   */
+  async update(actividad: Actividad): Promise<boolean> {
+    try {
+      const now = new Date().toISOString();
+      const currentTransaction = this.transaction();
 
-    actividad.FechaInicial = now;
-    actividad.LatitudInicial = latitud;
-    actividad.LatitudInicial = longitud;
+      if (!currentTransaction) {
+        return false;
+      }
 
-    transaction.Actividades.push(actividad);
-    await this.storage.set(STORAGE.TRANSACTION, transaction);
-    await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
-    await this.synchronizationService.uploadData();
-}
+      const current = currentTransaction.Actividades.find(
+        item => item.IdActividad === actividad.IdActividad
+      );
 
-  async update(actividad: Actividad) {
-    const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
+      if (!current) {
+        return false;
+      }
 
-    const current: Actividad = transaction.Actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
-    if (current)
-    {
       current.FechaFinal = now;
       current.IdEstado = actividad.IdEstado;
       current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
@@ -113,36 +258,64 @@ export class ActivitiesService {
       current.ResponsableNombre = actividad.ResponsableNombre;
       current.ResponsableObservaciones = actividad.ResponsableObservaciones;
 
-      const tareas = transaction.Tareas.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING);
+      const tareas = currentTransaction.Tareas.filter(
+        x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
+      );
       tareas.forEach(x => { x.IdEstado = STATUS.REJECTED });
 
-      const transacciones = transaction.Transacciones.filter(x => x.IdActividad == actividad.IdActividad && x.IdEstado == STATUS.PENDING);
+      const transacciones = currentTransaction.Transacciones.filter(
+        x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
+      );
       transacciones.forEach(x => {
-        x.FechaInicial = now,
-        x.IdEstado = STATUS.REJECTED
+        x.FechaInicial = now;
+        x.IdEstado = STATUS.REJECTED;
       });
 
-      await this.storage.set(STORAGE.TRANSACTION, transaction);
+      await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
+      return true;
+    } catch (error) {
+      this.logger.error('Error updating activity', { actividad, error });
+      throw error;
     }
   }
 
-  async updateInicio(actividad: Actividad) {
-    const now = new Date().toISOString();
-    const transaction: Transaction = await this.storage.get(STORAGE.TRANSACTION);
-    const actividades = transaction.Actividades;
-    const current: Actividad = actividades.find((item) => item.IdActividad == actividad.IdActividad)!;
-    if (current)
-    {
+  /**
+   * Updates the start information of an activity
+   * @param actividad - The activity to update
+   * @returns Promise<boolean> True if update was successful
+   * @throws Error if update fails
+   */
+  async updateStart(actividad: Actividad): Promise<boolean> {
+    try {
+      const now = new Date().toISOString();
+      const currentTransaction = this.transaction();
+
+      if (!currentTransaction) {
+        return false;
+      }
+
+      const current = currentTransaction.Actividades.find(
+        item => item.IdActividad === actividad.IdActividad
+      );
+
+      if (!current) {
+        return false;
+      }
+
       current.FechaInicial = now;
       current.IdEstado = actividad.IdEstado;
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
-      await this.storage.set(STORAGE.TRANSACTION, transaction);
+      await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.START_ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
+      return true;
+    } catch (error) {
+      this.logger.error('Error updating activity start', { actividad, error });
+      throw error;
     }
   }
 }

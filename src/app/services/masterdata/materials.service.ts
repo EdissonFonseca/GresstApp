@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STORAGE } from '@app/constants/constants';
 import { Material } from '@app/interfaces/material.interface';
@@ -8,42 +8,64 @@ import { MasterDataApiService } from '@app/services/api/masterdataApi.service';
   providedIn: 'root',
 })
 export class MaterialsService {
+  private materials = signal<Material[]>([]);
+  public materials$ = this.materials.asReadonly();
+
   constructor(
     private storage: StorageService,
     private masterdataService: MasterDataApiService
-  ) {}
+  ) {
+    this.loadMaterials();
+  }
 
-  async get(idMaterial: string): Promise<Material | undefined> {
-    const materiales: Material[] = await this.storage.get(STORAGE.MATERIALS);
+  private async loadMaterials() {
+    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
+    this.materials.set(masterData?.Materiales || []);
+  }
 
-    if (materiales) {
-      const material = materiales.find((material) => material.IdMaterial === idMaterial);
-      return material || undefined;
+  private async saveMaterials() {
+    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
+    if (masterData) {
+      masterData.Materiales = this.materials();
+      await this.storage.set(STORAGE.MASTER_DATA, masterData);
     }
+  }
 
-    return undefined;
+  async get(id: string): Promise<Material | undefined> {
+    return this.materials().find(m => m.IdMaterial === id);
   }
 
   async list(): Promise<Material[]> {
-    const materiales: Material[] = await this.storage.get(STORAGE.MATERIALS);
-
-    return materiales;
+    return this.materials();
   }
 
   async create(material: Material): Promise<boolean> {
-    try{
-      const posted = await this.masterdataService.createMaterial(material);
-      if (!posted) {
-      }
-    } catch {
+    try {
+      const currentMaterials = this.materials();
+      currentMaterials.push(material);
+      this.materials.set(currentMaterials);
+      await this.saveMaterials();
+      return true;
+    } catch (error) {
+      console.error('Error creating material:', error);
+      return false;
     }
-    finally
-    {
-      //Add to array
-      const materiales: Material[] = await this.storage.get(STORAGE.MATERIALS);
-      materiales.push(material);
-      await this.storage.set(STORAGE.MATERIALS, materiales);
+  }
+
+  async update(material: Material): Promise<void> {
+    const currentMaterials = this.materials();
+    const index = currentMaterials.findIndex(m => m.IdMaterial === material.IdMaterial);
+    if (index !== -1) {
+      currentMaterials[index] = material;
+      this.materials.set(currentMaterials);
+      await this.saveMaterials();
     }
-    return true;
+  }
+
+  async delete(id: string): Promise<void> {
+    const currentMaterials = this.materials();
+    const filteredMaterials = currentMaterials.filter(m => m.IdMaterial !== id);
+    this.materials.set(filteredMaterials);
+    await this.saveMaterials();
   }
 }

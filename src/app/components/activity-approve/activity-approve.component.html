@@ -1,63 +1,112 @@
+<!-- Header section with navigation and action buttons -->
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()" color="medium">
-        <ion-icon name="close-circle"></ion-icon>
+      <ion-button (click)="cancel()" color="medium" aria-label="Cancelar aprobación">
+        <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
         Salir
       </ion-button>
     </ion-buttons>
-    <ion-title></ion-title>
+    <ion-title>Aprobación de Actividad</ion-title>
     <ion-buttons slot="end">
-      <ion-button *ngIf="approveOrReject=='approve'" [strong]="true" (click)="confirm()" color="success">
-        <ion-icon name="checkmark-circle"></ion-icon>
+      <ion-button *ngIf="approveOrReject=='approve'"
+                  [strong]="true"
+                  (click)="confirm()"
+                  color="success"
+                  aria-label="Confirmar aprobación">
+        <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
         Confirmar
       </ion-button>
-      <ion-button *ngIf="approveOrReject=='reject'" [strong]="true" (click)="reject()" color="danger">
-        <ion-icon name="remove-circle"></ion-icon>
+      <ion-button *ngIf="approveOrReject=='reject'"
+                  [strong]="true"
+                  (click)="reject()"
+                  color="danger"
+                  aria-label="Rechazar actividad">
+        <ion-icon name="remove-circle" aria-hidden="true"></ion-icon>
         Rechazar
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<!-- Activity card display -->
 <ion-item color="light">
   <app-card [card]="activity" [allowApprove]="false" [allowNavigate]="false"></app-card>
 </ion-item>
+
+<!-- Main content area -->
 <ion-content color="light">
-  <div class="signature-container" >
+  <!-- Signature pad section -->
+  <div class="signature-container" role="application" aria-label="Área de firma">
     <canvas #canvas
       (touchstart)="startDrawing($event)"
       (touchmove)="draw($event)"
-      (touchend)="endDrawing()">
+      (touchend)="endDrawing()"
+      aria-label="Lienzo para firma">
     </canvas>
   </div>
+
+  <!-- Signature controls -->
   <ion-item *ngIf="showSignPad" color="light">
     <ion-label>
       Firma Receptor
     </ion-label>
-    <ion-button (click)="clear()" slot="end" fill="clear">
+    <ion-button (click)="clear()"
+                slot="end"
+                fill="clear"
+                aria-label="Borrar firma actual">
       <ion-label>Borrar Firma</ion-label>
     </ion-button>
   </ion-item>
-  <form [formGroup]="frmActividad">
+
+  <!-- Activity approval form -->
+  <form [formGroup]="frmActividad" role="form" aria-label="Formulario de aprobación">
     <ion-list inset="true">
+      <!-- Name input field -->
       <ion-item *ngIf="showName">
-        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" ></ion-input>
+        <ion-input label="Nombre"
+                   labelPlacement="floating"
+                   formControlName="Nombre"
+                   aria-label="Nombre del receptor"></ion-input>
       </ion-item>
+
+      <!-- Identification input field -->
       <ion-item *ngIf="showPin">
-        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion" ></ion-input>
+        <ion-input label="Identificación"
+                   labelPlacement="floating"
+                   formControlName="Identificacion"
+                   aria-label="Número de identificación"></ion-input>
       </ion-item>
+
+      <!-- Position input field -->
       <ion-item *ngIf="showPin">
-        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo" ></ion-input>
+        <ion-input label="Cargo"
+                   labelPlacement="floating"
+                   formControlName="Cargo"
+                   aria-label="Cargo del receptor"></ion-input>
       </ion-item>
+
+      <!-- Mileage input field -->
       <ion-item *ngIf="showMileage">
-        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" type="number"></ion-input>
+        <ion-input label="Marcador {{unidadKilometraje}}"
+                   labelPlacement="floating"
+                   formControlName="Kilometraje"
+                   type="number"></ion-input>
       </ion-item>
+
+      <!-- Notes input field -->
       <ion-item *ngIf="showNotes">
-        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" ></ion-textarea>
+        <ion-textarea autoGrow="true"
+                      label="Observaciones"
+                      labelPlacement="floating"
+                      formControlName="Observaciones"
+                      aria-label="Observaciones adicionales"></ion-textarea>
       </ion-item>
     </ion-list>
   </form>
 </ion-content>
+
+<!-- Footer with pending items information -->
 <ion-footer>
   <ion-note>
     Se marcarán {{ activity.pendingItems }} items que están pendientes como no recibidos

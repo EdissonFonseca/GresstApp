@@ -31,7 +31,7 @@ export class ResiduesComponent  implements OnInit {
   async getNombre(idResiduo: string) {
     let nombre: string = '';
     console.log(idResiduo);
-    const residuo = await this.inventoryService.getResiduo(idResiduo);
+    const residuo = await this.inventoryService.getResidue(idResiduo);
 
 
     // if (residuo)
