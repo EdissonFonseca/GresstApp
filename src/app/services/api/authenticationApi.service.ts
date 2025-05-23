@@ -135,6 +135,26 @@ export class AuthenticationApiService {
     }
   }
 
+  async isRefreshTokenValid(): Promise<boolean> {
+    try {
+      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
+      const username = await this.storage.get(STORAGE.USERNAME);
+
+      if (!refreshToken || !username) {
+        this.logger.error('No refresh token or username found during validation', { refreshToken, username });
+        return false;
+      }
+      const response = await this.http.post<boolean>('/authentication/isvalidrefreshtoken', {
+        RefreshToken: refreshToken,
+        Username: username
+      });
+
+      return (response.status === 200);
+    } catch (error) {
+      this.logger.error('Error validating token', error);
+      return false;
+    }  }
+
   /**
    * Refreshes the access token using the stored refresh token
    * @returns {Promise<boolean>} True if refresh successful, false otherwise

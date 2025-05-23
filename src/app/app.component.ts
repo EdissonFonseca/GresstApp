@@ -25,7 +25,12 @@ export class AppComponent implements OnInit {
 
       const isLoggedIn = await this.sessionService.isLoggedIn();
       if (isLoggedIn) {
-        await this.router.navigate(['/home']);
+        const isTokenValid = await this.sessionService.isRefreshTokenValid();
+        if (isTokenValid) {
+          await this.router.navigate(['/home']);
+        } else {
+          await this.router.navigate(['/login']);
+        }
       } else {
         await this.router.navigate(['/login']);
       }

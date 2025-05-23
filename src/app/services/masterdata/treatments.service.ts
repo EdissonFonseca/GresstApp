@@ -15,15 +15,15 @@ export class TreatmentsService {
   }
 
   private async loadTreatments() {
-    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
-    this.treatments.set(masterData?.Tratamientos || []);
+    const treatments = await this.storage.get(STORAGE.TREATMENTS);
+    this.treatments.set(treatments || []);
   }
 
   private async saveTreatments() {
-    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
-    if (masterData) {
-      masterData.Tratamientos = this.treatments();
-      await this.storage.set(STORAGE.MASTER_DATA, masterData);
+    const treatments = await this.storage.get(STORAGE.TREATMENTS);
+    if (treatments) {
+      treatments.Tratamientos = this.treatments();
+      await this.storage.set(STORAGE.TREATMENTS, treatments);
     }
   }
 

@@ -1,7 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { StorageService } from '../core/storage.service';
 import { Transaccion } from '../../interfaces/transaccion.interface';
-import { TasksService } from './tasks.service';
 import { CRUD_OPERATIONS, DATA_TYPE, INPUT_OUTPUT, STATUS, STORAGE } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
@@ -11,10 +10,22 @@ import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
 
+/**
+ * TransactionsService
+ *
+ * Service responsible for managing transactions in the application.
+ * Handles CRUD operations for transactions, including:
+ * - Transaction creation and updates
+ * - Transaction listing and filtering
+ * - Transaction synchronization
+ * - Transaction status management
+ * - Transaction point and third party associations
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class TransactionsService {
+  /** Signal containing the current transaction */
   private transaction = signal<Transaction | null>(null);
   public transaction$ = this.transaction.asReadonly();
 
@@ -23,7 +34,6 @@ export class TransactionsService {
 
   constructor(
     private storage: StorageService,
-    private tasksService: TasksService,
     private pointsService: PointsService,
     private thirdpartiesService: ThirdpartiesService,
     private requestsService: RequestsService,
@@ -33,6 +43,11 @@ export class TransactionsService {
     this.loadTransaction();
   }
 
+  /**
+   * Loads the current transaction from storage
+   * Updates the transaction signal with the loaded data
+   * @throws {Error} If loading fails
+   */
   private async loadTransaction() {
     try {
       const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
@@ -43,6 +58,11 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Saves the current transaction to storage
+   * Updates the transaction signal with the saved data
+   * @throws {Error} If saving fails
+   */
   private async saveTransaction() {
     try {
       const currentTransaction = this.transaction();
@@ -56,51 +76,33 @@ export class TransactionsService {
     }
   }
 
-  async getSummary(idActividad: string, idTransaccion: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso: number; volumen: number }> {
-    try {
-      const tareas = await this.tasksService.list(idActividad, idTransaccion);
-
-      const resultado = tareas.reduce(
-        (acumulador, tarea) => {
-          if (tarea.IdEstado === STATUS.APPROVED) {
-            acumulador.aprobados += 1;
-            acumulador.cantidad += tarea.Cantidad ?? 0;
-            acumulador.peso += tarea.Peso ?? 0;
-            acumulador.volumen += tarea.Volumen ?? 0;
-          } else if (tarea.IdEstado === STATUS.PENDING) {
-            acumulador.pendientes += 1;
-          } else if (tarea.IdEstado === STATUS.REJECTED) {
-            acumulador.rechazados += 1;
-          }
-          return acumulador;
-        },
-        { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
-      );
-
-      return resultado;
-    } catch (error) {
-      this.logger.error('Error getting transaction summary', { idActividad, idTransaccion, error });
-      throw error;
-    }
-  }
-
+  /**
+   * Lists transactions for a specific activity
+   * Enriches transaction data with point and third party information
+   *
+   * @param idActividad - The activity ID to list transactions for
+   * @returns Promise<Transaccion[]> - Array of transactions with enriched data
+   * @throws {Error} If listing fails
+   */
   async list(idActividad: string): Promise<Transaccion[]> {
     try {
       const currentTransaction = this.transaction();
       if (!currentTransaction) return [];
 
+      // Filter transactions by activity ID
       const transacciones = currentTransaction.Transacciones.filter(x => x.IdActividad === idActividad);
+
+      // Get points and third parties for enrichment
       const puntos = await this.pointsService.list();
       const terceros = await this.thirdpartiesService.list();
-      const tareas = await this.tasksService.list(idActividad);
 
+      // Enrich transaction data with point and third party information
       return transacciones.map(transaccion => {
         let operacion = transaccion.EntradaSalida;
         let nombre = '';
         let ubicacion = '';
 
-        const tareasTransaccion = tareas.filter(x => x.IdTransaccion === transaccion.IdTransaccion);
-
+        // Handle point-based transactions
         if (transaccion.IdDeposito != null) {
           transaccion.Icono = 'location-outline';
           const punto = puntos.find(x => x.IdDeposito === transaccion.IdDeposito);
@@ -111,6 +113,7 @@ export class TransactionsService {
               transaccion.Tercero = `${tercero.Nombre} - ${nombre}`;
             }
 
+            // Build location string
             if (punto.Localizacion) {
               ubicacion = punto.Direccion
                 ? `${punto.Localizacion}-${punto.Direccion}`
@@ -120,6 +123,7 @@ export class TransactionsService {
             }
 
             transaccion.Ubicacion = ubicacion;
+            // Set operation type based on input/output
             if (transaccion.EntradaSalida === INPUT_OUTPUT.TRANSFERENCE)
               operacion = INPUT_OUTPUT.TRANSFERENCE;
             else if (transaccion.EntradaSalida === INPUT_OUTPUT.INPUT)
@@ -127,7 +131,9 @@ export class TransactionsService {
             else if (transaccion.EntradaSalida === INPUT_OUTPUT.OUTPUT)
               operacion = INPUT_OUTPUT.OUTPUT;
           }
-        } else if (transaccion.IdTercero != null) {
+        }
+        // Handle third party-based transactions
+        else if (transaccion.IdTercero != null) {
           const tercero = terceros.find(x => x.IdPersona === transaccion.IdTercero);
           if (tercero) {
             transaccion.Tercero = tercero.Nombre;
@@ -135,6 +141,7 @@ export class TransactionsService {
           }
         }
 
+        // Set action and title
         transaccion.Accion = Utils.getInputOutputAction(operacion ?? '');
         transaccion.Titulo = `${transaccion.Solicitudes}-${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
 
@@ -146,6 +153,14 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Gets a specific transaction by activity and transaction IDs
+   *
+   * @param idActividad - The activity ID
+   * @param idTransaccion - The transaction ID
+   * @returns Promise<Transaccion | undefined> - The transaction if found
+   * @throws {Error} If retrieval fails
+   */
   async get(idActividad: string, idTransaccion: string): Promise<Transaccion | undefined> {
     try {
       const currentTransaction = this.transaction();
@@ -155,6 +170,7 @@ export class TransactionsService {
         x => x.IdActividad === idActividad && x.IdTransaccion === idTransaccion
       );
 
+      // Set default title if not present
       if (transaccion && (!transaccion.Titulo || transaccion.Titulo === '')) {
         transaccion.Titulo = `${transaccion.Tercero}-${transaccion.Punto ?? ''}`;
       }
@@ -166,6 +182,14 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Gets a transaction by activity and point IDs
+   *
+   * @param idActividad - The activity ID
+   * @param idPunto - The point ID
+   * @returns Promise<Transaccion | undefined> - The transaction if found
+   * @throws {Error} If retrieval fails
+   */
   async getByPoint(idActividad: string, idPunto: string): Promise<Transaccion | undefined> {
     try {
       const currentTransaction = this.transaction();
@@ -180,6 +204,14 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Gets a transaction by activity and third party IDs
+   *
+   * @param idActividad - The activity ID
+   * @param idTercero - The third party ID
+   * @returns Promise<Transaccion | undefined> - The transaction if found
+   * @throws {Error} If retrieval fails
+   */
   async getByThirdParty(idActividad: string, idTercero: string): Promise<Transaccion | undefined> {
     try {
       const currentTransaction = this.transaction();
@@ -194,6 +226,12 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Creates a new transaction
+   *
+   * @param transaccion - The transaction to create
+   * @throws {Error} If creation fails
+   */
   async create(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
@@ -212,6 +250,13 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Updates an existing transaction
+   * Also updates associated pending tasks to rejected status
+   *
+   * @param transaccion - The transaction to update
+   * @throws {Error} If update fails
+   */
   async update(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
@@ -223,6 +268,7 @@ export class TransactionsService {
         );
 
         if (current) {
+          // Update transaction fields
           current.IdEstado = transaccion.IdEstado;
           if (current.FechaInicial == null) current.FechaInicial = now;
           current.FechaFinal = now;
@@ -235,6 +281,7 @@ export class TransactionsService {
           current.CostoCombustible = transaccion.CostoCombustible;
           current.Kilometraje = transaccion.Kilometraje;
 
+          // Update associated pending tasks to rejected
           const tareas = currentTransaction.Tareas.filter(
             x => x.IdActividad === transaccion.IdActividad &&
                  x.IdTransaccion === transaccion.IdTransaccion &&
@@ -258,8 +305,10 @@ export class TransactionsService {
   }
 
   /**
-   * Load transactions for a specific activity and update the transactions signal
+   * Loads transactions for a specific activity and updates the transactions signal
+   *
    * @param idActividad - The activity ID to load transactions for
+   * @throws {Error} If loading fails
    */
   async loadTransactions(idActividad: string): Promise<void> {
     try {

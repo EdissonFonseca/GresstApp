@@ -7,7 +7,9 @@
     "EDIT": "Editar",
     "SEARCH": "Buscar",
     "LOADING": "Cargando...",
-    "LANGUAGE": "Idioma"
+    "LANGUAGE": "Idioma",
+    "CONTINUE": "Continuar",
+    "ACCEPT": "Aceptar"
   },
   "AUTH": {
     "LOGIN": {
@@ -18,7 +20,9 @@
       "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
       "CHECKING_SESSION": "Verificando sesión...",
       "SENDING_RECOVERY": "Enviando correo de recuperación...",
-      "RECOVERY_SENT": "Se ha enviado un correo con instrucciones"
+      "RECOVERY_SENT": "Se ha enviado un correo con instrucciones",
+      "SYNCING_DATA": "Sincronizando datos pendientes...",
+      "STARTING_SESSION": "Iniciando sesión..."
     },
     "LOGOUT": "Cerrar Sesión",
     "USERNAME": "Usuario",
@@ -30,7 +34,13 @@
       "NO_CONNECTION": "No hay conexión a internet",
       "INVALID_CREDENTIALS": "Usuario o contraseña incorrectos",
       "EMAIL_REQUIRED": "Por favor ingrese su correo electrónico",
-      "SERVER_ERROR": "Error del servidor. Por favor intente más tarde"
+      "SERVER_ERROR": "Error del servidor. Por favor intente más tarde",
+      "NO_CONNECTION_TITLE": "Error de Conexión",
+      "NO_CONNECTION_MESSAGE": "No hay conexión a internet. Por favor verifique su conexión e intente de nuevo.",
+      "INVALID_CREDENTIALS_TITLE": "Credenciales Inválidas",
+      "INVALID_CREDENTIALS_MESSAGE": "El correo electrónico o contraseña ingresados son incorrectos. Por favor intente de nuevo.",
+      "SYNC_ERROR_TITLE": "Error de Sincronización",
+      "SYNC_ERROR_MESSAGE": "Hubo un error al sincronizar sus datos. ¿Desea continuar sin sincronizar?"
     }
   },
   "TREATMENTS": {

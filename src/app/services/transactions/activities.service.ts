@@ -3,7 +3,6 @@ import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE, DATA_TYPE } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
-import { TasksService } from '@app/services/transactions/tasks.service';
 import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
@@ -34,7 +33,6 @@ export class ActivitiesService {
 
   constructor(
     private storage: StorageService,
-    private tasksService: TasksService,
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
     private readonly logger: LoggerService
@@ -81,45 +79,10 @@ export class ActivitiesService {
   async load(): Promise<void> {
     try {
       const activities = await this.list();
-      console.log(activities);
       this.activities.set(activities);
     } catch (error) {
       this.logger.error('Error loading activities', error);
       this.activities.set([]);
-    }
-  }
-
-  /**
-   * Gets a summary of tasks for a specific activity
-   * @param idActividad - The ID of the activity
-   * @returns Promise containing task summary statistics
-   * @throws Error if summary retrieval fails
-   */
-  async getSummary(idActividad: string): Promise<{ aprobados: number; pendientes: number; rechazados: number; cantidad: number; peso:number; volumen:number; }> {
-    try {
-      const tareas = await this.tasksService.list(idActividad);
-
-      const resultado = tareas.reduce(
-        (acumulador, tarea) => {
-          if (tarea.IdEstado === STATUS.APPROVED) {
-            acumulador.aprobados += 1;
-            acumulador.cantidad += tarea.Cantidad ?? 0;
-            acumulador.peso += tarea.Peso ?? 0;
-            acumulador.volumen += tarea.Volumen ?? 0;
-          } else if (tarea.IdEstado === STATUS.PENDING) {
-            acumulador.pendientes += 1;
-          } else if (tarea.IdEstado === STATUS.REJECTED) {
-            acumulador.rechazados += 1;
-          }
-          return acumulador;
-        },
-        { aprobados: 0, pendientes: 0, rechazados: 0, cantidad: 0, peso: 0, volumen: 0 }
-      );
-
-      return resultado;
-    } catch (error) {
-      this.logger.error('Error getting activity summary', { idActividad, error });
-      throw error;
     }
   }
 

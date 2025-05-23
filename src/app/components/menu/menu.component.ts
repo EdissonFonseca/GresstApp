@@ -162,7 +162,7 @@ export class MenuComponent implements OnInit {
    */
   async synchronize() {
     try {
-      this.navCtrl.navigateForward('/sincronizacion');
+      this.navCtrl.navigateForward('/synchronization');
     } catch (error) {
       console.error('Error navigating to sync page:', error);
       this.notificationService.showToast(

@@ -7,6 +7,7 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
+import { TasksService } from '../transactions/tasks.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +15,13 @@ import { Utils } from '@app/utils/utils';
 export class CardService {
   constructor(
     private activitiesService: ActivitiesService,
-    private transactionsService: TransactionsService
+    private transactionsService: TransactionsService,
+    private tasksService: TasksService
   ) {}
 
   async mapActividades(actividades: Actividad[]): Promise<Card[]> {
     const cards = await Promise.all(actividades.map(async actividad => {
-      const summaryData = await this.activitiesService.getSummary(actividad.IdActividad);
+      const summaryData = await this.tasksService.getSummary(actividad.IdActividad);
 
       const card: Card = {
         id: actividad.IdActividad,
@@ -32,12 +34,12 @@ export class CardService {
         iconName: undefined,
         iconSource: actividad.Icono,
         parentId: null,
-        pendingItems: summaryData.pendientes,
-        rejectedItems: summaryData.rechazados,
-        successItems: summaryData.aprobados,
-        quantity: summaryData.cantidad,
-        weight: summaryData.peso,
-        volume: summaryData.volumen,
+        pendingItems: summaryData.pending,
+        rejectedItems: summaryData.rejected,
+        successItems: summaryData.approved,
+        quantity: summaryData.quantity,
+        weight: summaryData.weight,
+        volume: summaryData.volume,
       };
       this.updateVisibleProperties(card);
       return card;
@@ -47,7 +49,7 @@ export class CardService {
   }
 
   async mapActividad(actividad: Actividad): Promise<Card> {
-    const summaryData = await this.activitiesService.getSummary(actividad.IdActividad);
+    const summaryData = await this.tasksService.getSummary(actividad.IdActividad);
 
     const card: Card = {
       id: actividad.IdActividad,
@@ -60,12 +62,12 @@ export class CardService {
       iconName: undefined,
       iconSource: actividad.Icono,
       parentId: null,
-      pendingItems: summaryData.pendientes,
-      rejectedItems: summaryData.rechazados,
-      successItems: summaryData.aprobados,
-      quantity: summaryData.cantidad,
-      weight: summaryData.peso,
-      volume: summaryData.volumen,
+      pendingItems: summaryData.pending,
+      rejectedItems: summaryData.rejected,
+      successItems: summaryData.approved,
+      quantity: summaryData.quantity,
+      weight: summaryData.weight,
+      volume: summaryData.volume,
     };
     this.updateVisibleProperties(card);
 
@@ -74,7 +76,7 @@ export class CardService {
 
   async mapTransacciones(transacciones: Transaccion[]): Promise<Card[]> {
     return Promise.all(transacciones.map(async transaccion => {
-      const summaryData = await this.transactionsService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
+      const summaryData = await this.tasksService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
 
       const card: Card = {
         id: transaccion.IdTransaccion,
@@ -87,12 +89,12 @@ export class CardService {
         iconName: transaccion.Icono,
         iconSource: undefined,
         parentId: transaccion.IdActividad,
-        pendingItems: summaryData.pendientes,
-        rejectedItems: summaryData.rechazados,
-        successItems: summaryData.aprobados,
-        quantity: summaryData.cantidad,
-        weight: summaryData.peso,
-        volume: summaryData.volumen,
+        pendingItems: summaryData.pending,
+        rejectedItems: summaryData.rejected,
+        successItems: summaryData.approved,
+        quantity: summaryData.quantity,
+        weight: summaryData.weight,
+        volume: summaryData.volume,
       };
       this.updateVisibleProperties(card);
       return card;
@@ -100,7 +102,7 @@ export class CardService {
   }
 
   async mapTransaccion(transaccion: Transaccion): Promise<Card> {
-    const summaryData = await this.transactionsService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
+    const summaryData = await this.tasksService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
 
     const card: Card = {
       id: transaccion.IdTransaccion,
@@ -113,12 +115,12 @@ export class CardService {
       iconName: transaccion.Icono,
       iconSource: undefined,
       parentId: transaccion.IdActividad,
-      pendingItems: summaryData.pendientes,
-      rejectedItems: summaryData.rechazados,
-      successItems: summaryData.aprobados,
-      quantity: summaryData.cantidad,
-      weight: summaryData.peso,
-      volume: summaryData.volumen,
+      pendingItems: summaryData.pending,
+      rejectedItems: summaryData.rejected,
+      successItems: summaryData.approved,
+      quantity: summaryData.quantity,
+      weight: summaryData.weight,
+      volume: summaryData.volume,
     };
     this.updateVisibleProperties(card);
     return card;

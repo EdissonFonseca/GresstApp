@@ -19,7 +19,6 @@
     <ion-buttons slot="end">
       <ion-button
         (click)="synchronize()"
-        aria-label="Sincronizar datos"
         [disabled]="isSynchronizing">
         <ion-icon
           name="sync-outline"
@@ -48,22 +47,24 @@
   <ng-container *ngIf="transactions() | async as transactionCards">
     <ng-container *ngFor="let transaction of transactionCards">
       <!-- Transaction card with approval options -->
-      <app-card
-        [card]="transaction"
-        [allowApprove]="true"
-        [allowNavigate]="false"
-        (approve)="openApproveTransaccion($event)"
-        (reject)="openRejectTransaccion($event)"
-        aria-label="Detalles de la transacción">
-      </app-card>
+      <div class="ion-padding card-container">
+        <app-card
+          [card]="transaction"
+          [allowApprove]="true"
+          [allowNavigate]="false"
+          (approve)="openApproveTransaccion($event)"
+          (reject)="openRejectTransaccion($event)"
+          aria-label="Detalles de la transacción">
+        </app-card>
 
-      <!-- Tasks list for current transaction -->
-      <app-card-list
-        [cards]="filterTareas(transaction.id)"
-        (edit)="openEditTarea($event)"
-        aria-label="Lista de tareas"
-        role="list">
-      </app-card-list>
+        <!-- Tasks list for current transaction -->
+        <app-card-list
+          [cards]="filterTareas(transaction.id)"
+          (edit)="openEditTarea($event)"
+          aria-label="Lista de tareas"
+          role="list">
+        </app-card-list>
+      </div>
     </ng-container>
   </ng-container>
 

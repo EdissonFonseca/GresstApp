@@ -7,7 +7,9 @@
     "EDIT": "Edit",
     "SEARCH": "Search",
     "LOADING": "Loading...",
-    "LANGUAGE": "Language"
+    "LANGUAGE": "Language",
+    "CONTINUE": "Continue",
+    "ACCEPT": "Accept"
   },
   "AUTH": {
     "LOGIN": {
@@ -18,7 +20,9 @@
       "FORGOT_PASSWORD": "Forgot your password?",
       "CHECKING_SESSION": "Checking session...",
       "SENDING_RECOVERY": "Sending recovery email...",
-      "RECOVERY_SENT": "A recovery email has been sent with instructions"
+      "RECOVERY_SENT": "A recovery email has been sent with instructions",
+      "SYNCING_DATA": "Syncing pending data...",
+      "STARTING_SESSION": "Starting session..."
     },
     "LOGOUT": "Logout",
     "USERNAME": "Username",
@@ -30,7 +34,13 @@
       "NO_CONNECTION": "No internet connection",
       "INVALID_CREDENTIALS": "Invalid username or password",
       "EMAIL_REQUIRED": "Please enter your email address",
-      "SERVER_ERROR": "Server error. Please try again later"
+      "SERVER_ERROR": "Server error. Please try again later",
+      "NO_CONNECTION_TITLE": "Connection Error",
+      "NO_CONNECTION_MESSAGE": "No internet connection. Please check your connection and try again.",
+      "INVALID_CREDENTIALS_TITLE": "Invalid Credentials",
+      "INVALID_CREDENTIALS_MESSAGE": "The email or password you entered is incorrect. Please try again.",
+      "SYNC_ERROR_TITLE": "Sync Error",
+      "SYNC_ERROR_MESSAGE": "There was an error syncing your data. Would you like to continue without syncing?"
     }
   },
   "TREATMENTS": {

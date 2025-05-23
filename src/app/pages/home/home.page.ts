@@ -46,7 +46,7 @@ export class HomePage implements OnInit {
   async ngOnInit() {
     try {
       await this.initializeData();
-      await this.sessionService.countPendingTransactions();
+      await this.sessionService.countRequests();
     } catch (error) {
       await this.handleError(error);
     }
@@ -163,7 +163,7 @@ export class HomePage implements OnInit {
    */
   async ionViewWillEnter() {
     try {
-      await this.sessionService.countPendingTransactions();
+      await this.sessionService.countRequests();
     } catch (error) {
       console.error('Error in ionViewWillEnter:', error);
       this.handleError(error);

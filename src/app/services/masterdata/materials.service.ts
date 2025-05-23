@@ -19,15 +19,14 @@ export class MaterialsService {
   }
 
   private async loadMaterials() {
-    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
-    this.materials.set(masterData?.Materiales || []);
+    const materials = await this.storage.get(STORAGE.MATERIALS);
+    this.materials.set(materials || []);
   }
 
   private async saveMaterials() {
-    const masterData = await this.storage.get(STORAGE.MASTER_DATA);
-    if (masterData) {
-      masterData.Materiales = this.materials();
-      await this.storage.set(STORAGE.MASTER_DATA, masterData);
+    const materials = await this.storage.get(STORAGE.MATERIALS);
+    if (materials) {
+      await this.storage.set(STORAGE.MATERIALS, materials);
     }
   }
 

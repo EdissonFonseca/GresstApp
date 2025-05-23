@@ -4,3 +4,33 @@
 .header-green{
   --background:#45C4B0;
 }
+
+.card-container {
+  background-color: var(--ion-color-light);
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 8px;
+  margin: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:not(:last-child) {
+    margin-bottom: 16px;
+  }
+}
+
+// Estilos para la card de transacción
+.transaction-wrapper {
+  ::ng-deep ion-card {
+    --background: var(--ion-color-light-shade);
+    border-left: 4px solid var(--ion-color-primary);
+    margin-bottom: 12px;
+  }
+}
+
+// Estilos para las cards de tareas
+.tasks-wrapper {
+  ::ng-deep ion-card {
+    --background: var(--ion-color-light);
+    border-left: 4px solid var(--ion-color-success);
+    margin: 8px 0;
+  }
+}

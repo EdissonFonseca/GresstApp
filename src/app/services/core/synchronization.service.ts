@@ -132,6 +132,7 @@ export class SynchronizationService {
       for (const request of requests) {
         try {
           let success = false;
+          this.logger.debug('Processing request:', request);
 
           // Process request based on object type and CRUD operation
           switch (request.Object) {
@@ -179,6 +180,7 @@ export class SynchronizationService {
                 const startActivity = request.Data as Actividad;
                 if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
                   success = await this.transactionsService.updateInitialActivity(startActivity);
+                  console.log('updateInitialActivity success', success);
                 }
                 break;
               case DATA_TYPE.SUPPLY:
@@ -225,10 +227,11 @@ export class SynchronizationService {
               this.logger.warn('Unknown object type in request', { request });
               continue;
           }
-
+          console.log('success', success);
           if (success) {
             // Remove processed request from storage
             const updatedRequests = requests.filter(r => r !== request);
+            this.logger.debug('Updated requests:', updatedRequests);
             await this.storage.set(STORAGE.REQUESTS, updatedRequests);
           } else {
             this.logger.error('Failed to process request', { request });

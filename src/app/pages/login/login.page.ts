@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
 import { SessionService } from '@app/services/core/session.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { Utils } from '@app/utils/utils';
@@ -23,14 +22,10 @@ export class LoginPage implements OnInit {
   /** Flag to prevent multiple session checks */
   isCheckingSession = false;
 
-  /** Loading indicator instance */
-  private loading: HTMLIonLoadingElement | null = null;
-
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthenticationApiService,
     private router: Router,
-    private loadingController: LoadingController,
     private sessionService: SessionService,
     private translate: TranslateService,
     private userNotificationService: UserNotificationService
@@ -64,43 +59,89 @@ export class LoginPage implements OnInit {
     this.isCheckingSession = true;
 
     try {
-      this.loading = await this.loadingController.create({
-        message: this.translate.instant('AUTH.LOGIN.CHECKING_SESSION'),
-        spinner: 'circular'
-      });
-      await this.loading.present();
+      await this.userNotificationService.showLoading(
+        this.translate.instant('AUTH.LOGIN.CHECKING_SESSION')
+      );
 
       const isOnline = await this.sessionService.isOnline();
       if (isOnline) {
         const success = await this.authService.login(username, password);
         if (success) {
+          const hasPendingRequests = await this.sessionService.hasPendingRequests();
+
+          if (hasPendingRequests) {
+            // Notify user about pending requests
+            await this.userNotificationService.hideLoading();
+            await this.userNotificationService.showLoading(
+              this.translate.instant('AUTH.LOGIN.SYNCING_DATA')
+            );
+
+            const resumeDownload = await this.sessionService.uploadData();
+
+            if (!resumeDownload) {
+              await this.userNotificationService.hideLoading();
+              const confirmed = await this.userNotificationService.showConfirm(
+                this.translate.instant('AUTH.ERRORS.SYNC_ERROR_TITLE'),
+                this.translate.instant('AUTH.ERRORS.SYNC_ERROR_MESSAGE'),
+                this.translate.instant('COMMON.CONTINUE'),
+                this.translate.instant('COMMON.CANCEL')
+              );
+
+              if (confirmed) {
+                try {
+                  await this.userNotificationService.showLoading(
+                    this.translate.instant('AUTH.LOGIN.STARTING_SESSION')
+                  );
+                  await this.sessionService.start();
+                  await this.router.navigate(['/home']);
+                } finally {
+                  await this.userNotificationService.hideLoading();
+                }
+              }
+              return;
+            }
+          }
+
+          await this.userNotificationService.hideLoading();
+          await this.userNotificationService.showLoading(
+            this.translate.instant('AUTH.LOGIN.STARTING_SESSION')
+          );
+
           await this.sessionService.start();
           await this.router.navigate(['/home']);
         } else {
+          await this.userNotificationService.hideLoading();
+          await this.userNotificationService.showAlert(
+            this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS_TITLE'),
+            this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS_MESSAGE')
+          );
           throw new Error('INVALID_CREDENTIALS');
         }
       } else {
+        await this.userNotificationService.hideLoading();
+        await this.userNotificationService.showAlert(
+          this.translate.instant('AUTH.ERRORS.NO_CONNECTION_TITLE'),
+          this.translate.instant('AUTH.ERRORS.NO_CONNECTION_MESSAGE')
+        );
         throw new Error('NO_CONNECTION');
       }
     } catch (error: any) {
       let errorMessage = '';
+      let errorTitle = this.translate.instant('AUTH.ERRORS.TITLE');
 
       if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
         errorMessage = this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS');
+      } else if (error.message === 'NO_CONNECTION') {
+        errorTitle = this.translate.instant('AUTH.ERRORS.NO_CONNECTION_TITLE');
+        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION_MESSAGE');
       } else {
         errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
       }
 
-      await this.userNotificationService.showAlert(
-        this.translate.instant('AUTH.ERRORS.TITLE'),
-        errorMessage
-      );
+      await this.userNotificationService.showAlert(errorTitle, errorMessage);
     } finally {
       this.isCheckingSession = false;
-      if (this.loading) {
-        await this.loading.dismiss();
-        this.loading = null;
-      }
+      await this.userNotificationService.hideLoading();
     }
   }
 

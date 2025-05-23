@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+ion-list {
+  background: transparent;
+  padding: 0;
+}
+
+app-card {
+  display: block;
+  margin: 16px 0;
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  border: 1px solid var(--ion-color-light-shade);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  &:not(:last-child) {
+    margin-bottom: 24px;
+  }
+}

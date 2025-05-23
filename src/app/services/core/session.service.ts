@@ -3,11 +3,12 @@ import { Network } from '@capacitor/network';
 import { SynchronizationService } from './synchronization.service';
 import { STORAGE } from '../../constants/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { HttpService } from '../api/http.service';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
 import { StorageService } from './storage.service';
 import { APIRequest } from '@app/interfaces/APIRequest.interface';
+import { AuthenticationApiService } from '../api/authenticationApi.service';
+
 /**
  * Interface representing the structure of backup data
  * Contains all essential data that needs to be backed up during force quit
@@ -32,7 +33,7 @@ export class SessionService {
   constructor(
     private storage: StorageService,
     private syncService: SynchronizationService,
-    private readonly http: HttpService,
+    private readonly authenticationApi: AuthenticationApiService,
     private readonly logger: LoggerService
   ) { }
 
@@ -57,10 +58,28 @@ export class SessionService {
   }
 
   /**
+   * Verifies if the user's token is valid in API
+   * Checks for the presence of a token in local storage
+   * @returns {Promise<boolean>} True if a token exists in storage
+   */
+  async isRefreshTokenValid(): Promise<boolean> {
+    return this.authenticationApi.isRefreshTokenValid();
+  }
+
+  /**
+   * Verifies if there are pending transactions in local storage
+   * @returns {Promise<boolean>} True if there are pending transactions
+   */
+  async hasPendingRequests(): Promise<boolean> {
+    const requests = await this.storage.get(STORAGE.REQUESTS);
+    return requests && requests.length > 0;
+  }
+
+  /**
    * Counts and updates the number of pending transactions in local storage
    * @returns {Promise<void>}
    */
-  async countPendingTransactions(): Promise<void> {
+  async countRequests(): Promise<void> {
     const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
     this.pendingTransactions.set(requests.length);
   }
@@ -77,7 +96,6 @@ export class SessionService {
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
       await this.syncService.downloadTransactions();
-      await this.countPendingTransactions();
       await this.storage.set(STORAGE.REQUESTS, []);
       await this.storage.set(STORAGE.START_DATE, new Date().toISOString());
     } catch (error) {
@@ -98,14 +116,15 @@ export class SessionService {
     try {
       const isOnline = await this.isOnline();
       if (isOnline) {
+        console.log('isOnline', isOnline);
         if (await this.uploadData()) {
           await this.syncService.downloadAuthorizations();
           await this.syncService.downloadInventory();
           await this.syncService.downloadMasterData();
           await this.syncService.downloadTransactions();
-          await this.countPendingTransactions();
+          return true;
         }
-        return true;
+        return false;
       }
       return false;
     } catch (error) {

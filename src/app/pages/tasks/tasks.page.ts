@@ -67,6 +67,7 @@ export class TasksPage implements OnInit {
   /** Computed property that transforms tasks into cards for display */
   tasks = computed(() => {
     const taskList = this.tasksSignal();
+    console.log('tasks computed', taskList);
     return this.cardService.mapTareas(taskList);
   });
 
@@ -171,7 +172,6 @@ export class TasksPage implements OnInit {
    */
   filterTareas(transactionId: string): Card[] {
     const taskList = this.tasks();
-    console.log(taskList);
     return taskList.filter((x: Card) => x.parentId === transactionId);
   }
 

@@ -211,7 +211,6 @@ export const STORAGE = {
   EMAIL: 'Email',
   FULLNAME: 'Fullname',
   INVENTORY: 'Inventory',
-  MASTER_DATA: 'MasterData',
   MATERIALS: 'Materials',
   PACKAGES: 'Packages',
   PERMISSIONS: 'Permissions',

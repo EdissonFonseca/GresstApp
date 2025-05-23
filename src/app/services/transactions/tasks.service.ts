@@ -92,7 +92,7 @@ export class TasksService {
    */
   async load(activityId: string, transactionId?: string): Promise<void> {
     try {
-      const tasks = await this.listSuggested(activityId, transactionId);
+      const tasks = await this.list(activityId, transactionId);
       this.tasks.set(tasks);
     } catch (error) {
       this.logger.error('Error loading tasks', { activityId, transactionId, error });
@@ -101,45 +101,73 @@ export class TasksService {
   }
 
   /**
-   * Lists tasks for a specific activity with optional transaction filter
-   * Includes material and treatment information
-   * @param activityId - The ID of the activity
-   * @param transactionId - Optional transaction ID to filter tasks
-   * @returns Promise<Tarea[]> - Array of tasks with enriched data
+   * Get summary of tasks for a specific activity
+   * Calculates totals for different task statuses and their associated quantities
+   *
+   * @param activityId - The ID of the activity to filter tasks
+   * @param transactionId - Optional transaction ID to further filter tasks
+   * @returns {Object} Summary object containing:
+   *   - total: Total number of tasks
+   *   - pending: Number of pending tasks
+   *   - completed: Number of completed tasks
+   *   - approved: Number of approved tasks
+   *   - rejected: Number of rejected tasks
+   *   - quantity: Total quantity from completed and approved tasks
+   *   - weight: Total weight from completed and approved tasks
+   *   - volume: Total volume from completed and approved tasks
    */
-  async list(activityId: string, transactionId?: string | null): Promise<Tarea[]> {
-    try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction) return [];
+  getSummary(activityId: string, transactionId?: string) {
+    // Get all tasks from the signal
+    const tasks = this.tasks();
 
-      const activity = currentTransaction.Actividades.find(a => a.IdActividad === activityId);
-      if (!activity) return [];
+    // Filter tasks by activity ID
+    let filteredTasks = tasks.filter((task: Tarea) => task.IdActividad === activityId);
 
-      let tareas = currentTransaction.Tareas.filter(t => t.IdActividad === activityId);
-      if (transactionId) {
-        tareas = tareas.filter(t => t.IdTransaccion === transactionId);
-      }
-
-      const materials = await this.materialsService.list();
-      const treatments = await this.treatmentsService.list();
-
-      return tareas.map(tarea => {
-        const material = materials.find(m => m.IdMaterial === tarea.IdMaterial);
-        const tratamiento = tarea.IdTratamiento != null
-          ? treatments.find(tr => tr.IdTratamiento === tarea.IdTratamiento)
-          : null;
-
-        return {
-          ...tarea,
-          Material: material?.Nombre ?? tarea.Material,
-          Tratamiento: tratamiento?.Nombre ?? tarea.Tratamiento,
-          IdServicio: activity.IdServicio ?? tarea.IdServicio
-        };
-      });
-    } catch (error) {
-      this.logger.error('Error listing tasks', { activityId, transactionId, error });
-      throw error;
+    // Apply additional filter by transaction ID if provided
+    if (transactionId) {
+      filteredTasks = filteredTasks.filter((task: Tarea) => task.IdTransaccion === transactionId);
     }
+
+    // Calculate summary using reduce to accumulate totals
+    const summary = filteredTasks.reduce(
+      (accumulator, task: Tarea) => {
+        // Handle completed tasks
+        if (task.IdEstado === STATUS.FINISHED) {
+          accumulator.completed += 1;
+          accumulator.quantity += task.Cantidad ?? 0;
+          accumulator.weight += task.Peso ?? 0;
+          accumulator.volume += task.Volumen ?? 0;
+        }
+        // Handle pending tasks
+        else if (task.IdEstado === STATUS.PENDING) {
+          accumulator.pending += 1;
+        }
+        // Handle approved tasks
+        else if (task.IdEstado === STATUS.APPROVED) {
+          accumulator.approved += 1;
+          accumulator.quantity += task.Cantidad ?? 0;
+          accumulator.weight += task.Peso ?? 0;
+          accumulator.volume += task.Volumen ?? 0;
+        }
+        // Handle rejected tasks
+        else if (task.IdEstado === STATUS.REJECTED) {
+          accumulator.rejected += 1;
+        }
+        return accumulator;
+      },
+      {
+        total: filteredTasks.length,
+        pending: 0,
+        completed: 0,
+        approved: 0,
+        rejected: 0,
+        quantity: 0,
+        weight: 0,
+        volume: 0
+      }
+    );
+
+    return summary;
   }
 
   /**
@@ -148,7 +176,7 @@ export class TasksService {
    * @param activityId - The ID of the activity
    * @param transactionId - Optional transaction ID
    */
-  async listSuggested(activityId: string, transactionId?: string | null): Promise<Tarea[]> {
+  async list(activityId: string, transactionId?: string | null): Promise<Tarea[]> {
     try {
       let tareas: Tarea[] = [];
       let embalaje: string;
@@ -162,10 +190,15 @@ export class TasksService {
       }
 
       const materials = await this.materialsService.list();
+      console.log('Materials', materials);
       const treatments = await this.treatmentsService.list();
+      console.log('Treatments', treatments);
       const embalajes = await this.packagingService.list();
+      console.log('Packages', embalajes);
       const puntos = await this.pointsService.list();
+      console.log('Points', puntos);
       const terceros = await this.thirdpartiesService.list();
+      console.log('Thirdparties', terceros);
 
       if (transaction) {
         if (transactionId)
@@ -177,7 +210,6 @@ export class TasksService {
           tareas.filter(x => x.EntradaSalida == INPUT_OUTPUT.INPUT || x.IdResiduo)?.forEach(async (tarea) => {
             tarea.IdServicio = actividad.IdServicio;
             const material = materials.find((x) => x.IdMaterial == tarea.IdMaterial);
-            let resumen: string = '';
             accion = 'Ver';
 
             if (material) {
@@ -273,9 +305,10 @@ export class TasksService {
           }
         }
       }
+      console.log('Tasks', tareas);
       return tareas;
     } catch (error) {
-      this.logger.error('Error listing suggested tasks', { activityId, transactionId, error });
+      this.logger.error('Error listing tasks', { activityId, transactionId, error });
       throw error;
     }
   }
