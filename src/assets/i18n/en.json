@@ -148,20 +148,48 @@
     }
   },
   "TASKS": {
-    "SEARCH": "Search...",
+    "TITLE": "Tasks",
+    "SEARCH": "Search tasks...",
+    "ADD_TASK": "Add task",
+    "EDIT_TASK": "Edit task",
+    "SYNC": "Sync",
     "MESSAGES": {
       "INIT_ERROR": "Error initializing tasks page",
       "LOAD_ERROR": "Error loading tasks",
       "FILTER_ERROR": "Error filtering tasks",
-      "UPDATING_INFO": "Updating information",
       "ADD_ERROR": "Error adding task",
       "EDIT_ERROR": "Error editing task",
-      "APPROVE_ERROR": "Error approving transaction",
-      "REJECT_ERROR": "Error rejecting transaction",
-      "MODAL_ERROR": "Error showing form",
+      "SYNC_ERROR": "Error synchronizing",
       "SYNC_SUCCESS": "Synchronization successful",
-      "SYNC_ERROR": "Synchronization failed. Please try again later",
-      "NO_CONNECTION": "No connection to server. Please try again later"
+      "UPDATING_INFO": "Updating information..."
+    }
+  },
+  "TASK_EDIT": {
+    "TITLE": "Task Details",
+    "QUANTITY": "Quantity",
+    "WEIGHT": "Weight",
+    "VOLUME": "Volume",
+    "VALUE": "Value",
+    "PACKAGING": "Packaging",
+    "OBSERVATIONS": "Observations",
+    "DEPOSIT": "Deposit",
+    "DESTINATION_DEPOSIT": "Destination Deposit",
+    "THIRD_PARTY": "Third Party",
+    "DESTINATION_THIRD_PARTY": "Destination Third Party",
+    "TREATMENT": "Treatment",
+    "MATERIAL": "Material",
+    "PHOTOS": "Photos",
+    "TAKE_PHOTO": "Take Photo",
+    "DELETE_PHOTO": "Delete Photo",
+    "CONFIRM": "Confirm",
+    "REJECT": "Reject",
+    "CANCEL": "Cancel",
+    "SELECT_PACKAGING": "Select Packaging",
+    "SELECT_TREATMENT": "Select Treatment",
+    "MESSAGES": {
+      "PHOTO_ERROR": "Error taking photo",
+      "BASE64_ERROR": "No Base64 string received from image",
+      "INVALID_FORM": "Please fill in all required fields"
     }
   }
 }

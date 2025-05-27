@@ -70,6 +70,7 @@ export class LoginPage implements OnInit {
           const hasPendingRequests = await this.sessionService.hasPendingRequests();
 
           if (hasPendingRequests) {
+            console.log('hasPendingRequests', hasPendingRequests);
             // Notify user about pending requests
             await this.userNotificationService.hideLoading();
             await this.userNotificationService.showLoading(
@@ -77,6 +78,7 @@ export class LoginPage implements OnInit {
             );
 
             const resumeDownload = await this.sessionService.uploadData();
+            console.log('resumeDownload', resumeDownload);
 
             if (!resumeDownload) {
               await this.userNotificationService.hideLoading();

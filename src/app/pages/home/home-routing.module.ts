@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { HomePage } from './home.page';
+import { ActivitiesPage } from '../activities/activities.page';
 
 const routes: Routes = [
   {
@@ -9,7 +10,7 @@ const routes: Routes = [
     children: [
       {
         path: 'actividades',
-        loadChildren: () => import('../activities/activities.module').then(m => m.ActivitiesPageModule)
+        component: ActivitiesPage
       },
       {
         path: 'inventario',
@@ -23,14 +24,10 @@ const routes: Routes = [
         path: '',
         redirectTo: 'actividades',
         pathMatch: 'full'
-      },
+      }
     ]
-  },
-  {
-    path: '',
-    redirectTo: 'actividades',
-    pathMatch: 'full'
-  }];
+  }
+];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

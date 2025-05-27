@@ -31,6 +31,10 @@
   &:not(:last-child) {
     margin-bottom: 16px;
   }
+
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 // Estilos para la card de transacción
@@ -55,6 +59,7 @@
   display: block;
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 ion-content {
@@ -62,6 +67,11 @@ ion-content {
   --padding-start: 0;
   --padding-end: 0;
   height: 100%;
+}
+
+.content-wrapper {
+  padding: 8px;
+  padding-bottom: 80px; // Espacio para el FAB
 }
 
 ion-searchbar {
@@ -187,4 +197,8 @@ ion-item {
   &:not(:last-child) {
     margin-bottom: 16px;
   }
+}
+
+ion-fab {
+  z-index: 999;
 }

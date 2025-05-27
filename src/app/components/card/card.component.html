@@ -7,6 +7,8 @@
       <ion-label class="ion-text-wrap">
         <h2 class="card-title">{{ card.title }}</h2>
       </ion-label>
+      <ion-icon slot="end" name="pencil" *ngIf="card.showEdit && card.status == 'P'"></ion-icon>
+      <ion-icon slot="end" name="eye" *ngIf="card.showEdit && card.status == 'P'"></ion-icon>
     </ion-item>
 
     <!-- Description area -->
@@ -18,13 +20,15 @@
 
     <!-- Summary area -->
     <ion-item lines="none" (click)="onEdit(card)">
-      <div slot="start" *ngIf="card.showItems" >
-        <ion-icon name="trash-bin-outline" size="small"></ion-icon>
-        <ion-badge color="success"> {{ card.successItems }} </ion-badge>
-        <ion-badge color="warning"> {{ card.pendingItems }} </ion-badge>
-        <ion-badge color="danger"> {{ card.rejectedItems }} </ion-badge>
+      <div class="summary-content">
+        <div class="badges-left" *ngIf="card.showItems">
+          <ion-icon name="trash-bin-outline" size="small"></ion-icon>
+          <ion-badge color="success"> {{ card.successItems }} </ion-badge>
+          <ion-badge color="warning"> {{ card.pendingItems }} </ion-badge>
+          <ion-badge color="danger"> {{ card.rejectedItems }} </ion-badge>
+        </div>
       </div>
-      <ion-badge slot="end" size="small" color="card.color" *ngIf="card.showSummary && card.summary != ''"> {{ card.summary }} </ion-badge>
+      <ion-badge class="summary-badge" *ngIf="card.showSummary && card.summary != ''"> {{ card.summary }} </ion-badge>
     </ion-item>
 
     <!-- Footer with badges and action buttons -->

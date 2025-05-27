@@ -12,23 +12,18 @@ import { PointsService } from '@app/services/masterdata/points.service';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { PackagesComponent } from '../packages/packages.component';
-import { TreatmentsComponent } from '../treatments/treatments.component';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-task-edit',
   templateUrl: './task-edit.component.html',
-  styleUrls: ['./task-edit.component.scss'],
+  styleUrls: ['./task-edit.component.scss']
 })
 export class TaskEditComponent implements OnInit {
-  @Input() showName: boolean = true;
-  @Input() showPin: boolean = true;
-  @Input() showNotes: boolean = true;
-  @Input() showSignPad: boolean = true;
-  @Input() notesText: string = 'Al aprobar la operacion, todos los pendientes quedan descartados';
+  /** Inputs */
   @Input() activityId: string = '';
   @Input() transactionId: string = '';
   @Input() taskId: string = '';
@@ -36,19 +31,21 @@ export class TaskEditComponent implements OnInit {
   @Input() residueId: string = '';
   @Input() inputOutput: string = '';
 
-  frmTarea: FormGroup;
-  captura: string = '';
+  /** Variables */
+  frmTask: FormGroup;
+  captureType: string = '';
   factor: number | null = null;
-  medicion: string = '';
+  measurement: string = '';
   photo!: SafeResourceUrl;
   status: string = '';
   showDetails: boolean = false;
   showTratamiento: boolean = false;
   task: Tarea | undefined = undefined;
-  fotosPorMaterial: number = 2;
-  fotos: string[] = [];
+  photosByMaterial: number = 2;
+  photos: string[] = [];
   imageUrl: string = '';
 
+  /** Constructor */
   constructor(
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
@@ -59,9 +56,10 @@ export class TaskEditComponent implements OnInit {
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
     private pointsService: PointsService,
-    private thirdpartiesService: ThirdpartiesService
+    private thirdpartiesService: ThirdpartiesService,
+    private translate: TranslateService
   ) {
-    this.frmTarea = this.formBuilder.group({
+    this.frmTask = this.formBuilder.group({
       Cantidad: [null],
       Peso: [null],
       Volumen: [null],
@@ -84,49 +82,49 @@ export class TaskEditComponent implements OnInit {
   }
 
   /**
-   * Inicializacion de formulario
+   * Form initialization
    */
   async ngOnInit() {
-    this.fotosPorMaterial = Utils.photosByMaterial;
+    this.photosByMaterial = Utils.photosByMaterial;
     this.task = await this.tasksService.get(this.taskId);
 
     if (this.task) {
       this.status = this.task.IdEstado;
-      this.fotos = this.task.Fotos ?? [];
+      this.photos = this.task.Fotos ?? [];
 
       const materialItem = await this.materialsService.get(this.task.IdMaterial);
       if (materialItem) {
-        this.medicion = materialItem.TipoMedicion;
-        this.captura = materialItem.TipoCaptura;
+        this.measurement = materialItem.TipoMedicion;
+        this.captureType = materialItem.TipoCaptura;
         this.factor = materialItem.Factor ?? 1;
-        this.frmTarea.patchValue({
+        this.frmTask.patchValue({
           Material: materialItem.Nombre
         });
       }
 
       if (this.task.IdDeposito) {
-        const puntoItem = await this.pointsService.get(this.task.IdDeposito);
-        if (puntoItem) {
-          this.frmTarea.patchValue({
-            IdDeposito: puntoItem.IdDeposito,
-            Deposito: puntoItem.Nombre
+        const itemPoint = await this.pointsService.get(this.task.IdDeposito);
+        if (itemPoint) {
+          this.frmTask.patchValue({
+            IdDeposito: itemPoint.IdDeposito,
+            Deposito: itemPoint.Nombre
           });
         }
       }
 
       if (this.task.IdDepositoDestino) {
-        const puntoItem = await this.pointsService.get(this.task.IdDepositoDestino);
-        if (puntoItem) {
-          this.frmTarea.patchValue({
-            IdDepositoDestino: puntoItem.IdDeposito,
-            DepositoDestino: puntoItem.Nombre
+        const itemPoint = await this.pointsService.get(this.task.IdDepositoDestino);
+        if (itemPoint) {
+          this.frmTask.patchValue({
+            IdDepositoDestino: itemPoint.IdDeposito,
+            DepositoDestino: itemPoint.Nombre
           });
-          if (puntoItem.IdPersona) {
-            const tercero = await this.thirdpartiesService.get(puntoItem.IdPersona);
-            if (tercero) {
-              this.frmTarea.patchValue({
-                IdTerceroDestino: tercero.IdPersona,
-                TerceroDestino: tercero.Nombre
+          if (itemPoint.IdPersona) {
+            const thirdParty = await this.thirdpartiesService.get(itemPoint.IdPersona);
+            if (thirdParty) {
+              this.frmTask.patchValue({
+                IdTerceroDestino: thirdParty.IdPersona,
+                TerceroDestino: thirdParty.Nombre
               });
             }
           }
@@ -134,37 +132,37 @@ export class TaskEditComponent implements OnInit {
       }
 
       if (this.task.IdTercero) {
-        const solicitante = await this.thirdpartiesService.get(this.task.IdTercero);
-        if (solicitante) {
-          this.frmTarea.patchValue({
-            IdTercero: solicitante.IdPersona,
-            Tercero: solicitante.Nombre
+        const thirdParty = await this.thirdpartiesService.get(this.task.IdTercero);
+        if (thirdParty) {
+          this.frmTask.patchValue({
+            IdTercero: thirdParty.IdPersona,
+            Tercero: thirdParty.Nombre
           });
         }
       }
 
       if (this.task.IdEmbalaje) {
-        const embalaje = await this.packagingService.get(this.task.IdEmbalaje);
-        if (embalaje) {
-          this.frmTarea.patchValue({
+        const packageItem = await this.packagingService.get(this.task.IdEmbalaje);
+        if (packageItem) {
+          this.frmTask.patchValue({
             IdEmbalaje: this.task.IdEmbalaje,
-            Embalaje: embalaje.Nombre
+            Embalaje: packageItem.Nombre
           });
         }
       }
 
       if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
-        const residuo = await this.inventoryService.getResidue(this.residueId);
-        if (residuo) {
-          this.frmTarea.patchValue({
-            Cantidad: residuo.Cantidad ?? 0,
-            Peso: residuo.Peso ?? 0,
-            Volumen: residuo.Volumen ?? 0
+        const residueItem = await this.inventoryService.getResidue(this.residueId);
+        if (residueItem) {
+          this.frmTask.patchValue({
+            Cantidad: residueItem.Cantidad ?? 0,
+            Peso: residueItem.Peso ?? 0,
+            Volumen: residueItem.Volumen ?? 0
           });
         }
       }
 
-      this.frmTarea.patchValue({
+      this.frmTask.patchValue({
         Cantidad: this.task.Cantidad ?? 0,
         Peso: this.task.Peso ?? 0,
         Volumen: this.task.Volumen ?? 0,
@@ -173,20 +171,20 @@ export class TaskEditComponent implements OnInit {
       });
     } else {
       if (this.transactionId) {
-        const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
-        if (transaccion) {
-          const punto = await this.pointsService.get(transaccion.IdDeposito ?? '');
-          if (punto) {
-            this.frmTarea.patchValue({
-              IdDeposito: punto.IdDeposito,
-              Deposito: punto.Nombre
+        const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+        if (transaction) {
+          const point = await this.pointsService.get(transaction.IdDeposito ?? '');
+          if (point) {
+            this.frmTask.patchValue({
+              IdDeposito: point.IdDeposito,
+              Deposito: point.Nombre
             });
-            if (punto.IdPersona) {
-              const propietario = await this.thirdpartiesService.get(punto.IdPersona);
-              if (propietario) {
-                this.frmTarea.patchValue({
-                  IdTercero: propietario.IdPersona,
-                  Tercero: propietario.Nombre
+            if (point.IdPersona) {
+              const owner = await this.thirdpartiesService.get(point.IdPersona);
+              if (owner) {
+                this.frmTask.patchValue({
+                  IdTercero: owner.IdPersona,
+                  Tercero: owner.Nombre
                 });
               }
             }
@@ -196,29 +194,29 @@ export class TaskEditComponent implements OnInit {
 
       const material = await this.materialsService.get(this.materialId);
       if (material) {
-        this.medicion = material.TipoMedicion;
-        this.captura = material.TipoCaptura;
-        this.frmTarea.patchValue({
+        this.measurement = material.TipoMedicion;
+        this.captureType = material.TipoCaptura;
+        this.frmTask.patchValue({
           Material: material.Nombre
         });
       }
 
-      const residuo = await this.inventoryService.getResidue(this.residueId);
-      if (residuo) {
-        this.frmTarea.patchValue({
-          Cantidad: residuo.Cantidad ?? 0,
-          Peso: residuo.Peso ?? 0,
-          Volumen: residuo.Volumen ?? 0
+      const residueItem = await this.inventoryService.getResidue(this.residueId);
+      if (residueItem) {
+        this.frmTask.patchValue({
+          Cantidad: residueItem.Cantidad ?? 0,
+          Peso: residueItem.Peso ?? 0,
+          Volumen: residueItem.Volumen ?? 0
         });
       }
     }
   }
 
   /**
-   * Mapea el formulario a la interfaz Tarea
+   * Map the form to the Tarea interface
    */
   private mapFormToTask(): Tarea {
-    const formValue = this.frmTarea.value;
+    const formValue = this.frmTask.value;
     const now = new Date().toISOString();
 
     return {
@@ -227,6 +225,7 @@ export class TaskEditComponent implements OnInit {
       IdTransaccion: this.transactionId,
       IdMaterial: this.materialId,
       IdResiduo: this.residueId,
+      EntradaSalida: this.task?.EntradaSalida || this.inputOutput,
       Cantidad: formValue.Cantidad,
       Peso: formValue.Peso,
       Volumen: formValue.Volumen,
@@ -236,108 +235,115 @@ export class TaskEditComponent implements OnInit {
       IdDepositoDestino: formValue.IdDepositoDestino,
       IdTercero: formValue.IdTercero,
       IdTerceroDestino: formValue.IdTerceroDestino,
-      IdTratamiento: formValue.IdTratamiento,
+      IdTratamiento: this.task?.IdTratamiento || formValue.IdTratamiento,
       FechaEjecucion: now,
-      Fotos: this.fotos,
+      Fotos: this.photos,
       Observaciones: formValue.Observaciones,
       IdEstado: STATUS.APPROVED,
-      EntradaSalida: this.inputOutput,
       IdRecurso: this.task?.IdRecurso || '',
-      IdServicio: this.task?.IdServicio || ''
+      IdServicio: this.task?.IdServicio || '',
+      Item: this.task?.Item || 0,
+      FechaProgramada: this.task?.FechaProgramada || now,
+      FechaSolicitud: this.task?.FechaSolicitud || now,
+      IdSolicitud: this.task?.IdSolicitud || 0,
+      Solicitud: this.task?.Solicitud || ''
     };
   }
 
   /**
-   * Mapea la tarea a un residuo
+   * Map the task to a residue
    */
-  private mapResiduoFromTask(tarea: Tarea): Residuo {
+  private mapResidueFromTask(task: Tarea): Residuo {
     return {
       IdResiduo: Utils.generateId(),
       IdMaterial: this.materialId,
-      IdPropietario: tarea.IdTercero || '',
-      IdDeposito: tarea.IdDeposito || '',
+      IdPropietario: task.IdTercero || '',
+      IdDeposito: task.IdDeposito || '',
       IdVehiculo: '',
-      IdDepositoOrigen: tarea.IdDeposito || '',
+      IdDepositoOrigen: task.IdDeposito || '',
       Aprovechable: true,
-      Cantidad: tarea.Cantidad || 0,
-      Peso: tarea.Peso || 0,
-      IdEmbalaje: tarea.IdEmbalaje || '',
+      Cantidad: task.Cantidad || 0,
+      Peso: task.Peso || 0,
+      IdEmbalaje: task.IdEmbalaje || '',
       CantidadEmbalaje: 0,
       IdEstado: STATUS.APPROVED,
-      Material: this.frmTarea.value.Material || '',
+      Material: this.frmTask.value.Material || '',
       Ubicacion: '',
-      Volumen: tarea.Volumen || 0,
+      Volumen: task.Volumen || 0,
     };
   }
 
   /**
-   * Confirmar la tarea
+   * Confirm the task
    */
   async confirm() {
-    if (!this.frmTarea.valid) return;
+    if (!this.frmTask.valid) return;
 
-    const actividad = await this.activitiesService.get(this.activityId);
-    if (!actividad) return;
+    const activity = await this.activitiesService.get(this.activityId);
+    if (!activity) return;
 
-    let tarea: Tarea = this.mapFormToTask();
+    let task: Tarea = this.mapFormToTask();
     if (this.task) {
-      await this.tasksService.update(tarea);
+      await this.tasksService.update(task);
     } else {
-      const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
-      if (transaccion) {
-        const punto = await this.pointsService.get(transaccion.IdDeposito ?? '');
-        tarea.IdRecurso = actividad.IdRecurso;
-        tarea.IdServicio = actividad.IdServicio;
+      const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+      if (transaction) {
+        const point = await this.pointsService.get(transaction.IdDeposito ?? '');
+        task.IdRecurso = activity.IdRecurso;
+        task.IdServicio = activity.IdServicio;
 
-        if (punto?.Recepcion) { //No hay tarea -> Entrada
-          tarea.IdResiduo = '';
-          tarea.EntradaSalida = INPUT_OUTPUT.INPUT;
-          await this.tasksService.create(tarea);
+        if (point?.Recepcion) { //No hay tarea -> Entrada
+          task.IdResiduo = '';
+          task.EntradaSalida = INPUT_OUTPUT.INPUT;
+          await this.tasksService.create(task);
         } else { //No hay tarea -> Salida
-          tarea.IdResiduo = this.residueId;
-          tarea.EntradaSalida = INPUT_OUTPUT.OUTPUT;
-          await this.tasksService.create(tarea);
+          task.IdResiduo = this.residueId;
+          task.EntradaSalida = INPUT_OUTPUT.OUTPUT;
+          await this.tasksService.create(task);
 
           // Crear el residuo
-          const residuo = this.mapResiduoFromTask(tarea);
-          await this.inventoryService.createResidue(residuo);
+          const residue = this.mapResidueFromTask(task);
+          await this.inventoryService.createResidue(residue);
         }
       }
     }
 
-    this.modalCtrl.dismiss(tarea);
-  }
-
-  async reject() {
-    const tarea = await this.tasksService.get(this.taskId);
-    if (tarea) {
-      tarea.Observaciones = this.frmTarea.value.Observaciones;
-      tarea.IdEstado = STATUS.REJECTED;
-      tarea.FechaEjecucion = new Date().toISOString();
-      await this.tasksService.update(tarea);
-    }
-    this.modalCtrl.dismiss(tarea);
+    this.modalCtrl.dismiss(task);
   }
 
   /**
-   * Retornar a la página inicial
+   * Reject the task
+   */
+  async reject() {
+    const task = await this.tasksService.get(this.taskId);
+    if (task) {
+      task.Observaciones = this.frmTask.value.Observaciones;
+      task.IdEstado = STATUS.REJECTED;
+      task.FechaEjecucion = new Date().toISOString();
+      await this.tasksService.update(task);
+    }
+    this.modalCtrl.dismiss(task);
+  }
+
+  /**
+   * Return to the initial page
    */
   cancel() {
     this.modalCtrl.dismiss();
   }
 
   /**
-   * Selecciona el embalaje y pone los valores en variables de la página
+   * Select the package and set the values in the page variables
    */
-  async selectEmbalaje() {
+  async selectPackage() {
     const modal = await this.modalCtrl.create({
-      component: PackagesComponent,
+      component: 'app-packages',
       componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
       if (data && data.data) {
-        this.frmTarea.patchValue({
+        this.frmTask.patchValue({
           IdEmbalaje: data.data.id,
           Embalaje: data.data.name
         });
@@ -347,15 +353,18 @@ export class TaskEditComponent implements OnInit {
     return await modal.present();
   }
 
-  async selectTratamiento() {
+  /**
+   * Select the treatment and set the values in the page variables
+   */
+  async selectTreatment() {
     const modal = await this.modalCtrl.create({
-      component: TreatmentsComponent,
+      component: 'app-treatments',
       componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
       if (data && data.data) {
-        this.frmTarea.patchValue({
+        this.frmTask.patchValue({
           IdTratamiento: data.data.id,
           Tratamiento: data.data.name
         });
@@ -365,6 +374,9 @@ export class TaskEditComponent implements OnInit {
     return await modal.present();
   }
 
+  /**
+   * Take a photo
+   */
   async takePhoto() {
     try {
       const image = await Camera.getPhoto({
@@ -376,26 +388,32 @@ export class TaskEditComponent implements OnInit {
 
       if (image.base64String) {
         const base64Image = `data:image/jpeg;base64,${image.base64String}`;
-        this.fotos.push(base64Image);
+        this.photos.push(base64Image);
       } else {
-        console.error('No se recibió una cadena Base64 de la imagen.');
+        console.error(this.translate.instant('TASK_EDIT.MESSAGES.BASE64_ERROR'));
       }
     } catch (error) {
-      console.error('Error al tomar la foto:', error);
+      console.error(this.translate.instant('TASK_EDIT.MESSAGES.PHOTO_ERROR'), error);
     }
   }
 
+  /**
+   * Delete a photo
+   */
   deletePhoto(index: number) {
-    this.fotos.splice(index, 1);
+    this.photos.splice(index, 1);
   }
 
-  calculateFromCantidad(event: any) {
+  /**
+   * Calculate the weight or volume from the quantity
+   */
+  calculateFromQuantity(event: any) {
     const enteredValue = (event.target as HTMLInputElement).value;
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
-    if (this.medicion == MEASUREMENTS.WEIGHT)
-      this.frmTarea.patchValue({ Peso: resultValue });
-    else if (this.medicion == MEASUREMENTS.VOLUME)
-      this.frmTarea.patchValue({ Volumen: resultValue });
+    if (this.measurement == MEASUREMENTS.WEIGHT)
+      this.frmTask.patchValue({ Peso: resultValue });
+    else if (this.measurement == MEASUREMENTS.VOLUME)
+      this.frmTask.patchValue({ Volumen: resultValue });
   }
 }

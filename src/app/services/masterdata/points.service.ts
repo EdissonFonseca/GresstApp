@@ -16,17 +16,11 @@ export class PointsService {
     private storage: StorageService,
   ) {
     this.loadPoints();
-    this.loadTransaction();
   }
 
   private async loadPoints() {
     const puntos = await this.storage.get(STORAGE.POINTS) as Punto[];
     this.points.set(puntos || []);
-  }
-
-  private async loadTransaction() {
-    const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
-    this.transaction.set(transaction);
   }
 
   async get(idPunto: string): Promise<Punto | undefined> {

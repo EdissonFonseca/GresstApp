@@ -44,7 +44,8 @@ export class PackagingService {
     if (!idEmbalaje) {
       return undefined;
     }
-    return this.packages().find(embalaje => embalaje.IdEmbalaje === idEmbalaje);
+    const idEmbalajeNum = Number(idEmbalaje);
+    return this.packages().find(embalaje => Number(embalaje.IdEmbalaje) === idEmbalajeNum);
   }
 
   async list(): Promise<Embalaje[]> {

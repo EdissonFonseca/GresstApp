@@ -1,18 +1,20 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
-import { IonTabs } from '@ionic/angular';
+import { IonTabs, NavController, ActionSheetController, ModalController, IonicModule } from '@ionic/angular';
 import { signal, computed } from '@angular/core';
 import { StorageService } from '../../services/core/storage.service';
 import { STORAGE } from '@app/constants/constants';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { SessionService } from '@app/services/core/session.service';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { CardService } from '@app/services/core/card.service';
 import { Card } from '@app/interfaces/card.interface';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-import { NavController, ActionSheetController, ModalController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { SERVICE_TYPES } from '@app/constants/constants';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 /**
  * HomePage component that serves as the main navigation hub of the application.
@@ -23,6 +25,14 @@ import { SERVICE_TYPES } from '@app/constants/constants';
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    TranslateModule,
+    ComponentsModule
+  ]
 })
 export class HomePage implements OnInit {
   /** Title displayed in the header */

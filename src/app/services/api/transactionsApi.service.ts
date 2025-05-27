@@ -73,6 +73,7 @@ export class TransactionsApiService {
    */
   async updateTask(task: Tarea): Promise<boolean> {
     try {
+      console.log('updateTask task', task);
       const response = await this.http.post('/apptransactions/updatetarea', task);
       if (response.status === 200) {
         this.logger.info('Task updated successfully', { taskId: task.IdTarea });

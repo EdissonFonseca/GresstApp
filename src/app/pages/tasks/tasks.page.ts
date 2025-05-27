@@ -60,7 +60,15 @@ export class TasksPage implements OnInit {
   /** Computed property that transforms transactions into cards for display */
   transactions = computed(async () => {
     const transactionList = this.transactionsSignal();
-    return await this.cardService.mapTransacciones(transactionList);
+    let filteredTransactions = transactionList;
+
+    // Si hay un transactionId específico, filtrar solo esa transacción
+    if (this.transactionId) {
+      filteredTransactions = transactionList.filter(trx => trx.IdTransaccion === this.transactionId);
+    }
+
+    const transactionCards = await this.cardService.mapTransacciones(filteredTransactions);
+    return transactionCards;
   });
 
   /** Computed property that transforms tasks into cards for display */
@@ -168,7 +176,7 @@ export class TasksPage implements OnInit {
    * @param transactionId - The ID of the transaction to filter tasks for
    * @returns Array of tasks belonging to the specified transaction, sorted by status
    */
-  filterTareas(transactionId: string): Card[] {
+  filterTasks(transactionId: string): Card[] {
     const taskList = this.tasks();
     const filteredTasks = taskList.filter((x: Card) => x.parentId === transactionId);
 
@@ -221,7 +229,7 @@ export class TasksPage implements OnInit {
    * Open the add task modal
    * Creates a new task for the current activity/transaction
    */
-  async openAddTarea() {
+  async openAddTask() {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
@@ -256,7 +264,7 @@ export class TasksPage implements OnInit {
    * Allows editing of an existing task's properties
    * @param task - The task card to edit
    */
-  async openEditTarea(task: Card) {
+  async openEditTask(task: Card) {
     try {
       const currentActivity = this.activity();
       if (!currentActivity) {

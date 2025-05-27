@@ -391,6 +391,7 @@ export class ActivitiesPage implements OnInit {
    * Open the activity approve modal
    */
   async openApproveActivity(id:string) {
+    console.log('Activities page - openApproveActivity called with id:', id);
     try {
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,

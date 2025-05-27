@@ -189,3 +189,39 @@ ion-badge {
   line-height: 1.1;
 }
 
+.card ion-item ion-badge[slot="end"] {
+  --background: transparent !important;
+  --color: var(--ion-color-dark) !important;
+  color: var(--ion-color-dark) !important;
+  border: 1px solid var(--ion-color-dark);
+  font-weight: 500;
+  padding: 4px 8px;
+  margin: 0;
+  display: inline-block;
+}
+
+.summary-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 8px;
+}
+
+.badges-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.summary-badge {
+  background: transparent !important;
+  color: #000000 !important;
+  border: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+}
+

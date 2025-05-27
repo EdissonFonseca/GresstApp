@@ -148,20 +148,48 @@
     }
   },
   "TASKS": {
-    "SEARCH": "Buscar...",
+    "TITLE": "Tareas",
+    "SEARCH": "Buscar tareas...",
+    "ADD_TASK": "Agregar tarea",
+    "EDIT_TASK": "Editar tarea",
+    "SYNC": "Sincronizar",
     "MESSAGES": {
       "INIT_ERROR": "Error al inicializar la página de tareas",
       "LOAD_ERROR": "Error al cargar las tareas",
       "FILTER_ERROR": "Error al filtrar las tareas",
-      "UPDATING_INFO": "Actualizando información",
       "ADD_ERROR": "Error al agregar la tarea",
       "EDIT_ERROR": "Error al editar la tarea",
-      "APPROVE_ERROR": "Error al aprobar la transacción",
-      "REJECT_ERROR": "Error al rechazar la transacción",
-      "MODAL_ERROR": "Error al mostrar el formulario",
+      "SYNC_ERROR": "Error al sincronizar",
       "SYNC_SUCCESS": "Sincronización exitosa",
-      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde",
-      "NO_CONNECTION": "No hay conexión con el servidor. Intente de nuevo más tarde"
+      "UPDATING_INFO": "Actualizando información..."
+    }
+  },
+  "TASK_EDIT": {
+    "TITLE": "Detalles de la Tarea",
+    "QUANTITY": "Cantidad",
+    "WEIGHT": "Peso",
+    "VOLUME": "Volumen",
+    "VALUE": "Valor",
+    "PACKAGING": "Embalaje",
+    "OBSERVATIONS": "Observaciones",
+    "DEPOSIT": "Depósito",
+    "DESTINATION_DEPOSIT": "Depósito Destino",
+    "THIRD_PARTY": "Tercero",
+    "DESTINATION_THIRD_PARTY": "Tercero Destino",
+    "TREATMENT": "Tratamiento",
+    "MATERIAL": "Material",
+    "PHOTOS": "Fotos",
+    "TAKE_PHOTO": "Tomar Foto",
+    "DELETE_PHOTO": "Eliminar Foto",
+    "CONFIRM": "Confirmar",
+    "REJECT": "Rechazar",
+    "CANCEL": "Cancelar",
+    "SELECT_PACKAGING": "Seleccionar Embalaje",
+    "SELECT_TREATMENT": "Seleccionar Tratamiento",
+    "MESSAGES": {
+      "PHOTO_ERROR": "Error al tomar la foto",
+      "BASE64_ERROR": "No se recibió una cadena Base64 de la imagen",
+      "INVALID_FORM": "Por favor complete todos los campos requeridos"
     }
   }
 }

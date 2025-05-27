@@ -20,12 +20,10 @@
     <ng-container *ngFor="let card of activityCards">
       <app-card
         [card]="card"
-        [allowApprove]="true"
-        [allowNavigate]="true"
         (edit)="navigateToTarget($event)"
         (approve)="openApproveActivity($event)"
         (reject)="openRejectActivity($event)"
-        aria-label="Activity details">
+        aria-label="Activities list">
       </app-card>
     </ng-container>
   </ng-container>
