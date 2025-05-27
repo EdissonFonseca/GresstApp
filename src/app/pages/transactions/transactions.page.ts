@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, signal, computed } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
-import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
+import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { environment } from '../../../environments/environment';
@@ -39,11 +39,11 @@ export class TransactionsPage implements OnInit {
   /** Signal containing the list of transactions from the service */
   private transactionsSignal = this.transactionsService.transactions;
 
-  /** Computed property that transforms transactions into cards */
-  transactions = computed(async () => {
-    const transactionList = this.transactionsSignal();
-    return await this.cardService.mapTransacciones(transactionList);
-  });
+  /** Signal containing the list of transaction cards */
+  transactionCards = signal<Card[]>([]);
+
+  /** Flag to track if data has been loaded */
+  private isDataLoaded = false;
 
   /** Flag indicating whether the add transaction button should be shown */
   showAdd: boolean = true;
@@ -76,7 +76,7 @@ export class TransactionsPage implements OnInit {
         const newActivity = nav.extras.state['activity'];
         if (newActivity) {
           this.activity.set(newActivity);
-          await this.transactionsService.loadTransactions(this.activity().id);
+          await this.loadData();
         }
         const activityData = await this.activitiesService.get(this.activity().id);
         if (activityData) {
@@ -98,15 +98,56 @@ export class TransactionsPage implements OnInit {
    * Load transactions when the page is about to enter
    */
   async ionViewWillEnter() {
+    if (!this.isDataLoaded) {
+      try {
+        await this.loadData();
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+        await this.userNotificationService.showToast(
+          this.translate.instant('TRANSACTIONS.MESSAGES.LOAD_ERROR'),
+          'middle'
+        );
+      }
+    }
+  }
+
+  /**
+   * Load all necessary data for the page
+   */
+  private async loadData() {
     try {
       await this.transactionsService.loadTransactions(this.activity().id);
+      await this.updateTransactionCards();
+      this.isDataLoaded = true;
     } catch (error) {
-      console.error('Error loading transactions:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TRANSACTIONS.MESSAGES.LOAD_ERROR'),
-        'middle'
-      );
+      console.error('Error loading data:', error);
+      throw error;
     }
+  }
+
+  /**
+   * Update transaction cards from the current transactions
+   */
+  private async updateTransactionCards() {
+    const transactionList = this.transactionsSignal();
+    if (!transactionList) return;
+
+    // Define el orden de los estados
+    const statusOrder = {
+      [STATUS.PENDING]: 1,
+      [STATUS.APPROVED]: 2,
+      [STATUS.REJECTED]: 3
+    };
+
+    // Ordenar las transacciones por estado
+    const sortedTransactions = transactionList.sort((a, b) => {
+      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
+      const orderB = statusOrder[b.IdEstado] || 4;
+      return orderA - orderB;
+    });
+
+    const cards = await this.cardService.mapTransacciones(sortedTransactions);
+    this.transactionCards.set(cards);
   }
 
   /**
@@ -121,6 +162,7 @@ export class TransactionsPage implements OnInit {
          transaction.Tercero?.toLowerCase().includes(query))
       );
       this.transactionsService.transactions.set(transactionList);
+      await this.updateTransactionCards();
     } catch (error) {
       console.error('Error filtering transactions:', error);
       await this.userNotificationService.showToast(
@@ -283,14 +325,25 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Open the activity approve modal
+   * Open the transaction approve modal
    */
   async openApproveActividad(id: string) {
     try {
+      const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
+      if (!transaction) {
+        throw new Error('Transaction not found');
+      }
+
       const modal = await this.modalCtrl.create({
-        component: ActivityApproveComponent,
+        component: TransactionApproveComponent,
         componentProps: {
-          IdActividad: id
+          transaction: {
+            id: transaction.IdTransaccion,
+            title: transaction.Titulo,
+            status: transaction.IdEstado,
+            type: 'transaction',
+            parentId: transaction.IdActividad
+          }
         },
       });
 
@@ -302,11 +355,12 @@ export class TransactionsPage implements OnInit {
 
         // Recargar las transacciones para reflejar los cambios
         await this.transactionsService.loadTransactions(this.activity().id);
+        await this.updateTransactionCards();
 
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error approving activity:', error);
+      console.error('Error approving transaction:', error);
       await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.APPROVE_ERROR'),
@@ -316,15 +370,25 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Open the activity reject modal
+   * Open the transaction reject modal
    */
   async openRejectActividad(id: string) {
-    console.log('Transactions page - openRejectActividad called with id:', id);
     try {
+      const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
+      if (!transaction) {
+        throw new Error('Transaction not found');
+      }
+
       const modal = await this.modalCtrl.create({
-        component: ActivityApproveComponent,
+        component: TransactionApproveComponent,
         componentProps: {
-          IdActividad: id,
+          transaction: {
+            id: transaction.IdTransaccion,
+            title: transaction.Titulo,
+            status: transaction.IdEstado,
+            type: 'transaction',
+            parentId: transaction.IdActividad
+          },
           isReject: true
         },
       });
@@ -337,11 +401,12 @@ export class TransactionsPage implements OnInit {
 
         // Recargar las transacciones para reflejar los cambios
         await this.transactionsService.loadTransactions(this.activity().id);
+        await this.updateTransactionCards();
 
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error rejecting activity:', error);
+      console.error('Error rejecting transaction:', error);
       await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.REJECT_ERROR'),

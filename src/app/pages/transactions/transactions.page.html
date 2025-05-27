@@ -62,19 +62,18 @@
       aria-label="Search transactions">
     </ion-searchbar>
   </ion-toolbar>
+</ion-header>
 
 <!-- Main content section -->
 <ion-content [fullscreen]="true" color="light">
   <!-- Transactions list -->
-  <ng-container *ngIf="transactions() | async as transactionCards">
-    <app-card-list
-      [cards]="transactionCards"
-      (edit)="navigateToTareas($event)"
-      (approve)="openApproveActividad($event)"
-      (reject)="openRejectActividad($event)"
-      aria-label="Transactions list">
-    </app-card-list>
-  </ng-container>
+  <app-card-list
+    [cards]="transactionCards()"
+    (edit)="navigateToTareas($event)"
+    (approve)="openApproveActividad($event)"
+    (reject)="openRejectActividad($event)"
+    aria-label="Transactions list">
+  </app-card-list>
 
   <!-- Add transaction button -->
   <ion-fab

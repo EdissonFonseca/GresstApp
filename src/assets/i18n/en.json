@@ -131,6 +131,39 @@
   },
   "TRANSACTIONS": {
     "SEARCH": "Search...",
+    "APPROVE": {
+      "TITLE": "Approve Transaction",
+      "POINT": "Point",
+      "THIRD_PARTY": "Third Party",
+      "IDENTIFICATION": "Identification",
+      "IDENTIFICATION_PLACEHOLDER": "Enter your identification",
+      "IDENTIFICATION_REQUIRED": "Identification is required",
+      "NAME": "Name",
+      "NAME_PLACEHOLDER": "Enter your name",
+      "NAME_REQUIRED": "Name is required",
+      "POSITION": "Position",
+      "POSITION_PLACEHOLDER": "Enter your position",
+      "POSITION_REQUIRED": "Position is required",
+      "MILEAGE": "Mileage",
+      "MILEAGE_PLACEHOLDER": "Enter mileage",
+      "MILEAGE_REQUIRED": "Mileage is required",
+      "MILEAGE_MIN": "Mileage must be greater than 0",
+      "NOTES": "Notes",
+      "NOTES_PLACEHOLDER": "Enter additional notes",
+      "SIGNATURE": "Signature",
+      "SIGNATURE_REQUIRED": "Signature is required",
+      "CLEAR_SIGNATURE": "Clear signature",
+      "CONFIRM": "Confirm",
+      "PENDING_ITEMS": "{{count}} pending items",
+      "SENDING": "Sending information...",
+      "SUCCESS": "Transaction approved successfully",
+      "ERROR": "Error approving transaction"
+    },
+    "REJECT": {
+      "TITLE": "Reject Transaction",
+      "CONFIRM": "Reject",
+      "SUCCESS": "Transaction rejected successfully"
+    },
     "MESSAGES": {
       "INIT_ERROR": "Error initializing transactions page",
       "LOAD_ERROR": "Error loading transactions",
@@ -143,8 +176,8 @@
       "ADD_ERROR": "Error adding transaction",
       "MODAL_ERROR": "Error showing form",
       "APPROVE_ERROR": "Error approving activity",
-      "SYNC_SUCCESS": "Synchronization successful",
-      "SYNC_ERROR": "Synchronization failed. Please try again later"
+      "SYNC_SUCCESS": "Sync successful",
+      "SYNC_ERROR": "Sync failed. Please try again later"
     }
   },
   "TASKS": {

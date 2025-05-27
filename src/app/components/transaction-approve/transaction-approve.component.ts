@@ -1,90 +1,232 @@
-import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Card } from '@app/interfaces/card.interface';
-import { ModalController  } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { STATUS } from '@app/constants/constants';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { TranslateService } from '@ngx-translate/core';
+import { TasksService } from '@app/services/transactions/tasks.service';
+
+interface TaskSummary {
+  total: number;
+  pending: number;
+  completed: number;
+  approved: number;
+  rejected: number;
+  quantity: number;
+  weight: number;
+  volume: number;
+}
+
+/**
+ * TransactionApproveComponent
+ *
+ * Handles the approval or rejection of transactions with the following features:
+ * - Form for collecting responsible person information
+ * - Signature pad for digital signatures
+ * - Mileage tracking (optional)
+ * - Notes and observations
+ * - Validation of required fields
+ * - Support for both approval and rejection workflows
+ */
 @Component({
   selector: 'app-transaction-approve',
   templateUrl: './transaction-approve.component.html',
-  styleUrls: ['./transaction-approve.component.scss'],
+  styleUrls: ['./transaction-approve.component.scss']
 })
-export class TransactionApproveComponent  implements OnInit {
+export class TransactionApproveComponent implements OnInit {
+  /** Controls visibility of mileage input field */
   @Input() showMileage: boolean = true;
+  /** Controls visibility of name-related fields */
   @Input() showName: boolean = true;
+  /** Controls visibility of notes field */
   @Input() showNotes: boolean = true;
+  /** Controls visibility of position field */
   @Input() showPosition: boolean = true;
+  /** Controls visibility of PIN field */
   @Input() showPin: boolean = true;
+  /** Controls visibility of signature pad */
   @Input() showSignPad: boolean = true;
-  @Input() approveOrReject: string = 'approve';
-  @Input() transaction: Card = { id:'', title:'', status:'', type:''};
-  @ViewChild('canvas', { static: true }) signatureCanvas!: ElementRef;
-  frmTransaccion: FormGroup;
-  unidadKilometraje: string = '';
+  /** Determines if component is in reject mode */
+  @Input() isReject: boolean = false;
+  /** Transaction card data to be approved/rejected */
+  @Input() transaction: Card = { id: '', title: '', status: '', type: '' };
+
+  /** Reference to the signature canvas element */
+  @ViewChild('canvas', { static: false }) signatureCanvas!: ElementRef;
+
+  /** Form group for transaction approval/rejection data */
+  frmTransaction!: FormGroup;
+  /** Signal containing the mileage unit (km/mi) */
+  mileageUnit = signal<string>('');
+  /** Canvas element for signature */
   private canvas: any;
+  /** Canvas 2D context for drawing */
   private ctx: any;
-  private drawing: boolean = false;
-  private penColor: string = 'black';
+  /** Signal tracking if user is currently drawing */
+  private drawing = signal<boolean>(false);
+  /** Signal containing the pen color for signature */
+  private penColor = signal<string>('black');
+
+  /** Signal containing the transaction details */
+  transactionDetails = signal<Transaccion | null>(null);
+  taskSummary = signal<TaskSummary | null>(null);
+
+  /** Flag to track if data has been loaded */
+  private isDataLoaded = false;
+
+  /** Utils instance for template access */
+  protected Utils = Utils;
 
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
-    private modalCtrl:ModalController,
+    private modalCtrl: ModalController,
     private transactionsService: TransactionsService,
-    private userNotificationService: UserNotificationService
-  ) {
-    this.frmTransaccion = this.formBuilder.group({
-      Identificacion: '',
-      Nombre: '',
-      Cargo: '',
-      Kilometraje: [null, [Validators.required, Validators.min(1), Validators.pattern("^[0-9]*$")]],
-      Observaciones: [],
-    });
-  }
+    private userNotificationService: UserNotificationService,
+    private translate: TranslateService,
+    private tasksService: TasksService
+  ) {}
 
+  /**
+   * Initialize component
+   * Sets up mileage unit and loads transaction data if available
+   */
   async ngOnInit() {
-    this.unidadKilometraje = Utils.mileageUnit;
+    if (this.isDataLoaded) return;
+
+    this.mileageUnit.set(Utils.mileageUnit);
     this.showMileage = Utils.requestMileage;
+
+    // Initialize form without required validators
+    this.frmTransaction = this.formBuilder.group({
+      Identificacion: [''],
+      Nombre: [''],
+      Cargo: [''],
+      Kilometraje: [null, [Validators.min(1), Validators.pattern("^[0-9]*$")]],
+      Observaciones: [''],
+      Firma: [null]
+    });
+
+    // Load transaction data if available
+    if (this.transaction?.id) {
+      const transaccion = await this.transactionsService.get(this.transaction.parentId ?? '', this.transaction.id);
+      if (transaccion) {
+        this.transactionDetails.set(transaccion);
+        this.frmTransaction.patchValue({
+          Identificacion: transaccion.ResponsableIdentificacion,
+          Nombre: transaccion.ResponsableNombre,
+          Cargo: transaccion.ResponsableCargo,
+          Kilometraje: transaccion.Kilometraje,
+          Observaciones: transaccion.ResponsableObservaciones
+        });
+
+        // Obtener el resumen de tareas
+        const summary = await this.tasksService.getSummary(transaccion.IdActividad);
+        this.taskSummary.set(summary);
+      }
+    }
+
+    this.isDataLoaded = true;
   }
 
-  ngAfterViewInit() {}
-
+  /**
+   * Initialize canvas when view enters
+   * Sets up canvas dimensions and drawing context
+   */
   ionViewDidEnter() {
-    this.canvas = this.signatureCanvas.nativeElement;
-    this.ctx = this.canvas.getContext('2d');
-    this.renderer.setProperty(this.canvas, 'width', window.innerWidth);
-    this.renderer.setProperty(this.canvas, 'height', 200);
-    this.ctx.strokeStyle = this.penColor;
+    if (this.signatureCanvas?.nativeElement) {
+      this.canvas = this.signatureCanvas.nativeElement;
+      this.ctx = this.canvas.getContext('2d');
+      this.renderer.setProperty(this.canvas, 'width', window.innerWidth);
+      this.renderer.setProperty(this.canvas, 'height', 200);
+      this.ctx.strokeStyle = this.penColor();
+      this.ctx.lineWidth = 2;
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+    }
   }
 
+  /**
+   * Start drawing on signature pad
+   * @param event Touch event containing coordinates
+   */
   startDrawing(event: any) {
-    this.drawing = true;
+    if (!this.ctx) return;
+    event.preventDefault();
+    const touch = event.touches[0];
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
+
+    this.drawing.set(true);
     this.ctx.beginPath();
-    this.ctx.moveTo(event.touches[0].clientX, event.touches[0].clientY - 150);
+    this.ctx.moveTo(x, y);
   }
 
+  /**
+   * Draw on signature pad
+   * @param event Touch event containing coordinates
+   */
   draw(event: any) {
-    if (!this.drawing) return;
-    this.ctx.lineTo(event.touches[0].clientX, event.touches[0].clientY - 150);
+    if (!this.ctx || !this.drawing()) return;
+    event.preventDefault();
+    const touch = event.touches[0];
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
+
+    this.ctx.lineTo(x, y);
     this.ctx.stroke();
   }
 
+  /**
+   * End drawing on signature pad
+   * Updates form with signature data
+   */
   endDrawing() {
-    this.drawing = false;
+    if (!this.ctx) return;
+    this.drawing.set(false);
+    this.updateSignatureField();
   }
 
+  /**
+   * Clear signature pad and form field
+   */
   clear() {
+    if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.frmTransaction.patchValue({ Firma: null });
   }
 
+  /**
+   * Update form with current signature data
+   */
+  private updateSignatureField() {
+    const signatureData = this.getSignature();
+    this.frmTransaction.patchValue({ Firma: signatureData });
+  }
+
+  /**
+   * Cancel and close modal
+   */
   cancel() {
     this.modalCtrl.dismiss(null);
   }
 
+  /**
+   * Get signature data from canvas
+   * @returns Base64 string of signature or null if empty
+   */
   getSignature(): string | null {
+    if (!this.canvas) return null;
     const context = this.canvas.getContext('2d');
     const canvasWidth = this.canvas.width;
     const canvasHeight = this.canvas.height;
@@ -93,52 +235,76 @@ export class TransactionApproveComponent  implements OnInit {
     const hasContent = Array.from(imageData).some(channel => channel !== 0);
 
     if (!hasContent) {
-        return null;
+      return null;
     }
 
-    const signatureData = this.canvas.toDataURL();
-    return signatureData;
+    return this.canvas.toDataURL();
   }
 
-  async getFormData(): Promise<Transaccion | undefined>{
-    let transaccion: Transaccion | undefined;
-
-    const data = this.frmTransaccion.value;
-    transaccion = await this.transactionsService.get(this.transaction?.parentId ?? '', this.transaction?.id ?? '');
-    if (transaccion) { //Si hay transaccion
-      const firma = this.getSignature();
-
-      transaccion.Kilometraje = data.Kilometraje;
-      transaccion.ResponsableCargo = data.Cargo;
-      transaccion.ResponsableFirma = firma;
-      transaccion.ResponsableIdentificacion = data.Identificacion;
-      transaccion.ResponsableNombre = data.Nombre;
-      transaccion.ResponsableObservaciones  = data.Observaciones;
+  /**
+   * Get form data and prepare transaction for update
+   * @returns Promise with transaction data or undefined if invalid
+   */
+  async getFormData(): Promise<Transaccion | undefined> {
+    if (this.frmTransaction.invalid) {
+      await this.userNotificationService.showToast(
+        this.translate.instant('TRANSACTIONS.MESSAGES.FORM_ERROR'),
+        'middle'
+      );
+      return undefined;
     }
-    return transaccion;
-   }
 
-  async confirm() {
-    var transaccion = await this.getFormData();
-    if (!transaccion) return;
+    const transaccion = await this.transactionsService.get(
+      this.transaction?.parentId ?? '',
+      this.transaction?.id ?? ''
+    );
 
-    await this.userNotificationService.showLoading('Enviando información');
-    transaccion.IdEstado = STATUS.APPROVED;
-    await this.transactionsService.update(transaccion);
-    this.userNotificationService.hideLoading();
-    this.userNotificationService.showToast('Transaccion aprobada', "top");
-    this.modalCtrl.dismiss(transaccion);
+    if (!transaccion) return undefined;
+
+    const formData = this.frmTransaction.value;
+    return {
+      ...transaccion,
+      Kilometraje: formData.Kilometraje,
+      ResponsableCargo: formData.Cargo,
+      ResponsableFirma: formData.Firma,
+      ResponsableIdentificacion: formData.Identificacion,
+      ResponsableNombre: formData.Nombre,
+      ResponsableObservaciones: formData.Observaciones
+    };
   }
 
-  async reject() {
-    var transaccion = await this.getFormData();
+  /**
+   * Handle form submission based on mode
+   * Updates transaction status and saves changes
+   */
+  async submit() {
+    const transaccion = await this.getFormData();
     if (!transaccion) return;
 
-    await this.userNotificationService.showLoading('Enviando información');
-    transaccion.IdEstado = STATUS.REJECTED;
-    await this.transactionsService.update(transaccion);
-    this.userNotificationService.hideLoading();
-    this.userNotificationService.showToast('Transaccion rechazada', "top");
-    this.modalCtrl.dismiss(transaccion);
+    try {
+      await this.userNotificationService.showLoading(
+        this.translate.instant('TRANSACTIONS.APPROVE.SENDING')
+      );
+
+      transaccion.IdEstado = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
+      await this.transactionsService.update(transaccion);
+
+      // Refresh transactions signal
+      await this.transactionsService.loadTransactions(transaccion.IdActividad);
+
+      await this.userNotificationService.showToast(
+        this.translate.instant(this.isReject ? 'TRANSACTIONS.REJECT.SUCCESS' : 'TRANSACTIONS.APPROVE.SUCCESS'),
+        'top'
+      );
+
+      this.modalCtrl.dismiss(transaccion);
+    } catch (error) {
+      await this.userNotificationService.showToast(
+        this.translate.instant('TRANSACTIONS.APPROVE.ERROR'),
+        'middle'
+      );
+    } finally {
+      this.userNotificationService.hideLoading();
+    }
   }
 }

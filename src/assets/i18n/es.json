@@ -131,6 +131,39 @@
   },
   "TRANSACTIONS": {
     "SEARCH": "Buscar...",
+    "APPROVE": {
+      "TITLE": "Aprobar Transacción",
+      "POINT": "Punto",
+      "THIRD_PARTY": "Tercero",
+      "IDENTIFICATION": "Identificación",
+      "IDENTIFICATION_PLACEHOLDER": "Ingrese su identificación",
+      "IDENTIFICATION_REQUIRED": "La identificación es requerida",
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Ingrese su nombre",
+      "NAME_REQUIRED": "El nombre es requerido",
+      "POSITION": "Cargo",
+      "POSITION_PLACEHOLDER": "Ingrese su cargo",
+      "POSITION_REQUIRED": "El cargo es requerido",
+      "MILEAGE": "Kilometraje",
+      "MILEAGE_PLACEHOLDER": "Ingrese el kilometraje",
+      "MILEAGE_REQUIRED": "El kilometraje es requerido",
+      "MILEAGE_MIN": "El kilometraje debe ser mayor a 0",
+      "NOTES": "Observaciones",
+      "NOTES_PLACEHOLDER": "Ingrese observaciones adicionales",
+      "SIGNATURE": "Firma",
+      "SIGNATURE_REQUIRED": "La firma es requerida",
+      "CLEAR_SIGNATURE": "Limpiar firma",
+      "CONFIRM": "Confirmar",
+      "PENDING_ITEMS": "{{count}} elementos pendientes",
+      "SENDING": "Enviando información...",
+      "SUCCESS": "Transacción aprobada exitosamente",
+      "ERROR": "Error al aprobar la transacción"
+    },
+    "REJECT": {
+      "TITLE": "Rechazar Transacción",
+      "CONFIRM": "Rechazar",
+      "SUCCESS": "Transacción rechazada exitosamente"
+    },
     "MESSAGES": {
       "INIT_ERROR": "Error al inicializar la página de transacciones",
       "LOAD_ERROR": "Error al cargar las transacciones",
@@ -153,6 +186,16 @@
     "ADD_TASK": "Agregar tarea",
     "EDIT_TASK": "Editar tarea",
     "SYNC": "Sincronizar",
+    "STATUS": {
+      "PENDING": "Pendientes",
+      "APPROVED": "Aprobadas",
+      "REJECTED": "Rechazadas"
+    },
+    "SUMMARY": {
+      "TOTAL": "Total",
+      "WEIGHT": "Peso",
+      "VOLUME": "Volumen"
+    },
     "MESSAGES": {
       "INIT_ERROR": "Error al inicializar la página de tareas",
       "LOAD_ERROR": "Error al cargar las tareas",

@@ -60,7 +60,22 @@ export class ActivitiesPage implements OnInit {
   /** Computed property that transforms activities into cards for display */
   activities = computed(() => {
     const activityList = this.activitiesSignal();
-    return this.cardService.mapActividades(activityList);
+
+    // Define el orden de los estados
+    const statusOrder = {
+      [STATUS.PENDING]: 1,
+      [STATUS.APPROVED]: 2,
+      [STATUS.REJECTED]: 3
+    };
+
+    // Ordenar las actividades por estado
+    const sortedActivities = activityList.sort((a, b) => {
+      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
+      const orderB = statusOrder[b.IdEstado] || 4;
+      return orderA - orderB;
+    });
+
+    return this.cardService.mapActividades(sortedActivities);
   });
 
   /** Flag indicating whether the add activity button should be shown */

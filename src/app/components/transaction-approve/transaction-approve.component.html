@@ -1,61 +1,139 @@
+<!-- Header section with dynamic title based on mode (approve/reject) -->
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="cancel()" color="medium">
         <ion-icon name="close-circle"></ion-icon>
-        Salir
+        {{ 'COMMON.CANCEL' | translate }}
       </ion-button>
     </ion-buttons>
-    <ion-title></ion-title>
     <ion-buttons slot="end">
-      <ion-button *ngIf="approveOrReject=='approve'" [strong]="true" (click)="confirm()" color="success">
-        <ion-icon name="checkmark-circle"></ion-icon>Confirmar</ion-button>
-      <ion-button *ngIf="approveOrReject=='reject'" [strong]="true" (click)="reject()" color="danger">
-        <ion-icon name="remove-circle"></ion-icon>Rechazar</ion-button>
+      <ion-button (click)="submit()" [color]="isReject ? 'danger' : 'success'" [disabled]="!frmTransaction.valid">
+        <ion-icon [name]="isReject ? 'close-circle' : 'checkmark-circle'"></ion-icon>
+        {{ (isReject ? 'TRANSACTIONS.REJECT.CONFIRM' : 'TRANSACTIONS.APPROVE.CONFIRM') | translate }}
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<!-- Main content section with form -->
 <ion-content color="light">
-  <ion-item color="light">
-    <app-card [card]="transaction" [allowApprove]="false" [allowNavigate]="false"></app-card>
-  </ion-item>
-  <div class="signature-container" >
-    <canvas #canvas
-      (touchstart)="startDrawing($event)"
-      (touchmove)="draw($event)"
-      (touchend)="endDrawing()">
-    </canvas>
-  </div>
-  <ion-item *ngIf="showSignPad" color="light">
-    <ion-note slo="start">
-      Firma
-    </ion-note>
-    <ion-button (click)="clear()" slot="end" fill="clear">
-      <ion-label>Borrar Firma</ion-label>
-    </ion-button>
-  </ion-item>
-  <form [formGroup]="frmTransaccion">
-    <ion-list inset="true">
-      <ion-item *ngIf="showName">
-        <ion-input label="Nombre" labelPlacement="floating" formControlName="Nombre" ></ion-input>
-      </ion-item>
+  <!-- Transaction details section -->
+  <ion-list color="light" class="ion-no-padding">
+    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="transactionDetails()?.Titulo">
+      <ion-icon name="location-outline" slot="start"></ion-icon>
+      <ion-label size="small">{{ transactionDetails()?.Titulo }}</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Task summary section -->
+  <ion-list color="light" class="ion-no-padding" *ngIf="taskSummary()">
+    <ion-item color="light" lines="none" class="ion-no-padding">
+      <div class="summary-content">
+        <div class="badges-left">
+          <ion-badge color="warning">{{ taskSummary()?.pending || 0 }}</ion-badge>
+          <ion-badge color="success">{{ taskSummary()?.approved || 0 }}</ion-badge>
+          <ion-badge color="danger">{{ taskSummary()?.rejected || 0 }}</ion-badge>
+        </div>
+        <div class="summary-badge">
+          <ng-container *ngIf="taskSummary()?.quantity">
+            {{ taskSummary()?.quantity }} {{ Utils.quantityUnit }}
+          </ng-container>
+          <ng-container *ngIf="taskSummary()?.weight">
+            <ng-container *ngIf="taskSummary()?.quantity">/</ng-container>
+            {{ taskSummary()?.weight }} {{ Utils.weightUnit }}
+          </ng-container>
+          <ng-container *ngIf="taskSummary()?.volume">
+            <ng-container *ngIf="taskSummary()?.quantity || taskSummary()?.weight">/</ng-container>
+            {{ taskSummary()?.volume }} {{ Utils.volumeUnit }}
+          </ng-container>
+        </div>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <!-- Formulario de aprobación -->
+  <form [formGroup]="frmTransaction">
+    <ion-list>
+      <!-- Identificación -->
       <ion-item *ngIf="showPin">
-        <ion-input label="Identificación" labelPlacement="floating" formControlName="Identificacion"></ion-input>
+        <ion-input
+          type="text"
+          formControlName="Identificacion"
+          [label]="'TRANSACTIONS.APPROVE.IDENTIFICATION' | translate"
+          labelPlacement="floating">
+        </ion-input>
       </ion-item>
+      <ion-note *ngIf="frmTransaction.get('Identificacion')?.invalid && frmTransaction.get('Identificacion')?.touched">
+        {{ 'TRANSACTIONS.APPROVE.IDENTIFICATION_REQUIRED' | translate }}
+      </ion-note>
+
+      <!-- Nombre -->
+      <ion-item *ngIf="showName">
+        <ion-input
+          type="text"
+          formControlName="Nombre"
+          [label]="'TRANSACTIONS.APPROVE.NAME' | translate"
+          labelPlacement="floating">
+        </ion-input>
+      </ion-item>
+      <ion-note *ngIf="frmTransaction.get('Nombre')?.invalid && frmTransaction.get('Nombre')?.touched">
+        {{ 'TRANSACTIONS.APPROVE.NAME_REQUIRED' | translate }}
+      </ion-note>
+
+      <!-- Cargo -->
       <ion-item *ngIf="showPosition">
-        <ion-input label="Cargo" labelPlacement="floating" formControlName="Cargo"></ion-input>
+        <ion-input
+          type="text"
+          formControlName="Cargo"
+          [label]="'TRANSACTIONS.APPROVE.POSITION' | translate"
+          labelPlacement="floating">
+        </ion-input>
       </ion-item>
+      <ion-note *ngIf="frmTransaction.get('Cargo')?.invalid && frmTransaction.get('Cargo')?.touched">
+        {{ 'TRANSACTIONS.APPROVE.POSITION_REQUIRED' | translate }}
+      </ion-note>
+
+      <!-- Kilometraje -->
       <ion-item *ngIf="showMileage">
-        <ion-input label="Marcador {{unidadKilometraje}}" labelPlacement="floating" formControlName="Kilometraje" type="number"></ion-input>
+        <ion-input
+          type="number"
+          formControlName="Kilometraje"
+          [label]="'TRANSACTIONS.APPROVE.MILEAGE' | translate"
+          labelPlacement="floating">
+        </ion-input>
       </ion-item>
+      <ion-note *ngIf="frmTransaction.get('Kilometraje')?.invalid && frmTransaction.get('Kilometraje')?.touched">
+        {{ 'TRANSACTIONS.APPROVE.MILEAGE_REQUIRED' | translate }}
+      </ion-note>
+
+      <!-- Observaciones -->
       <ion-item *ngIf="showNotes">
-        <ion-textarea autoGrow="true" label="Observaciones" labelPlacement="floating" formControlName="Observaciones" ></ion-textarea>
+        <ion-textarea
+          formControlName="Observaciones"
+          rows="2"
+          [label]="'TRANSACTIONS.APPROVE.NOTES' | translate"
+          labelPlacement="floating">
+        </ion-textarea>
       </ion-item>
+
+      <!-- Firma -->
+      <ion-item *ngIf="showSignPad">
+        <div class="signature-container">
+          <canvas #canvas
+            (touchstart)="startDrawing($event)"
+            (touchmove)="draw($event)"
+            (touchend)="endDrawing()"
+            class="signature-pad">
+          </canvas>
+          <ion-button fill="clear" (click)="clear()">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-item>
+      <ion-note *ngIf="frmTransaction.get('Firma')?.invalid && frmTransaction.get('Firma')?.touched">
+        {{ 'TRANSACTIONS.APPROVE.SIGNATURE_REQUIRED' | translate }}
+      </ion-note>
     </ion-list>
   </form>
 </ion-content>
-<ion-footer>
-  <ion-note>
-    Se marcarán {{ transaction.pendingItems }} items que están pendientes como no recibidos
-  </ion-note>
-</ion-footer>
