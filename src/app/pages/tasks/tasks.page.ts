@@ -234,8 +234,8 @@ export class TasksPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          idActividad: this.activity().id,
-          idTransaccion: this.transactionId,
+          activityId: this.activity().id,
+          transactionId: this.transactionId,
         },
       });
 
@@ -330,6 +330,22 @@ export class TasksPage implements OnInit {
       );
     } finally {
       this.isSynchronizing = false;
+    }
+  }
+
+  /**
+   * Handle back navigation
+   */
+  goBack() {
+    if (this.mode === 'T') {
+      this.router.navigate(['/transactions'], {
+        queryParams: {
+          Mode: 'A',
+          ActivityId: this.activity().id
+        }
+      });
+    } else {
+      this.router.navigate(['/activities']);
     }
   }
 }

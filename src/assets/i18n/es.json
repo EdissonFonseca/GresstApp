@@ -191,5 +191,34 @@
       "BASE64_ERROR": "No se recibió una cadena Base64 de la imagen",
       "INVALID_FORM": "Por favor complete todos los campos requeridos"
     }
+  },
+  "TASK_ADD": {
+    "TITLE": "Nueva Tarea",
+    "CANCEL": "Cancelar",
+    "CONFIRM": "Confirmar",
+    "ACTIVITY": "Actividad",
+    "REQUEST": "No. Solicitud",
+    "THIRD_PARTY": "Tercero",
+    "POINT": "Depósito",
+    "COLLECTION_POINT": "Punto de Recolección",
+    "DELIVERY_POINT": "Punto de Entrega",
+    "MATERIAL": "Material",
+    "TREATMENT": "Tratamiento",
+    "QUANTITY": "Cantidad",
+    "WEIGHT": "Peso",
+    "VOLUME": "Volumen",
+    "PACKAGING": "Embalaje",
+    "OBSERVATIONS": "Observaciones",
+    "PHOTOS": "Fotos",
+    "TAKE_PHOTO": "Tomar Foto",
+    "DELETE_PHOTO": "Eliminar",
+    "MESSAGES": {
+      "REQUIRED_FIELDS": "Por favor complete todos los campos requeridos",
+      "ACTIVITY_NOT_FOUND": "No se encontró la actividad",
+      "CREATE_ERROR": "Error al crear la tarea",
+      "PHOTO_ERROR": "Error al tomar la foto",
+      "BASE64_ERROR": "Error al procesar la imagen",
+      "TRANSACTION_EXISTS": "Ya existe una transacción para este punto"
+    }
   }
 }

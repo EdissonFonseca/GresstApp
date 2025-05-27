@@ -191,5 +191,34 @@
       "BASE64_ERROR": "No Base64 string received from image",
       "INVALID_FORM": "Please fill in all required fields"
     }
+  },
+  "TASK_ADD": {
+    "TITLE": "New Task",
+    "CANCEL": "Cancel",
+    "CONFIRM": "Confirm",
+    "ACTIVITY": "Activity",
+    "REQUEST": "Request No.",
+    "THIRD_PARTY": "Third Party",
+    "POINT": "Point",
+    "COLLECTION_POINT": "Collection Point",
+    "DELIVERY_POINT": "Delivery Point",
+    "MATERIAL": "Material",
+    "TREATMENT": "Treatment",
+    "QUANTITY": "Quantity",
+    "WEIGHT": "Weight",
+    "VOLUME": "Volume",
+    "PACKAGING": "Packaging",
+    "OBSERVATIONS": "Observations",
+    "PHOTOS": "Photos",
+    "TAKE_PHOTO": "Take Photo",
+    "DELETE_PHOTO": "Delete",
+    "MESSAGES": {
+      "REQUIRED_FIELDS": "Please fill in all required fields",
+      "ACTIVITY_NOT_FOUND": "Activity not found",
+      "CREATE_ERROR": "Error creating task",
+      "PHOTO_ERROR": "Error taking photo",
+      "BASE64_ERROR": "Error processing image",
+      "TRANSACTION_EXISTS": "A transaction already exists for this point"
+    }
   }
 }

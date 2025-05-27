@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { THIRD_PARTY_TYPES, CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/constants/constants';
 import { PackagesComponent } from '../packages/packages.component';
@@ -17,51 +17,27 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
+
+/**
+ * Component for adding new tasks to an activity
+ * Handles the creation of tasks, residues, and transactions
+ */
 @Component({
   selector: 'app-task-add',
   templateUrl: './task-add.component.html',
-  styleUrls: ['./task-add.component.scss'],
+  styleUrls: ['./task-add.component.scss']
 })
 export class TaskAddComponent implements OnInit {
-  @Input() idActividad: string = '';
-  @Input() idTransaccion: string = '';
+  @Input() activityId: string = '';
+  @Input() transactionId: string = '';
 
-  formData: FormGroup;
-  captura: string = '';
-  colorReceive: string = 'primary';
-  colorSend: string = 'medium';
-  embalaje: string = '';
-  factor: number | null = null;
-  idDeposito: string = '';
-  idEmbalaje: string = '';
-  idMaterial: string = '';
-  idPuntoEntrada: string = '';
-  idPuntoSalida: string = '';
-  idResiduo: string = '';
-  idTratamiento: string = '';
-  idVehiculo: string = '';
-  material: string = '';
-  medicion: string = '';
-  proceso: string = '';
-  propietario: string = '';
-  puntoEntrada : string = '';
-  puntoSalida : string = '';
-  residuo: string = '';
-  idTerceroEntrada: string ='';
-  terceroEntrada: string = '';
-  idTerceroSalida: string ='';
-  terceroSalida: string = '';
-  solicitarPunto: boolean = false;
-  solicitarPropietario: boolean = false;
-  solicitarEmbalaje: boolean = false;
-  solicitarTratamiento: boolean = false;
-  tratamiento: string = '';
-  unidadCantidad: string = '';
-  unidadPeso: string = 'kg';
-  unidadVolumen: string = '';
-  fotos: string[] = [];
-  imageUrl: string = '';
-  fotosPorMaterial: number = 2;
+  formData!: FormGroup;
+  photos: string[] = [];
+  photosPerMaterial: number = 2;
+  requestPoint: boolean = false;
+  requestOwner: boolean = false;
+  requestPackaging: boolean = false;
+  requestTreatment: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -72,173 +48,269 @@ export class TaskAddComponent implements OnInit {
     private inventoryService: InventoryService,
     private userNotificationService: UserNotificationService
   ) {
+    this.initializeForm();
+  }
+
+  /**
+   * Initializes the form with all required fields and validators
+   */
+  private initializeForm(): void {
     this.formData = this.formBuilder.group({
-      Cantidad: [],
-      CantidadEmbalaje: [],
-      Foto: [],
-      IdEmbalaje: [],
-      Observaciones: [],
-      Peso: [],
-      Precio: [],
-      Volumen: [],
+      // Non-editable fields
+      IdActividad: [this.activityId],
+      IdTransaccion: [this.transactionId],
+      IdTarea: [Utils.generateId()],
+      IdEstado: [STATUS.APPROVED],
+      FechaSolicitud: [new Date().toISOString()],
+      FechaProgramada: [new Date().toISOString()],
+      FechaEjecucion: [new Date().toISOString()],
+      Accion: ['Ver'],
+      EntradaSalida: [INPUT_OUTPUT.INPUT],
+
+      // Editable fields
+      Quantity: [null, Validators.required],
+      PackagingQuantity: [null],
+      Photo: [null],
+      PackagingId: [null],
+      Packaging: [null],
+      Observations: [null],
+      Weight: [null],
+      Price: [null],
+      Volume: [null],
+      MaterialId: [null, Validators.required],
+      Material: [null],
+      InputPointId: [null],
+      InputPoint: [null],
+      OutputPointId: [null],
+      OutputPoint: [null],
+      InputThirdPartyId: [null],
+      InputThirdParty: [null],
+      OutputThirdPartyId: [null],
+      OutputThirdParty: [null],
+      Title: [null],
+      TreatmentId: [null],
+      Treatment: [null],
+      ResidueId: [null],
+      Residue: [null],
+      Capture: [null],
+      Measurement: [null],
+      Factor: [null],
+      Fotos: [[]]
     });
   }
 
+  /**
+   * Initializes component data and loads activity information
+   */
   async ngOnInit() {
-    this.unidadCantidad = Utils.quantityUnit ?? '';
-    this.unidadPeso = Utils.weightUnit ?? '';
-    this.unidadVolumen = Utils.volumeUnit ?? '';
-    this.fotosPorMaterial = Utils.photosByMaterial ?? 2;
+    this.photosPerMaterial = Utils.photosByMaterial ?? 2;
+    await this.loadActivityData();
+  }
 
-    const actividad = await this.activitiesService.get(this.idActividad);
-    if (actividad)
-    {
-      this.proceso = Utils.getServiceName(actividad.IdServicio);
-      if (actividad.IdServicio == SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT) {
-        this.solicitarEmbalaje = true;
-        this.idVehiculo = actividad.IdRecurso ?? '';
-        if (this.idTransaccion)
-        {
-          const transaccion = await this.transactionsService.get(this.idActividad, this.idTransaccion);
-          if (!transaccion){
-            this.solicitarPunto = true;
-          } else {
-            this.idPuntoEntrada = transaccion.IdDeposito ?? '';
-            this.idTerceroEntrada = transaccion.IdTercero ?? '';
-          }
-        } else {
-          this.solicitarPunto = true;
-        }
-      } else if (actividad.IdServicio == SERVICE_TYPES.RECEPTION) {
-        this.solicitarPropietario = true;
-      }
+  /**
+   * Loads activity data and sets up component state based on activity type
+   */
+  private async loadActivityData(): Promise<void> {
+    const activity = await this.activitiesService.get(this.activityId);
+    if (!activity) return;
+
+    // Set non-editable fields from activity
+    this.formData.patchValue({
+      IdServicio: activity.IdServicio,
+      IdRecurso: activity.IdRecurso,
+      IdOrden: activity.IdOrden,
+      Titulo: activity.Titulo
+    });
+
+    if (activity.IdServicio == SERVICE_TYPES.COLLECTION || activity.IdServicio == SERVICE_TYPES.TRANSPORT) {
+      this.requestPackaging = true;
+      await this.handleTransportOrCollectionActivity(activity);
+    } else if (activity.IdServicio == SERVICE_TYPES.RECEPTION) {
+      this.requestOwner = true;
     }
   }
 
-  calculateFromCantidad(event:any){
-    const enteredValue = (event.target as HTMLInputElement).value;
-    const resultValue = Number(enteredValue) * (this.factor ?? 1);
-
-    if (this.medicion == MEASUREMENTS.WEIGHT)
-      this.formData.patchValue({Peso: resultValue});
-    else if (this.medicion == MEASUREMENTS.VOLUME)
-      this.formData.patchValue({Volumen: resultValue});
+  /**
+   * Handles activity data for transport or collection services
+   */
+  private async handleTransportOrCollectionActivity(activity: any): Promise<void> {
+    if (this.transactionId) {
+      const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+      if (!transaction) {
+        this.requestPoint = true;
+      } else {
+        console.log(transaction);
+        this.formData.patchValue({
+          InputPointId: transaction.IdDeposito,
+          InputPoint: transaction.Punto,
+          InputThirdPartyId: transaction.IdTercero,
+          InputThirdParty: transaction.Tercero,
+          IdTransaccion: transaction.IdTransaccion,
+          Title: transaction.Titulo
+        });
+      }
+    } else {
+      this.requestPoint = true;
+    }
   }
 
-  async selectEmbalaje() {
-    const modal =   await this.modalCtrl.create({
+  /**
+   * Calculates weight or volume based on quantity and factor
+   */
+  calculateFromQuantity(event: any): void {
+    const enteredValue = (event.target as HTMLInputElement).value;
+    const resultValue = Number(enteredValue) * (this.formData.get('Factor')?.value ?? 1);
+
+    if (this.formData.get('Measurement')?.value == MEASUREMENTS.WEIGHT) {
+      this.formData.patchValue({ Weight: resultValue });
+    } else if (this.formData.get('Measurement')?.value == MEASUREMENTS.VOLUME) {
+      this.formData.patchValue({ Volume: resultValue });
+    }
+  }
+
+  /**
+   * Opens modal to select packaging
+   */
+  async selectPackaging(): Promise<void> {
+    const modal = await this.modalCtrl.create({
       component: PackagesComponent,
-      componentProps: {
-      },
+      componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idEmbalaje = data.data.id;
-        this.embalaje = data.data.name;
+      if (data?.data) {
+        this.formData.patchValue({
+          PackagingId: data.data.id,
+          Packaging: data.data.name
+        });
       }
     });
-
-    return await modal.present();
-   }
-
-  async selectMaterial() {
-    const modal =   await this.modalCtrl.create({
-      component: MaterialsComponent,
-      componentProps: {
-      },
-    });
-
-    modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idMaterial = data.data.id;
-        this.material = data.data.name;
-        this.captura = data.data.capture;
-        this.medicion = data.data.measure;
-        this.factor = data.data.factor;
-      }
-    });
-
-    console.log(this.medicion);
-    console.log(this.captura);
 
     await modal.present();
-   }
+  }
 
-   async selectPuntoRecoleccion() {
-    const modal =   await this.modalCtrl.create({
+  /**
+   * Opens modal to select material
+   */
+  async selectMaterial(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: MaterialsComponent,
+      componentProps: {},
+    });
+
+    modal.onDidDismiss().then((data) => {
+      if (data?.data) {
+        this.formData.patchValue({
+          MaterialId: data.data.id,
+          Material: data.data.name,
+          Capture: data.data.capture,
+          Measurement: data.data.measure,
+          Factor: data.data.factor
+        });
+      }
+    });
+
+    await modal.present();
+  }
+
+  /**
+   * Opens modal to select input point
+   */
+  async selectInputPoint(): Promise<void> {
+    const modal = await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
         tipoTercero: THIRD_PARTY_TYPES.CLIENT,
         includeMe: false,
       },
     });
-    await modal.present();
 
     modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idPuntoEntrada  = data.data.id;
-        this.puntoEntrada = data.data.name;
-        this.idTerceroEntrada = data.data.owner;
-        this.terceroEntrada = data.data.ownerName;
+      if (data?.data) {
+        this.formData.patchValue({
+          InputPointId: data.data.id,
+          InputPoint: data.data.name,
+          InputThirdPartyId: data.data.owner,
+          InputThirdParty: data.data.ownerName
+        });
       }
     });
+
+    await modal.present();
   }
 
-  async selectPuntoEntrega() {
-    const modal =   await this.modalCtrl.create({
+  /**
+   * Opens modal to select output point
+   */
+  async selectOutputPoint(): Promise<void> {
+    const modal = await this.modalCtrl.create({
       component: PointsComponent,
       componentProps: {
         tipoTercero: THIRD_PARTY_TYPES.SUPPLIER,
         includeMe: true,
       },
     });
-    await modal.present();
 
     modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idPuntoSalida  = data.data.id;
-        this.puntoSalida = data.data.name;
-        this.idTerceroSalida = data.data.owner;
-        this.terceroSalida = data.data.ownerName;
+      if (data?.data) {
+        this.formData.patchValue({
+          OutputPointId: data.data.id,
+          OutputPoint: data.data.name,
+          OutputThirdPartyId: data.data.owner,
+          OutputThirdParty: data.data.ownerName
+        });
       }
     });
+
+    await modal.present();
   }
 
-  async selectResiduo() {
-    const modal =   await this.modalCtrl.create({
+  /**
+   * Opens modal to select residue
+   */
+  async selectResidue(): Promise<void> {
+    const modal = await this.modalCtrl.create({
       component: ResiduesComponent,
-      componentProps: {
-      },
+      componentProps: {},
     });
+
     modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idResiduo = data.data.id;
-        this.residuo = data.data.name;
+      if (data?.data) {
+        this.formData.patchValue({
+          ResidueId: data.data.id,
+          Residue: data.data.name
+        });
       }
     });
 
-    return await modal.present();
-   }
+    await modal.present();
+  }
 
-   async selectTratamiento() {
-    const modal =   await this.modalCtrl.create({
+  /**
+   * Opens modal to select treatment
+   */
+  async selectTreatment(): Promise<void> {
+    const modal = await this.modalCtrl.create({
       component: TreatmentsComponent,
-      componentProps: {
-      },
+      componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.idTratamiento = data.data.id;
-        this.tratamiento = data.data.name;
+      if (data?.data) {
+        this.formData.patchValue({
+          TreatmentId: data.data.id,
+          Treatment: data.data.name
+        });
       }
     });
 
-    return await modal.present();
-   }
+    await modal.present();
+  }
 
-   async takePhoto() {
+  /**
+   * Takes a photo using the device camera
+   */
+  async takePhoto(): Promise<void> {
     try {
       const image = await Camera.getPhoto({
         quality: 90,
@@ -249,171 +321,237 @@ export class TaskAddComponent implements OnInit {
 
       if (image.base64String) {
         const base64Image = `data:image/jpeg;base64,${image.base64String}`;
-        this.fotos.push(base64Image);
+        this.photos.push(base64Image);
       } else {
-        console.error('No se recibió una cadena Base64 de la imagen.');
+        this.userNotificationService.showToast('TASK_ADD.MESSAGES.BASE64_ERROR', 'middle');
       }
     } catch (error) {
-      console.error('Error al tomar la foto:', error);
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.PHOTO_ERROR', 'middle');
     }
   }
 
-  deletePhoto(index: number) {
-    this.fotos.splice(index, 1);
+  /**
+   * Deletes a photo from the photos array
+   */
+  deletePhoto(index: number): void {
+    this.photos.splice(index, 1);
   }
 
-  cancel() {
-    this.modalCtrl.dismiss(null);
+  /**
+   * Closes the modal without saving
+   */
+  cancel(): void {
+    this.modalCtrl.dismiss({ returnToPrevious: true });
   }
 
-  async submit() {
-    const actividad = await this.activitiesService.get(this.idActividad);
-    if (!actividad) {
-      this.userNotificationService.showToast('No se encontró la actividad','middle');
+  /**
+   * Submits the form and creates the task
+   */
+  async submit(): Promise<void> {
+    if (!this.formData.valid) {
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.REQUIRED_FIELDS', 'middle');
       return;
     }
 
-    let tarea: Tarea | undefined = undefined;
-    let idTransaccion: string | null = null;
-    let idResiduo: string | null = null;
-    const now = new Date();
-    const isoDate = now.toISOString();
-    let fecha: string = isoDate;
+    const activity = await this.activitiesService.get(this.activityId);
+    if (!activity) {
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.ACTIVITY_NOT_FOUND', 'middle');
+      return;
+    }
 
-    if (!this.formData.valid) return;
-
-    idTransaccion = this.idTransaccion;
-    const data = this.formData.value;
-    if (actividad.IdServicio == SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT || actividad.IdServicio === SERVICE_TYPES.RECEPTION){
-      const residuo: Residuo = {
-        IdResiduo: Utils.generateId(),
-        IdMaterial: this.idMaterial,
-        IdPropietario: this.idTerceroEntrada,
-        IdDepositoOrigen: this.idPuntoEntrada,
-        Aprovechable: true, //TODO
-        Cantidad: data.Cantidad,
-        Peso: data.Peso,
-        Volumen: data.Volumen,
-        IdEmbalaje: data.IdEmbalaje,
-        CantidadEmbalaje: data.Cantidad,
-        IdEstado: STATUS.ACTIVE,
-        Propietario: this.propietario,
-        Material: this.material,
-        DepositoOrigen: this.puntoEntrada,
-        EntradaSalida: INPUT_OUTPUT.INPUT,
-        IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION? actividad.IdRecurso : '',
-        IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
-        IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
-        Imagen: this.imageUrl,
-        Ubicacion: '' //TODO
-      };
-      await this.inventoryService.createResidue(residuo);
-      idResiduo = residuo.IdResiduo;
-
-      if (!this.idTransaccion) {
-        if (actividad.IdServicio === SERVICE_TYPES.COLLECTION || actividad.IdServicio == SERVICE_TYPES.TRANSPORT){
-          const transaccionActual = await this.transactionsService.getByPoint(this.idActividad, this.idPuntoEntrada);
-          if (!transaccionActual) {
-            const transaccion: Transaccion = {
-              IdActividad: this.idActividad,
-              IdTransaccion: Utils.generateId(),
-
-              IdEstado: STATUS.PENDING,
-              EntradaSalida: INPUT_OUTPUT.INPUT,
-              IdTercero: this.idTerceroEntrada,
-              IdDeposito: this.idPuntoEntrada,
-              IdDepositoDestino: this.idPuntoSalida,
-              IdTerceroDestino: this.idTerceroSalida,
-              IdOrden: actividad.IdOrden,
-              Punto: this.puntoEntrada,
-              Tercero: this.terceroEntrada,
-              Titulo: 'Nueva - ' + (this.puntoEntrada ?? '') + (this.terceroEntrada ?? ''),
-              Solicitudes: 'Nueva',
-              Icono: 'location',
-              IdRecurso: actividad.IdRecurso,
-              IdServicio: actividad.IdServicio,
-              FechaInicial: isoDate,
-              FechaFinal: isoDate,
-              Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
-            };
-            fecha = isoDate;
-            await this.transactionsService.create(transaccion);
-            idTransaccion = transaccion.IdTransaccion;
-          } else {
-            if (transaccionActual.IdEstado == STATUS.PENDING) {
-              await this.transactionsService.update(transaccionActual);
-              idTransaccion = transaccionActual.IdTransaccion;
-              fecha = transaccionActual.FechaInicial ?? isoDate;
-            } else {
-              this.userNotificationService.showToast('Ya se ha agregado y aprobado/rechazado una transaccion en este punto. No se puede volver a crear','middle');
-              return;
-            }
-          }
-        } else if (actividad.IdServicio == SERVICE_TYPES.RECEPTION) {
-          const transaccionActual = await this.transactionsService.getByThirdParty(this.idActividad, this.idTerceroEntrada);
-          if (!transaccionActual) {
-            const transaccion: Transaccion = {
-              IdActividad: this.idActividad,
-              IdTransaccion: Utils.generateId(),
-
-              IdEstado: STATUS.PENDING,
-              EntradaSalida: INPUT_OUTPUT.INPUT,
-              IdOrden: actividad.IdOrden,
-              IdTercero: this.idTerceroEntrada,
-              IdRecurso: actividad.IdRecurso,
-              IdServicio: actividad.IdServicio,
-              IdDeposito: this.idPuntoEntrada,
-              IdDepositoDestino: this.idPuntoSalida,
-              IdTerceroDestino: this.idTerceroSalida,
-              Titulo: this.propietario,
-              Icono: 'person',
-              Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
-            };
-            await this.transactionsService.create(transaccion);
-            idTransaccion = transaccion.IdTransaccion;
-            fecha = isoDate;
-          } else {
-            await this.transactionsService.update(transaccionActual);
-            idTransaccion = transaccionActual.IdTransaccion;
-            fecha = transaccionActual.FechaInicial ?? isoDate;
-          }
-        }
-      } else {
-        idTransaccion = this.idTransaccion;
+    try {
+      const { transactionId, residueId } = await this.createResidueAndTransaction(activity);
+      if (residueId) {
+        await this.createTask(activity, transactionId, residueId);
+        await this.updateSignals(transactionId);
+        this.modalCtrl.dismiss(true);
       }
-    } else {
-      idResiduo = '';
+    } catch (error) {
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.CREATE_ERROR', 'middle');
     }
-    if (idResiduo != null)
-    {
-      tarea = {
-        IdActividad: this.idActividad,
-        IdTransaccion: idTransaccion,
-        IdTarea: Utils.generateId(),
+  }
 
-        IdMaterial: this.idMaterial,
-        Material : this.material,
-        IdResiduo: idResiduo,
-        IdDeposito: this.idPuntoEntrada,
-        IdTercero: this.idTerceroEntrada,
-        IdDepositoDestino: this.idPuntoSalida,
-        IdTerceroDestino: this.idTerceroSalida,
-        Accion: 'Ver',
-        EntradaSalida: INPUT_OUTPUT.INPUT,
-        IdServicio: actividad.IdServicio,
-        IdEstado: STATUS.APPROVED,
-        IdRecurso: actividad.IdRecurso,
-        FechaEjecucion: isoDate,
-        FechaSolicitud: isoDate,
-        Cantidad: data.Cantidad,
-        Peso: data.Peso,
-        Volumen: data.Volumen,
-        IdEmbalaje: data.IdEmbalaje,
-        FechaProgramada: fecha,
-        Fotos: this.fotos,
-      };
-      await this.tasksService.create(tarea);
+  /**
+   * Creates residue and transaction if needed
+   */
+  private async createResidueAndTransaction(activity: any): Promise<{ transactionId: string | null, residueId: string | null }> {
+    const formValue = this.formData.value;
+    let transactionId = this.transactionId;
+    let residueId: string | null = null;
+
+    if (this.shouldCreateResidue(activity)) {
+      const residue = await this.createResidue(activity, formValue);
+      residueId = residue.IdResiduo;
+
+      if (!this.transactionId) {
+        transactionId = await this.createOrUpdateTransaction(activity, formValue);
+      }
     }
-    this.modalCtrl.dismiss(tarea);
+
+    return { transactionId, residueId };
+  }
+
+  /**
+   * Checks if a residue should be created based on activity type
+   */
+  private shouldCreateResidue(activity: any): boolean {
+    return activity.IdServicio == SERVICE_TYPES.COLLECTION ||
+           activity.IdServicio == SERVICE_TYPES.TRANSPORT ||
+           activity.IdServicio === SERVICE_TYPES.RECEPTION;
+  }
+
+  /**
+   * Creates a new residue
+   */
+  private async createResidue(activity: any, formValue: any): Promise<Residuo> {
+    const residue: Residuo = {
+      IdResiduo: Utils.generateId(),
+      IdMaterial: formValue.MaterialId,
+      IdPropietario: formValue.InputThirdPartyId,
+      IdDepositoOrigen: formValue.InputPointId,
+      Aprovechable: true,
+      Cantidad: formValue.Quantity,
+      Peso: formValue.Weight,
+      Volumen: formValue.Volume,
+      IdEmbalaje: formValue.PackagingId,
+      CantidadEmbalaje: formValue.Quantity,
+      IdEstado: STATUS.ACTIVE,
+      Propietario: formValue.InputThirdParty,
+      Material: formValue.Material,
+      DepositoOrigen: formValue.InputPoint,
+      EntradaSalida: INPUT_OUTPUT.INPUT,
+      IdDeposito: activity.IdServicio == SERVICE_TYPES.RECEPTION ? activity.IdRecurso : '',
+      IdRuta: activity.IdServicio == SERVICE_TYPES.COLLECTION ? activity.IdRecurso : '',
+      IdVehiculo: activity.IdServicio == SERVICE_TYPES.TRANSPORT ? activity.IdRecurso : '',
+      Imagen: '',
+      Ubicacion: ''
+    };
+
+    await this.inventoryService.createResidue(residue);
+    return residue;
+  }
+
+  /**
+   * Creates or updates a transaction based on activity type
+   */
+  private async createOrUpdateTransaction(activity: any, formValue: any): Promise<string> {
+    if (activity.IdServicio === SERVICE_TYPES.COLLECTION || activity.IdServicio == SERVICE_TYPES.TRANSPORT) {
+      return await this.handleTransportOrCollectionTransaction(activity, formValue);
+    } else if (activity.IdServicio == SERVICE_TYPES.RECEPTION) {
+      return await this.handleReceptionTransaction(activity, formValue);
+    }
+    return this.transactionId;
+  }
+
+  /**
+   * Handles transaction creation/update for transport or collection services
+   */
+  private async handleTransportOrCollectionTransaction(activity: any, formValue: any): Promise<string> {
+    const existingTransaction = await this.transactionsService.getByPoint(this.activityId, formValue.InputPointId);
+
+    if (!existingTransaction) {
+      const transaction = this.createNewTransaction(activity, formValue);
+      await this.transactionsService.create(transaction);
+      return transaction.IdTransaccion;
+    } else if (existingTransaction.IdEstado == STATUS.PENDING) {
+      await this.transactionsService.update(existingTransaction);
+      return existingTransaction.IdTransaccion;
+    } else {
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.TRANSACTION_EXISTS', 'middle');
+      throw new Error('Transaction already exists and is not pending');
+    }
+  }
+
+  /**
+   * Handles transaction creation/update for reception services
+   */
+  private async handleReceptionTransaction(activity: any, formValue: any): Promise<string> {
+    const existingTransaction = await this.transactionsService.getByThirdParty(this.activityId, formValue.InputThirdPartyId);
+
+    if (!existingTransaction) {
+      const transaction = this.createNewTransaction(activity, formValue);
+      await this.transactionsService.create(transaction);
+      return transaction.IdTransaccion;
+    } else {
+      await this.transactionsService.update(existingTransaction);
+      return existingTransaction.IdTransaccion;
+    }
+  }
+
+  /**
+   * Creates a new transaction object
+   */
+  private createNewTransaction(activity: any, formValue: any): Transaccion {
+    const now = new Date().toISOString();
+    return {
+      IdActividad: this.activityId,
+      IdTransaccion: Utils.generateId(),
+      IdEstado: STATUS.PENDING,
+      EntradaSalida: INPUT_OUTPUT.INPUT,
+      IdTercero: formValue.InputThirdPartyId,
+      IdDeposito: formValue.InputPointId,
+      IdDepositoDestino: formValue.OutputPointId,
+      IdTerceroDestino: formValue.OutputThirdPartyId,
+      IdOrden: activity.IdOrden,
+      Punto: formValue.InputPoint,
+      Tercero: formValue.InputThirdParty,
+      Titulo: activity.IdServicio == SERVICE_TYPES.RECEPTION ?
+        formValue.InputThirdParty :
+        'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
+      Solicitudes: 'Nueva',
+      Icono: activity.IdServicio == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
+      IdRecurso: activity.IdRecurso,
+      IdServicio: activity.IdServicio,
+      FechaInicial: now,
+      FechaFinal: now,
+      Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
+    };
+  }
+
+  /**
+   * Creates a new task
+   */
+  private async createTask(activity: any, transactionId: string | null, residueId: string): Promise<void> {
+    const formValue = this.formData.value;
+    const now = new Date().toISOString();
+
+    const task: Tarea = {
+      IdActividad: this.activityId,
+      IdTransaccion: transactionId || undefined,
+      IdTarea: Utils.generateId(),
+      IdMaterial: formValue.MaterialId,
+      Material: formValue.Material,
+      IdResiduo: residueId,
+      IdDeposito: formValue.InputPointId,
+      IdTercero: formValue.InputThirdPartyId,
+      IdDepositoDestino: formValue.OutputPointId,
+      IdTerceroDestino: formValue.OutputThirdPartyId,
+      Accion: 'Ver',
+      EntradaSalida: INPUT_OUTPUT.INPUT,
+      IdServicio: activity.IdServicio,
+      IdEstado: STATUS.APPROVED,
+      IdRecurso: activity.IdRecurso,
+      FechaEjecucion: now,
+      FechaSolicitud: now,
+      Cantidad: formValue.Quantity,
+      Peso: formValue.Weight,
+      Volumen: formValue.Volume,
+      IdEmbalaje: formValue.PackagingId,
+      FechaProgramada: now,
+      Fotos: this.photos,
+    };
+
+    await this.tasksService.create(task);
+  }
+
+  /**
+   * Updates signals after task creation
+   */
+  private async updateSignals(transactionId: string | null): Promise<void> {
+    if (transactionId) {
+      await this.tasksService.load(this.activityId, transactionId);
+      await this.transactionsService.loadTransactions(this.activityId);
+      await this.activitiesService.load();
+    }
   }
 }
