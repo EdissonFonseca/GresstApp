@@ -116,7 +116,7 @@ export class TransactionsPage implements OnInit {
    */
   private async loadData() {
     try {
-      await this.transactionsService.loadTransactions(this.activity().id);
+      await this.transactionsService.load(this.activity().id);
       await this.updateTransactionCards();
       this.isDataLoaded = true;
     } catch (error) {
@@ -180,38 +180,10 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Get the color associated with a transaction state
-   * @param stateId - The state ID to get the color for
-   * @returns string - The color code for the state
-   */
-  getColorEstado(stateId: string): string {
-    try {
-      return Utils.getStateColor(stateId);
-    } catch (error) {
-      console.error('Error getting state color:', error);
-      return 'primary'; // Default color
-    }
-  }
-
-  /**
-   * Get the image associated with a process
-   * @param processId - The process ID to get the image for
-   * @returns string - The image URL for the process
-   */
-  getImagen(processId: string) {
-    try {
-      return Utils.getImage(processId);
-    } catch (error) {
-      console.error('Error getting process image:', error);
-      return ''; // Default empty image
-    }
-  }
-
-  /**
    * Navigate to tasks page for a specific transaction
    * @param transaction - The transaction card to navigate to
    */
-  navigateToTareas(transaction: Card) {
+  navigateToTasks(transaction: Card) {
     try {
       const navigationExtras: NavigationExtras = {
         queryParams: { Mode: 'T', TransactionId: transaction.id },
@@ -293,13 +265,12 @@ export class TransactionsPage implements OnInit {
    * Present the task add modal for a specific transaction
    * @param transaction - The transaction card
    */
-  async presentModal(transaction: Card) {
+  async openAdd(transaction: Card) {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          IdActividad: this.activity().id,
-          IdTransaccion: transaction.id
+          activityId: this.activity().id
         },
       });
 
@@ -309,8 +280,9 @@ export class TransactionsPage implements OnInit {
       if (data) {
         await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
 
-        // Recargar las transacciones para reflejar los cambios
-        await this.transactionsService.loadTransactions(this.activity().id);
+        // Reload transactions to reflect changes
+        await this.transactionsService.load(this.activity().id);
+        await this.updateTransactionCards();
 
         await this.userNotificationService.hideLoading();
       }
@@ -327,7 +299,7 @@ export class TransactionsPage implements OnInit {
   /**
    * Open the transaction approve modal
    */
-  async openApproveActividad(id: string) {
+  async openApprove(id: string) {
     try {
       const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
       if (!transaction) {
@@ -354,7 +326,7 @@ export class TransactionsPage implements OnInit {
         await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
 
         // Recargar las transacciones para reflejar los cambios
-        await this.transactionsService.loadTransactions(this.activity().id);
+        await this.transactionsService.load(this.activity().id);
         await this.updateTransactionCards();
 
         await this.userNotificationService.hideLoading();
@@ -372,7 +344,7 @@ export class TransactionsPage implements OnInit {
   /**
    * Open the transaction reject modal
    */
-  async openRejectActividad(id: string) {
+  async openReject(id: string) {
     try {
       const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
       if (!transaction) {
@@ -399,8 +371,8 @@ export class TransactionsPage implements OnInit {
       if (data) {
         await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
 
-        // Recargar las transacciones para reflejar los cambios
-        await this.transactionsService.loadTransactions(this.activity().id);
+        // Reload transactions to reflect changes
+        await this.transactionsService.load(this.activity().id);
         await this.updateTransactionCards();
 
         await this.userNotificationService.hideLoading();

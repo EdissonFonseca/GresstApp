@@ -53,6 +53,7 @@ export class TransactionsApiService {
    */
   async createTask(task: Tarea): Promise<boolean> {
     try {
+      console.log('createTask task', task);
       const response = await this.http.post<TaskResponse>('/apptransactions/createtarea', task);
       if (response.status === 201 && response.data) {
         task.IdTarea = response.data.IdTarea;

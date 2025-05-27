@@ -153,7 +153,7 @@ export class TasksPage implements OnInit {
    */
   private async loadData() {
     try {
-      await this.transactionsService.loadTransactions(this.activity().id);
+      await this.transactionsService.load(this.activity().id);
       await this.tasksService.load(this.activity().id, this.transactionId);
 
       if (this.transactionId) {
@@ -209,7 +209,7 @@ export class TasksPage implements OnInit {
         (trx.Punto?.toLowerCase().includes(query) ||
          trx.Tercero?.toLowerCase().includes(query))
       );
-      await this.transactionsService.loadTransactions(this.activity().id);
+      await this.transactionsService.load(this.activity().id);
 
       // Filter tasks based on material name
       const taskList = this.tasksSignal().filter((task: Tarea) =>
@@ -229,7 +229,7 @@ export class TasksPage implements OnInit {
    * Open the add task modal
    * Creates a new task for the current activity/transaction
    */
-  async openAddTask() {
+  async openAdd() {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
@@ -264,7 +264,7 @@ export class TasksPage implements OnInit {
    * Allows editing of an existing task's properties
    * @param task - The task card to edit
    */
-  async openEditTask(task: Card) {
+  async openEdit(task: Card) {
     try {
       const currentActivity = this.activity();
       if (!currentActivity) {

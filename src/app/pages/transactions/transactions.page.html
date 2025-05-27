@@ -69,9 +69,9 @@
   <!-- Transactions list -->
   <app-card-list
     [cards]="transactionCards()"
-    (edit)="navigateToTareas($event)"
-    (approve)="openApproveActividad($event)"
-    (reject)="openRejectActividad($event)"
+    (edit)="navigateToTasks($event)"
+    (approve)="openApprove($event)"
+    (reject)="openReject($event)"
     aria-label="Transactions list">
   </app-card-list>
 
@@ -81,7 +81,7 @@
     vertical="bottom"
     horizontal="end"
     *ngIf="showAdd">
-    <ion-fab-button (click)="presentModal(activity())">
+    <ion-fab-button (click)="openAdd(activity())">
       <ion-icon
         name="add"
         aria-label="Add icon"

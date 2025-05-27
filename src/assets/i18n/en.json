@@ -164,6 +164,27 @@
       "CONFIRM": "Reject",
       "SUCCESS": "Transaction rejected successfully"
     },
+    "ADD": {
+      "TITLE": "New Transaction",
+      "COLLECTION_POINT": "Collection Point",
+      "DELIVERY_POINT": "Delivery Point",
+      "MATERIAL": "Material",
+      "TREATMENT": "Treatment",
+      "QUANTITY": "Quantity",
+      "WEIGHT": "Weight",
+      "VOLUME": "Volume",
+      "PACKAGING": "Packaging",
+      "OBSERVATIONS": "Observations",
+      "TAKE_PHOTO": "Take Photo",
+      "DELETE_PHOTO": "Delete",
+      "MESSAGES": {
+        "REQUIRED_FIELDS": "Please fill in all required fields",
+        "ACTIVITY_NOT_FOUND": "Activity not found",
+        "CREATE_ERROR": "Error creating transaction",
+        "PHOTO_ERROR": "Error taking photo",
+        "BASE64_ERROR": "Error processing image"
+      }
+    },
     "MESSAGES": {
       "INIT_ERROR": "Error initializing transactions page",
       "LOAD_ERROR": "Error loading transactions",

@@ -72,7 +72,6 @@ export class SessionService {
    */
   async hasPendingRequests(): Promise<boolean> {
     const requests = await this.storage.get(STORAGE.REQUESTS);
-    console.log('hasPendingRequests requests', requests);
     return requests && requests.length > 0;
   }
 

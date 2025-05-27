@@ -180,7 +180,6 @@ export class SynchronizationService {
                 const startActivity = request.Data as Actividad;
                 if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
                   success = await this.transactionsService.updateInitialActivity(startActivity);
-                  console.log('updateInitialActivity success', success);
                 }
                 break;
               case DATA_TYPE.SUPPLY:
@@ -227,7 +226,6 @@ export class SynchronizationService {
               this.logger.warn('Unknown object type in request', { request });
               continue;
           }
-          console.log('success', success);
           if (success) {
             // Remove processed request from storage
             const updatedRequests = requests.filter(r => r !== request);

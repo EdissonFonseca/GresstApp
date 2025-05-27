@@ -31,4 +31,42 @@ export interface Transaccion {
 
   Accion?: string;
   Icono?: string;
+
+  // Campos adicionales
+  IdMaterial?: string;
+  Material?: string;
+  Cantidad?: number;
+  Peso?: number;
+  Volumen?: number;
+  IdEmbalaje?: string;
+  Embalaje?: string;
+  IdTratamiento?: string;
+  Tratamiento?: string;
+  Fotos?: string[];
+  Observaciones?: string;
+
+  // Campos del formulario
+  FechaSolicitud?: string;
+  FechaProgramada?: string;
+  FechaEjecucion?: string;
+  PackagingQuantity?: number;
+  Photo?: string;
+  PackagingId?: string;
+  Packaging?: string;
+  Price?: number;
+  InputPointId?: string;
+  InputPoint?: string;
+  OutputPointId?: string;
+  OutputPoint?: string;
+  InputThirdPartyId?: string;
+  InputThirdParty?: string;
+  OutputThirdPartyId?: string;
+  OutputThirdParty?: string;
+  Title?: string;
+  TreatmentId?: string;
+  ResidueId?: string;
+  Residue?: string;
+  Capture?: string;
+  Measurement?: string;
+  Factor?: number;
 }

@@ -54,7 +54,7 @@
           <!-- Tasks list for current transaction -->
           <app-card-list
             [cards]="filterTasks(transaction.id)"
-            (edit)="openEditTask($event)"
+            (edit)="openEdit($event)"
             [showEdit]="true"
             aria-label="Lista de tareas"
             role="list">
@@ -73,7 +73,7 @@
   *ngIf="showAdd"
   aria-label="Add new task">
   <ion-fab-button
-    (click)="openAddTask()"
+    (click)="openAdd()"
     aria-label="Add icon">
     <ion-icon
       name="add"

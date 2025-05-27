@@ -337,9 +337,15 @@ export class TasksService {
 
       currentTransaction.Tareas.push(task);
       this.tasks.set(currentTransaction.Tareas);
+      this.transaction.set(currentTransaction);
       await this.saveTransaction();
+      console.log('currentTransaction', currentTransaction);
+      console.log('task', task);
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.CREATE, task);
+      console.log('requestsService');
+      console.log('synchronizationService');
       await this.synchronizationService.uploadData();
+      console.log('uploadData');
       return true;
     } catch (error) {
       this.logger.error('Error creating task', { task, error });

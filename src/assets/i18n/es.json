@@ -164,6 +164,27 @@
       "CONFIRM": "Rechazar",
       "SUCCESS": "Transacción rechazada exitosamente"
     },
+    "ADD": {
+      "TITLE": "Nueva Transacción",
+      "COLLECTION_POINT": "Punto de Recolección",
+      "DELIVERY_POINT": "Punto de Entrega",
+      "MATERIAL": "Material",
+      "TREATMENT": "Tratamiento",
+      "QUANTITY": "Cantidad",
+      "WEIGHT": "Peso",
+      "VOLUME": "Volumen",
+      "PACKAGING": "Embalaje",
+      "OBSERVATIONS": "Observaciones",
+      "TAKE_PHOTO": "Tomar Foto",
+      "DELETE_PHOTO": "Eliminar",
+      "MESSAGES": {
+        "REQUIRED_FIELDS": "Por favor complete todos los campos requeridos",
+        "ACTIVITY_NOT_FOUND": "No se encontró la actividad",
+        "CREATE_ERROR": "Error al crear la transacción",
+        "PHOTO_ERROR": "Error al tomar la foto",
+        "BASE64_ERROR": "Error al procesar la imagen"
+      }
+    },
     "MESSAGES": {
       "INIT_ERROR": "Error al inicializar la página de transacciones",
       "LOAD_ERROR": "Error al cargar las transacciones",

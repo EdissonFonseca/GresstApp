@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ModalController } from '@ionic/angular';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ModalController, IonicModule } from '@ionic/angular';
 import { THIRD_PARTY_TYPES, CRUD_OPERATIONS, INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/constants/constants';
 import { PackagesComponent } from '../packages/packages.component';
 import { MaterialsComponent } from '../materials/materials.component';
@@ -17,6 +17,7 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { InventoryService } from '@app/services/transactions/inventory.service';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { Actividad } from 'src/app/interfaces/actividad.interface';
 
 /**
  * Component for adding new tasks to an activity
@@ -133,13 +134,12 @@ export class TaskAddComponent implements OnInit {
   /**
    * Handles activity data for transport or collection services
    */
-  private async handleTransportOrCollectionActivity(activity: any): Promise<void> {
+  private async handleTransportOrCollectionActivity(activity: Actividad): Promise<void> {
     if (this.transactionId) {
       const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
       if (!transaction) {
         this.requestPoint = true;
       } else {
-        console.log(transaction);
         this.formData.patchValue({
           InputPointId: transaction.IdDeposito,
           InputPoint: transaction.Punto,
@@ -360,50 +360,106 @@ export class TaskAddComponent implements OnInit {
     }
 
     try {
-      const { transactionId, residueId } = await this.createResidueAndTransaction(activity);
-      if (residueId) {
-        await this.createTask(activity, transactionId, residueId);
-        await this.updateSignals(transactionId);
-        this.modalCtrl.dismiss(true);
+      const formValue = this.formData.value;
+      let transactionId = this.transactionId;
+        if (!this.transactionId) {
+        var isExistingTransaction = true;
+        if (activity.IdServicio === SERVICE_TYPES.COLLECTION || activity.IdServicio == SERVICE_TYPES.TRANSPORT) {
+          const existingTransaction = await this.transactionsService.getByPoint(this.activityId, formValue.InputPointId);
+          if (!existingTransaction)
+            isExistingTransaction = false;
+        } else if (activity.IdServicio == SERVICE_TYPES.RECEPTION) {
+          const existingTransaction = await this.transactionsService.getByThirdParty(this.activityId, formValue.InputThirdPartyId);
+          if (!existingTransaction)
+            isExistingTransaction = false;
+        }
+        if (!isExistingTransaction) {
+          const transaction = await this.createTransaction(activity, formValue);
+          transactionId = transaction.IdTransaccion;
+        }
       }
+
+      await this.createTask(activity, transactionId);
+      await this.updateSignals(transactionId);
+      this.modalCtrl.dismiss(true);
+
     } catch (error) {
       this.userNotificationService.showToast('TASK_ADD.MESSAGES.CREATE_ERROR', 'middle');
     }
   }
 
   /**
-   * Creates residue and transaction if needed
+   * Creates a new transaction
    */
-  private async createResidueAndTransaction(activity: any): Promise<{ transactionId: string | null, residueId: string | null }> {
-    const formValue = this.formData.value;
-    let transactionId = this.transactionId;
-    let residueId: string | null = null;
+  private async createTransaction(activity: Actividad, formValue: FormGroup['value']): Promise<Transaccion> {
+    const now = new Date().toISOString();
+    const transaction: Transaccion = {
+      IdActividad: this.activityId,
+      IdTransaccion: Utils.generateId(),
+      IdEstado: STATUS.PENDING,
+      EntradaSalida: INPUT_OUTPUT.INPUT,
+      IdTercero: formValue.InputThirdPartyId,
+      IdDeposito: formValue.InputPointId,
+      IdDepositoDestino: formValue.OutputPointId,
+      IdTerceroDestino: formValue.OutputThirdPartyId,
+      IdOrden: activity.IdOrden,
+      Punto: formValue.InputPoint,
+      Tercero: formValue.InputThirdParty,
+      Titulo: activity.IdServicio == SERVICE_TYPES.RECEPTION ?
+        formValue.InputThirdParty :
+        'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
+      Solicitudes: 'Nueva',
+      Icono: activity.IdServicio == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
+      IdRecurso: activity.IdRecurso,
+      IdServicio: activity.IdServicio,
+      FechaInicial: now,
+      FechaFinal: now,
+      Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE)
+    };
 
-    if (this.shouldCreateResidue(activity)) {
-      const residue = await this.createResidue(activity, formValue);
-      residueId = residue.IdResiduo;
-
-      if (!this.transactionId) {
-        transactionId = await this.createOrUpdateTransaction(activity, formValue);
-      }
-    }
-
-    return { transactionId, residueId };
+    await this.transactionsService.create(transaction);
+    return transaction;
   }
 
   /**
-   * Checks if a residue should be created based on activity type
+   * Creates a new task
    */
-  private shouldCreateResidue(activity: any): boolean {
-    return activity.IdServicio == SERVICE_TYPES.COLLECTION ||
-           activity.IdServicio == SERVICE_TYPES.TRANSPORT ||
-           activity.IdServicio === SERVICE_TYPES.RECEPTION;
+  private async createTask(activity: Actividad, transactionId: string | null): Promise<void> {
+    const formValue = this.formData.value;
+    const now = new Date().toISOString();
+
+    const task: Tarea = {
+      IdActividad: this.activityId,
+      IdTransaccion: transactionId || undefined,
+      IdTarea: Utils.generateId(),
+      IdMaterial: formValue.MaterialId,
+      Material: formValue.Material,
+      IdDeposito: formValue.InputPointId,
+      IdTercero: formValue.InputThirdPartyId,
+      IdDepositoDestino: formValue.OutputPointId,
+      IdTerceroDestino: formValue.OutputThirdPartyId,
+      Accion: 'Ver',
+      EntradaSalida: INPUT_OUTPUT.INPUT,
+      IdServicio: activity.IdServicio,
+      IdEstado: STATUS.APPROVED,
+      IdRecurso: activity.IdRecurso,
+      FechaEjecucion: now,
+      FechaSolicitud: now,
+      Cantidad: formValue.Quantity,
+      Peso: formValue.Weight,
+      Volumen: formValue.Volume,
+      IdEmbalaje: formValue.PackagingId,
+      FechaProgramada: now,
+      Fotos: this.photos,
+    };
+
+    await this.tasksService.create(task);
   }
 
   /**
    * Creates a new residue
    */
-  private async createResidue(activity: any, formValue: any): Promise<Residuo> {
+  private async createResidue(activity: Actividad, formValue: FormGroup['value']): Promise<Residuo> {
     const residue: Residuo = {
       IdResiduo: Utils.generateId(),
       IdMaterial: formValue.MaterialId,
@@ -432,125 +488,12 @@ export class TaskAddComponent implements OnInit {
   }
 
   /**
-   * Creates or updates a transaction based on activity type
-   */
-  private async createOrUpdateTransaction(activity: any, formValue: any): Promise<string> {
-    if (activity.IdServicio === SERVICE_TYPES.COLLECTION || activity.IdServicio == SERVICE_TYPES.TRANSPORT) {
-      return await this.handleTransportOrCollectionTransaction(activity, formValue);
-    } else if (activity.IdServicio == SERVICE_TYPES.RECEPTION) {
-      return await this.handleReceptionTransaction(activity, formValue);
-    }
-    return this.transactionId;
-  }
-
-  /**
-   * Handles transaction creation/update for transport or collection services
-   */
-  private async handleTransportOrCollectionTransaction(activity: any, formValue: any): Promise<string> {
-    const existingTransaction = await this.transactionsService.getByPoint(this.activityId, formValue.InputPointId);
-
-    if (!existingTransaction) {
-      const transaction = this.createNewTransaction(activity, formValue);
-      await this.transactionsService.create(transaction);
-      return transaction.IdTransaccion;
-    } else if (existingTransaction.IdEstado == STATUS.PENDING) {
-      await this.transactionsService.update(existingTransaction);
-      return existingTransaction.IdTransaccion;
-    } else {
-      this.userNotificationService.showToast('TASK_ADD.MESSAGES.TRANSACTION_EXISTS', 'middle');
-      throw new Error('Transaction already exists and is not pending');
-    }
-  }
-
-  /**
-   * Handles transaction creation/update for reception services
-   */
-  private async handleReceptionTransaction(activity: any, formValue: any): Promise<string> {
-    const existingTransaction = await this.transactionsService.getByThirdParty(this.activityId, formValue.InputThirdPartyId);
-
-    if (!existingTransaction) {
-      const transaction = this.createNewTransaction(activity, formValue);
-      await this.transactionsService.create(transaction);
-      return transaction.IdTransaccion;
-    } else {
-      await this.transactionsService.update(existingTransaction);
-      return existingTransaction.IdTransaccion;
-    }
-  }
-
-  /**
-   * Creates a new transaction object
-   */
-  private createNewTransaction(activity: any, formValue: any): Transaccion {
-    const now = new Date().toISOString();
-    return {
-      IdActividad: this.activityId,
-      IdTransaccion: Utils.generateId(),
-      IdEstado: STATUS.PENDING,
-      EntradaSalida: INPUT_OUTPUT.INPUT,
-      IdTercero: formValue.InputThirdPartyId,
-      IdDeposito: formValue.InputPointId,
-      IdDepositoDestino: formValue.OutputPointId,
-      IdTerceroDestino: formValue.OutputThirdPartyId,
-      IdOrden: activity.IdOrden,
-      Punto: formValue.InputPoint,
-      Tercero: formValue.InputThirdParty,
-      Titulo: activity.IdServicio == SERVICE_TYPES.RECEPTION ?
-        formValue.InputThirdParty :
-        'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
-      Solicitudes: 'Nueva',
-      Icono: activity.IdServicio == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
-      IdRecurso: activity.IdRecurso,
-      IdServicio: activity.IdServicio,
-      FechaInicial: now,
-      FechaFinal: now,
-      Accion: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
-    };
-  }
-
-  /**
-   * Creates a new task
-   */
-  private async createTask(activity: any, transactionId: string | null, residueId: string): Promise<void> {
-    const formValue = this.formData.value;
-    const now = new Date().toISOString();
-
-    const task: Tarea = {
-      IdActividad: this.activityId,
-      IdTransaccion: transactionId || undefined,
-      IdTarea: Utils.generateId(),
-      IdMaterial: formValue.MaterialId,
-      Material: formValue.Material,
-      IdResiduo: residueId,
-      IdDeposito: formValue.InputPointId,
-      IdTercero: formValue.InputThirdPartyId,
-      IdDepositoDestino: formValue.OutputPointId,
-      IdTerceroDestino: formValue.OutputThirdPartyId,
-      Accion: 'Ver',
-      EntradaSalida: INPUT_OUTPUT.INPUT,
-      IdServicio: activity.IdServicio,
-      IdEstado: STATUS.APPROVED,
-      IdRecurso: activity.IdRecurso,
-      FechaEjecucion: now,
-      FechaSolicitud: now,
-      Cantidad: formValue.Quantity,
-      Peso: formValue.Weight,
-      Volumen: formValue.Volume,
-      IdEmbalaje: formValue.PackagingId,
-      FechaProgramada: now,
-      Fotos: this.photos,
-    };
-
-    await this.tasksService.create(task);
-  }
-
-  /**
    * Updates signals after task creation
    */
   private async updateSignals(transactionId: string | null): Promise<void> {
     if (transactionId) {
       await this.tasksService.load(this.activityId, transactionId);
-      await this.transactionsService.loadTransactions(this.activityId);
+      await this.transactionsService.load(this.activityId);
       await this.activitiesService.load();
     }
   }

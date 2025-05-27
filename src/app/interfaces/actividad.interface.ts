@@ -34,4 +34,11 @@ export interface Actividad{
 
   Accion?: string;
   Icono?: string;
+
+  // Propiedades adicionales
+  requestPoint?: boolean;
+  requestOwner?: boolean;
+  requestPackaging?: boolean;
+  requestTreatment?: boolean;
+  title?: string;
 }

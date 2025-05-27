@@ -315,7 +315,7 @@ export class TransactionsService {
    * @param idActividad - The activity ID to load transactions for
    * @throws {Error} If loading fails
    */
-  async loadTransactions(idActividad: string): Promise<void> {
+  async load(idActividad: string): Promise<void> {
     try {
       const transactions = await this.list(idActividad);
       this.transactions.set(transactions);

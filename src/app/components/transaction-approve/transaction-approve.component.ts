@@ -290,7 +290,7 @@ export class TransactionApproveComponent implements OnInit {
       await this.transactionsService.update(transaccion);
 
       // Refresh transactions signal
-      await this.transactionsService.loadTransactions(transaccion.IdActividad);
+      await this.transactionsService.load(transaccion.IdActividad);
 
       await this.userNotificationService.showToast(
         this.translate.instant(this.isReject ? 'TRANSACTIONS.REJECT.SUCCESS' : 'TRANSACTIONS.APPROVE.SUCCESS'),
