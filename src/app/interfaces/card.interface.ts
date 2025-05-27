@@ -25,6 +25,7 @@ export interface Card {
   summary?: string | undefined | null;
   showAction?: boolean | undefined | null;
   showApprove?: boolean | undefined | null;
+  showEdit?: boolean | undefined | null;
   showReject?: boolean | undefined | null;
   showItems?: boolean | undefined | null;
   showSummary?: boolean | undefined | null;

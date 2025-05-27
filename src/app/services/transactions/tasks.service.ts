@@ -4,7 +4,6 @@ import { Tarea } from '@app/interfaces/tarea.interface';
 import { Actividad } from '../../interfaces/actividad.interface';
 import { INPUT_OUTPUT, STATUS, SERVICE_TYPES, STORAGE, CRUD_OPERATIONS, DATA_TYPE } from '@app/constants/constants';
 import { Transaction } from '@app/interfaces/transaction.interface';
-import { InventoryService } from '@app/services/transactions/inventory.service';
 import { MaterialsService } from '@app/services/masterdata/materials.service';
 import { TreatmentsService } from '@app/services/masterdata/treatments.service';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
@@ -190,15 +189,10 @@ export class TasksService {
       }
 
       const materials = await this.materialsService.list();
-      console.log('Materials', materials);
       const treatments = await this.treatmentsService.list();
-      console.log('Treatments', treatments);
       const embalajes = await this.packagingService.list();
-      console.log('Packages', embalajes);
       const puntos = await this.pointsService.list();
-      console.log('Points', puntos);
       const terceros = await this.thirdpartiesService.list();
-      console.log('Thirdparties', terceros);
 
       if (transaction) {
         if (transactionId)
@@ -305,7 +299,6 @@ export class TasksService {
           }
         }
       }
-      console.log('Tasks', tareas);
       return tareas;
     } catch (error) {
       this.logger.error('Error listing tasks', { activityId, transactionId, error });
@@ -343,6 +336,7 @@ export class TasksService {
       }
 
       currentTransaction.Tareas.push(task);
+      this.tasks.set(currentTransaction.Tareas);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.CREATE, task);
       await this.synchronizationService.uploadData();
@@ -365,23 +359,27 @@ export class TasksService {
         return false;
       }
 
-      const current = currentTransaction.Tareas.find(
+      const taskIndex = currentTransaction.Tareas.findIndex(
         item => item.IdTarea === task.IdTarea
       );
 
-      if (!current) {
+      if (taskIndex === -1) {
         return false;
       }
 
-      current.IdEstado = task.IdEstado;
-      current.Cantidad = task.Cantidad;
-      current.Peso = task.Peso;
-      current.Volumen = task.Volumen;
-      current.Valor = task.Valor;
-      current.FechaEjecucion = task.FechaEjecucion;
-      current.Fotos = task.Fotos;
-      current.Observaciones = task.Observaciones;
+      currentTransaction.Tareas[taskIndex] = {
+        ...currentTransaction.Tareas[taskIndex],
+        IdEstado: task.IdEstado,
+        Cantidad: task.Cantidad,
+        Peso: task.Peso,
+        Volumen: task.Volumen,
+        Valor: task.Valor,
+        FechaEjecucion: task.FechaEjecucion,
+        Fotos: task.Fotos,
+        Observaciones: task.Observaciones
+      };
 
+      this.tasks.set(currentTransaction.Tareas);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.UPDATE, task);
       await this.synchronizationService.uploadData();

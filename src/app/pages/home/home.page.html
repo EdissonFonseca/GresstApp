@@ -1,23 +1,63 @@
 <app-header [pageTitle]="title"></app-header>
 <app-menu></app-menu>
-<ion-content id="main-content">
-  <ion-tabs #tabs (ionTabsDidChange)="onTabChange($event)">
-    <ion-tab-bar slot="bottom">
-      <ion-tab-button
-        tab="actividades"
-        (click)="setHeader('HOME.TABS.SHIFT', 'help-jornada')"
-        [class.active]="currentTab() === 'actividades'">
-        <ion-icon src="../../../assets/icon/workhistory.svg"></ion-icon>
-        {{ 'HOME.TABS.SHIFT' | translate }}
-      </ion-tab-button>
-      <ion-tab-button
-        tab="inventario"
-        (click)="setHeader('HOME.TABS.INVENTORY', 'help-inventario')"
-        [class.active]="currentTab() === 'inventario'">
-        <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
-        {{ 'HOME.TABS.INVENTORY' | translate }}
-      </ion-tab-button>
-    </ion-tab-bar>
-  </ion-tabs>
-</ion-content>
+
+<ion-tabs #tabs (ionTabsDidChange)="onTabChange($event)">
+  <ion-tab tab="actividades">
+    <ion-content id="main-content">
+      <!-- Search toolbar -->
+      <ion-toolbar>
+        <ion-searchbar
+          (ionInput)="handleInput($event)"
+          [placeholder]="'ACTIVITIES.SEARCH' | translate"
+          show-clear-button="focus"
+          aria-label="Search activities">
+        </ion-searchbar>
+      </ion-toolbar>
+
+      <!-- Activity cards list -->
+      <ng-container *ngIf="activities() | async as activityCards">
+        <app-card-list
+          [cards]="activityCards"
+          (edit)="navigateToTarget($event)"
+          aria-label="Activities list">
+        </app-card-list>
+      </ng-container>
+
+      <!-- Add activity button -->
+      <ion-fab
+        slot="fixed"
+        vertical="bottom"
+        horizontal="end"
+        *ngIf="showAdd"
+        aria-label="Add new activity">
+        <ion-fab-button (click)="openAddActivity()">
+          <ion-icon name="add" aria-label="Add icon"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    </ion-content>
+  </ion-tab>
+
+  <ion-tab tab="inventario">
+    <ion-content id="main-content">
+      <!-- Inventory content -->
+    </ion-content>
+  </ion-tab>
+
+  <ion-tab-bar slot="bottom">
+    <ion-tab-button
+      tab="actividades"
+      (click)="setHeader('HOME.TABS.SHIFT', 'help-jornada')"
+      [class.active]="currentTab() === 'actividades'">
+      <ion-icon src="../../../assets/icon/workhistory.svg"></ion-icon>
+      {{ 'HOME.TABS.SHIFT' | translate }}
+    </ion-tab-button>
+    <ion-tab-button
+      tab="inventario"
+      (click)="setHeader('HOME.TABS.INVENTORY', 'help-inventario')"
+      [class.active]="currentTab() === 'inventario'">
+      <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
+      {{ 'HOME.TABS.INVENTORY' | translate }}
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>
 

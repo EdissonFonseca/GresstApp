@@ -178,6 +178,7 @@ export class ActivitiesService {
       actividad.LatitudInicial = longitud;
 
       currentTransaction.Actividades.push(actividad);
+      this.activities.set(currentTransaction.Actividades);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
       await this.synchronizationService.uploadData();
@@ -203,23 +204,26 @@ export class ActivitiesService {
         return false;
       }
 
-      const current = currentTransaction.Actividades.find(
+      const activityIndex = currentTransaction.Actividades.findIndex(
         item => item.IdActividad === actividad.IdActividad
       );
 
-      if (!current) {
+      if (activityIndex === -1) {
         return false;
       }
 
-      current.FechaFinal = now;
-      current.IdEstado = actividad.IdEstado;
-      current.CantidadCombustibleFinal = actividad.CantidadCombustibleFinal;
-      current.KilometrajeFinal = actividad.KilometrajeFinal;
-      current.ResponsableCargo = actividad.ResponsableCargo;
-      current.ResponsableFirma = actividad.ResponsableFirma;
-      current.ResponsableIdentificacion = actividad.ResponsableIdentificacion;
-      current.ResponsableNombre = actividad.ResponsableNombre;
-      current.ResponsableObservaciones = actividad.ResponsableObservaciones;
+      currentTransaction.Actividades[activityIndex] = {
+        ...currentTransaction.Actividades[activityIndex],
+        FechaFinal: now,
+        IdEstado: actividad.IdEstado,
+        CantidadCombustibleFinal: actividad.CantidadCombustibleFinal,
+        KilometrajeFinal: actividad.KilometrajeFinal,
+        ResponsableCargo: actividad.ResponsableCargo,
+        ResponsableFirma: actividad.ResponsableFirma,
+        ResponsableIdentificacion: actividad.ResponsableIdentificacion,
+        ResponsableNombre: actividad.ResponsableNombre,
+        ResponsableObservaciones: actividad.ResponsableObservaciones
+      };
 
       const tareas = currentTransaction.Tareas.filter(
         x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
@@ -234,6 +238,7 @@ export class ActivitiesService {
         x.IdEstado = STATUS.REJECTED;
       });
 
+      this.activities.set(currentTransaction.Actividades);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();

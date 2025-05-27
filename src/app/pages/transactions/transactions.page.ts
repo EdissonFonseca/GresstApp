@@ -9,7 +9,6 @@ import { environment } from '../../../environments/environment';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Card } from '@app/interfaces/card.interface';
 import { CardService } from '@app/services/core/card.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { SessionService } from '@app/services/core/session.service';
 import { Utils } from '@app/utils/utils';
 import { CommonModule } from '@angular/common';
@@ -59,7 +58,6 @@ export class TransactionsPage implements OnInit {
     private activitiesService: ActivitiesService,
     private cardService: CardService,
     private transactionsService: TransactionsService,
-    public synchronizationService: SynchronizationService,
     public sessionService: SessionService,
     private modalCtrl: ModalController,
     private actionSheet: ActionSheetController,
@@ -136,7 +134,7 @@ export class TransactionsPage implements OnInit {
    * Navigate back to the activities page
    */
   goBack() {
-    this.navCtrl.navigateBack('/home/activities');
+    this.navCtrl.navigateBack('/home');
   }
 
   /**
@@ -287,12 +285,12 @@ export class TransactionsPage implements OnInit {
   /**
    * Open the activity approve modal
    */
-  async openApproveActividad() {
+  async openApproveActividad(id: string) {
     try {
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,
         componentProps: {
-          IdActividad: this.activity().id
+          IdActividad: id
         },
       });
 
@@ -318,11 +316,38 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Get the color for the synchronization status
-   * @returns string - The color code for the synchronization status
+   * Open the activity reject modal
    */
-  getColor() {
-    return this.synchronizationService.pendingTransactions() > 0 ? 'danger' : 'success';
+  async openRejectActividad(id: string) {
+    console.log('Transactions page - openRejectActividad called with id:', id);
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ActivityApproveComponent,
+        componentProps: {
+          IdActividad: id,
+          isReject: true
+        },
+      });
+
+      await modal.present();
+
+      const { data } = await modal.onDidDismiss();
+      if (data) {
+        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
+
+        // Recargar las transacciones para reflejar los cambios
+        await this.transactionsService.loadTransactions(this.activity().id);
+
+        await this.userNotificationService.hideLoading();
+      }
+    } catch (error) {
+      console.error('Error rejecting activity:', error);
+      await this.userNotificationService.hideLoading();
+      await this.userNotificationService.showToast(
+        this.translate.instant('TRANSACTIONS.MESSAGES.REJECT_ERROR'),
+        'middle'
+      );
+    }
   }
 
   /**

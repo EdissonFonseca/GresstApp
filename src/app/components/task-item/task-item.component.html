@@ -1,5 +1,16 @@
-<ion-item lines="none" (click)="openEdit()">
+<ion-item lines="none" class="transparent-item">
   <ion-icon slot="start" name="trash-bin-outline"></ion-icon>
-  {{ tarea.Material }}
-  <ion-note slot="start" *ngIf="tarea.Solicitud">{{ tarea.Solicitud }}</ion-note>
+  <ion-label>
+    <h2>{{ tarea.Material }}</h2>
+    <p *ngIf="tarea.Solicitud">{{ tarea.Solicitud }}</p>
+  </ion-label>
+  <ion-button
+    *ngIf="showEdit"
+    slot="end"
+    shape="round"
+    color="warning"
+    size="small"
+    (click)="openEdit()">
+    <ion-icon name="pencil"></ion-icon>
+  </ion-button>
 </ion-item>

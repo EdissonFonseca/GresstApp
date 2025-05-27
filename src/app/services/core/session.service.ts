@@ -28,7 +28,7 @@ interface BackupData {
 })
 export class SessionService {
   private readonly apiUrl = environment.apiUrl;
-  pendingTransactions = signal<number>(0);
+  pendingRequests = signal<number>(0);
 
   constructor(
     private storage: StorageService,
@@ -79,9 +79,9 @@ export class SessionService {
    * Counts and updates the number of pending transactions in local storage
    * @returns {Promise<void>}
    */
-  async countRequests(): Promise<void> {
+  async countPendingRequests(): Promise<void> {
     const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
-    this.pendingTransactions.set(requests.length);
+    this.pendingRequests.set(requests.length);
   }
 
   /**

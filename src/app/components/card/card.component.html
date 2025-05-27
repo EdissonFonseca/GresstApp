@@ -1,27 +1,45 @@
-<ion-item lines="none" class="transparent-item">
-  <ion-icon slot="start" size="large" [name]="card.iconName ? card.iconName : null" [src]="!card.iconName ? card.iconSource : null" [color]="card.color"></ion-icon>
-    {{ card.title }}
-  <ion-button fill="solid" slot="end" shape="round" color="success" size="small" *ngIf="allowApprove && card.showApprove" (click)="onApprove(card.id)" >
-    <ion-icon name="checkmark"></ion-icon>
-  </ion-button>
-  <ion-button fill="solid" slot="end" shape="round" color="danger" size="small" *ngIf="allowApprove && card.showReject" (click)="onReject(card.id)" >
-    <ion-icon name="close"></ion-icon>
-  </ion-button>
-</ion-item>
-<ion-item lines="none" class="transparent-item">
-  <div slot="start" *ngIf="card.showItems" style="display: flex; align-items: center;">
-    <ion-icon name="trash-bin-outline" size="small" color="medium"></ion-icon>
-    <ion-badge color="success"> {{ card.successItems }} </ion-badge>
-    <ion-badge color="warning"> {{ card.pendingItems }} </ion-badge>
-    <ion-badge color="danger"> {{ card.rejectedItems }} </ion-badge>
+<!-- Main content area -->
+<div class="card-container" [class.clickable]="allowNavigate" [style.background-color]="card.color">
+  <div class="card">
+    <!-- Header with icon and title -->
+    <ion-item lines="none" class="transparent-item" (click)="onEdit(card)">
+      <ion-icon slot="start" size="large" [name]="card.iconName ? card.iconName : null" [src]="!card.iconName ? card.iconSource : null"></ion-icon>
+      <ion-label class="ion-text-wrap">
+        <h2 class="card-title">{{ card.title }}</h2>
+      </ion-label>
+    </ion-item>
+
+    <!-- Description area -->
+    <ion-item lines="none" *ngIf="allowNavigate && (card.description != '' || card.actionName != '')" (click)="onEdit(card)">
+      <ion-label size="small">
+        <p>{{ card.actionName ?? '' }} {{ card.description ?? '' }}</p>
+      </ion-label>
+    </ion-item>
+
+    <!-- Summary area -->
+    <ion-item lines="none" (click)="onEdit(card)">
+      <div slot="start" *ngIf="card.showItems" >
+        <ion-icon name="trash-bin-outline" size="small"></ion-icon>
+        <ion-badge color="success"> {{ card.successItems }} </ion-badge>
+        <ion-badge color="warning"> {{ card.pendingItems }} </ion-badge>
+        <ion-badge color="danger"> {{ card.rejectedItems }} </ion-badge>
+      </div>
+      <ion-badge slot="end" size="small" color="card.color" *ngIf="card.showSummary && card.summary != ''"> {{ card.summary }} </ion-badge>
+    </ion-item>
+
+    <!-- Footer with badges and action buttons -->
+    <ion-item lines="none" *ngIf="(allowApprove && (card.showApprove || card.showReject)) || (card.showEdit)">
+      <div class="action-buttons" slot="end">
+        <ion-button shape="round" color="success" size="small" *ngIf="allowApprove && card.showApprove" (click)="onApprove(card.id)">
+          <ion-icon name="checkmark"></ion-icon>
+        </ion-button>
+        <ion-button shape="round" color="danger" size="small" *ngIf="allowApprove && card.showReject" (click)="onReject(card.id)">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+        <ion-button shape="round" color="warning" size="small" *ngIf="card.showEdit" (click)="onEdit(card)">
+          <ion-icon name="pencil"></ion-icon>
+        </ion-button>
+      </div>
+    </ion-item>
   </div>
-  <ion-badge slot="end" size="small" color="light" *ngIf="card.showSummary && card.summary != ''"> {{ card.summary }} </ion-badge>
-</ion-item>
-<ion-item lines="none" *ngIf="allowNavigate"  class="transparent-item">
-  <ion-button slot="start" [color]="card.color" (click)="onEdit(card)" shape="round">
-    {{ card.actionName }}
-  </ion-button>
-  <ion-label *ngIf="card.description !=''" slot="end" size="small" color="medium">
-    <p>{{ card.description }}</p>
-  </ion-label>
-</ion-item>
+</div>

@@ -18,66 +18,66 @@
   </ion-toolbar>
 </ion-header>
 <ion-content color="light">
-  <ion-item color="light">
+  <ion-item color="light" class="ion-no-padding">
     <ion-title>{{ task?.Solicitud }}</ion-title>
   </ion-item>
   <form [formGroup]="frmTarea">
-    <ion-list color="light">
-      <ion-item color="light" lines="none" *ngIf="point != ''">
+    <ion-list color="light" class="ion-no-padding">
+      <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="frmTarea.get('Deposito')?.value">
         <ion-icon name="location-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ stakeholder }} - {{ point }}</ion-label>
+        <ion-label size="small">{{ frmTarea.get('Tercero')?.value }} - {{ frmTarea.get('Deposito')?.value }}</ion-label>
       </ion-item>
-      <ion-item color="light" lines="none" *ngIf="point != ''">
+      <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="frmTarea.get('DepositoDestino')?.value">
         <ion-icon name="archive-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ stakeholderTarget }} - {{ pointTarget }}</ion-label>
+        <ion-label size="small">{{ frmTarea.get('TerceroDestino')?.value }} - {{ frmTarea.get('DepositoDestino')?.value }}</ion-label>
       </ion-item>
-      <ion-item color="light" lines="none">
+      <ion-item color="light" lines="none" class="ion-no-padding">
         <ion-icon src="../../../assets/icon/recycle-bag.svg" slot="start"></ion-icon>
-        <ion-label class="ion-text-wrap">{{ material }}</ion-label>
+        <ion-label class="ion-text-wrap">{{ frmTarea.get('Material')?.value }}</ion-label>
       </ion-item>
     </ion-list>
-    <ion-list inset="true">
-      <ion-item *ngIf="showTratamiento">
+    <ion-list inset="true" class="ion-no-padding">
+      <ion-item class="ion-no-padding" *ngIf="showTratamiento">
         <ion-note slot="start">Tratamiento</ion-note>
-        <ion-label>{{ treatment }}</ion-label>
+        <ion-label>{{ frmTarea.get('Tratamiento')?.value }}</ion-label>
         <ion-button color="light" (click)="selectTratamiento()">...</ion-button>
       </ion-item>
-      <ion-item>
+      <ion-item class="ion-no-padding">
         <ion-note slot="start">Cantidad</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="Cantidad" (ionChange)="calculateFromCantidad($event)"></ion-input>
         <ion-note slot="end">un</ion-note>
       </ion-item>
-      <ion-item *ngIf="medicion=='P' || captura == 'P'">
+      <ion-item class="ion-no-padding" *ngIf="medicion=='P' || captura == 'P'">
         <ion-note slot="start">Peso</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="Peso"></ion-input>
         <ion-note slot="end">kg</ion-note>
       </ion-item>
-      <ion-item *ngIf="medicion=='V' || captura == 'V'">
+      <ion-item class="ion-no-padding" *ngIf="medicion=='V' || captura == 'V'">
         <ion-note slot="start">Volumen</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="Volumen"></ion-input>
         <ion-note slot="end">m3</ion-note>
       </ion-item>
-      <ion-item >
+      <ion-item class="ion-no-padding">
         <ion-note slot="start">Embalaje</ion-note>
-        <ion-label>{{ package }}</ion-label>
+        <ion-label>{{ frmTarea.get('Embalaje')?.value }}</ion-label>
         <ion-button color="light" *ngIf="status == 'P'" (click)="selectEmbalaje()">...</ion-button>
       </ion-item>
-      <ion-item>
+      <ion-item class="ion-no-padding">
         <ion-note slot="start">Observaciones</ion-note>
         <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>
-      <ion-item lines="none" color="light">
+      <ion-item lines="none" color="light" class="ion-no-padding">
         <ion-button expand="full" (click)="takePhoto()" color="secondary" *ngIf="status == 'P' && fotosPorMaterial > fotos.length">
           <ion-icon name="camera-outline"></ion-icon>
           Foto
         </ion-button>
         <ion-badge slot="end" color="secondary">{{ fotos.length }}</ion-badge>
       </ion-item>
-      <ion-item>
+      <ion-item class="ion-no-padding">
         <ion-grid>
           <ion-row>
             <ion-col size="6" *ngFor="let foto of fotos; let i = index">
-              <ion-card>
+              <ion-card class="ion-no-margin">
                 <img [src]="foto"/>
                 <ion-button color="danger" (click)="deletePhoto(i)">Eliminar</ion-button>
               </ion-card>

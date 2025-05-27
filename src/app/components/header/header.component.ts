@@ -1,9 +1,10 @@
-import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { SessionService } from '@app/services/core/session.service';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
+import { Subscription, interval } from 'rxjs';
 
 /**
  * Component responsible for rendering the application header.
@@ -14,13 +15,17 @@ import { TranslateService } from '@ngx-translate/core';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   /** Title to be displayed in the header */
   @Input() pageTitle: string = 'Gresst';
   /** ID of the help popup to be displayed */
   @Input() helpPopup: string = '';
   /** Flag to track if the help popup is open */
   isOpen = false;
+  /** Number of pending requests */
+  pendingRequests = 0;
+  /** Subscription to periodic updates */
+  private updateSubscription: Subscription | undefined;
 
   constructor(
     public synchronizationService: SynchronizationService,
@@ -33,7 +38,22 @@ export class HeaderComponent implements OnInit {
   /**
    * Lifecycle hook that is called after data-bound properties are initialized
    */
-  ngOnInit() {}
+  ngOnInit() {
+    // Update pending requests count every 2 seconds
+    this.updateSubscription = interval(2000).subscribe(async () => {
+      await this.sessionService.countPendingRequests();
+      this.pendingRequests = this.synchronizationService.pendingTransactions();
+    });
+  }
+
+  /**
+   * Lifecycle hook that is called when the component is destroyed
+   */
+  ngOnDestroy() {
+    if (this.updateSubscription) {
+      this.updateSubscription.unsubscribe();
+    }
+  }
 
   /**
    * Synchronizes data with the server

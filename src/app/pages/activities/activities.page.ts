@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, ViewChild } from '@angular/core';
 import { NavigationExtras } from '@angular/router';
 import { Card } from '@app/interfaces/card.interface';
 import { CardService } from '@app/services/core/card.service';
@@ -6,7 +6,7 @@ import { ActionSheetController, AlertController, ModalController, NavController 
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { CRUD_OPERATIONS, PERMISSIONS, SERVICE_TYPES, SERVICES } from '@app/constants/constants';
+import { CRUD_OPERATIONS, PERMISSIONS, SERVICE_TYPES, SERVICES, STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,8 @@ import { ComponentsModule } from '@app/components/components.module';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
+import { CardListComponent } from '@app/components/card-list/card-list.component';
 
 /**
  * Interface for activity navigation parameters
@@ -49,6 +51,9 @@ interface ActivityNavigationParams {
   imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule, TranslateModule]
 })
 export class ActivitiesPage implements OnInit {
+  /** Signal containing the current activity displayed as a card */
+  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
+
   /** Signal containing the list of activities from the service */
   private activitiesSignal = this.activitiesService.activities;
 
@@ -66,6 +71,8 @@ export class ActivitiesPage implements OnInit {
 
   /** Current mileage value for the activity */
   mileage: number | null = null;
+
+  @ViewChild('cardList') cardList!: CardListComponent;
 
   /**
    * Constructor for ActivitiesPage
@@ -92,7 +99,6 @@ export class ActivitiesPage implements OnInit {
       this.showAdd = await this.authorizationService.allowAddActivity();
       await this.activitiesService.load();
     } catch (error) {
-      console.error('Error checking activity permissions:', error);
       this.showAdd = false;
       await this.userNotificationService.showToast(
         this.translate.instant('ACTIVITIES.MESSAGES.PERMISSION_ERROR'),
@@ -109,12 +115,12 @@ export class ActivitiesPage implements OnInit {
     try {
       await this.activitiesService.load();
     } catch (error) {
-      console.error('Error loading activities:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('ACTIVITIES.MESSAGES.LOAD_ERROR'),
         'middle'
       );
     }
+    console.log('Activities page - ionViewWillEnter called - END');
   }
 
   /**
@@ -130,7 +136,6 @@ export class ActivitiesPage implements OnInit {
       );
       this.activitiesService.activities.set(activityList);
     } catch (error) {
-      console.error('Error filtering activities:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('ACTIVITIES.MESSAGES.FILTER_ERROR'),
         'middle'
@@ -198,6 +203,7 @@ export class ActivitiesPage implements OnInit {
   private async initializeActivityStart(activity: Actividad): Promise<boolean> {
     try {
       if (activity.FechaInicial == null) {
+        console.log('Activities page - initializeActivityStart called - START');
         if (Utils.requestMileage) {
           const result = await this.requestMileagePrompt();
           if (!result) {
@@ -382,16 +388,73 @@ export class ActivitiesPage implements OnInit {
   }
 
   /**
-   * Get the color associated with an activity state
-   * @param stateId - The state ID to get the color for
-   * @returns string - The color code for the state
+   * Open the activity approve modal
    */
-  getColorEstado(stateId: string): string {
+  async openApproveActivity(id:string) {
     try {
-      return Utils.getStateColor(stateId);
+      const modal = await this.modalCtrl.create({
+        component: ActivityApproveComponent,
+        componentProps: {
+          IdActividad: this.activity().id
+        },
+      });
+
+      await modal.present();
+
+      const { data } = await modal.onDidDismiss();
+      if (data) {
+        await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.UPDATING_INFO'));
+
+        // Reload activities to reflect changes
+        await this.activitiesService.load();
+
+        await this.userNotificationService.hideLoading();
+      }
     } catch (error) {
-      console.error('Error getting state color:', error);
-      return 'primary'; // Default color
+      console.error('Error approving activity:', error);
+      await this.userNotificationService.hideLoading();
+      await this.userNotificationService.showToast(
+        this.translate.instant('ACTIVITIES.MESSAGES.APPROVE_ERROR'),
+        'middle'
+      );
+    }
+  }
+
+  /**
+   * Open the activity reject modal
+   */
+  async openRejectActivity(id: string) {
+    console.log('Activities page - openRejectActividad called with id:', id);
+
+    if (!id) {
+      console.error('Activities page - No activity ID provided');
+      return;
+    }
+
+    try {
+      const modal = await this.modalCtrl.create({
+        component: ActivityApproveComponent,
+        componentProps: {
+          IdActividad: id,
+          isReject: true
+        },
+      });
+
+      await modal.present();
+
+      const { data } = await modal.onDidDismiss();
+      if (data) {
+        await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.UPDATING_INFO'));
+        await this.activitiesService.load();
+        await this.userNotificationService.hideLoading();
+      }
+    } catch (error) {
+      console.error('Error rejecting activity:', error);
+      await this.userNotificationService.hideLoading();
+      await this.userNotificationService.showToast(
+        this.translate.instant('ACTIVITIES.MESSAGES.REJECT_ERROR'),
+        'middle'
+      );
     }
   }
 }

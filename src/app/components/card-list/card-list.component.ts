@@ -1,6 +1,4 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
 import { Card } from '@app/interfaces/card.interface';
 
 @Component({
@@ -12,9 +10,12 @@ export class CardListComponent {
   @Input() cards: Card[] = [];
   @Input() allowNavigate: boolean = true;
   @Input() allowApprove: boolean = true;
+  @Input() allowCustom: boolean = false;
+  @Input() showEdit: boolean = true;
   @Output() edit = new EventEmitter<Card>();
   @Output() approve = new EventEmitter<string>();
   @Output() reject = new EventEmitter<string>();
+  @Output() custom =  new EventEmitter<string>();
 
   onEdit(card: Card) {
     this.edit.emit(card);
@@ -26,5 +27,9 @@ export class CardListComponent {
 
   onReject(id: string) {
     this.reject.emit(id);
+  }
+
+  onCustom(id: string) {
+    this.custom.emit(id);
   }
 }

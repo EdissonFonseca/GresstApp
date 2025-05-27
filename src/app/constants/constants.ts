@@ -193,9 +193,9 @@ export const SERVICES: { serviceId: string, Name: string, Action: string, Icon: 
  * Contains metadata for displaying different statuses in the UI
  */
 export const STATUSES: { IdEstado: string, Nombre: string, Color: string }[] = [
-  { IdEstado: STATUS.APPROVED, Nombre: 'Aprobado', Color: 'success' },
-  { IdEstado: STATUS.PENDING, Nombre: 'Pendiente', Color: 'warning' },
-  { IdEstado: STATUS.REJECTED, Nombre: 'Rechazado', Color: 'danger' },
+  { IdEstado: STATUS.APPROVED, Nombre: 'Aprobado', Color: '#E8F5E9' },
+  { IdEstado: STATUS.PENDING, Nombre: 'Pendiente', Color: '#FFF8E1' },
+  { IdEstado: STATUS.REJECTED, Nombre: 'Rechazado', Color: '#FFEBEE' },
   { IdEstado: STATUS.FINISHED, Nombre: 'Finalizado', Color: 'secondary' },
   { IdEstado: STATUS.INACTIVE, Nombre: 'Opcional', Color: 'light' },
 ];
@@ -217,6 +217,7 @@ export const STORAGE = {
   POINTS: 'Points',
   REFRESH_TOKEN: 'RefreshToken',
   REQUESTS: 'Requests',
+  RESIDUES: 'Residues',
   SERVICES: 'Services',
   SUPPLIES: 'Supplies',
   START_DATE: 'StartDate',

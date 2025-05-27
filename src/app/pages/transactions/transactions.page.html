@@ -47,7 +47,7 @@
         aria-label="Synchronize data">
         <ion-icon
           name="sync-outline"
-          [color]="getColor()"
+          color="light"
           aria-hidden="true">
         </ion-icon>
       </ion-button>
@@ -64,16 +64,6 @@
     </ion-searchbar>
   </ion-toolbar>
 
-  <!-- Activity card -->
-  <app-card
-    [card]="activity()"
-    [allowNavigate]="false"
-    [allowApprove]="true"
-    (approve)="openApproveActividad()"
-    aria-label="Activity details">
-  </app-card>
-</ion-header>
-
 <!-- Main content section -->
 <ion-content [fullscreen]="true" color="light">
   <!-- Transactions list -->
@@ -81,6 +71,8 @@
     <app-card-list
       [cards]="transactionCards"
       (edit)="navigateToTareas($event)"
+      (approve)="openApproveActividad($event)"
+      (reject)="openRejectActividad($event)"
       aria-label="Transactions list">
     </app-card-list>
   </ng-container>
@@ -90,8 +82,7 @@
     slot="fixed"
     vertical="bottom"
     horizontal="end"
-    *ngIf="showAdd"
-    aria-label="Add new transaction">
+    *ngIf="showAdd">
     <ion-fab-button (click)="presentModal(activity())">
       <ion-icon
         name="add"

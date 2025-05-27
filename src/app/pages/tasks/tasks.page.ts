@@ -1,6 +1,5 @@
 import { Component, Input, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
 import { STATUS } from '@app/constants/constants';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
@@ -67,7 +66,6 @@ export class TasksPage implements OnInit {
   /** Computed property that transforms tasks into cards for display */
   tasks = computed(() => {
     const taskList = this.tasksSignal();
-    console.log('tasks computed', taskList);
     return this.cardService.mapTareas(taskList);
   });
 
@@ -166,13 +164,27 @@ export class TasksPage implements OnInit {
   }
 
   /**
-   * Filter tasks by transaction ID
+   * Filter tasks by transaction ID and sort them by status
    * @param transactionId - The ID of the transaction to filter tasks for
-   * @returns Array of tasks belonging to the specified transaction
+   * @returns Array of tasks belonging to the specified transaction, sorted by status
    */
   filterTareas(transactionId: string): Card[] {
     const taskList = this.tasks();
-    return taskList.filter((x: Card) => x.parentId === transactionId);
+    const filteredTasks = taskList.filter((x: Card) => x.parentId === transactionId);
+
+    // Define the order of statuses
+    const statusOrder = {
+      [STATUS.PENDING]: 1,
+      [STATUS.APPROVED]: 2,
+      [STATUS.REJECTED]: 3
+    };
+
+    // Sort tasks by status
+    return filteredTasks.sort((a, b) => {
+      const orderA = statusOrder[a.status] || 4; // Other statuses go last
+      const orderB = statusOrder[b.status] || 4;
+      return orderA - orderB;
+    });
   }
 
   /**
@@ -288,115 +300,6 @@ export class TasksPage implements OnInit {
         'middle'
       );
     }
-  }
-
-  /**
-   * Open the approve transaction modal
-   * Handles the approval process for a transaction
-   * @param id - The ID of the transaction to approve
-   */
-  async openApproveTransaccion(id: string) {
-    try {
-      const currentActivity = this.activity();
-      if (!currentActivity) {
-        return;
-      }
-
-      const transactions = await this.transactions();
-      const currentTransaction = transactions.find((x: Card) => x.id === id);
-      if (!currentTransaction) {
-        return;
-      }
-
-      const modal = await this.modalCtrl.create({
-        component: TransactionApproveComponent,
-        componentProps: {
-          activityId: currentActivity.id,
-          transaction: currentTransaction,
-          approveOrReject: 'approve',
-        },
-      });
-      await modal.present();
-
-      const { data } = await modal.onDidDismiss();
-      if (data != null) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
-        );
-
-        await this.loadData();
-        this.showAdd = false;
-        await this.userNotificationService.hideLoading();
-
-        // Upload data in background
-        this.sessionService.uploadData();
-      }
-    } catch (error) {
-      console.error('Error approving transaction:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TASKS.MESSAGES.APPROVE_ERROR'),
-        'middle'
-      );
-    }
-  }
-
-  /**
-   * Open the reject transaction modal
-   * Handles the rejection process for a transaction
-   * @param id - The ID of the transaction to reject
-   */
-  async openRejectTransaccion(id: string) {
-    try {
-      const currentActivity = this.activity();
-      if (!currentActivity) {
-        return;
-      }
-
-      const transactions = await this.transactions();
-      const currentTransaction = transactions.find((x: Card) => x.id === id);
-      if (!currentTransaction) {
-        return;
-      }
-
-      const modal = await this.modalCtrl.create({
-        component: TransactionApproveComponent,
-        componentProps: {
-          activityId: currentActivity.id,
-          transaction: currentTransaction,
-          approveOrReject: 'reject',
-        },
-      });
-
-      await modal.present();
-
-      const { data } = await modal.onDidDismiss();
-      if (data != null) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
-        );
-
-        await this.loadData();
-        this.showAdd = false;
-        await this.userNotificationService.hideLoading();
-
-        // Upload data in background
-        this.sessionService.uploadData();
-      }
-    } catch (error) {
-      console.error('Error rejecting transaction:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TASKS.MESSAGES.REJECT_ERROR'),
-        'middle'
-      );
-    }
-  }
-
-  /**
-   * Get the color for the synchronization status
-   * @returns string - The color code for the synchronization status
-   */
-  getColor() {
-    return this.sessionService.pendingTransactions() > 0 ? 'danger' : 'success';
   }
 
   /**

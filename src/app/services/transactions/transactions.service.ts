@@ -240,6 +240,7 @@ export class TransactionsService {
       if (currentTransaction) {
         transaccion.FechaInicial = now;
         currentTransaction.Transacciones.push(transaccion);
+        this.transactions.set(currentTransaction.Transacciones);
         await this.saveTransaction();
         await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.CREATE, transaccion);
         await this.synchronizationService.uploadData();
@@ -263,23 +264,26 @@ export class TransactionsService {
       const currentTransaction = this.transaction();
 
       if (currentTransaction) {
-        const current = currentTransaction.Transacciones.find(
+        const transactionIndex = currentTransaction.Transacciones.findIndex(
           (trx) => trx.IdActividad === transaccion.IdActividad && trx.IdTransaccion === transaccion.IdTransaccion
         );
 
-        if (current) {
+        if (transactionIndex !== -1) {
           // Update transaction fields
-          current.IdEstado = transaccion.IdEstado;
-          if (current.FechaInicial == null) current.FechaInicial = now;
-          current.FechaFinal = now;
-          current.ResponsableCargo = transaccion.ResponsableCargo;
-          current.ResponsableFirma = transaccion.ResponsableFirma;
-          current.ResponsableIdentificacion = transaccion.ResponsableIdentificacion;
-          current.ResponsableNombre = transaccion.ResponsableNombre;
-          current.ResponsableObservaciones = transaccion.ResponsableObservaciones;
-          current.CantidadCombustible = transaccion.CantidadCombustible;
-          current.CostoCombustible = transaccion.CostoCombustible;
-          current.Kilometraje = transaccion.Kilometraje;
+          currentTransaction.Transacciones[transactionIndex] = {
+            ...currentTransaction.Transacciones[transactionIndex],
+            IdEstado: transaccion.IdEstado,
+            FechaInicial: currentTransaction.Transacciones[transactionIndex].FechaInicial ?? now,
+            FechaFinal: now,
+            ResponsableCargo: transaccion.ResponsableCargo,
+            ResponsableFirma: transaccion.ResponsableFirma,
+            ResponsableIdentificacion: transaccion.ResponsableIdentificacion,
+            ResponsableNombre: transaccion.ResponsableNombre,
+            ResponsableObservaciones: transaccion.ResponsableObservaciones,
+            CantidadCombustible: transaccion.CantidadCombustible,
+            CostoCombustible: transaccion.CostoCombustible,
+            Kilometraje: transaccion.Kilometraje
+          };
 
           // Update associated pending tasks to rejected
           const tareas = currentTransaction.Tareas.filter(
@@ -293,6 +297,7 @@ export class TransactionsService {
             x.FechaEjecucion = now;
           });
 
+          this.transactions.set(currentTransaction.Transacciones);
           await this.saveTransaction();
           await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.UPDATE, transaccion);
           await this.synchronizationService.uploadData();

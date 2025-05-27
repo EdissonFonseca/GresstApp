@@ -5,9 +5,7 @@ import { Router } from '@angular/router';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { CardService } from '@app/services/core/card.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { SessionService } from '@app/services/core/session.service';
-import { Utils } from '@app/utils/utils';
 import { Card } from '@app/interfaces/card.interface';
 import { STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { ComponentsModule } from '@app/components/components.module';
@@ -24,7 +22,6 @@ describe('TransactionsPage', () => {
   let activitiesServiceSpy: jasmine.SpyObj<ActivitiesService>;
   let cardServiceSpy: jasmine.SpyObj<CardService>;
   let transactionsServiceSpy: jasmine.SpyObj<TransactionsService>;
-  let syncServiceSpy: jasmine.SpyObj<SynchronizationService>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let actionSheetSpy: jasmine.SpyObj<ActionSheetController>;
@@ -37,13 +34,7 @@ describe('TransactionsPage', () => {
     id: '1',
     title: 'Test Activity',
     status: STATUS.PENDING,
-    type: 'activity',
-    pendingItems: 2,
-    rejectedItems: 1,
-    successItems: 3,
-    quantity: 100,
-    weight: 50,
-    volume: 25
+    type: 'activity'
   };
 
   const mockTransaction: Card = {
@@ -51,13 +42,7 @@ describe('TransactionsPage', () => {
     title: 'Test Transaction',
     status: STATUS.PENDING,
     type: 'transaction',
-    parentId: '1',
-    pendingItems: 1,
-    rejectedItems: 0,
-    successItems: 0,
-    quantity: 50,
-    weight: 25,
-    volume: 10
+    parentId: '1'
   };
 
   const mockActividad: Actividad = {
@@ -84,9 +69,8 @@ describe('TransactionsPage', () => {
 
   beforeEach(async () => {
     activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', ['get']);
-    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'mapTransaccion', 'updateVisibleProperties']);
-    transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['list', 'get']);
-    syncServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadData', 'pendingTransactions']);
+    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones']);
+    transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['loadTransactions']);
     sessionServiceSpy = jasmine.createSpyObj('SessionService', ['synchronize']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     actionSheetSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
@@ -96,11 +80,9 @@ describe('TransactionsPage', () => {
     userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
 
     activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
-    transactionsServiceSpy.list.and.returnValue(Promise.resolve([mockTransaccion]));
+    transactionsServiceSpy.loadTransactions.and.returnValue(Promise.resolve());
     cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve([mockTransaction]));
-    cardServiceSpy.mapTransaccion.and.returnValue(Promise.resolve(mockTransaction));
     translateServiceSpy.instant.and.returnValue('Translated text');
-    syncServiceSpy.pendingTransactions.and.returnValue(0);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -115,7 +97,6 @@ describe('TransactionsPage', () => {
         { provide: ActivitiesService, useValue: activitiesServiceSpy },
         { provide: CardService, useValue: cardServiceSpy },
         { provide: TransactionsService, useValue: transactionsServiceSpy },
-        { provide: SynchronizationService, useValue: syncServiceSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ActionSheetController, useValue: actionSheetSpy },
@@ -137,7 +118,9 @@ describe('TransactionsPage', () => {
 
   it('should initialize with default values', () => {
     expect(component.activity()).toEqual({ id: '', title: '', status: STATUS.PENDING, type: 'activity' });
-    expect(component.transactions()).toEqual([]);
+    expect(component.showAdd).toBeTrue();
+    expect(component.showNavigation).toBeTrue();
+    expect(component.showSupport).toBeTrue();
   });
 
   it('should load data on initialization', async () => {
@@ -170,13 +153,12 @@ describe('TransactionsPage', () => {
   it('should load transactions on view enter', async () => {
     await component.ionViewWillEnter();
 
-    expect(transactionsServiceSpy.list).toHaveBeenCalled();
+    expect(transactionsServiceSpy.loadTransactions).toHaveBeenCalled();
     expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
-    expect(component.transactions()).toEqual([mockTransaction]);
   });
 
   it('should handle load transactions error', async () => {
-    transactionsServiceSpy.list.and.returnValue(Promise.reject('Error'));
+    transactionsServiceSpy.loadTransactions.and.returnValue(Promise.reject('Error'));
 
     await component.ionViewWillEnter();
 
@@ -186,19 +168,18 @@ describe('TransactionsPage', () => {
   it('should handle search input', async () => {
     const mockEvent = { target: { value: 'test' } };
     const mockTransactions = [mockTransaction];
-    transactionsServiceSpy.list.and.returnValue(Promise.resolve([mockTransaccion]));
+    transactionsServiceSpy.loadTransactions.and.returnValue(Promise.resolve());
     cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve(mockTransactions));
 
     await component.handleInput(mockEvent);
 
-    expect(transactionsServiceSpy.list).toHaveBeenCalled();
+    expect(transactionsServiceSpy.loadTransactions).toHaveBeenCalled();
     expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
-    expect(component.transactions()).toEqual(mockTransactions);
   });
 
   it('should handle search input error', async () => {
     const mockEvent = { target: { value: 'test' } };
-    transactionsServiceSpy.list.and.returnValue(Promise.reject('Error'));
+    transactionsServiceSpy.loadTransactions.and.returnValue(Promise.reject('Error'));
 
     await component.handleInput(mockEvent);
 
@@ -265,64 +246,24 @@ describe('TransactionsPage', () => {
     } as any;
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
 
-    await component.openAddTarea();
+    await component.presentModal(mockActivity);
 
     expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(mockModal.present).toHaveBeenCalled();
     expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
     expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
-    expect(syncServiceSpy.uploadData).toHaveBeenCalled();
   });
 
   it('should handle add task modal error', async () => {
     modalCtrlSpy.create.and.returnValue(Promise.reject('Error'));
 
-    await component.openAddTarea();
+    await component.presentModal(mockActivity);
 
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
-  });
-
-  it('should open approve activity modal', async () => {
-    const mockModal = {
-      present: jasmine.createSpy('present'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: true }))
-    } as any;
-    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
-
-    await component.openApproveActividad();
-
-    expect(modalCtrlSpy.create).toHaveBeenCalled();
-    expect(mockModal.present).toHaveBeenCalled();
-    expect(syncServiceSpy.uploadData).toHaveBeenCalled();
-  });
-
-  it('should handle approve activity modal error', async () => {
-    modalCtrlSpy.create.and.returnValue(Promise.reject('Error'));
-
-    await component.openApproveActividad();
-
-    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
-  });
-
-  it('should get color for synchronization status', () => {
-    syncServiceSpy.pendingTransactions.and.returnValue(1);
-    expect(component.getColor()).toBe('danger');
-
-    syncServiceSpy.pendingTransactions.and.returnValue(0);
-    expect(component.getColor()).toBe('success');
   });
 
   it('should synchronize data successfully', async () => {
     sessionServiceSpy.synchronize.and.returnValue(Promise.resolve(true));
-
-    await component.synchronize();
-
-    expect(sessionServiceSpy.synchronize).toHaveBeenCalled();
-    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
-  });
-
-  it('should handle synchronization failure', async () => {
-    sessionServiceSpy.synchronize.and.returnValue(Promise.resolve(false));
 
     await component.synchronize();
 

@@ -17,11 +17,17 @@
 
   <!-- Activity cards list -->
   <ng-container *ngIf="activities() | async as activityCards">
-    <app-card-list
-      [cards]="activityCards"
-      (edit)="navigateToTarget($event)"
-      aria-label="Activities list">
-    </app-card-list>
+    <ng-container *ngFor="let card of activityCards">
+      <app-card
+        [card]="card"
+        [allowApprove]="true"
+        [allowNavigate]="true"
+        (edit)="navigateToTarget($event)"
+        (approve)="openApproveActivity($event)"
+        (reject)="openRejectActivity($event)"
+        aria-label="Activity details">
+      </app-card>
+    </ng-container>
   </ng-container>
 
   <!-- Add activity button -->

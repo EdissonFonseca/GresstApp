@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
-import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/constants/constants';
@@ -17,6 +16,7 @@ import { PackagesComponent } from '../packages/packages.component';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
+import { Residuo } from 'src/app/interfaces/residuo.interface';
 
 @Component({
   selector: 'app-task-edit',
@@ -39,25 +39,12 @@ export class TaskEditComponent implements OnInit {
   frmTarea: FormGroup;
   captura: string = '';
   factor: number | null = null;
-  material: string = '';
   medicion: string = '';
-  package: string = '';
-  packageId: string = '';
   photo!: SafeResourceUrl;
-  point: string = '';
-  pointTarget: string = '';
-  pointId: string = '';
-  stakeholder: string = '';
-  stakeholderId: string = '';
-  stakeholderTarget: string = '';
   status: string = '';
   showDetails: boolean = false;
   showTratamiento: boolean = false;
   task: Tarea | undefined = undefined;
-  target: string = '';
-  targetId: string = '';
-  treatmentId: string = '';
-  treatment: string = '';
   fotosPorMaterial: number = 2;
   fotos: string[] = [];
   imageUrl: string = '';
@@ -72,15 +59,27 @@ export class TaskEditComponent implements OnInit {
     private inventoryService: InventoryService,
     private materialsService: MaterialsService,
     private pointsService: PointsService,
-    private thirdpartiesService: ThirdpartiesService,
+    private thirdpartiesService: ThirdpartiesService
   ) {
     this.frmTarea = this.formBuilder.group({
-      Cantidad: [],
-      Peso: [],
-      IdEmbalaje: [],
-      Observaciones: [],
-      Valor: [],
-      Volumen: [],
+      Cantidad: [null],
+      Peso: [null],
+      Volumen: [null],
+      Valor: [null],
+      IdEmbalaje: [null],
+      Observaciones: [null],
+      IdDeposito: [null],
+      IdDepositoDestino: [null],
+      IdTercero: [null],
+      IdTerceroDestino: [null],
+      IdTratamiento: [null],
+      Material: [null],
+      Deposito: [null],
+      DepositoDestino: [null],
+      Tercero: [null],
+      TerceroDestino: [null],
+      Tratamiento: [null],
+      Embalaje: [null]
     });
   }
 
@@ -88,289 +87,239 @@ export class TaskEditComponent implements OnInit {
    * Inicializacion de formulario
    */
   async ngOnInit() {
-    let cantidad: number | null = null;
-    let peso: number | null = null;
-    let volumen: number | null = null;
-
     this.fotosPorMaterial = Utils.photosByMaterial;
     this.task = await this.tasksService.get(this.taskId);
-    if (this.task)
-    {
+
+    if (this.task) {
       this.status = this.task.IdEstado;
-      cantidad = this.task.Cantidad ?? 0;
-      peso = this.task.Peso ?? 0;
-      volumen = this.task.Volumen ?? 0;
-      this.fotos= this.task.Fotos ?? [];
+      this.fotos = this.task.Fotos ?? [];
 
       const materialItem = await this.materialsService.get(this.task.IdMaterial);
       if (materialItem) {
-        this.material = materialItem.Nombre;
         this.medicion = materialItem.TipoMedicion;
         this.captura = materialItem.TipoCaptura;
         this.factor = materialItem.Factor ?? 1;
+        this.frmTarea.patchValue({
+          Material: materialItem.Nombre
+        });
       }
 
       if (this.task.IdDeposito) {
         const puntoItem = await this.pointsService.get(this.task.IdDeposito);
-        this.point = puntoItem?.Nombre ?? '';
-        this.pointId = puntoItem?.IdDeposito ?? '';
+        if (puntoItem) {
+          this.frmTarea.patchValue({
+            IdDeposito: puntoItem.IdDeposito,
+            Deposito: puntoItem.Nombre
+          });
+        }
       }
 
       if (this.task.IdDepositoDestino) {
         const puntoItem = await this.pointsService.get(this.task.IdDepositoDestino);
-        this.pointTarget = puntoItem?.Nombre ?? '';
-        if (puntoItem?.IdPersona) {
-          const tercero = await this.thirdpartiesService.get(puntoItem.IdPersona);
-          this.stakeholderTarget = tercero?.Nombre ?? '';
+        if (puntoItem) {
+          this.frmTarea.patchValue({
+            IdDepositoDestino: puntoItem.IdDeposito,
+            DepositoDestino: puntoItem.Nombre
+          });
+          if (puntoItem.IdPersona) {
+            const tercero = await this.thirdpartiesService.get(puntoItem.IdPersona);
+            if (tercero) {
+              this.frmTarea.patchValue({
+                IdTerceroDestino: tercero.IdPersona,
+                TerceroDestino: tercero.Nombre
+              });
+            }
+          }
         }
       }
 
       if (this.task.IdTercero) {
         const solicitante = await this.thirdpartiesService.get(this.task.IdTercero);
-        this.stakeholder = solicitante?.Nombre ?? '';
-        this.stakeholderId = solicitante?.IdPersona ?? '';
-      }
-
-      if (this.task.IdTerceroDestino) {
-        const tercero = await this.thirdpartiesService.get(this.task.IdTerceroDestino);
-        this.stakeholderTarget = tercero?.Nombre ?? '';
+        if (solicitante) {
+          this.frmTarea.patchValue({
+            IdTercero: solicitante.IdPersona,
+            Tercero: solicitante.Nombre
+          });
+        }
       }
 
       if (this.task.IdEmbalaje) {
         const embalaje = await this.packagingService.get(this.task.IdEmbalaje);
-        this.packageId = this.task.IdEmbalaje;
-        this.package = embalaje?.Nombre ?? '';
+        if (embalaje) {
+          this.frmTarea.patchValue({
+            IdEmbalaje: this.task.IdEmbalaje,
+            Embalaje: embalaje.Nombre
+          });
+        }
       }
 
       if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
         const residuo = await this.inventoryService.getResidue(this.residueId);
         if (residuo) {
-          cantidad = residuo.Cantidad ?? 0;
-          peso = residuo.Peso ?? 0;
-          volumen = residuo.Volumen ?? 0;
+          this.frmTarea.patchValue({
+            Cantidad: residuo.Cantidad ?? 0,
+            Peso: residuo.Peso ?? 0,
+            Volumen: residuo.Volumen ?? 0
+          });
         }
       }
 
       this.frmTarea.patchValue({
-        Cantidad: cantidad,
-        Peso: peso,
-        volumen: volumen,
-        IdEmbalaje: this.task?.IdEmbalaje,
+        Cantidad: this.task.Cantidad ?? 0,
+        Peso: this.task.Peso ?? 0,
+        Volumen: this.task.Volumen ?? 0,
+        Valor: this.task.Valor,
+        Observaciones: this.task.Observaciones
       });
     } else {
-      let materialNombre: string = '';
-      let puntoNombre: string = '';
-      let terceroNombre: string = '';
-      let terceroId: string = '';
-      let puntoId: string = '';
-      let embalajeId: string = '';
-
       if (this.transactionId) {
         const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
         if (transaccion) {
           const punto = await this.pointsService.get(transaccion.IdDeposito ?? '');
-          if (punto){
-            puntoNombre = punto.Nombre;
-            puntoId = punto.IdDeposito;
-            const propietario = await this.thirdpartiesService.get(punto.IdPersona ?? '');
-            if (propietario) {
-              terceroNombre = propietario.Nombre;
-              terceroId = propietario.IdPersona;
+          if (punto) {
+            this.frmTarea.patchValue({
+              IdDeposito: punto.IdDeposito,
+              Deposito: punto.Nombre
+            });
+            if (punto.IdPersona) {
+              const propietario = await this.thirdpartiesService.get(punto.IdPersona);
+              if (propietario) {
+                this.frmTarea.patchValue({
+                  IdTercero: propietario.IdPersona,
+                  Tercero: propietario.Nombre
+                });
+              }
             }
           }
         }
       }
+
       const material = await this.materialsService.get(this.materialId);
       if (material) {
-        materialNombre = material.Nombre;
         this.medicion = material.TipoMedicion;
         this.captura = material.TipoCaptura;
+        this.frmTarea.patchValue({
+          Material: material.Nombre
+        });
       }
 
       const residuo = await this.inventoryService.getResidue(this.residueId);
       if (residuo) {
-        cantidad = residuo.Cantidad ?? 0;
-        peso = residuo.Peso ?? 0;
-        volumen = residuo.Volumen ?? 0;
+        this.frmTarea.patchValue({
+          Cantidad: residuo.Cantidad ?? 0,
+          Peso: residuo.Peso ?? 0,
+          Volumen: residuo.Volumen ?? 0
+        });
       }
-
-      if (this.packageId) {
-        const embalaje = await this.packagingService.get(this.packageId);
-        this.package = embalaje?.Nombre ?? '';
-      }
-
-      this.material = materialNombre;
-      this.point = puntoNombre;
-      this.pointId = puntoId;
-      this.stakeholder = terceroNombre;
-      this.stakeholderId = terceroId;
-      this.frmTarea.patchValue({
-        Cantidad: cantidad,
-        Peso: peso,
-        volumen: volumen,
-        IdEmbalaje: embalajeId,
-      });
     }
+  }
+
+  /**
+   * Mapea el formulario a la interfaz Tarea
+   */
+  private mapFormToTask(): Tarea {
+    const formValue = this.frmTarea.value;
+    const now = new Date().toISOString();
+
+    return {
+      IdTarea: this.taskId || Utils.generateId(),
+      IdActividad: this.activityId,
+      IdTransaccion: this.transactionId,
+      IdMaterial: this.materialId,
+      IdResiduo: this.residueId,
+      Cantidad: formValue.Cantidad,
+      Peso: formValue.Peso,
+      Volumen: formValue.Volumen,
+      Valor: formValue.Valor,
+      IdEmbalaje: formValue.IdEmbalaje,
+      IdDeposito: formValue.IdDeposito,
+      IdDepositoDestino: formValue.IdDepositoDestino,
+      IdTercero: formValue.IdTercero,
+      IdTerceroDestino: formValue.IdTerceroDestino,
+      IdTratamiento: formValue.IdTratamiento,
+      FechaEjecucion: now,
+      Fotos: this.fotos,
+      Observaciones: formValue.Observaciones,
+      IdEstado: STATUS.APPROVED,
+      EntradaSalida: this.inputOutput,
+      IdRecurso: this.task?.IdRecurso || '',
+      IdServicio: this.task?.IdServicio || ''
+    };
+  }
+
+  /**
+   * Mapea la tarea a un residuo
+   */
+  private mapResiduoFromTask(tarea: Tarea): Residuo {
+    return {
+      IdResiduo: Utils.generateId(),
+      IdMaterial: this.materialId,
+      IdPropietario: tarea.IdTercero || '',
+      IdDeposito: tarea.IdDeposito || '',
+      IdVehiculo: '',
+      IdDepositoOrigen: tarea.IdDeposito || '',
+      Aprovechable: true,
+      Cantidad: tarea.Cantidad || 0,
+      Peso: tarea.Peso || 0,
+      IdEmbalaje: tarea.IdEmbalaje || '',
+      CantidadEmbalaje: 0,
+      IdEstado: STATUS.APPROVED,
+      Material: this.frmTarea.value.Material || '',
+      Ubicacion: '',
+      Volumen: tarea.Volumen || 0,
+    };
   }
 
   /**
    * Confirmar la tarea
    */
   async confirm() {
-    const now = new Date();
-    const isoDate = now.toISOString();
-
     if (!this.frmTarea.valid) return;
 
-    let idResiduo: string | null = null;
-    let tarea: Tarea | undefined;
-    const data = this.frmTarea.value;
     const actividad = await this.activitiesService.get(this.activityId);
-
     if (!actividad) return;
 
-    tarea = await this.tasksService.get(this.taskId);
-    if (tarea) { //Si hay tarea
-      tarea.Cantidad = data.Cantidad;
-      tarea.FechaEjecucion = isoDate;
-      tarea.IdEmbalaje = data.IdEmbalaje;
-      tarea.IdEstado = STATUS.APPROVED;
-      tarea.Observaciones = data.Observaciones;
-      tarea.Peso = data.Peso;
-      tarea.Volumen = data.Volumen;
-      tarea.Valor = data.Valor;
-      tarea.Fotos = this.fotos;
-      this.tasksService.update(tarea);
-
-      if (this.inputOutput == INPUT_OUTPUT.INPUT) { //Tarea -> Entrada
-        idResiduo = Utils.generateId();
-        const residuo: Residuo = {
-          IdResiduo: idResiduo,
-          IdMaterial: tarea.IdMaterial,
-          IdPropietario: this.stakeholderId,
-          IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION ? actividad.IdRecurso: '',
-          IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
-          IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
-          IdDepositoOrigen: tarea.IdDeposito,
-          Aprovechable: true, //TODO
-          Cantidad: data.Cantidad,
-          Peso: data.Peso,
-          Volumen: data.Volumen,
-          IdEmbalaje: data.IdEmbalaje,
-          CantidadEmbalaje: data.CantidadEmbalaje,
-          Propietario: this.stakeholder,
-          Material: this.material,
-          DepositoOrigen: this.point,
-          EntradaSalida: INPUT_OUTPUT.INPUT,
-          IdEstado: STATUS.PENDING,
-          FechaIngreso: isoDate,
-          Imagen: this.imageUrl,
-          Ubicacion: '' //TODO
-        };
-        await this.inventoryService.createResidue(residuo);
-      } else { //Tarea -> Salida
-        idResiduo = this.residueId;
-        const residuo = await this.inventoryService.getResidue(idResiduo);
-        if (residuo){
-          residuo.IdEstado = STATUS.INACTIVE;
-          this.inventoryService.updateResidue(residuo);
-        }
-      }
-    } else { //No hay tarea - Agregado
+    let tarea: Tarea = this.mapFormToTask();
+    if (this.task) {
+      await this.tasksService.update(tarea);
+    } else {
       const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
-      if (transaccion){
-          const punto = await this.pointsService.get(transaccion.IdDeposito ?? '');
-        if (punto?.Recepcion) { //No hay tarea -> Entrada
-          const residuo: Residuo = {
-            IdResiduo: Utils.generateId(),
-            IdMaterial: this.materialId,
-            IdPropietario: this.stakeholderId,
-            IdDeposito: actividad.IdServicio == SERVICE_TYPES.RECEPTION ? actividad.IdRecurso: '',
-            IdRuta: actividad.IdServicio == SERVICE_TYPES.COLLECTION? actividad.IdRecurso : '',
-            IdVehiculo: actividad.IdServicio == SERVICE_TYPES.TRANSPORT? actividad.IdRecurso : '',
-            IdDepositoOrigen: transaccion.IdDeposito,
-            Aprovechable: true, //TODO
-            Cantidad: data.Cantidad,
-            Peso: data.Peso,
-            IdEmbalaje: data.IdEmbalaje,
-            CantidadEmbalaje: data.CantidadEmbalaje,
-            Propietario: this.stakeholder,
-            Material: this.material,
-            DepositoOrigen: this.point,
-            IdEstado: STATUS.ACTIVE,
-            FechaIngreso: isoDate,
-            Ubicacion: '' //TODO
-          };
-          await this.inventoryService.createResidue(residuo);
-          tarea = {
-            IdActividad: this.activityId,
-            IdTransaccion: this.transactionId,
-            IdTarea: Utils.generateId(),
+      if (transaccion) {
+        const punto = await this.pointsService.get(transaccion.IdDeposito ?? '');
+        tarea.IdRecurso = actividad.IdRecurso;
+        tarea.IdServicio = actividad.IdServicio;
 
-            IdMaterial: this.materialId,
-            IdResiduo: residuo.IdResiduo,
-            Cantidad: data.Cantidad,
-            Peso: data.Peso,
-            Volumen: data.Volumen,
-            FechaEjecucion: isoDate,
-            IdRecurso: actividad.IdRecurso,
-            IdServicio: actividad.IdServicio,
-            IdEmbalaje: data.IdEmbalaje,
-            Observaciones: data.Observaciones,
-            EntradaSalida: INPUT_OUTPUT.INPUT,
-            IdEstado: STATUS.APPROVED,
-            Fotos: this.fotos,
-          };
+        if (punto?.Recepcion) { //No hay tarea -> Entrada
+          tarea.IdResiduo = '';
+          tarea.EntradaSalida = INPUT_OUTPUT.INPUT;
           await this.tasksService.create(tarea);
         } else { //No hay tarea -> Salida
-          const residuo = await this.inventoryService.getResidue(this.residueId);
-          if (residuo) {
-            tarea = {
-              IdActividad: this.activityId,
-              IdTransaccion: this.transactionId,
-              IdTarea: Utils.generateId(),
+          tarea.IdResiduo = this.residueId;
+          tarea.EntradaSalida = INPUT_OUTPUT.OUTPUT;
+          await this.tasksService.create(tarea);
 
-              IdMaterial: this.materialId,
-              IdResiduo: residuo.IdResiduo,
-              Cantidad: data.Cantidad,
-              FechaEjecucion: isoDate,
-              IdRecurso: actividad.IdRecurso,
-              IdServicio: actividad.IdServicio,
-              Peso: data.Peso,
-              Volumen: data.Volumen,
-              IdEmbalaje: data.IdEmbalaje,
-              Observaciones: data.Observaciones,
-              EntradaSalida: INPUT_OUTPUT.INPUT,
-              Fotos: this.fotos,
-              IdEstado: STATUS.APPROVED,
-              };
-            await this.tasksService.create(tarea);
-
-            residuo.IdEstado = STATUS.INACTIVE;
-              await this.inventoryService.updateResidue(residuo);
-          }
+          // Crear el residuo
+          const residuo = this.mapResiduoFromTask(tarea);
+          await this.inventoryService.createResidue(residuo);
         }
       }
     }
+
     this.modalCtrl.dismiss(tarea);
   }
 
   async reject() {
-    const now = new Date();
-    const isoDate = now.toISOString();
-
-    const data = this.frmTarea.value;
     const tarea = await this.tasksService.get(this.taskId);
-    if (tarea)
-    {
-      tarea.Observaciones = data.Observaciones;
+    if (tarea) {
+      tarea.Observaciones = this.frmTarea.value.Observaciones;
       tarea.IdEstado = STATUS.REJECTED;
-      tarea.FechaEjecucion = isoDate;
-      this.tasksService.update(tarea);
+      tarea.FechaEjecucion = new Date().toISOString();
+      await this.tasksService.update(tarea);
     }
     this.modalCtrl.dismiss(tarea);
   }
-    /**
+
+  /**
    * Retornar a la página inicial
    */
   cancel() {
@@ -379,41 +328,42 @@ export class TaskEditComponent implements OnInit {
 
   /**
    * Selecciona el embalaje y pone los valores en variables de la página
-   * @returns
    */
   async selectEmbalaje() {
-    const modal =   await this.modalCtrl.create({
+    const modal = await this.modalCtrl.create({
       component: PackagesComponent,
-      componentProps: {
-      },
+      componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
       if (data && data.data) {
-        this.packageId = data.data.id;
-        this.package = data.data.name;
+        this.frmTarea.patchValue({
+          IdEmbalaje: data.data.id,
+          Embalaje: data.data.name
+        });
       }
     });
 
     return await modal.present();
-   }
+  }
 
-   async selectTratamiento() {
-    const modal =   await this.modalCtrl.create({
+  async selectTratamiento() {
+    const modal = await this.modalCtrl.create({
       component: TreatmentsComponent,
-      componentProps: {
-      },
+      componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
       if (data && data.data) {
-        this.treatmentId = data.data.id;
-        this.treatment = data.data.name;
+        this.frmTarea.patchValue({
+          IdTratamiento: data.data.id,
+          Tratamiento: data.data.name
+        });
       }
     });
 
     return await modal.present();
-   }
+  }
 
   async takePhoto() {
     try {
@@ -438,13 +388,14 @@ export class TaskEditComponent implements OnInit {
   deletePhoto(index: number) {
     this.fotos.splice(index, 1);
   }
-  calculateFromCantidad(event:any){
+
+  calculateFromCantidad(event: any) {
     const enteredValue = (event.target as HTMLInputElement).value;
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
     if (this.medicion == MEASUREMENTS.WEIGHT)
-      this.frmTarea.patchValue({Peso: resultValue});
+      this.frmTarea.patchValue({ Peso: resultValue });
     else if (this.medicion == MEASUREMENTS.VOLUME)
-      this.frmTarea.patchValue({Volumen: resultValue});
+      this.frmTarea.patchValue({ Volumen: resultValue });
   }
 }
