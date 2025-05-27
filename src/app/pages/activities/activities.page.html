@@ -1,32 +1,34 @@
 <!-- Header section -->
 <ion-header>
-  <!-- Header content will be added here -->
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ 'ACTIVITIES.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="{{ 'ACTIVITIES.SEARCH' | translate }}"
+      (ionInput)="handleInput($event)"
+      animated
+    ></ion-searchbar>
+  </ion-toolbar>
 </ion-header>
 
 <!-- Main content section -->
-<ion-content [fullscreen]="true" color="light">
-  <!-- Search toolbar -->
-  <ion-toolbar>
-    <ion-searchbar
-      (ionInput)="handleInput($event)"
-      [placeholder]="'ACTIVITIES.SEARCH' | translate"
-      show-clear-button="focus"
-      aria-label="Search activities">
-    </ion-searchbar>
-  </ion-toolbar>
-
+<ion-content [fullscreen]="true" style="--background: transparent;">
   <!-- Activity cards list -->
-  <ng-container *ngIf="activities() | async as activityCards">
-    <ng-container *ngFor="let card of activityCards">
-      <app-card
-        [card]="card"
-        (edit)="navigateToTarget($event)"
-        (approve)="openApproveActivity($event)"
-        (reject)="openRejectActivity($event)"
-        aria-label="Activities list">
-      </app-card>
-    </ng-container>
-  </ng-container>
+  <app-card-list
+    #cardList
+    [cards]="activityCards()"
+    [allowNavigate]="true"
+    [allowApprove]="true"
+    [showEdit]="true"
+    (edit)="navigateToTarget($event)"
+    (approve)="openApprove($event)"
+    (reject)="openReject($event)"
+    aria-label="Activities list">
+  </app-card-list>
 
   <!-- Add activity button -->
   <ion-fab
@@ -35,7 +37,7 @@
     horizontal="end"
     *ngIf="showAdd"
     aria-label="Add new activity">
-    <ion-fab-button (click)="openAddActivity()">
+    <ion-fab-button (click)="openAdd()">
       <ion-icon name="add" aria-label="Add icon"></ion-icon>
     </ion-fab-button>
   </ion-fab>

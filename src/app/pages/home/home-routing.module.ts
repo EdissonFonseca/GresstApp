@@ -9,11 +9,13 @@ const routes: Routes = [
     component: HomePage,
     children: [
       {
-        path: 'actividades',
+        path: 'activities',
+        outlet: 'activities',
         component: ActivitiesPage
       },
       {
         path: 'inventario',
+        outlet: 'inventario',
         loadChildren: () => import('../inventory/inventory.module').then(m => m.InventoryPageModule)
       },
       {
@@ -22,7 +24,7 @@ const routes: Routes = [
       },
       {
         path: '',
-        redirectTo: 'actividades',
+        redirectTo: 'activities',
         pathMatch: 'full'
       }
     ]

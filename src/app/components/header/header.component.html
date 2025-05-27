@@ -1,17 +1,17 @@
 <ion-header [translucent]="true">
   <ion-toolbar class="header-green">
     <ion-buttons slot="start">
-        <ion-menu-button menu="MainMenu"></ion-menu-button>
+        <ion-menu-button color="light" menu="MainMenu"></ion-menu-button>
     </ion-buttons>
-    <ion-title>
+    <ion-title color="light" >
       {{ pageTitle }}
     </ion-title>
     <ion-buttons slot="end">
       <ion-button>
-        <ion-icon name="notifications"></ion-icon>
+        <ion-icon name="notifications" color="light"></ion-icon>
       </ion-button>
       <ion-button (click)="synchronize()">
-        <ion-icon name="sync-outline"></ion-icon>
+        <ion-icon name="sync-outline" color="light"></ion-icon>
         <ion-badge color="danger" *ngIf="pendingRequests > 0">{{ pendingRequests }}</ion-badge>
       </ion-button>
     </ion-buttons>

@@ -5,201 +5,29 @@
 }
 
 ion-tabs {
-  display: flex;
-  flex-direction: column;
   height: 100%;
-}
-
-ion-tab {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-ion-content {
-  --background: transparent;
-  --padding-start: 0;
-  --padding-end: 0;
-  height: 100%;
-}
-
-ion-searchbar {
-  --background: var(--ion-color-light);
-  --border-radius: 12px;
-  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin: 8px;
-  padding: 0;
-  width: calc(100% - 16px);
-}
-
-ion-list {
-  background: transparent;
-  padding: 0 8px;
-  margin: 0;
-  width: 100%;
-}
-
-ion-item {
-  --background: var(--ion-color-light);
-  --border-radius: 12px;
-  --padding-start: 16px;
-  --padding-end: 16px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
-  margin: 8px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  width: 100%;
-  box-sizing: border-box;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  ion-label {
-    h2 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--ion-text-color);
-      margin-bottom: 4px;
-    }
-
-    p {
-      font-size: 0.85rem;
-      color: var(--ion-text-color-secondary);
-      margin: 0;
-    }
-  }
-
-  ion-badge {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --padding-top: 4px;
-    --padding-bottom: 4px;
-    border-radius: 12px;
-    font-weight: 500;
-    font-size: 0.8rem;
-  }
-
-  ion-button {
-    --border-radius: 12px;
-    --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    margin: 4px;
-    height: 36px;
-  }
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 16px;
-  text-align: center;
-  color: var(--ion-text-color-secondary);
-  width: 100%;
-  box-sizing: border-box;
-
-  ion-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  h3 {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin: 0 0 8px 0;
-  }
-
-  p {
-    font-size: 0.9rem;
-    margin: 0;
-    opacity: 0.8;
-  }
 }
 
 ion-tab-bar {
   --background: var(--ion-color-light);
   --border-color: var(--ion-color-medium);
-  padding: 8px 0;
-  height: 60px;
-  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  padding: 4px 0;
+  height: 56px;
 }
 
 ion-tab-button {
   --color: var(--ion-color-medium);
   --color-selected: var(--ion-color-primary);
-  --ripple-color: var(--ion-color-primary);
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 
-  &.tab-selected {
+  &.active {
     --color: var(--ion-color-primary);
-
-    ion-icon, ion-label {
-      color: var(--ion-color-primary);
-    }
-  }
-
-  ion-icon {
-    font-size: 24px;
-    margin-bottom: 4px;
-  }
-
-  ion-label {
-    font-size: 12px;
-    font-weight: 500;
   }
 }
 
-.tab-selected {
-  position: relative;
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 20px;
-    height: 3px;
-    background-color: var(--ion-color-primary);
-    border-radius: 2px;
-  }
+ion-content {
+  --background: transparent;
 }
 
-// Animación para el cambio de tabs
-ion-tab-bar {
-  transition: all 0.3s ease;
-}
-
-ion-tab-button {
-  transition: all 0.2s ease;
-
-  &:hover {
-    --color: var(--ion-color-primary);
-    opacity: 0.8;
-  }
-}
-
-// Mejoras para el header
-app-header {
-  --background: var(--ion-color-light);
-  --border-color: var(--ion-color-medium);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-// Estilos para el contenedor principal
 ion-router-outlet {
-  flex: 1;
-  overflow: auto;
-  padding-bottom: 60px; // Espacio para el tab bar
-  height: calc(100vh - 60px); // Altura total menos la altura del tab bar
+  height: 100%;
 }

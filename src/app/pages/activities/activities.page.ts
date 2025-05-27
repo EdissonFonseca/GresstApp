@@ -1,9 +1,8 @@
-import { Component, OnInit, signal, computed, ViewChild } from '@angular/core';
-import { NavigationExtras } from '@angular/router';
-import { Card } from '@app/interfaces/card.interface';
-import { CardService } from '@app/services/core/card.service';
+import { Component, OnInit, signal, computed } from '@angular/core';
+import { NavigationExtras, Router } from '@angular/router';
 import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
 import { ActivityAddComponent } from 'src/app/components/activity-add/activity-add.component';
+import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { CRUD_OPERATIONS, PERMISSIONS, SERVICE_TYPES, SERVICES, STATUS } from '@app/constants/constants';
@@ -16,21 +15,8 @@ import { ComponentsModule } from '@app/components/components.module';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ActivityApproveComponent } from 'src/app/components/activity-approve/activity-approve.component';
-import { CardListComponent } from '@app/components/card-list/card-list.component';
-
-/**
- * Interface for activity navigation parameters
- * Defines the structure for navigation data when moving between activities
- */
-interface ActivityNavigationParams {
-  /** The activity card to be displayed */
-  activity: Card;
-  /** Optional mode parameter for navigation */
-  mode?: string;
-  /** The target route for navigation */
-  route: string;
-}
+import { Card } from '@app/interfaces/card.interface';
+import { CardService } from '@app/services/core/card.service';
 
 /**
  * ActivitiesPage Component
@@ -48,35 +34,24 @@ interface ActivityNavigationParams {
   templateUrl: './activities.page.html',
   styleUrls: ['./activities.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule, TranslateModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule,
+    ComponentsModule,
+    TranslateModule
+  ]
 })
 export class ActivitiesPage implements OnInit {
-  /** Signal containing the current activity displayed as a card */
-  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
-
   /** Signal containing the list of activities from the service */
   private activitiesSignal = this.activitiesService.activities;
 
-  /** Computed property that transforms activities into cards for display */
-  activities = computed(() => {
-    const activityList = this.activitiesSignal();
+  /** Signal containing the list of activity cards */
+  activityCards = signal<Card[]>([]);
 
-    // Define el orden de los estados
-    const statusOrder = {
-      [STATUS.PENDING]: 1,
-      [STATUS.APPROVED]: 2,
-      [STATUS.REJECTED]: 3
-    };
-
-    // Ordenar las actividades por estado
-    const sortedActivities = activityList.sort((a, b) => {
-      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
-      const orderB = statusOrder[b.IdEstado] || 4;
-      return orderA - orderB;
-    });
-
-    return this.cardService.mapActividades(sortedActivities);
-  });
+  /** Flag to track if data has been loaded */
+  private isDataLoaded = false;
 
   /** Flag indicating whether the add activity button should be shown */
   showAdd: boolean = true;
@@ -87,12 +62,6 @@ export class ActivitiesPage implements OnInit {
   /** Current mileage value for the activity */
   mileage: number | null = null;
 
-  @ViewChild('cardList') cardList!: CardListComponent;
-
-  /**
-   * Constructor for ActivitiesPage
-   * Initializes required services and dependencies
-   */
   constructor(
     private navCtrl: NavController,
     private activitiesService: ActivitiesService,
@@ -106,13 +75,12 @@ export class ActivitiesPage implements OnInit {
   ) {}
 
   /**
-   * Initialize component
-   * Checks user permissions and loads initial activities
+   * Initialize component by loading activities and setting up permissions
    */
   async ngOnInit() {
     try {
       this.showAdd = await this.authorizationService.allowAddActivity();
-      await this.activitiesService.load();
+      await this.loadData();
     } catch (error) {
       this.showAdd = false;
       await this.userNotificationService.showToast(
@@ -123,24 +91,67 @@ export class ActivitiesPage implements OnInit {
   }
 
   /**
-   * Lifecycle hook called when the page is about to enter
-   * Loads activities data
+   * Load activities when the page is about to enter
    */
   async ionViewWillEnter() {
-    try {
-      await this.activitiesService.load();
-    } catch (error) {
-      await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.LOAD_ERROR'),
-        'middle'
-      );
+    if (!this.isDataLoaded) {
+      try {
+        await this.loadData();
+      } catch (error) {
+        console.error('Error loading activities:', error);
+        await this.userNotificationService.showToast(
+          this.translate.instant('ACTIVITIES.MESSAGES.LOAD_ERROR'),
+          'middle'
+        );
+      }
     }
-    console.log('Activities page - ionViewWillEnter called - END');
+  }
+
+  /**
+   * Load all necessary data for the page
+   */
+  private async loadData() {
+    try {
+      console.log('Loading data...');
+      await this.activitiesService.load();
+      const activities = this.activitiesSignal();
+      console.log('Activities loaded:', activities);
+
+      if (!activities || activities.length === 0) {
+        console.log('No activities found');
+        this.activityCards.set([]);
+        return;
+      }
+
+      // Define el orden de los estados
+      const statusOrder = {
+        [STATUS.PENDING]: 1,
+        [STATUS.APPROVED]: 2,
+        [STATUS.REJECTED]: 3
+      };
+
+      // Ordenar las actividades por estado
+      const sortedActivities = activities.sort((a, b) => {
+        const orderA = statusOrder[a.IdEstado] || 4;
+        const orderB = statusOrder[b.IdEstado] || 4;
+        return orderA - orderB;
+      });
+
+      console.log('Sorted activities:', sortedActivities);
+
+      // Usar el CardService para mapear las actividades a tarjetas
+      const cards = await this.cardService.mapActividades(sortedActivities);
+      console.log('Cards mapped:', cards);
+      this.activityCards.set(cards);
+      this.isDataLoaded = true;
+    } catch (error) {
+      console.error('Error loading data:', error);
+      this.activityCards.set([]);
+    }
   }
 
   /**
    * Handle search input to filter activities
-   * Updates the displayed list based on the search query
    * @param event - The input event containing the search query
    */
   async handleInput(event: any) {
@@ -149,10 +160,88 @@ export class ActivitiesPage implements OnInit {
       const activityList = this.activitiesSignal().filter((activity: Actividad) =>
         activity.Titulo.toLowerCase().indexOf(query) > -1
       );
-      this.activitiesService.activities.set(activityList);
+
+      // Define el orden de los estados
+      const statusOrder = {
+        [STATUS.PENDING]: 1,
+        [STATUS.APPROVED]: 2,
+        [STATUS.REJECTED]: 3
+      };
+
+      // Ordenar las actividades por estado
+      const sortedActivities = activityList.sort((a, b) => {
+        const orderA = statusOrder[a.IdEstado] || 4;
+        const orderB = statusOrder[b.IdEstado] || 4;
+        return orderA - orderB;
+      });
+
+      // Usar el CardService para mapear las actividades a tarjetas
+      const cards = await this.cardService.mapActividades(sortedActivities);
+      this.activityCards.set(cards);
     } catch (error) {
+      console.error('Error filtering activities:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('ACTIVITIES.MESSAGES.FILTER_ERROR'),
+        'middle'
+      );
+    }
+  }
+
+  /**
+   * Navigate to the appropriate target based on activity type and state
+   * @param activity - The activity card to navigate to
+   */
+  async navigateToTarget(activity: Card) {
+    try {
+      const activityData = await this.activitiesService.get(activity.id);
+      if (!activityData) {
+        throw new Error('Activity not found');
+      }
+
+      // Handle collection and transport services
+      if (activityData.IdServicio === SERVICE_TYPES.COLLECTION ||
+          activityData.IdServicio === SERVICE_TYPES.TRANSPORT) {
+        // Initialize activity start if needed
+        if (activityData.FechaInicial == null) {
+          if (Utils.requestMileage) {
+            const result = await this.requestMileagePrompt();
+            if (!result) {
+              return;
+            }
+            activityData.KilometrajeInicial = this.mileage;
+          }
+
+          await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.STARTING_ROUTE'));
+          await this.activitiesService.updateStart(activityData);
+          await this.userNotificationService.hideLoading();
+        }
+
+        // Get navigation parameters
+        const navigationExtras: NavigationExtras = {
+          queryParams: { Mode: 'A' },
+          state: { activity: activity }
+        };
+
+        // Navigate based on activity type
+        if (activityData.NavegarPorTransaccion) {
+          await this.navCtrl.navigateForward('/transactions', navigationExtras);
+        } else {
+          await this.navCtrl.navigateForward('/tasks', navigationExtras);
+        }
+        return;
+      }
+
+      // Handle other service types
+      const navigationExtras: NavigationExtras = {
+        queryParams: { Mode: 'T' },
+        state: { activity: activity }
+      };
+      await this.navCtrl.navigateForward('/tasks', navigationExtras);
+
+    } catch (error) {
+      console.error('Error navigating to activity:', error);
+      await this.userNotificationService.showToast(
+        this.translate.instant('ACTIVITIES.MESSAGES.NAVIGATION_ERROR'),
         'middle'
       );
     }
@@ -210,113 +299,9 @@ export class ActivitiesPage implements OnInit {
   }
 
   /**
-   * Initialize activity start process if needed
-   * Handles mileage input and activity start time
-   * @param activity - The activity to initialize
-   * @returns Promise<boolean> - True if initialization was successful or not needed
-   */
-  private async initializeActivityStart(activity: Actividad): Promise<boolean> {
-    try {
-      if (activity.FechaInicial == null) {
-        console.log('Activities page - initializeActivityStart called - START');
-        if (Utils.requestMileage) {
-          const result = await this.requestMileagePrompt();
-          if (!result) {
-            return false;
-          }
-          activity.KilometrajeInicial = this.mileage;
-        }
-
-        await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.STARTING_ROUTE'));
-        await this.activitiesService.updateStart(activity);
-        await this.userNotificationService.hideLoading();
-      }
-      return true;
-    } catch (error) {
-      console.error('Error initializing activity start:', error);
-      await this.userNotificationService.hideLoading();
-      await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.START_ERROR'),
-        'middle'
-      );
-      return true; // Continue navigation even if initialization fails
-    }
-  }
-
-  /**
-   * Get navigation parameters based on activity type
-   * Determines the appropriate route and parameters for navigation
-   * @param activity - The activity to navigate to
-   * @param activityCard - The activity card
-   * @returns ActivityNavigationParams - Navigation parameters
-   */
-  private getNavigationParams(activity: Actividad, activityCard: Card): ActivityNavigationParams {
-    if (activity.NavegarPorTransaccion) {
-      return {
-        activity: activityCard,
-        route: '/transactions'
-      };
-    }
-
-    return {
-      activity: activityCard,
-      mode: 'A',
-      route: '/tasks'
-    };
-  }
-
-  /**
-   * Navigate to the appropriate target based on activity type and state
-   * Handles different service types and initializes activity if needed
-   * @param activity - The activity card to navigate to
-   */
-  async navigateToTarget(activity: Card) {
-    try {
-      const activityData = await this.activitiesService.get(activity.id);
-      if (!activityData) {
-        throw new Error('Activity not found');
-      }
-
-      // Handle collection and transport services
-      if (activityData.IdServicio === SERVICE_TYPES.COLLECTION ||
-          activityData.IdServicio === SERVICE_TYPES.TRANSPORT) {
-        // Initialize activity start if needed
-        await this.initializeActivityStart(activityData);
-
-        // Get navigation parameters
-        const navParams = this.getNavigationParams(activityData, activity);
-
-        // Navigate to the appropriate route
-        const navigationExtras: NavigationExtras = {
-          queryParams: navParams.mode ? { Mode: navParams.mode } : undefined,
-          state: { activity: navParams.activity }
-        };
-
-        await this.navCtrl.navigateForward(navParams.route, navigationExtras);
-        return;
-      }
-
-      // Handle other service types
-      const navigationExtras: NavigationExtras = {
-        queryParams: { Mode: 'T' },
-        state: { activity: activity }
-      };
-      await this.navCtrl.navigateForward('/tasks', navigationExtras);
-
-    } catch (error) {
-      console.error('Error navigating to activity:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.NAVIGATION_ERROR'),
-        'middle'
-      );
-    }
-  }
-
-  /**
    * Open the add activity action sheet with available service options
-   * Checks user permissions and displays appropriate service options
    */
-  async openAddActivity() {
+  async openAdd() {
     try {
       const actionSheetDict: { [key: string]: { icon?: string, name?: string } } = {};
 
@@ -342,7 +327,7 @@ export class ActivitiesPage implements OnInit {
       const buttons = Object.keys(actionSheetDict).map(key => ({
         text: actionSheetDict[key].name,
         icon: actionSheetDict[key].icon,
-        handler: async () => await this.presentModal(key)
+        handler: async () => await this.presentAdd(key)
       }));
 
       const actionSheet = await this.actionSheet.create({
@@ -362,10 +347,9 @@ export class ActivitiesPage implements OnInit {
 
   /**
    * Present the activity add modal for a specific service type
-   * Handles activity creation and updates
    * @param key - The service type key
    */
-  async presentModal(key: string) {
+  async presentAdd(key: string) {
     try {
       const modal = await this.modalCtrl.create({
         component: ActivityAddComponent,
@@ -387,7 +371,7 @@ export class ActivitiesPage implements OnInit {
           // Update activity in service
           await this.activitiesService.update(activity);
           // Reload activities to reflect changes
-          await this.activitiesService.load();
+          await this.loadData();
         }
 
         await this.userNotificationService.hideLoading();
@@ -405,13 +389,23 @@ export class ActivitiesPage implements OnInit {
   /**
    * Open the activity approve modal
    */
-  async openApproveActivity(id:string) {
-    console.log('Activities page - openApproveActivity called with id:', id);
+  async openApprove(id: string) {
     try {
+      const activity = await this.activitiesService.get(id);
+      if (!activity) {
+        throw new Error('Activity not found');
+      }
+
+      const card = await this.cardService.mapActividades([activity]);
+      if (!card || card.length === 0) {
+        throw new Error('Could not map activity to card');
+      }
+
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,
         componentProps: {
-          IdActividad: this.activity().id
+          IdActividad: id,
+          activity: card[0]
         },
       });
 
@@ -420,10 +414,7 @@ export class ActivitiesPage implements OnInit {
       const { data } = await modal.onDidDismiss();
       if (data) {
         await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.UPDATING_INFO'));
-
-        // Reload activities to reflect changes
-        await this.activitiesService.load();
-
+        await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
@@ -439,20 +430,24 @@ export class ActivitiesPage implements OnInit {
   /**
    * Open the activity reject modal
    */
-  async openRejectActivity(id: string) {
-    console.log('Activities page - openRejectActividad called with id:', id);
-
-    if (!id) {
-      console.error('Activities page - No activity ID provided');
-      return;
-    }
-
+  async openReject(id: string) {
     try {
+      const activity = await this.activitiesService.get(id);
+      if (!activity) {
+        throw new Error('Activity not found');
+      }
+
+      const card = await this.cardService.mapActividades([activity]);
+      if (!card || card.length === 0) {
+        throw new Error('Could not map activity to card');
+      }
+
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,
         componentProps: {
           IdActividad: id,
-          isReject: true
+          isReject: true,
+          activity: card[0]
         },
       });
 
@@ -461,7 +456,7 @@ export class ActivitiesPage implements OnInit {
       const { data } = await modal.onDidDismiss();
       if (data) {
         await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.UPDATING_INFO'));
-        await this.activitiesService.load();
+        await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {

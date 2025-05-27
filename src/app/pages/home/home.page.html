@@ -1,53 +1,12 @@
 <app-header [pageTitle]="title"></app-header>
-<app-menu></app-menu>
+<app-menu contentId="main-content"></app-menu>
 
 <ion-tabs #tabs (ionTabsDidChange)="onTabChange($event)">
-  <ion-tab tab="actividades">
-    <ion-content id="main-content">
-      <!-- Search toolbar -->
-      <ion-toolbar>
-        <ion-searchbar
-          (ionInput)="handleInput($event)"
-          [placeholder]="'ACTIVITIES.SEARCH' | translate"
-          show-clear-button="focus"
-          aria-label="Search activities">
-        </ion-searchbar>
-      </ion-toolbar>
-
-      <!-- Activity cards list -->
-      <ng-container *ngIf="activities() | async as activityCards">
-        <app-card-list
-          [cards]="activityCards"
-          (edit)="navigateToTarget($event)"
-          aria-label="Activities list">
-        </app-card-list>
-      </ng-container>
-
-      <!-- Add activity button -->
-      <ion-fab
-        slot="fixed"
-        vertical="bottom"
-        horizontal="end"
-        *ngIf="showAdd"
-        aria-label="Add new activity">
-        <ion-fab-button (click)="openAddActivity()">
-          <ion-icon name="add" aria-label="Add icon"></ion-icon>
-        </ion-fab-button>
-      </ion-fab>
-    </ion-content>
-  </ion-tab>
-
-  <ion-tab tab="inventario">
-    <ion-content id="main-content">
-      <!-- Inventory content -->
-    </ion-content>
-  </ion-tab>
-
   <ion-tab-bar slot="bottom">
     <ion-tab-button
-      tab="actividades"
+      tab="activities"
       (click)="setHeader('HOME.TABS.SHIFT', 'help-jornada')"
-      [class.active]="currentTab() === 'actividades'">
+      [class.active]="currentTab() === 'activities'">
       <ion-icon src="../../../assets/icon/workhistory.svg"></ion-icon>
       {{ 'HOME.TABS.SHIFT' | translate }}
     </ion-tab-button>
@@ -59,5 +18,17 @@
       {{ 'HOME.TABS.INVENTORY' | translate }}
     </ion-tab-button>
   </ion-tab-bar>
+
+  <ion-tab tab="activities">
+    <ion-content id="main-content" [fullscreen]="true">
+      <ion-router-outlet name="activities"></ion-router-outlet>
+    </ion-content>
+  </ion-tab>
+
+  <ion-tab tab="inventario">
+    <ion-content id="main-content" [fullscreen]="true">
+      <ion-router-outlet name="inventario"></ion-router-outlet>
+    </ion-content>
+  </ion-tab>
 </ion-tabs>
 

@@ -78,10 +78,28 @@ export class ActivitiesService {
    */
   async load(): Promise<void> {
     try {
-      const activities = await this.list();
+      const currentTransaction = this.transaction();
+      console.log('Current transaction in load:', currentTransaction);
+
+      if (!currentTransaction?.Actividades) {
+        console.log('No activities found in transaction');
+        this.activities.set([]);
+        return;
+      }
+
+      const activities = currentTransaction.Actividades.map(actividad => {
+        const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
+        return {
+          ...actividad,
+          Icono: servicio?.Icon || '',
+          Accion: servicio?.Action || ''
+        };
+      });
+
+      console.log('Mapped activities:', activities);
       this.activities.set(activities);
     } catch (error) {
-      this.logger.error('Error loading activities', error);
+      console.error('Error loading activities:', error);
       this.activities.set([]);
     }
   }
@@ -94,9 +112,12 @@ export class ActivitiesService {
   async list(): Promise<Actividad[]> {
     try {
       const currentTransaction = this.transaction();
-      if (!currentTransaction?.Actividades) return [];
 
-      return currentTransaction.Actividades.map(actividad => {
+      if (!currentTransaction?.Actividades) {
+        return [];
+      }
+
+      const activities = currentTransaction.Actividades.map(actividad => {
         const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
         return {
           ...actividad,
@@ -104,6 +125,8 @@ export class ActivitiesService {
           Accion: servicio?.Action || ''
         };
       });
+
+      return activities;
     } catch (error) {
       this.logger.error('Error listing activities', error);
       throw error;
