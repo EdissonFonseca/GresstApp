@@ -130,16 +130,14 @@ export class ActivitiesPage implements OnInit {
         [STATUS.REJECTED]: 3
       };
 
-      // Ordenar las actividades por estado
+      // Sort activities by status
       const sortedActivities = activities.sort((a, b) => {
         const orderA = statusOrder[a.IdEstado] || 4;
         const orderB = statusOrder[b.IdEstado] || 4;
         return orderA - orderB;
       });
 
-      console.log('Sorted activities:', sortedActivities);
-
-      // Usar el CardService para mapear las actividades a tarjetas
+      // Use the CardService to map activities to cards
       const cards = await this.cardService.mapActividades(sortedActivities);
       console.log('Cards mapped:', cards);
       this.activityCards.set(cards);
@@ -161,21 +159,21 @@ export class ActivitiesPage implements OnInit {
         activity.Titulo.toLowerCase().indexOf(query) > -1
       );
 
-      // Define el orden de los estados
+      // Define the order of the statuses
       const statusOrder = {
         [STATUS.PENDING]: 1,
         [STATUS.APPROVED]: 2,
         [STATUS.REJECTED]: 3
       };
 
-      // Ordenar las actividades por estado
+      // Sort activities by status
       const sortedActivities = activityList.sort((a, b) => {
         const orderA = statusOrder[a.IdEstado] || 4;
         const orderB = statusOrder[b.IdEstado] || 4;
         return orderA - orderB;
       });
 
-      // Usar el CardService para mapear las actividades a tarjetas
+      // Use the CardService to map activities to cards
       const cards = await this.cardService.mapActividades(sortedActivities);
       this.activityCards.set(cards);
     } catch (error) {

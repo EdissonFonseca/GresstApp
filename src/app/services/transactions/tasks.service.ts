@@ -13,6 +13,7 @@ import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
+import { TransactionService } from '@app/services/core/transaction.service';
 
 /**
  * TasksService
@@ -31,10 +32,8 @@ import { LoggerService } from '@app/services/core/logger.service';
 export class TasksService {
   /** Signal containing the list of tasks */
   private tasks = signal<Tarea[]>([]);
-  /** Signal containing the current transaction */
-  private transaction = signal<Transaction | null>(null);
   public tasks$ = this.tasks.asReadonly();
-  public transaction$ = this.transaction.asReadonly();
+  public transaction$ = this.transactionService.transaction$;
 
   constructor(
     private storage: StorageService,
@@ -45,7 +44,8 @@ export class TasksService {
     private thirdpartiesService: ThirdpartiesService,
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    private transactionService: TransactionService
   ) {
     this.loadTransaction();
   }
@@ -56,13 +56,12 @@ export class TasksService {
    */
   private async loadTransaction() {
     try {
-      const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
+      await this.transactionService.loadTransaction();
+      const transaction = this.transactionService.getTransaction();
       this.tasks.set(transaction?.Tareas || []);
-      this.transaction.set(transaction);
     } catch (error) {
       this.logger.error('Error loading transaction', error);
       this.tasks.set([]);
-      this.transaction.set(null);
     }
   }
 
@@ -72,11 +71,11 @@ export class TasksService {
    */
   private async saveTransaction() {
     try {
-      const currentTransaction = this.transaction();
-      if (currentTransaction) {
-        currentTransaction.Tareas = this.tasks();
-        await this.storage.set(STORAGE.TRANSACTION, currentTransaction);
-        this.transaction.set(currentTransaction);
+      const transaction = this.transactionService.getTransaction();
+      if (transaction) {
+        transaction.Tareas = this.tasks();
+        this.transactionService.setTransaction(transaction);
+        await this.transactionService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
@@ -313,7 +312,7 @@ export class TasksService {
    */
   async get(taskId: string): Promise<Tarea | undefined> {
     try {
-      const currentTransaction = this.transaction();
+      const currentTransaction = this.transactionService.getTransaction();
       if (!currentTransaction) return undefined;
 
       return currentTransaction.Tareas.find(item => item.IdTarea === taskId);
@@ -330,14 +329,14 @@ export class TasksService {
    */
   async create(task: Tarea): Promise<boolean> {
     try {
-      const currentTransaction = this.transaction();
+      const currentTransaction = this.transactionService.getTransaction();
       if (!currentTransaction) {
         return false;
       }
 
       currentTransaction.Tareas.push(task);
       this.tasks.set(currentTransaction.Tareas);
-      this.transaction.set(currentTransaction);
+      this.transactionService.setTransaction(currentTransaction);
       await this.saveTransaction();
       console.log('currentTransaction', currentTransaction);
       console.log('task', task);
@@ -360,7 +359,7 @@ export class TasksService {
    */
   async update(task: Tarea): Promise<boolean> {
     try {
-      const currentTransaction = this.transaction();
+      const currentTransaction = this.transactionService.getTransaction();
       if (!currentTransaction) {
         return false;
       }

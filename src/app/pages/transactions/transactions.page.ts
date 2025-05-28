@@ -39,8 +39,33 @@ export class TransactionsPage implements OnInit {
   /** Signal containing the list of transactions from the service */
   private transactionsSignal = this.transactionsService.transactions;
 
-  /** Signal containing the list of transaction cards */
-  transactionCards = signal<Card[]>([]);
+  /** Signal for loading state */
+  loading = signal(false);
+
+  /** Signal containing the transformed transaction cards */
+  private cardsSignal = signal<Card[]>([]);
+
+  /** Computed property that transforms transactions into cards for display */
+  transactionCards = computed(() => {
+    const transactionList = this.transactionsSignal();
+    if (!transactionList) return [];
+
+    // Define el orden de los estados
+    const statusOrder = {
+      [STATUS.PENDING]: 1,
+      [STATUS.APPROVED]: 2,
+      [STATUS.REJECTED]: 3
+    };
+
+    // Ordenar las transacciones por estado
+    const sortedTransactions = transactionList.sort((a, b) => {
+      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
+      const orderB = statusOrder[b.IdEstado] || 4;
+      return orderA - orderB;
+    });
+
+    return this.cardsSignal();
+  });
 
   /** Flag to track if data has been loaded */
   private isDataLoaded = false;
@@ -116,38 +141,49 @@ export class TransactionsPage implements OnInit {
    */
   private async loadData() {
     try {
+      this.loading.set(true);
       await this.transactionsService.load(this.activity().id);
-      await this.updateTransactionCards();
+      await this.updateCards();
       this.isDataLoaded = true;
     } catch (error) {
       console.error('Error loading data:', error);
       throw error;
+    } finally {
+      this.loading.set(false);
     }
   }
 
   /**
-   * Update transaction cards from the current transactions
+   * Update the cards signal with the current transactions
    */
-  private async updateTransactionCards() {
-    const transactionList = this.transactionsSignal();
-    if (!transactionList) return;
+  private async updateCards() {
+    try {
+      const transactionList = this.transactionsSignal();
+      if (!transactionList) {
+        this.cardsSignal.set([]);
+        return;
+      }
 
-    // Define el orden de los estados
-    const statusOrder = {
-      [STATUS.PENDING]: 1,
-      [STATUS.APPROVED]: 2,
-      [STATUS.REJECTED]: 3
-    };
+      // Define el orden de los estados
+      const statusOrder = {
+        [STATUS.PENDING]: 1,
+        [STATUS.APPROVED]: 2,
+        [STATUS.REJECTED]: 3
+      };
 
-    // Ordenar las transacciones por estado
-    const sortedTransactions = transactionList.sort((a, b) => {
-      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
-      const orderB = statusOrder[b.IdEstado] || 4;
-      return orderA - orderB;
-    });
+      // Ordenar las transacciones por estado
+      const sortedTransactions = transactionList.sort((a, b) => {
+        const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
+        const orderB = statusOrder[b.IdEstado] || 4;
+        return orderA - orderB;
+      });
 
-    const cards = await this.cardService.mapTransacciones(sortedTransactions);
-    this.transactionCards.set(cards);
+      const cards = await this.cardService.mapTransacciones(sortedTransactions);
+      this.cardsSignal.set(cards);
+    } catch (error) {
+      console.error('Error updating cards:', error);
+      this.cardsSignal.set([]);
+    }
   }
 
   /**
@@ -162,7 +198,7 @@ export class TransactionsPage implements OnInit {
          transaction.Tercero?.toLowerCase().includes(query))
       );
       this.transactionsService.transactions.set(transactionList);
-      await this.updateTransactionCards();
+      await this.updateCards();
     } catch (error) {
       console.error('Error filtering transactions:', error);
       await this.userNotificationService.showToast(
@@ -248,7 +284,7 @@ export class TransactionsPage implements OnInit {
 
       const actionSheet = await this.actionSheet.create({
         header: this.translate.instant('TRANSACTIONS.MESSAGES.DOCUMENTS'),
-        buttons
+        buttons: buttons
       });
 
       await actionSheet.present();
@@ -262,15 +298,16 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Present the task add modal for a specific transaction
-   * @param transaction - The transaction card
+   * Open the add transaction modal
+   * @param transaction - The transaction card to add tasks to
    */
   async openAdd(transaction: Card) {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          activityId: this.activity().id
+          activityId: this.activity().id,
+          transactionId: transaction.id,
         },
       });
 
@@ -278,44 +315,32 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
-
-        // Reload transactions to reflect changes
-        await this.transactionsService.load(this.activity().id);
-        await this.updateTransactionCards();
-
+        await this.userNotificationService.showLoading(
+          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
+        );
+        await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error updating transaction:', error);
-      await this.userNotificationService.hideLoading();
+      console.error('Error opening add modal:', error);
       await this.userNotificationService.showToast(
-        this.translate.instant('TRANSACTIONS.MESSAGES.UPDATE_ERROR'),
+        this.translate.instant('TRANSACTIONS.MESSAGES.ADD_ERROR'),
         'middle'
       );
     }
   }
 
   /**
-   * Open the transaction approve modal
+   * Open the approve transaction modal
+   * @param id - The ID of the transaction to approve
    */
   async openApprove(id: string) {
     try {
-      const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
-      if (!transaction) {
-        throw new Error('Transaction not found');
-      }
-
       const modal = await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          transaction: {
-            id: transaction.IdTransaccion,
-            title: transaction.Titulo,
-            status: transaction.IdEstado,
-            type: 'transaction',
-            parentId: transaction.IdActividad
-          }
+          activityId: this.activity().id,
+          transactionId: id,
         },
       });
 
@@ -323,17 +348,14 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
-
-        // Recargar las transacciones para reflejar los cambios
-        await this.transactionsService.load(this.activity().id);
-        await this.updateTransactionCards();
-
+        await this.userNotificationService.showLoading(
+          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
+        );
+        await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error approving transaction:', error);
-      await this.userNotificationService.hideLoading();
+      console.error('Error opening approve modal:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.APPROVE_ERROR'),
         'middle'
@@ -342,26 +364,17 @@ export class TransactionsPage implements OnInit {
   }
 
   /**
-   * Open the transaction reject modal
+   * Open the reject transaction modal
+   * @param id - The ID of the transaction to reject
    */
   async openReject(id: string) {
     try {
-      const transaction = this.transactionsSignal().find(t => t.IdTransaccion === id);
-      if (!transaction) {
-        throw new Error('Transaction not found');
-      }
-
       const modal = await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          transaction: {
-            id: transaction.IdTransaccion,
-            title: transaction.Titulo,
-            status: transaction.IdEstado,
-            type: 'transaction',
-            parentId: transaction.IdActividad
-          },
-          isReject: true
+          activityId: this.activity().id,
+          transactionId: id,
+          isReject: true,
         },
       });
 
@@ -369,17 +382,14 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
-
-        // Reload transactions to reflect changes
-        await this.transactionsService.load(this.activity().id);
-        await this.updateTransactionCards();
-
+        await this.userNotificationService.showLoading(
+          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
+        );
+        await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error rejecting transaction:', error);
-      await this.userNotificationService.hideLoading();
+      console.error('Error opening reject modal:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.REJECT_ERROR'),
         'middle'
@@ -392,19 +402,17 @@ export class TransactionsPage implements OnInit {
    */
   async synchronize() {
     try {
-      if (await this.sessionService.synchronize()) {
-        await this.userNotificationService.showToast(
-          this.translate.instant('TRANSACTIONS.MESSAGES.SYNC_SUCCESS'),
-          'middle'
-        );
-      } else {
-        await this.userNotificationService.showToast(
-          this.translate.instant('TRANSACTIONS.MESSAGES.SYNC_ERROR'),
-          'middle'
-        );
-      }
+      await this.userNotificationService.showLoading(
+        this.translate.instant('TRANSACTIONS.MESSAGES.SYNCHRONIZING')
+      );
+      await this.loadData();
+      await this.userNotificationService.hideLoading();
+      await this.userNotificationService.showToast(
+        this.translate.instant('TRANSACTIONS.MESSAGES.SYNC_SUCCESS'),
+        'middle'
+      );
     } catch (error) {
-      console.error('Error during synchronization:', error);
+      console.error('Error synchronizing data:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.SYNC_ERROR'),
         'middle'

@@ -2,11 +2,11 @@ import { Injectable, signal } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE, DATA_TYPE } from '@app/constants/constants';
-import { Transaction } from '@app/interfaces/transaction.interface';
 import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
+import { TransactionService } from '@app/services/core/transaction.service';
 
 /**
  * ActivitiesService
@@ -23,19 +23,15 @@ import { LoggerService } from '@app/services/core/logger.service';
   providedIn: 'root',
 })
 export class ActivitiesService {
-  /** Signal containing the current transaction */
-  private transaction = signal<Transaction | null>(null);
-  /** Readonly signal for external access to transaction */
-  public transaction$ = this.transaction.asReadonly();
-
   /** Signal containing the list of activities */
   public activities = signal<Actividad[]>([]);
+  public transaction$ = this.transactionService.transaction$;
 
   constructor(
-    private storage: StorageService,
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    private transactionService: TransactionService
   ) {
     this.loadTransaction();
   }
@@ -46,11 +42,24 @@ export class ActivitiesService {
    */
   private async loadTransaction() {
     try {
-      const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
-      this.transaction.set(transaction);
+      await this.transactionService.loadTransaction();
+      const transaction = this.transactionService.getTransaction();
+      if (transaction?.Actividades) {
+        const activities = transaction.Actividades.map(actividad => {
+          const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
+          return {
+            ...actividad,
+            Icono: servicio?.Icon || '',
+            Accion: servicio?.Action || ''
+          };
+        });
+        this.activities.set(activities);
+      } else {
+        this.activities.set([]);
+      }
     } catch (error) {
       this.logger.error('Error loading transaction', error);
-      this.transaction.set(null);
+      this.activities.set([]);
     }
   }
 
@@ -61,10 +70,11 @@ export class ActivitiesService {
    */
   private async saveTransaction() {
     try {
-      const currentTransaction = this.transaction();
-      if (currentTransaction) {
-        await this.storage.set(STORAGE.TRANSACTION, currentTransaction);
-        this.transaction.set(currentTransaction);
+      const transaction = this.transactionService.getTransaction();
+      if (transaction) {
+        transaction.Actividades = this.activities();
+        this.transactionService.setTransaction(transaction);
+        await this.transactionService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
@@ -78,16 +88,16 @@ export class ActivitiesService {
    */
   async load(): Promise<void> {
     try {
-      const currentTransaction = this.transaction();
-      console.log('Current transaction in load:', currentTransaction);
+      const transaction = this.transactionService.getTransaction();
+      console.log('Current transaction in load:', transaction);
 
-      if (!currentTransaction?.Actividades) {
+      if (!transaction?.Actividades) {
         console.log('No activities found in transaction');
         this.activities.set([]);
         return;
       }
 
-      const activities = currentTransaction.Actividades.map(actividad => {
+      const activities = transaction.Actividades.map(actividad => {
         const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
         return {
           ...actividad,
@@ -111,13 +121,13 @@ export class ActivitiesService {
    */
   async list(): Promise<Actividad[]> {
     try {
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (!currentTransaction?.Actividades) {
+      if (!transaction?.Actividades) {
         return [];
       }
 
-      const activities = currentTransaction.Actividades.map(actividad => {
+      const activities = transaction.Actividades.map(actividad => {
         const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
         return {
           ...actividad,
@@ -141,10 +151,10 @@ export class ActivitiesService {
    */
   async get(idActividad: string): Promise<Actividad | undefined> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction?.Actividades) return undefined;
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction?.Actividades) return undefined;
 
-      const actividad = currentTransaction.Actividades.find(item => item.IdActividad === idActividad);
+      const actividad = transaction.Actividades.find(item => item.IdActividad === idActividad);
       if (!actividad) return undefined;
 
       const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
@@ -168,10 +178,10 @@ export class ActivitiesService {
    */
   async getByServiceAndResource(idServicio: string, idRecurso: string): Promise<Actividad | undefined> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction?.Actividades) return undefined;
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction?.Actividades) return undefined;
 
-      return currentTransaction.Actividades.find(
+      return transaction.Actividades.find(
         item => item.IdServicio === idServicio && item.IdRecurso === idRecurso
       );
     } catch (error) {
@@ -190,9 +200,9 @@ export class ActivitiesService {
     try {
       const now = new Date().toISOString();
       const [latitud, longitud] = await Utils.getCurrentPosition();
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (!currentTransaction) {
+      if (!transaction) {
         return false;
       }
 
@@ -200,8 +210,9 @@ export class ActivitiesService {
       actividad.LatitudInicial = latitud;
       actividad.LatitudInicial = longitud;
 
-      currentTransaction.Actividades.push(actividad);
-      this.activities.set(currentTransaction.Actividades);
+      transaction.Actividades.push(actividad);
+      this.activities.set(transaction.Actividades);
+      this.transactionService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
       await this.synchronizationService.uploadData();
@@ -221,13 +232,13 @@ export class ActivitiesService {
   async update(actividad: Actividad): Promise<boolean> {
     try {
       const now = new Date().toISOString();
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (!currentTransaction) {
+      if (!transaction) {
         return false;
       }
 
-      const activityIndex = currentTransaction.Actividades.findIndex(
+      const activityIndex = transaction.Actividades.findIndex(
         item => item.IdActividad === actividad.IdActividad
       );
 
@@ -235,8 +246,8 @@ export class ActivitiesService {
         return false;
       }
 
-      currentTransaction.Actividades[activityIndex] = {
-        ...currentTransaction.Actividades[activityIndex],
+      transaction.Actividades[activityIndex] = {
+        ...transaction.Actividades[activityIndex],
         FechaFinal: now,
         IdEstado: actividad.IdEstado,
         CantidadCombustibleFinal: actividad.CantidadCombustibleFinal,
@@ -248,12 +259,12 @@ export class ActivitiesService {
         ResponsableObservaciones: actividad.ResponsableObservaciones
       };
 
-      const tareas = currentTransaction.Tareas.filter(
+      const tareas = transaction.Tareas.filter(
         x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
       );
       tareas.forEach(x => { x.IdEstado = STATUS.REJECTED });
 
-      const transacciones = currentTransaction.Transacciones.filter(
+      const transacciones = transaction.Transacciones.filter(
         x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
       );
       transacciones.forEach(x => {
@@ -261,7 +272,8 @@ export class ActivitiesService {
         x.IdEstado = STATUS.REJECTED;
       });
 
-      this.activities.set(currentTransaction.Actividades);
+      this.activities.set(transaction.Actividades);
+      this.transactionService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
@@ -281,13 +293,13 @@ export class ActivitiesService {
   async updateStart(actividad: Actividad): Promise<boolean> {
     try {
       const now = new Date().toISOString();
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (!currentTransaction) {
+      if (!transaction) {
         return false;
       }
 
-      const current = currentTransaction.Actividades.find(
+      const current = transaction.Actividades.find(
         item => item.IdActividad === actividad.IdActividad
       );
 
@@ -300,6 +312,7 @@ export class ActivitiesService {
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
+      this.transactionService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.START_ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();

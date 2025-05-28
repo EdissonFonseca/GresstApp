@@ -1,14 +1,13 @@
 import { Injectable, signal } from '@angular/core';
-import { StorageService } from '../core/storage.service';
 import { Transaccion } from '../../interfaces/transaccion.interface';
 import { CRUD_OPERATIONS, DATA_TYPE, INPUT_OUTPUT, STATUS, STORAGE } from '@app/constants/constants';
 import { PointsService } from '@app/services/masterdata/points.service';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
-import { Transaction } from '../../interfaces/transaction.interface';
 import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
+import { TransactionService } from '@app/services/core/transaction.service';
 
 /**
  * TransactionsService
@@ -25,20 +24,17 @@ import { LoggerService } from '@app/services/core/logger.service';
   providedIn: 'root',
 })
 export class TransactionsService {
-  /** Signal containing the current transaction */
-  private transaction = signal<Transaction | null>(null);
-  public transaction$ = this.transaction.asReadonly();
-
   /** Signal containing the list of transactions for the current activity */
   public transactions = signal<Transaccion[]>([]);
+  public transaction$ = this.transactionService.transaction$;
 
   constructor(
-    private storage: StorageService,
     private pointsService: PointsService,
     private thirdpartiesService: ThirdpartiesService,
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    private transactionService: TransactionService
   ) {
     this.loadTransaction();
   }
@@ -50,11 +46,16 @@ export class TransactionsService {
    */
   private async loadTransaction() {
     try {
-      const transaction = await this.storage.get(STORAGE.TRANSACTION) as Transaction;
-      this.transaction.set(transaction);
+      await this.transactionService.loadTransaction();
+      const transaction = this.transactionService.getTransaction();
+      if (transaction?.Transacciones) {
+        this.transactions.set(transaction.Transacciones);
+      } else {
+        this.transactions.set([]);
+      }
     } catch (error) {
       this.logger.error('Error loading transaction', error);
-      this.transaction.set(null);
+      this.transactions.set([]);
     }
   }
 
@@ -65,10 +66,11 @@ export class TransactionsService {
    */
   private async saveTransaction() {
     try {
-      const currentTransaction = this.transaction();
-      if (currentTransaction) {
-        await this.storage.set(STORAGE.TRANSACTION, currentTransaction);
-        this.transaction.set(currentTransaction);
+      const transaction = this.transactionService.getTransaction();
+      if (transaction) {
+        transaction.Transacciones = this.transactions();
+        this.transactionService.setTransaction(transaction);
+        await this.transactionService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
@@ -86,11 +88,11 @@ export class TransactionsService {
    */
   async list(idActividad: string): Promise<Transaccion[]> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction) return [];
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction) return [];
 
       // Filter transactions by activity ID
-      const transacciones = currentTransaction.Transacciones.filter(x => x.IdActividad === idActividad);
+      const transacciones = transaction.Transacciones.filter(x => x.IdActividad === idActividad);
 
       // Get points and third parties for enrichment
       const puntos = await this.pointsService.list();
@@ -163,10 +165,10 @@ export class TransactionsService {
    */
   async get(idActividad: string, idTransaccion: string): Promise<Transaccion | undefined> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction) return undefined;
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction) return undefined;
 
-      const transaccion = currentTransaction.Transacciones.find(
+      const transaccion = transaction.Transacciones.find(
         x => x.IdActividad === idActividad && x.IdTransaccion === idTransaccion
       );
 
@@ -192,10 +194,10 @@ export class TransactionsService {
    */
   async getByPoint(idActividad: string, idPunto: string): Promise<Transaccion | undefined> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction) return undefined;
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction) return undefined;
 
-      return currentTransaction.Transacciones.find(
+      return transaction.Transacciones.find(
         x => x.IdActividad === idActividad && x.IdDeposito === idPunto
       );
     } catch (error) {
@@ -214,10 +216,10 @@ export class TransactionsService {
    */
   async getByThirdParty(idActividad: string, idTercero: string): Promise<Transaccion | undefined> {
     try {
-      const currentTransaction = this.transaction();
-      if (!currentTransaction) return undefined;
+      const transaction = this.transactionService.getTransaction();
+      if (!transaction) return undefined;
 
-      return currentTransaction.Transacciones.find(
+      return transaction.Transacciones.find(
         x => x.IdActividad === idActividad && x.IdTercero === idTercero
       );
     } catch (error) {
@@ -235,12 +237,13 @@ export class TransactionsService {
   async create(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (currentTransaction) {
+      if (transaction) {
         transaccion.FechaInicial = now;
-        currentTransaction.Transacciones.push(transaccion);
-        this.transactions.set(currentTransaction.Transacciones);
+        transaction.Transacciones.push(transaccion);
+        this.transactions.set(transaction.Transacciones);
+        this.transactionService.setTransaction(transaction);
         await this.saveTransaction();
         await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.CREATE, transaccion);
         await this.synchronizationService.uploadData();
@@ -253,7 +256,6 @@ export class TransactionsService {
 
   /**
    * Updates an existing transaction
-   * Also updates associated pending tasks to rejected status
    *
    * @param transaccion - The transaction to update
    * @throws {Error} If update fails
@@ -261,43 +263,26 @@ export class TransactionsService {
   async update(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
-      const currentTransaction = this.transaction();
+      const transaction = this.transactionService.getTransaction();
 
-      if (currentTransaction) {
-        const transactionIndex = currentTransaction.Transacciones.findIndex(
-          (trx) => trx.IdActividad === transaccion.IdActividad && trx.IdTransaccion === transaccion.IdTransaccion
+      if (transaction) {
+        const index = transaction.Transacciones.findIndex(
+          x => x.IdActividad === transaccion.IdActividad && x.IdTransaccion === transaccion.IdTransaccion
         );
 
-        if (transactionIndex !== -1) {
-          // Update transaction fields
-          currentTransaction.Transacciones[transactionIndex] = {
-            ...currentTransaction.Transacciones[transactionIndex],
-            IdEstado: transaccion.IdEstado,
-            FechaInicial: currentTransaction.Transacciones[transactionIndex].FechaInicial ?? now,
+        if (index !== -1) {
+          transaction.Transacciones[index] = {
+            ...transaction.Transacciones[index],
             FechaFinal: now,
-            ResponsableCargo: transaccion.ResponsableCargo,
-            ResponsableFirma: transaccion.ResponsableFirma,
-            ResponsableIdentificacion: transaccion.ResponsableIdentificacion,
-            ResponsableNombre: transaccion.ResponsableNombre,
-            ResponsableObservaciones: transaccion.ResponsableObservaciones,
-            CantidadCombustible: transaccion.CantidadCombustible,
-            CostoCombustible: transaccion.CostoCombustible,
-            Kilometraje: transaccion.Kilometraje
+            IdEstado: transaccion.IdEstado,
+            Cantidad: transaccion.Cantidad,
+            Peso: transaccion.Peso,
+            Volumen: transaccion.Volumen,
+            Observaciones: transaccion.Observaciones
           };
 
-          // Update associated pending tasks to rejected
-          const tareas = currentTransaction.Tareas.filter(
-            x => x.IdActividad === transaccion.IdActividad &&
-                 x.IdTransaccion === transaccion.IdTransaccion &&
-                 x.IdEstado === STATUS.PENDING
-          );
-
-          tareas.forEach(x => {
-            x.IdEstado = STATUS.REJECTED;
-            x.FechaEjecucion = now;
-          });
-
-          this.transactions.set(currentTransaction.Transacciones);
+          this.transactions.set(transaction.Transacciones);
+          this.transactionService.setTransaction(transaction);
           await this.saveTransaction();
           await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.UPDATE, transaccion);
           await this.synchronizationService.uploadData();
@@ -310,7 +295,7 @@ export class TransactionsService {
   }
 
   /**
-   * Loads transactions for a specific activity and updates the transactions signal
+   * Loads transactions for a specific activity
    *
    * @param idActividad - The activity ID to load transactions for
    * @throws {Error} If loading fails

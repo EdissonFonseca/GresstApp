@@ -66,21 +66,34 @@
 
 <!-- Main content section -->
 <ion-content [fullscreen]="true" color="light">
+  <!-- Loading spinner -->
+  <div *ngIf="loading()" class="loading-container">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
   <!-- Transactions list -->
-  <app-card-list
-    [cards]="transactionCards()"
-    (edit)="navigateToTasks($event)"
-    (approve)="openApprove($event)"
-    (reject)="openReject($event)"
-    aria-label="Transactions list">
-  </app-card-list>
+  <ng-container *ngIf="!loading()">
+    <app-card-list
+      *ngIf="transactionCards().length"
+      [cards]="transactionCards()"
+      (edit)="navigateToTasks($event)"
+      (approve)="openApprove($event)"
+      (reject)="openReject($event)"
+      aria-label="Transactions list">
+    </app-card-list>
+
+    <!-- Empty state message -->
+    <ion-text *ngIf="!transactionCards().length" class="empty-state">
+      <p>{{ 'TRANSACTIONS.MESSAGES.NO_TRANSACTIONS' | translate }}</p>
+    </ion-text>
+  </ng-container>
 
   <!-- Add transaction button -->
   <ion-fab
     slot="fixed"
     vertical="bottom"
     horizontal="end"
-    *ngIf="showAdd">
+    *ngIf="showAdd && !loading()">
     <ion-fab-button (click)="openAdd(activity())">
       <ion-icon
         name="add"
@@ -90,3 +103,22 @@
     </ion-fab-button>
   </ion-fab>
 </ion-content>
+
+<style>
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  .empty-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--ion-color-medium);
+    text-align: center;
+    padding: 20px;
+  }
+</style>
