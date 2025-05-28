@@ -113,7 +113,38 @@
   },
   "ACTIVITIES": {
     "SEARCH": "Buscar...",
+    "APPROVE": {
+      "TITLE": "Aprobar Actividad",
+      "IDENTIFICATION": "Identificación",
+      "IDENTIFICATION_PLACEHOLDER": "Ingrese su identificación",
+      "IDENTIFICATION_REQUIRED": "La identificación es requerida",
+      "NAME": "Nombre",
+      "NAME_PLACEHOLDER": "Ingrese su nombre",
+      "NAME_REQUIRED": "El nombre es requerido",
+      "POSITION": "Cargo",
+      "POSITION_PLACEHOLDER": "Ingrese su cargo",
+      "POSITION_REQUIRED": "El cargo es requerido",
+      "MILEAGE": "Kilometraje",
+      "MILEAGE_PLACEHOLDER": "Ingrese el kilometraje",
+      "MILEAGE_REQUIRED": "El kilometraje es requerido",
+      "MILEAGE_MIN": "El kilometraje debe ser mayor a 0",
+      "NOTES": "Observaciones",
+      "NOTES_PLACEHOLDER": "Ingrese observaciones adicionales",
+      "SIGNATURE": "Firma",
+      "SIGNATURE_REQUIRED": "La firma es requerida",
+      "CLEAR_SIGNATURE": "Limpiar firma",
+      "CONFIRM": "Confirmar",
+      "SENDING": "Enviando información...",
+      "SUCCESS": "Actividad aprobada exitosamente",
+      "ERROR": "Error al aprobar la actividad"
+    },
+    "REJECT": {
+      "TITLE": "Rechazar Actividad",
+      "CONFIRM": "Rechazar",
+      "SUCCESS": "Actividad rechazada exitosamente"
+    },
     "MESSAGES": {
+      "FORM_ERROR": "Por favor complete todos los campos requeridos",
       "STARTING_ROUTE": "Iniciando ruta",
       "UPDATING_INFO": "Actualizando información",
       "PERMISSION_ERROR": "Error al verificar permisos",

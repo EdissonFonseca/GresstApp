@@ -113,7 +113,38 @@
   },
   "ACTIVITIES": {
     "SEARCH": "Search...",
+    "APPROVE": {
+      "TITLE": "Approve Activity",
+      "IDENTIFICATION": "Identification",
+      "IDENTIFICATION_PLACEHOLDER": "Enter your identification",
+      "IDENTIFICATION_REQUIRED": "Identification is required",
+      "NAME": "Name",
+      "NAME_PLACEHOLDER": "Enter your name",
+      "NAME_REQUIRED": "Name is required",
+      "POSITION": "Position",
+      "POSITION_PLACEHOLDER": "Enter your position",
+      "POSITION_REQUIRED": "Position is required",
+      "MILEAGE": "Mileage",
+      "MILEAGE_PLACEHOLDER": "Enter mileage",
+      "MILEAGE_REQUIRED": "Mileage is required",
+      "MILEAGE_MIN": "Mileage must be greater than 0",
+      "NOTES": "Notes",
+      "NOTES_PLACEHOLDER": "Enter additional notes",
+      "SIGNATURE": "Signature",
+      "SIGNATURE_REQUIRED": "Signature is required",
+      "CLEAR_SIGNATURE": "Clear signature",
+      "CONFIRM": "Confirm",
+      "SENDING": "Sending information...",
+      "SUCCESS": "Activity approved successfully",
+      "ERROR": "Error approving activity"
+    },
+    "REJECT": {
+      "TITLE": "Reject Activity",
+      "CONFIRM": "Reject",
+      "SUCCESS": "Activity rejected successfully"
+    },
     "MESSAGES": {
+      "FORM_ERROR": "Please fill in all required fields",
       "STARTING_ROUTE": "Starting route",
       "UPDATING_INFO": "Updating information",
       "PERMISSION_ERROR": "Error checking permissions",
