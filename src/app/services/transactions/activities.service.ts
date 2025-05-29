@@ -6,6 +6,7 @@ import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
 import { WorkflowService } from '@app/services/core/workflow.service';
+import { Transaccion } from '@app/interfaces/transaccion.interface';
 
 /**
  * ActivitiesService
@@ -156,6 +157,32 @@ export class ActivitiesService {
       throw error;
     }
   }
+
+  /**
+   * Gets the summary of an activity
+   * @param activity - The activity to get the summary of
+   * @returns Promise<string> The summary of the activity
+   */
+  getSummary(activity: Actividad): string {
+    let summary: string = '';
+    if ((activity.quantity ?? 0) > 0) {
+      summary = `${activity.quantity} ${Utils.quantityUnit}`;
+    }
+    if ((activity.weight ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${activity.weight} ${Utils.weightUnit}`;
+      else
+        summary = `${activity.weight} ${Utils.weightUnit}`;
+    }
+    if ((activity.volume ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${activity.volume} ${Utils.volumeUnit}`;
+      else
+        summary = `${activity.volume} ${Utils.volumeUnit}`;
+    }
+    return summary;
+  }
+
 
   /**
    * Creates a new activity

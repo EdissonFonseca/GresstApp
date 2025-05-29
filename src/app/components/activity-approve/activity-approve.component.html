@@ -1,16 +1,10 @@
 <!-- Header section with dynamic title based on mode (approve/reject) -->
 <ion-header>
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="cancel()" color="medium">
-        <ion-icon name="close-circle"></ion-icon>
-        {{ 'COMMON.CANCEL' | translate }}
-      </ion-button>
-    </ion-buttons>
+    <ion-title>{{ (approveOrReject === 'reject' ? 'ACTIVITIES.REJECT.TITLE' : 'ACTIVITIES.APPROVE.TITLE') | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="submit()" [color]="approveOrReject === 'reject' ? 'danger' : 'success'" [disabled]="!frmActividad.valid">
-        <ion-icon [name]="approveOrReject === 'reject' ? 'close-circle' : 'checkmark-circle'"></ion-icon>
-        {{ (approveOrReject === 'reject' ? 'ACTIVITIES.REJECT.CONFIRM' : 'ACTIVITIES.APPROVE.CONFIRM') | translate }}
+      <ion-button (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -20,33 +14,23 @@
 <ion-content color="light">
   <!-- Activity details section -->
   <ion-list color="light" class="ion-no-padding">
-    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="activityDetails()?.Titulo">
-      <ion-icon src="{{ activityDetails()?.Icono }}" slot="start"></ion-icon>
-      <ion-label size="small">{{ activityDetails()?.Titulo }}</ion-label>
+    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="activity()?.Titulo">
+      <ion-icon [src]="activity()?.Icono" slot="start"></ion-icon>
+      <ion-label size="small">{{ activity()?.Titulo }}</ion-label>
     </ion-item>
   </ion-list>
 
   <!-- Task summary section -->
-  <ion-list color="light" class="ion-no-padding" *ngIf="taskSummary()">
+  <ion-list color="light" class="ion-no-padding" *ngIf="activity()">
     <ion-item color="light" lines="none" class="ion-no-padding">
       <div class="summary-content">
         <div class="badges-left">
-          <ion-badge color="warning">{{ taskSummary()?.pending || 0 }}</ion-badge>
-          <ion-badge color="success">{{ taskSummary()?.approved || 0 }}</ion-badge>
-          <ion-badge color="danger">{{ taskSummary()?.rejected || 0 }}</ion-badge>
+          <ion-badge color="warning">{{ activity()?.pending || 0 }}</ion-badge>
+          <ion-badge color="success">{{ activity()?.approved || 0 }}</ion-badge>
+          <ion-badge color="danger">{{ activity()?.rejected || 0 }}</ion-badge>
         </div>
         <div class="summary-badge">
-          <ng-container *ngIf="taskSummary()?.quantity">
-            {{ taskSummary()?.quantity }} {{ Utils.quantityUnit }}
-          </ng-container>
-          <ng-container *ngIf="taskSummary()?.weight">
-            <ng-container *ngIf="taskSummary()?.quantity">/</ng-container>
-            {{ taskSummary()?.weight }} {{ Utils.weightUnit }}
-          </ng-container>
-          <ng-container *ngIf="taskSummary()?.volume">
-            <ng-container *ngIf="taskSummary()?.quantity || taskSummary()?.weight">/</ng-container>
-            {{ taskSummary()?.volume }} {{ Utils.volumeUnit }}
-          </ng-container>
+          {{ summary }}
         </div>
       </div>
     </ion-item>
@@ -55,92 +39,57 @@
   <!-- Formulario de aprobación -->
   <form [formGroup]="frmActividad">
     <ion-list>
-      <!-- Identificación -->
-      <ion-item *ngIf="showPin">
-        <ion-input
-          type="text"
-          formControlName="Identificacion"
-          [label]="'ACTIVITIES.APPROVE.IDENTIFICATION' | translate"
-          labelPlacement="floating">
-        </ion-input>
+      <ion-item>
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.SUMMARY' | translate }}</ion-label>
+        <ion-text>{{ summary }}</ion-text>
       </ion-item>
-      <ion-note *ngIf="frmActividad.get('Identificacion')?.invalid && frmActividad.get('Identificacion')?.touched">
-        {{ 'ACTIVITIES.APPROVE.IDENTIFICATION_REQUIRED' | translate }}
-      </ion-note>
 
-      <!-- Nombre -->
-      <ion-item *ngIf="showName">
-        <ion-input
-          type="text"
-          formControlName="Nombre"
-          [label]="'ACTIVITIES.APPROVE.NAME' | translate"
-          labelPlacement="floating">
-        </ion-input>
-      </ion-item>
-      <ion-note *ngIf="frmActividad.get('Nombre')?.invalid && frmActividad.get('Nombre')?.touched">
-        {{ 'ACTIVITIES.APPROVE.NAME_REQUIRED' | translate }}
-      </ion-note>
-
-      <!-- Cargo -->
-      <ion-item *ngIf="showPin">
-        <ion-input
-          type="text"
-          formControlName="Cargo"
-          [label]="'ACTIVITIES.APPROVE.POSITION' | translate"
-          labelPlacement="floating">
-        </ion-input>
-      </ion-item>
-      <ion-note *ngIf="frmActividad.get('Cargo')?.invalid && frmActividad.get('Cargo')?.touched">
-        {{ 'ACTIVITIES.APPROVE.POSITION_REQUIRED' | translate }}
-      </ion-note>
-
-      <!-- Kilometraje -->
       <ion-item *ngIf="showMileage">
-        <ion-input
-          type="number"
-          formControlName="Kilometraje"
-          [label]="'ACTIVITIES.APPROVE.MILEAGE' | translate"
-          labelPlacement="floating">
-        </ion-input>
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.MILEAGE' | translate }} ({{ mileageUnit() }})</ion-label>
+        <ion-input type="number" formControlName="Kilometraje"></ion-input>
       </ion-item>
-      <ion-note *ngIf="frmActividad.get('Kilometraje')?.invalid && frmActividad.get('Kilometraje')?.touched">
-        {{ 'ACTIVITIES.APPROVE.MILEAGE_REQUIRED' | translate }}
-      </ion-note>
 
-      <!-- Observaciones -->
+      <ion-item *ngIf="showName">
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.NAME' | translate }}</ion-label>
+        <ion-input type="text" formControlName="Nombre"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="showPin">
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.ID' | translate }}</ion-label>
+        <ion-input type="text" formControlName="Identificacion"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="showName">
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.POSITION' | translate }}</ion-label>
+        <ion-input type="text" formControlName="Cargo"></ion-input>
+      </ion-item>
+
       <ion-item *ngIf="showNotes">
-        <ion-textarea
-          formControlName="Observaciones"
-          rows="2"
-          [label]="'ACTIVITIES.APPROVE.NOTES' | translate"
-          labelPlacement="floating">
-        </ion-textarea>
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.NOTES' | translate }}</ion-label>
+        <ion-textarea formControlName="Observaciones"></ion-textarea>
       </ion-item>
 
-      <!-- Firma -->
       <ion-item *ngIf="showSignPad">
-        <div class="signature-container">
-          <canvas #canvas
-            (touchstart)="startDrawing($event)"
-            (touchmove)="draw($event)"
-            (touchend)="endDrawing()"
-            class="signature-pad">
-          </canvas>
-          <ion-button fill="clear" (click)="clear()">
-            <ion-icon name="trash-outline"></ion-icon>
-          </ion-button>
-        </div>
+        <ion-label position="stacked">{{ 'ACTIVITIES.APPROVE.SIGNATURE' | translate }}</ion-label>
+        <canvas #canvas
+          (touchstart)="startDrawing($event)"
+          (touchmove)="draw($event)"
+          (touchend)="endDrawing()"
+          (touchcancel)="endDrawing()">
+        </canvas>
+        <ion-button fill="clear" (click)="clear()">
+          <ion-icon name="trash"></ion-icon>
+        </ion-button>
       </ion-item>
-      <ion-note *ngIf="frmActividad.get('Firma')?.invalid && frmActividad.get('Firma')?.touched">
-        {{ 'ACTIVITIES.APPROVE.SIGNATURE_REQUIRED' | translate }}
-      </ion-note>
     </ion-list>
   </form>
 </ion-content>
 
 <!-- Footer with pending items information -->
 <ion-footer>
-  <ion-note>
-    Se marcarán todos los items que están pendientes como no recibidos
-  </ion-note>
+  <ion-toolbar>
+    <ion-button expand="block" (click)="submit()" [disabled]="frmActividad.invalid">
+      {{ (approveOrReject === 'reject' ? 'ACTIVITIES.REJECT.BUTTON' : 'ACTIVITIES.APPROVE.BUTTON') | translate }}
+    </ion-button>
+  </ion-toolbar>
 </ion-footer>

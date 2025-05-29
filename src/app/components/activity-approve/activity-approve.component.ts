@@ -8,18 +8,6 @@ import { STATUS } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
-import { TasksService } from '@app/services/transactions/tasks.service';
-
-interface TaskSummary {
-  total: number;
-  pending: number;
-  completed: number;
-  approved: number;
-  rejected: number;
-  quantity: number;
-  weight: number;
-  volume: number;
-}
 
 @Component({
   selector: 'app-activity-approve',
@@ -33,19 +21,19 @@ export class ActivityApproveComponent implements OnInit {
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
   @Input() approveOrReject: string = 'approve';
-  @Input() activity: Card = { id: '', title: '', status: '', type: '' };
+  @Input() activityId: string = '';
 
   @ViewChild('canvas', { static: false }) signatureCanvas!: ElementRef;
 
   frmActividad!: FormGroup;
+  summary = '';
   mileageUnit = signal<string>('');
   private canvas: any;
   private ctx: any;
   private drawing = signal<boolean>(false);
   private penColor = signal<string>('black');
 
-  activityDetails = signal<Actividad | null>(null);
-  taskSummary = signal<TaskSummary | null>(null);
+  activity = signal<Actividad | null>(null);
 
   private isDataLoaded = false;
 
@@ -57,8 +45,7 @@ export class ActivityApproveComponent implements OnInit {
     private activitiesService: ActivitiesService,
     private userNotificationService: UserNotificationService,
     private modalCtrl: ModalController,
-    private translate: TranslateService,
-    private tasksService: TasksService
+    private translate: TranslateService
   ) {}
 
   async ngOnInit() {
@@ -76,10 +63,10 @@ export class ActivityApproveComponent implements OnInit {
       Firma: [null]
     });
 
-    if (this.activity?.id) {
-      const actividad = await this.activitiesService.get(this.activity.id);
+    if (this.activityId) {
+      const actividad = await this.activitiesService.get(this.activityId);
       if (actividad) {
-        this.activityDetails.set(actividad);
+        this.activity.set(actividad);
         this.frmActividad.patchValue({
           Identificacion: actividad.ResponsableIdentificacion,
           Nombre: actividad.ResponsableNombre,
@@ -88,8 +75,7 @@ export class ActivityApproveComponent implements OnInit {
           Observaciones: actividad.ResponsableObservaciones
         });
 
-        const summary = await this.tasksService.getSummary(actividad.IdActividad);
-        this.taskSummary.set(summary);
+        this.summary = this.activitiesService.getSummary(actividad);
       }
     }
 
@@ -184,7 +170,7 @@ export class ActivityApproveComponent implements OnInit {
       return undefined;
     }
 
-    const actividad = await this.activitiesService.get(this.activity?.id ?? '');
+    const actividad = await this.activitiesService.get(this.activityId);
     if (!actividad) return undefined;
 
     const formData = this.frmActividad.value;

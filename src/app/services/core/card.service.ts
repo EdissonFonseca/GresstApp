@@ -21,8 +21,6 @@ export class CardService {
 
   async mapActividades(actividades: Actividad[]): Promise<Card[]> {
     const cards = await Promise.all(actividades.map(async actividad => {
-      const summaryData = await this.tasksService.getSummary(actividad.IdActividad);
-
       const card: Card = {
         id: actividad.IdActividad,
         title: actividad.Titulo,
@@ -34,12 +32,13 @@ export class CardService {
         iconName: undefined,
         iconSource: actividad.Icono,
         parentId: null,
-        pendingItems: summaryData.pending,
-        rejectedItems: summaryData.rejected,
-        successItems: summaryData.approved,
-        quantity: summaryData.quantity,
-        weight: summaryData.weight,
-        volume: summaryData.volume,
+        pendingItems: actividad.pending,
+        rejectedItems: actividad.rejected,
+        successItems: actividad.approved,
+        quantity: actividad.quantity,
+        weight: actividad.weight,
+        volume: actividad.volume,
+        summary: this.activitiesService.getSummary(actividad),
       };
       this.updateVisibleProperties(card);
       return card;
@@ -49,8 +48,6 @@ export class CardService {
   }
 
   async mapActividad(actividad: Actividad): Promise<Card> {
-    const summaryData = await this.tasksService.getSummary(actividad.IdActividad);
-
     const card: Card = {
       id: actividad.IdActividad,
       title: actividad.Titulo,
@@ -62,12 +59,13 @@ export class CardService {
       iconName: undefined,
       iconSource: actividad.Icono,
       parentId: null,
-      pendingItems: summaryData.pending,
-      rejectedItems: summaryData.rejected,
-      successItems: summaryData.approved,
-      quantity: summaryData.quantity,
-      weight: summaryData.weight,
-      volume: summaryData.volume,
+      pendingItems: actividad.pending,
+      rejectedItems: actividad.rejected,
+      successItems: actividad.approved,
+      quantity: actividad.quantity,
+      weight: actividad.weight,
+      volume: actividad.volume,
+      summary: this.activitiesService.getSummary(actividad),
     };
     this.updateVisibleProperties(card);
 
@@ -76,8 +74,6 @@ export class CardService {
 
   async mapTransacciones(transacciones: Transaccion[]): Promise<Card[]> {
     return Promise.all(transacciones.map(async transaccion => {
-      const summaryData = await this.tasksService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
-
       const card: Card = {
         id: transaccion.IdTransaccion,
         title: transaccion.Titulo,
@@ -89,12 +85,13 @@ export class CardService {
         iconName: transaccion.Icono,
         iconSource: undefined,
         parentId: transaccion.IdActividad,
-        pendingItems: summaryData.pending,
-        rejectedItems: summaryData.rejected,
-        successItems: summaryData.approved,
-        quantity: summaryData.quantity,
-        weight: summaryData.weight,
-        volume: summaryData.volume,
+        pendingItems: transaccion.pending,
+        rejectedItems: transaccion.rejected,
+        successItems: transaccion.approved,
+        quantity: transaccion.quantity,
+        weight: transaccion.weight,
+        volume: transaccion.volume,
+        summary: this.transactionsService.getSummary(transaccion),
       };
       this.updateVisibleProperties(card);
       return card;
@@ -102,8 +99,6 @@ export class CardService {
   }
 
   async mapTransaccion(transaccion: Transaccion): Promise<Card> {
-    const summaryData = await this.tasksService.getSummary(transaccion.IdActividad, transaccion.IdTransaccion);
-
     const card: Card = {
       id: transaccion.IdTransaccion,
       title: transaccion.Titulo,
@@ -115,12 +110,13 @@ export class CardService {
       iconName: transaccion.Icono,
       iconSource: undefined,
       parentId: transaccion.IdActividad,
-      pendingItems: summaryData.pending,
-      rejectedItems: summaryData.rejected,
-      successItems: summaryData.approved,
-      quantity: summaryData.quantity,
-      weight: summaryData.weight,
-      volume: summaryData.volume,
+      pendingItems: transaccion.pending,
+      rejectedItems: transaccion.rejected,
+      successItems: transaccion.approved,
+      quantity: transaccion.quantity,
+      weight: transaccion.weight,
+      volume: transaccion.volume,
+      summary: this.transactionsService.getSummary(transaccion),
     };
     this.updateVisibleProperties(card);
     return card;
@@ -144,6 +140,7 @@ export class CardService {
         quantity: tarea.Cantidad,
         weight: tarea.Peso,
         volume: tarea.Volumen,
+        summary: this.tasksService.getSummary(tarea),
       };
       this.updateVisibleProperties(card);
       return card;
@@ -169,29 +166,13 @@ export class CardService {
       quantity: tarea.Cantidad,
       weight: tarea.Peso,
       volume: tarea.Volumen,
+      summary: this.tasksService.getSummary(tarea),
     };
     this.updateVisibleProperties(card);
     return card;
   }
 
   updateVisibleProperties(card: Card) {
-    let summary: string = '';
-    if ((card.quantity ?? 0) > 0) {
-      summary = `${card.quantity} ${Utils.quantityUnit}`;
-    }
-    if ((card.weight ?? 0) > 0) {
-      if (summary !== '')
-        summary += `/${card.weight} ${Utils.weightUnit}`;
-      else
-        summary = `${card.weight} ${Utils.weightUnit}`;
-    }
-    if ((card.volume ?? 0) > 0) {
-      if (summary !== '')
-        summary += `/${card.volume} ${Utils.volumeUnit}`;
-      else
-        summary = `${card.volume} ${Utils.volumeUnit}`;
-    }
-    card.summary = summary;
     card.color = Utils.getStateColor(card.status);
     card.showReject = card.type !== 'task' && card.status === STATUS.PENDING && card.successItems === 0;
     card.showApprove = card.type !== 'task' && card.status === STATUS.PENDING && (card.successItems ?? 0) > 0;

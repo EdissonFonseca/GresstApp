@@ -70,6 +70,8 @@ export class TransactionApproveComponent implements OnInit {
   private drawing = signal<boolean>(false);
   /** Signal containing the pen color for signature */
   private penColor = signal<string>('black');
+  /** Summary of the transaction */
+  summary = '';
 
   /** Signal containing the transaction details */
   transactionDetails = signal<Transaccion | null>(null);
@@ -125,8 +127,7 @@ export class TransactionApproveComponent implements OnInit {
         });
 
         // Obtener el resumen de tareas
-        const summary = await this.tasksService.getSummary(transaccion.IdActividad);
-        this.taskSummary.set(summary);
+        this.summary = this.transactionsService.getSummary(transaccion);
       }
     }
 

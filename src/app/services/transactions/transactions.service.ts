@@ -245,6 +245,31 @@ export class TransactionsService {
   }
 
   /**
+   * Gets the summary of a transaction
+   * @param transaction - The transaction to get the summary of
+   * @returns Promise<string> The summary of the transaction
+   */
+  getSummary(transaction: Transaccion): string {
+    let summary: string = '';
+    if ((transaction.quantity ?? 0) > 0) {
+      summary = `${transaction.quantity} ${Utils.quantityUnit}`;
+    }
+    if ((transaction.weight ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${transaction.weight} ${Utils.weightUnit}`;
+      else
+        summary = `${transaction.weight} ${Utils.weightUnit}`;
+    }
+    if ((transaction.volume ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${transaction.volume} ${Utils.volumeUnit}`;
+      else
+        summary = `${transaction.volume} ${Utils.volumeUnit}`;
+    }
+    return summary;
+  }
+
+  /**
    * Creates a new transaction
    *
    * @param transaccion - The transaction to create

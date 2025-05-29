@@ -98,76 +98,6 @@ export class TasksService {
   }
 
   /**
-   * Get summary of tasks for a specific activity
-   * Calculates totals for different task statuses and their associated quantities
-   *
-   * @param activityId - The ID of the activity to filter tasks
-   * @param transactionId - Optional transaction ID to further filter tasks
-   * @returns {Object} Summary object containing:
-   *   - total: Total number of tasks
-   *   - pending: Number of pending tasks
-   *   - completed: Number of completed tasks
-   *   - approved: Number of approved tasks
-   *   - rejected: Number of rejected tasks
-   *   - quantity: Total quantity from completed and approved tasks
-   *   - weight: Total weight from completed and approved tasks
-   *   - volume: Total volume from completed and approved tasks
-   */
-  getSummary(activityId: string, transactionId?: string) {
-    // Get all tasks from the signal
-    const tasks = this.tasks();
-
-    // Filter tasks by activity ID
-    let filteredTasks = tasks.filter((task: Tarea) => task.IdActividad === activityId);
-
-    // Apply additional filter by transaction ID if provided
-    if (transactionId) {
-      filteredTasks = filteredTasks.filter((task: Tarea) => task.IdTransaccion === transactionId);
-    }
-
-    // Calculate summary using reduce to accumulate totals
-    const summary = filteredTasks.reduce(
-      (accumulator, task: Tarea) => {
-        // Handle completed tasks
-        if (task.IdEstado === STATUS.FINISHED) {
-          accumulator.completed += 1;
-          accumulator.quantity += task.Cantidad ?? 0;
-          accumulator.weight += task.Peso ?? 0;
-          accumulator.volume += task.Volumen ?? 0;
-        }
-        // Handle pending tasks
-        else if (task.IdEstado === STATUS.PENDING) {
-          accumulator.pending += 1;
-        }
-        // Handle approved tasks
-        else if (task.IdEstado === STATUS.APPROVED) {
-          accumulator.approved += 1;
-          accumulator.quantity += task.Cantidad ?? 0;
-          accumulator.weight += task.Peso ?? 0;
-          accumulator.volume += task.Volumen ?? 0;
-        }
-        // Handle rejected tasks
-        else if (task.IdEstado === STATUS.REJECTED) {
-          accumulator.rejected += 1;
-        }
-        return accumulator;
-      },
-      {
-        total: filteredTasks.length,
-        pending: 0,
-        completed: 0,
-        approved: 0,
-        rejected: 0,
-        quantity: 0,
-        weight: 0,
-        volume: 0
-      }
-    );
-
-    return summary;
-  }
-
-  /**
    * Lists suggested tasks for an activity
    * Generates task suggestions based on activity and transaction data
    * @param activityId - The ID of the activity
@@ -322,6 +252,31 @@ export class TasksService {
   }
 
   /**
+   * Gets the summary of a task
+   * @param task - The task to get the summary of
+   * @returns Promise<string> The summary of the task
+   */
+  getSummary(task: Tarea): string {
+    let summary: string = '';
+    if ((task.quantity ?? 0) > 0) {
+      summary = `${task.quantity} ${Utils.quantityUnit}`;
+    }
+    if ((task.weight ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${task.weight} ${Utils.weightUnit}`;
+      else
+        summary = `${task.weight} ${Utils.weightUnit}`;
+    }
+    if ((task.volume ?? 0) > 0) {
+      if (summary !== '')
+        summary += `/${task.volume} ${Utils.volumeUnit}`;
+      else
+        summary = `${task.volume} ${Utils.volumeUnit}`;
+    }
+    return summary;
+  }
+
+  /**
    * Creates a new task
    * @param tarea - The task to create
    * @returns Promise<boolean> - True if creation was successful
@@ -398,19 +353,18 @@ export class TasksService {
 
       // If the task has a transaction associated, update its totals
       if (task.IdTransaccion) {
-        const transaccion = currentTransaction.Transacciones.find(t => t.IdTransaccion === task.IdTransaccion);
-        if (transaccion) {
-          // Subtract 1 from pending since the task was pending
-          transaccion.pending = (transaccion.pending ?? 0) - 1;
-
+        const transaction = currentTransaction.Transacciones.find(t => t.IdTransaccion === task.IdTransaccion);
+        if (transaction) {
           // Add the values of the new task
           if (task.IdEstado === STATUS.APPROVED) {
-            transaccion.approved = (transaccion.approved ?? 0) + 1;
-            transaccion.quantity = (transaccion.quantity ?? 0) + (task.Cantidad ?? 0);
-            transaccion.weight = (transaccion.weight ?? 0) + (task.Peso ?? 0);
-            transaccion.volume = (transaccion.volume ?? 0) + (task.Volumen ?? 0);
+            transaction.pending = (transaction.pending ?? 0) - 1;
+            transaction.approved = (transaction.approved ?? 0) + 1;
+            transaction.quantity = (transaction.quantity ?? 0) + (task.Cantidad ?? 0);
+            transaction.weight = (transaction.weight ?? 0) + (task.Peso ?? 0);
+            transaction.volume = (transaction.volume ?? 0) + (task.Volumen ?? 0);
           } else if (task.IdEstado === STATUS.REJECTED) {
-            transaccion.rejected = (transaccion.rejected ?? 0) + 1;
+            transaction.pending = (transaction.pending ?? 0) - 1;
+            transaction.rejected = (transaction.rejected ?? 0) + 1;
           }
         }
       }
@@ -418,16 +372,15 @@ export class TasksService {
       // Update the totals of the activity
       const activity = currentTransaction.Actividades.find(t => t.IdActividad === task.IdActividad);
       if (activity) {
-        // Subtract 1 from pending since the task was pending
-        activity.pending = (activity.pending ?? 0) - 1;
-
         // Add the values of the new task
         if (task.IdEstado === STATUS.APPROVED) {
+          activity.pending = (activity.pending ?? 0) - 1;
           activity.approved = (activity.approved ?? 0) + 1;
           activity.quantity = (activity.quantity ?? 0) + (task.Cantidad ?? 0);
           activity.weight = (activity.weight ?? 0) + (task.Peso ?? 0);
           activity.volume = (activity.volume ?? 0) + (task.Volumen ?? 0);
         } else if (task.IdEstado === STATUS.REJECTED) {
+          activity.pending = (activity.pending ?? 0) - 1;
           activity.rejected = (activity.rejected ?? 0) + 1;
         }
       }

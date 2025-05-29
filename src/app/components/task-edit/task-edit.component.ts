@@ -16,6 +16,7 @@ import { PackagingService } from '@app/services/masterdata/packaging.service';
 import { Utils } from '@app/utils/utils';
 import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { TranslateService } from '@ngx-translate/core';
+import { LoggerService } from '@app/services/core/logger.service';
 
 @Component({
   selector: 'app-task-edit',
@@ -56,7 +57,8 @@ export class TaskEditComponent implements OnInit {
     private materialsService: MaterialsService,
     private pointsService: PointsService,
     private thirdpartiesService: ThirdpartiesService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private logger: LoggerService
   ) {
     this.frmTask = this.formBuilder.group({
       Cantidad: [null],
@@ -367,10 +369,10 @@ export class TaskEditComponent implements OnInit {
         const base64Image = `data:image/jpeg;base64,${image.base64String}`;
         this.photos.push(base64Image);
       } else {
-        console.error(this.translate.instant('TASK_EDIT.MESSAGES.BASE64_ERROR'));
+        this.logger.error(this.translate.instant('TASK_EDIT.MESSAGES.BASE64_ERROR'), 'TaskEditComponent');
       }
     } catch (error) {
-      console.error(this.translate.instant('TASK_EDIT.MESSAGES.PHOTO_ERROR'), error);
+      this.logger.error(this.translate.instant('TASK_EDIT.MESSAGES.PHOTO_ERROR'), error);
     }
   }
 
