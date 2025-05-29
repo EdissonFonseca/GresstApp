@@ -13,7 +13,7 @@ import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
-import { TransactionService } from '@app/services/core/transaction.service';
+import { WorkflowService } from '@app/services/core/workflow.service';
 
 /**
  * TasksService
@@ -44,7 +44,7 @@ export class TasksService {
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
     private readonly logger: LoggerService,
-    private transactionService: TransactionService
+    private workflowService: WorkflowService
   ) {
     this.loadTransaction();
   }
@@ -55,8 +55,8 @@ export class TasksService {
    */
   private async loadTransaction() {
     try {
-      await this.transactionService.loadTransaction();
-      const transaction = this.transactionService.getTransaction();
+      await this.workflowService.loadTransaction();
+      const transaction = this.workflowService.getTransaction();
       this.tasks.set(transaction?.Tareas || []);
     } catch (error) {
       this.logger.error('Error loading transaction', error);
@@ -70,11 +70,11 @@ export class TasksService {
    */
   private async saveTransaction() {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (transaction) {
         transaction.Tareas = this.tasks();
-        this.transactionService.setTransaction(transaction);
-        await this.transactionService.saveTransaction();
+        this.workflowService.setTransaction(transaction);
+        await this.workflowService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
@@ -311,7 +311,7 @@ export class TasksService {
    */
   async get(taskId: string): Promise<Tarea | undefined> {
     try {
-      const currentTransaction = this.transactionService.getTransaction();
+      const currentTransaction = this.workflowService.getTransaction();
       if (!currentTransaction) return undefined;
 
       return currentTransaction.Tareas.find(item => item.IdTarea === taskId);
@@ -328,14 +328,14 @@ export class TasksService {
    */
   async create(task: Tarea): Promise<boolean> {
     try {
-      const currentTransaction = this.transactionService.getTransaction();
+      const currentTransaction = this.workflowService.getTransaction();
       if (!currentTransaction) {
         return false;
       }
 
       currentTransaction.Tareas.push(task);
       this.tasks.set(currentTransaction.Tareas);
-      this.transactionService.setTransaction(currentTransaction);
+      this.workflowService.setTransaction(currentTransaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.CREATE, task);
       await this.synchronizationService.uploadData();
@@ -353,7 +353,7 @@ export class TasksService {
    */
   async update(task: Tarea): Promise<boolean> {
     try {
-      const currentTransaction = this.transactionService.getTransaction();
+      const currentTransaction = this.workflowService.getTransaction();
       if (!currentTransaction) {
         return false;
       }

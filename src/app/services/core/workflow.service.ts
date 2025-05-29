@@ -7,7 +7,7 @@ import { LoggerService } from './logger.service';
 @Injectable({
   providedIn: 'root',
 })
-export class TransactionService {
+export class WorkflowService {
   private transaction = signal<Transaction | null>(null);
   public transaction$ = this.transaction.asReadonly();
 

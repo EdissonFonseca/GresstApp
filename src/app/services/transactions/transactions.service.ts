@@ -7,7 +7,7 @@ import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
-import { TransactionService } from '@app/services/core/transaction.service';
+import { WorkflowService } from '@app/services/core/workflow.service';
 
 /**
  * TransactionsService
@@ -34,7 +34,7 @@ export class TransactionsService {
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
     private readonly logger: LoggerService,
-    private transactionService: TransactionService
+    private workflowService: WorkflowService
   ) {
     this.loadTransaction();
   }
@@ -46,8 +46,8 @@ export class TransactionsService {
    */
   private async loadTransaction() {
     try {
-      await this.transactionService.loadTransaction();
-      const transaction = this.transactionService.getTransaction();
+      await this.workflowService.loadTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (transaction?.Transacciones) {
         this.transactions.set(transaction.Transacciones);
       } else {
@@ -66,11 +66,11 @@ export class TransactionsService {
    */
   private async saveTransaction() {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (transaction) {
         transaction.Transacciones = this.transactions();
-        this.transactionService.setTransaction(transaction);
-        await this.transactionService.saveTransaction();
+        this.workflowService.setTransaction(transaction);
+        await this.workflowService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
@@ -88,7 +88,7 @@ export class TransactionsService {
    */
   private async listByActivity(idActividad: string): Promise<Transaccion[]> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction) return [];
 
       // Filter transactions by activity ID
@@ -181,7 +181,7 @@ export class TransactionsService {
    */
   async get(idActividad: string, idTransaccion: string): Promise<Transaccion | undefined> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction) return undefined;
 
       const transaccion = transaction.Transacciones.find(
@@ -210,7 +210,7 @@ export class TransactionsService {
    */
   async getByPoint(idActividad: string, idPunto: string): Promise<Transaccion | undefined> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction) return undefined;
 
       return transaction.Transacciones.find(
@@ -232,7 +232,7 @@ export class TransactionsService {
    */
   async getByThirdParty(idActividad: string, idTercero: string): Promise<Transaccion | undefined> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction) return undefined;
 
       return transaction.Transacciones.find(
@@ -253,13 +253,13 @@ export class TransactionsService {
   async create(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (transaction) {
         transaccion.FechaInicial = now;
         transaction.Transacciones.push(transaccion);
         this.transactions.set(transaction.Transacciones);
-        this.transactionService.setTransaction(transaction);
+          this.workflowService.setTransaction(transaction);
         await this.saveTransaction();
         await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.CREATE, transaccion);
         await this.synchronizationService.uploadData();
@@ -279,7 +279,7 @@ export class TransactionsService {
   async update(transaccion: Transaccion): Promise<void> {
     try {
       const now = new Date().toISOString();
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (transaction) {
         const index = transaction.Transacciones.findIndex(
@@ -298,7 +298,7 @@ export class TransactionsService {
           };
 
           this.transactions.set(transaction.Transacciones);
-          this.transactionService.setTransaction(transaction);
+          this.workflowService.setTransaction(transaction);
           await this.saveTransaction();
           await this.requestsService.create(DATA_TYPE.TRANSACTION, CRUD_OPERATIONS.UPDATE, transaccion);
           await this.synchronizationService.uploadData();

@@ -1,12 +1,11 @@
 import { Injectable, signal } from '@angular/core';
 import { Actividad } from '@app/interfaces/actividad.interface';
-import { StorageService } from '@app/services/core/storage.service';
 import { CRUD_OPERATIONS, STATUS, SERVICES, STORAGE, DATA_TYPE } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { RequestsService } from '../core/requests.service';
 import { SynchronizationService } from '../core/synchronization.service';
 import { LoggerService } from '@app/services/core/logger.service';
-import { TransactionService } from '@app/services/core/transaction.service';
+import { WorkflowService } from '@app/services/core/workflow.service';
 
 /**
  * ActivitiesService
@@ -25,13 +24,13 @@ import { TransactionService } from '@app/services/core/transaction.service';
 export class ActivitiesService {
   /** Signal containing the list of activities */
   public activities = signal<Actividad[]>([]);
-  public transaction$ = this.transactionService.transaction$;
+  public transaction$ = this.workflowService.transaction$;
 
   constructor(
     private requestsService: RequestsService,
     private synchronizationService: SynchronizationService,
     private readonly logger: LoggerService,
-    private transactionService: TransactionService
+    private workflowService: WorkflowService
   ) {
     this.loadTransaction();
   }
@@ -42,8 +41,8 @@ export class ActivitiesService {
    */
   private async loadTransaction() {
     try {
-      await this.transactionService.loadTransaction();
-      const transaction = this.transactionService.getTransaction();
+      await this.workflowService.loadTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (transaction?.Actividades) {
         const activities = transaction.Actividades.map(actividad => {
           const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
@@ -70,44 +69,15 @@ export class ActivitiesService {
    */
   private async saveTransaction() {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (transaction) {
         transaction.Actividades = this.activities();
-        this.transactionService.setTransaction(transaction);
-        await this.transactionService.saveTransaction();
+        this.workflowService.setTransaction(transaction);
+        await this.workflowService.saveTransaction();
       }
     } catch (error) {
       this.logger.error('Error saving transaction', error);
       throw error;
-    }
-  }
-
-  /**
-   * Loads activities from the transaction and updates the activities signal
-   * @returns Promise<void>
-   */
-  async load(): Promise<void> {
-    try {
-      const transaction = this.transactionService.getTransaction();
-
-      if (!transaction?.Actividades) {
-        this.activities.set([]);
-        return;
-      }
-
-      const activities = transaction.Actividades.map(actividad => {
-        const servicio = SERVICES.find(s => s.serviceId === actividad.IdServicio);
-        return {
-          ...actividad,
-          Icono: servicio?.Icon || '',
-          Accion: servicio?.Action || ''
-        };
-      });
-
-      this.activities.set(activities);
-    } catch (error) {
-      console.error('Error loading activities:', error);
-      this.activities.set([]);
     }
   }
 
@@ -118,7 +88,7 @@ export class ActivitiesService {
    */
   async list(): Promise<Actividad[]> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (!transaction?.Actividades) {
         return [];
@@ -148,7 +118,7 @@ export class ActivitiesService {
    */
   async get(idActividad: string): Promise<Actividad | undefined> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction?.Actividades) return undefined;
 
       const actividad = transaction.Actividades.find(item => item.IdActividad === idActividad);
@@ -175,7 +145,7 @@ export class ActivitiesService {
    */
   async getByServiceAndResource(idServicio: string, idRecurso: string): Promise<Actividad | undefined> {
     try {
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
       if (!transaction?.Actividades) return undefined;
 
       return transaction.Actividades.find(
@@ -197,7 +167,7 @@ export class ActivitiesService {
     try {
       const now = new Date().toISOString();
       const [latitud, longitud] = await Utils.getCurrentPosition();
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (!transaction) {
         return false;
@@ -209,7 +179,7 @@ export class ActivitiesService {
 
       transaction.Actividades.push(actividad);
       this.activities.set(transaction.Actividades);
-      this.transactionService.setTransaction(transaction);
+      this.workflowService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.CREATE, actividad);
       await this.synchronizationService.uploadData();
@@ -229,7 +199,7 @@ export class ActivitiesService {
   async update(actividad: Actividad): Promise<boolean> {
     try {
       const now = new Date().toISOString();
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (!transaction) {
         return false;
@@ -270,7 +240,7 @@ export class ActivitiesService {
       });
 
       this.activities.set(transaction.Actividades);
-      this.transactionService.setTransaction(transaction);
+      this.workflowService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
@@ -290,7 +260,7 @@ export class ActivitiesService {
   async updateStart(actividad: Actividad): Promise<boolean> {
     try {
       const now = new Date().toISOString();
-      const transaction = this.transactionService.getTransaction();
+      const transaction = this.workflowService.getTransaction();
 
       if (!transaction) {
         return false;
@@ -309,7 +279,7 @@ export class ActivitiesService {
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
-      this.transactionService.setTransaction(transaction);
+      this.workflowService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.START_ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
       await this.synchronizationService.uploadData();
