@@ -25,8 +25,8 @@ import { TransactionService } from '@app/services/core/transaction.service';
 })
 export class TransactionsService {
   /** Signal containing the list of transactions for the current activity */
-  public transactions = signal<Transaccion[]>([]);
-  public transaction$ = this.transactionService.transaction$;
+  private transactions = signal<Transaccion[]>([]);
+  public transactions$ = this.transactions.asReadonly();
 
   constructor(
     private pointsService: PointsService,
@@ -86,7 +86,7 @@ export class TransactionsService {
    * @returns Promise<Transaccion[]> - Array of transactions with enriched data
    * @throws {Error} If listing fails
    */
-  async list(idActividad: string): Promise<Transaccion[]> {
+  private async listByActivity(idActividad: string): Promise<Transaccion[]> {
     try {
       const transaction = this.transactionService.getTransaction();
       if (!transaction) return [];
@@ -152,6 +152,22 @@ export class TransactionsService {
     } catch (error) {
       this.logger.error('Error listing transactions', { idActividad, error });
       throw error;
+    }
+  }
+
+  /**
+   * Loads transactions for a specific activity
+   *
+   * @param idActividad - The activity ID to load transactions for
+   * @throws {Error} If loading fails
+   */
+  async list(idActividad: string): Promise<void> {
+    try {
+      const transactions = await this.listByActivity(idActividad);
+      this.transactions.set(transactions);
+    } catch (error) {
+      this.logger.error('Error loading transactions', { idActividad, error });
+      this.transactions.set([]);
     }
   }
 
@@ -294,19 +310,4 @@ export class TransactionsService {
     }
   }
 
-  /**
-   * Loads transactions for a specific activity
-   *
-   * @param idActividad - The activity ID to load transactions for
-   * @throws {Error} If loading fails
-   */
-  async load(idActividad: string): Promise<void> {
-    try {
-      const transactions = await this.list(idActividad);
-      this.transactions.set(transactions);
-    } catch (error) {
-      this.logger.error('Error loading transactions', { idActividad, error });
-      this.transactions.set([]);
-    }
-  }
 }

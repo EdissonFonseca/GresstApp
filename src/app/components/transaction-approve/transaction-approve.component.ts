@@ -288,15 +288,10 @@ export class TransactionApproveComponent implements OnInit {
 
       transaccion.IdEstado = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
       await this.transactionsService.update(transaccion);
-
-      // Refresh transactions signal
-      await this.transactionsService.load(transaccion.IdActividad);
-
       await this.userNotificationService.showToast(
         this.translate.instant(this.isReject ? 'TRANSACTIONS.REJECT.SUCCESS' : 'TRANSACTIONS.APPROVE.SUCCESS'),
         'top'
       );
-
       this.modalCtrl.dismiss(transaccion);
     } catch (error) {
       await this.userNotificationService.showToast(

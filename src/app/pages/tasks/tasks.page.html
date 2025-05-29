@@ -1,27 +1,19 @@
 <!-- Header section with navigation and actions -->
-<ion-header>
+<ion-header [translucent]="true">
   <!-- Main toolbar with navigation and action buttons -->
-  <ion-toolbar class="header-green">
+  <ion-toolbar>
     <!-- Back button for navigation -->
     <ion-buttons slot="start">
-      <ion-back-button (click)="goBack()" text=""></ion-back-button>
+      <ion-back-button [text]="''" (click)="goBack()"></ion-back-button>
     </ion-buttons>
 
     <!-- Page title showing current activity -->
-    <ion-title color="light">
-      {{ activity().title }}
-    </ion-title>
+    <ion-title>{{ title }}</ion-title>
 
     <!-- Action buttons for data synchronization -->
     <ion-buttons slot="end">
-      <ion-button
-        (click)="synchronize()"
-        [disabled]="isSynchronizing">
-        <ion-icon
-          slot="icon-only"
-          name="sync"
-          [class.rotating]="isSynchronizing">
-        </ion-icon>
+      <ion-button (click)="synchronize()" [disabled]="loading()">
+        <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -29,33 +21,37 @@
   <!-- Search toolbar for filtering tasks -->
   <ion-toolbar>
     <ion-searchbar
+      placeholder="TASKS.SEARCH_PLACEHOLDER | translate"
       (ionInput)="handleInput($event)"
-      [placeholder]="'TASKS.SEARCH' | translate"
-      show-clear-button="focus"
-      aria-label="Search tasks">
-    </ion-searchbar>
+      [disabled]="loading()"
+    ></ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" color="light">
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">{{ title }}</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
   <div class="content-wrapper">
     <!-- Transactions and tasks list container -->
-    <ng-container *ngIf="transactions() | async as transactionCards">
-      <ng-container *ngFor="let transaction of transactionCards">
+    <ng-container *ngIf="transactionsSignal() as transactions">
+      <ng-container *ngFor="let transaction of transactions">
         <!-- Transaction title -->
         <div class="card-container">
           <ion-item lines="none" class="transparent-item">
             <ion-label>
-              <h2>{{ transaction.title }}</h2>
-              <p>{{ transaction.summary }}</p>
+              <h2>{{ transaction.Punto }}</h2>
+              <p>{{ transaction.Tercero }}</p>
             </ion-label>
           </ion-item>
 
           <!-- Tasks list for current transaction -->
           <app-card-list
-            [cards]="filterTasks(transaction.id)"
+            [cards]="filterTasks(transaction.IdTransaccion)"
             (edit)="openEdit($event)"
-            [showEdit]="true"
             aria-label="Lista de tareas"
             role="list">
           </app-card-list>
@@ -74,6 +70,7 @@
   aria-label="Add new task">
   <ion-fab-button
     (click)="openAdd()"
+    [disabled]="loading()"
     aria-label="Add icon">
     <ion-icon
       name="add"

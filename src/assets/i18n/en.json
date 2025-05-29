@@ -229,12 +229,14 @@
       "MODAL_ERROR": "Error showing form",
       "APPROVE_ERROR": "Error approving activity",
       "SYNC_SUCCESS": "Sync successful",
-      "SYNC_ERROR": "Sync failed. Please try again later"
+      "SYNC_ERROR": "Sync failed. Please try again later",
+      "NO_TRANSACTIONS": "No transactions available"
     }
   },
   "TASKS": {
     "TITLE": "Tasks",
     "SEARCH": "Search tasks...",
+    "SEARCH_PLACEHOLDER": "Search tasks...",
     "ADD_TASK": "Add task",
     "EDIT_TASK": "Edit task",
     "SYNC": "Sync",

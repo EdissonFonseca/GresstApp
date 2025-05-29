@@ -112,13 +112,10 @@ export class ActivitiesPage implements OnInit {
    */
   private async loadData() {
     try {
-      console.log('Loading data...');
       await this.activitiesService.load();
       const activities = this.activitiesSignal();
-      console.log('Activities loaded:', activities);
 
       if (!activities || activities.length === 0) {
-        console.log('No activities found');
         this.activityCards.set([]);
         return;
       }
@@ -139,7 +136,6 @@ export class ActivitiesPage implements OnInit {
 
       // Use the CardService to map activities to cards
       const cards = await this.cardService.mapActividades(sortedActivities);
-      console.log('Cards mapped:', cards);
       this.activityCards.set(cards);
       this.isDataLoaded = true;
     } catch (error) {
@@ -216,8 +212,7 @@ export class ActivitiesPage implements OnInit {
 
         // Get navigation parameters
         const navigationExtras: NavigationExtras = {
-          queryParams: { Mode: 'A' },
-          state: { activity: activity }
+          queryParams: { mode: 'A', activityId: activity.id }
         };
 
         // Navigate based on activity type

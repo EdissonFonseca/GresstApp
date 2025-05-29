@@ -37,7 +37,7 @@
       </ion-item>
     </ion-list>
     <ion-list inset="true" class="ion-no-padding">
-      <ion-item class="ion-no-padding" *ngIf="showTratamiento">
+      <ion-item class="ion-no-padding" *ngIf="showTreatment">
         <ion-note slot="start">{{ 'TASK_EDIT.TREATMENT' | translate }}</ion-note>
         <ion-label>{{ frmTask.get('Tratamiento')?.value }}</ion-label>
         <ion-button color="light" (click)="selectTreatment()">{{ 'TASK_EDIT.SELECT_TREATMENT' | translate }}</ion-button>

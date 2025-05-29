@@ -53,13 +53,14 @@ export class TransactionsApiService {
    */
   async createTask(task: Tarea): Promise<boolean> {
     try {
-      console.log('createTask task', task);
+      this.logger.debug('createTask task', task);
       const response = await this.http.post<TaskResponse>('/apptransactions/createtarea', task);
       if (response.status === 201 && response.data) {
         task.IdTarea = response.data.IdTarea;
         this.logger.info('Task created successfully', { taskId: task.IdTarea });
         return true;
       }
+      this.logger.debug('createTask response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error creating task', { task, error });
@@ -74,12 +75,13 @@ export class TransactionsApiService {
    */
   async updateTask(task: Tarea): Promise<boolean> {
     try {
-      console.log('updateTask task', task);
+      this.logger.debug('updateTask task', task);
       const response = await this.http.post('/apptransactions/updatetarea', task);
       if (response.status === 200) {
         this.logger.info('Task updated successfully', { taskId: task.IdTarea });
         return true;
       }
+      this.logger.debug('updateTask response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error updating task', { task, error });
@@ -94,12 +96,14 @@ export class TransactionsApiService {
    */
   async createTransaction(transaction: Transaccion): Promise<boolean> {
     try {
+      this.logger.debug('createTransaction transaction', transaction);
       const response = await this.http.post<TransactionResponse>('/apptransactions/createtransaccion', transaction);
       if (response.status === 201 && response.data) {
         transaction.IdTransaccion = response.data.IdTransaccion;
         this.logger.info('Transaction created successfully', { transactionId: transaction.IdTransaccion });
         return true;
       }
+      this.logger.debug('createTransaction response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error creating transaction', { transaction, error });
@@ -114,11 +118,13 @@ export class TransactionsApiService {
    */
   async updateTransaction(transaction: Transaccion): Promise<boolean> {
     try {
+      this.logger.debug('updateTransaction transaction', transaction);
       const response = await this.http.post('/apptransactions/updatetransaccion', transaction);
       if (response.status === 200) {
         this.logger.info('Transaction updated successfully', { transactionId: transaction.IdTransaccion });
         return true;
       }
+      this.logger.debug('updateTransaction response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error updating transaction', { transaction, error });
@@ -133,11 +139,13 @@ export class TransactionsApiService {
    */
   async emitCertificate(transaction: Transaccion): Promise<boolean> {
     try {
+      this.logger.debug('emitCertificate transaction', transaction);
       const response = await this.http.post('/apptransactions/emitcertificate', transaction);
       if (response.status === 200) {
         this.logger.info('Certificate emitted successfully', { transactionId: transaction.IdTransaccion });
         return true;
       }
+      this.logger.debug('emitCertificate response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error emitting certificate', { transaction, error });
@@ -152,12 +160,14 @@ export class TransactionsApiService {
    */
   async createActivity(activity: Actividad): Promise<boolean> {
     try {
+      this.logger.debug('createActivity activity', activity);
       const response = await this.http.post<ActivityResponse>('/apptransactions/createactividad', activity);
       if (response.status === 201 && response.data) {
         activity.IdActividad = response.data.IdActividad;
         this.logger.info('Activity created successfully', { activityId: activity.IdActividad });
         return true;
       }
+      this.logger.debug('createActivity response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error creating activity', { activity, error });
@@ -172,11 +182,13 @@ export class TransactionsApiService {
    */
   async updateActivity(activity: Actividad): Promise<boolean> {
     try {
+      this.logger.debug('updateActivity activity', activity);
       const response = await this.http.post('/apptransactions/updateactividad', activity);
       if (response.status === 200) {
         this.logger.info('Activity updated successfully', { activityId: activity.IdActividad });
         return true;
       }
+      this.logger.debug('updateActivity response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error updating activity', { activity, error });
@@ -191,35 +203,16 @@ export class TransactionsApiService {
    */
   async updateInitialActivity(activity: Actividad): Promise<boolean> {
     try {
+      this.logger.debug('updateInitialActivity activity', activity);
       const response = await this.http.post<ActivityResponse>('/apptransactions/updateactividadInicio', activity);
-      console.log('updateInitialActivity response', response);
       if ((response.status === 200 || response.status === 201)) {
         this.logger.info('Initial activity created successfully', { activityId: activity.IdActividad });
         return true;
       }
-      console.log('updateInitialActivity response status', response.status);
+      this.logger.debug('updateInitialActivity response status', response.status);
       return false;
     } catch (error) {
       this.logger.error('Error creating initial activity', { activity, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Creates a backup
-   * @param {any} data - Data to backup
-   * @returns {Promise<boolean>} True if backup successful
-   */
-  async createBackup(data: any): Promise<boolean> {
-    try {
-      const response = await this.http.post('/apptransactions/backup', data);
-      if (response.status === 200) {
-        this.logger.info('Backup created successfully');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      this.logger.error('Error creating backup', { data, error });
       throw error;
     }
   }

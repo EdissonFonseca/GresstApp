@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { STATUS } from '@app/constants/constants';
+import { SERVICE_TYPES, STATUS } from '@app/constants/constants';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
@@ -16,8 +16,8 @@ import { ComponentsModule } from '@app/components/components.module';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Card } from '@app/interfaces/card.interface';
-import { Transaccion } from '@app/interfaces/transaccion.interface';
-import { Tarea } from '@app/interfaces/tarea.interface';
+import { LoggerService } from '@app/services/core/logger.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
 
 /**
  * TasksPage Component
@@ -45,37 +45,8 @@ import { Tarea } from '@app/interfaces/tarea.interface';
   ]
 })
 export class TasksPage implements OnInit {
-  /** Signal containing the current activity displayed as a card */
-  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
-
-  /** Signal containing the list of transactions from the service */
-  private transactionsSignal = this.transactionsService.transactions;
-
-  /** Signal containing the list of tasks from the service */
-  private tasksSignal = this.tasksService.tasks$;
-
-  /** Flag indicating if synchronization is in progress */
-  isSynchronizing: boolean = false;
-
-  /** Computed property that transforms transactions into cards for display */
-  transactions = computed(async () => {
-    const transactionList = this.transactionsSignal();
-    let filteredTransactions = transactionList;
-
-    // Si hay un transactionId específico, filtrar solo esa transacción
-    if (this.transactionId) {
-      filteredTransactions = transactionList.filter(trx => trx.IdTransaccion === this.transactionId);
-    }
-
-    const transactionCards = await this.cardService.mapTransacciones(filteredTransactions);
-    return transactionCards;
-  });
-
-  /** Computed property that transforms tasks into cards for display */
-  tasks = computed(() => {
-    const taskList = this.tasksSignal();
-    return this.cardService.mapTareas(taskList);
-  });
+  /** ID of the current activity */
+  activityId: string = '';
 
   /** ID of the current transaction being viewed */
   transactionId: string = '';
@@ -89,16 +60,34 @@ export class TasksPage implements OnInit {
   /** Mode of operation ('A' for activity, 'T' for transaction) */
   mode: string = 'A';
 
+  /** Signal for loading state */
+  loading = signal(false);
+
+  /** Signal containing the list of transactions from the service */
+  transactionsSignal = this.transactionsService.transactions$;
+
+  /** Signal containing the list of tasks from the service */
+  private tasksSignal = this.tasksService.tasks$;
+
+  /** Computed property that provides the task cards */
+  taskCards = computed(() => {
+    const taskList = this.tasksSignal();
+    return this.cardService.mapTareas(taskList);
+  });
+
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private modalCtrl: ModalController,
     private cardService: CardService,
+    private activitiesService: ActivitiesService,
     private transactionsService: TransactionsService,
     private tasksService: TasksService,
     public sessionService: SessionService,
     private userNotificationService: UserNotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private logger: LoggerService
   ) {}
 
   /**
@@ -108,20 +97,18 @@ export class TasksPage implements OnInit {
   async ngOnInit() {
     try {
       this.route.queryParams.subscribe(params => {
-        this.mode = params['Mode'];
-        this.transactionId = params['TransactionId'];
+        this.mode = params['mode'];
+        this.transactionId = params['transactionId'];
+        this.activityId = params['activityId'];
       });
-      const nav = this.router.getCurrentNavigation();
-      if (nav?.extras.state) {
-        const newActivity = nav.extras.state['activity'];
-        if (newActivity) {
-          this.title = newActivity.title;
-          this.activity.set(newActivity);
-          await this.loadData();
-        }
+      const activityData = await this.activitiesService.get(this.activityId);
+      if (activityData) {
+        this.title = activityData.Titulo;
+        this.showAdd = activityData.IdEstado == STATUS.PENDING;
       }
+      await this.loadData();
     } catch (error) {
-      console.error('Error initializing tasks page:', error);
+      this.logger.error('Error initializing tasks page:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.INIT_ERROR'),
         'middle'
@@ -134,15 +121,16 @@ export class TasksPage implements OnInit {
    * Called before the page is displayed
    */
   async ionViewWillEnter() {
-    try {
       await this.loadData();
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TASKS.MESSAGES.LOAD_ERROR'),
-        'middle'
-      );
-    }
+  }
+
+  /**
+   * Handle search input to filter tasks and transactions
+   * Updates the displayed lists based on the search query
+   * @param event - The input event containing the search query
+   */
+  async handleInput(event: any) {
+    await this.loadData();
   }
 
   /**
@@ -151,23 +139,20 @@ export class TasksPage implements OnInit {
    * - Loads tasks for the current activity/transaction
    * - Sets up edit permissions based on status
    */
-  private async loadData() {
+  async loadData() {
     try {
-      await this.transactionsService.load(this.activity().id);
-      await this.tasksService.load(this.activity().id, this.transactionId);
+      this.loading.set(true);
 
-      if (this.transactionId) {
-        const transactionList = this.transactionsSignal();
-        const transaction = transactionList.find(x => x.IdTransaccion === this.transactionId);
-        if (transaction) {
-          this.showAdd = transaction.IdEstado === STATUS.PENDING;
-        }
-      } else {
-        this.showAdd = this.activity().status === STATUS.PENDING;
-      }
+      // Load transactions
+      await this.transactionsService.list(this.activityId);
+
+      // Load tasks
+      await this.tasksService.list(this.activityId, this.transactionId);
+
     } catch (error) {
-      console.error('Error loading data:', error);
-      throw error;
+      this.logger.error('Error loading data:', error);
+    } finally {
+      this.loading.set(false);
     }
   }
 
@@ -177,52 +162,22 @@ export class TasksPage implements OnInit {
    * @returns Array of tasks belonging to the specified transaction, sorted by status
    */
   filterTasks(transactionId: string): Card[] {
-    const taskList = this.tasks();
-    const filteredTasks = taskList.filter((x: Card) => x.parentId === transactionId);
-
     // Define the order of statuses
-    const statusOrder = {
+    const statusOrder: Record<string, number> = {
       [STATUS.PENDING]: 1,
       [STATUS.APPROVED]: 2,
       [STATUS.REJECTED]: 3
     };
 
+    const taskList = this.taskCards();
+    const filteredTasks = taskList.filter((x: Card) => x.parentId === transactionId);
+
     // Sort tasks by status
-    return filteredTasks.sort((a, b) => {
+    return filteredTasks.sort((a: Card, b: Card) => {
       const orderA = statusOrder[a.status] || 4; // Other statuses go last
       const orderB = statusOrder[b.status] || 4;
       return orderA - orderB;
     });
-  }
-
-  /**
-   * Handle search input to filter tasks and transactions
-   * Updates the displayed lists based on the search query
-   * @param event - The input event containing the search query
-   */
-  async handleInput(event: any) {
-    try {
-      const query = event.target.value.toLowerCase();
-
-      // Filter transactions based on point or third party name
-      const transactionList = this.transactionsSignal().filter((trx: Transaccion) =>
-        (trx.Punto?.toLowerCase().includes(query) ||
-         trx.Tercero?.toLowerCase().includes(query))
-      );
-      await this.transactionsService.load(this.activity().id);
-
-      // Filter tasks based on material name
-      const taskList = this.tasksSignal().filter((task: Tarea) =>
-        task.Material?.toLowerCase().includes(query)
-      );
-      await this.tasksService.load(this.activity().id, this.transactionId);
-    } catch (error) {
-      console.error('Error filtering tasks:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TASKS.MESSAGES.FILTER_ERROR'),
-        'middle'
-      );
-    }
   }
 
   /**
@@ -234,7 +189,7 @@ export class TasksPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          activityId: this.activity().id,
+          activityId: this.activityId,
           transactionId: this.transactionId,
         },
       });
@@ -243,15 +198,12 @@ export class TasksPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
-        );
-
+        await this.userNotificationService.showLoading(this.translate.instant('TASKS.MESSAGES.UPDATING_INFO'));
         await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error adding task:', error);
+      this.logger.error('Error adding task:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.ADD_ERROR'),
         'middle'
@@ -262,28 +214,19 @@ export class TasksPage implements OnInit {
   /**
    * Open the edit task modal
    * Allows editing of an existing task's properties
-   * @param task - The task card to edit
+   * @param card - The task card to edit
    */
-  async openEdit(task: Card) {
+  async openEdit(card: Card) {
     try {
-      const currentActivity = this.activity();
-      if (!currentActivity) {
-        return;
-      }
-
       const modal = await this.modalCtrl.create({
         component: TaskEditComponent,
         componentProps: {
-          activityId: currentActivity.id,
-          transactionId: task.parentId,
-          taskId: task.id,
-          materialId: task.materialId,
-          residueId: task.residueId,
-          inputOutput: task.inputOutput,
-          showName: true,
-          showPin: true,
-          showNotes: true,
-          showSignPad: true
+          activityId: this.activityId,
+          transactionId: card.parentId,
+          taskId: card.id,
+          materialId: card.materialId,
+          residueId: card.residueId,
+          inputOutput: card.inputOutput,
         },
       });
 
@@ -291,18 +234,12 @@ export class TasksPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TASKS.MESSAGES.UPDATING_INFO')
-        );
-
+        await this.userNotificationService.showLoading(this.translate.instant('TASKS.MESSAGES.UPDATING_INFO'));
         await this.loadData();
         await this.userNotificationService.hideLoading();
-
-        // Upload data in background
-        this.sessionService.uploadData();
       }
     } catch (error) {
-      console.error('Error editing task:', error);
+      this.logger.error('Error editing task:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.EDIT_ERROR'),
         'middle'
@@ -316,20 +253,21 @@ export class TasksPage implements OnInit {
    */
   async synchronize() {
     try {
-      this.isSynchronizing = true;
+      await this.userNotificationService.showLoading(
+        this.translate.instant('TASKS.MESSAGES.SYNCHRONIZING')
+      );
       await this.loadData();
+      await this.userNotificationService.hideLoading();
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.SYNC_SUCCESS'),
         'top'
       );
     } catch (error) {
-      console.error('Error synchronizing data:', error);
+      this.logger.error('Error synchronizing data:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TASKS.MESSAGES.SYNC_ERROR'),
         'middle'
       );
-    } finally {
-      this.isSynchronizing = false;
     }
   }
 
@@ -340,8 +278,8 @@ export class TasksPage implements OnInit {
     if (this.mode === 'T') {
       this.router.navigate(['/transactions'], {
         queryParams: {
-          Mode: 'A',
-          ActivityId: this.activity().id
+          mode: 'A',
+          activityId: this.activityId
         }
       });
     } else {

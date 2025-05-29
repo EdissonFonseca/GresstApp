@@ -33,7 +33,6 @@ export class TasksService {
   /** Signal containing the list of tasks */
   private tasks = signal<Tarea[]>([]);
   public tasks$ = this.tasks.asReadonly();
-  public transaction$ = this.transactionService.transaction$;
 
   constructor(
     private storage: StorageService,
@@ -88,9 +87,9 @@ export class TasksService {
    * @param activityId - The activity ID to load tasks for
    * @param transactionId - Optional transaction ID to filter tasks
    */
-  async load(activityId: string, transactionId?: string): Promise<void> {
+  async list(activityId: string, transactionId?: string): Promise<void> {
     try {
-      const tasks = await this.list(activityId, transactionId);
+      const tasks = await this.listByActivityAndTransaction(activityId, transactionId);
       this.tasks.set(tasks);
     } catch (error) {
       this.logger.error('Error loading tasks', { activityId, transactionId, error });
@@ -174,7 +173,7 @@ export class TasksService {
    * @param activityId - The ID of the activity
    * @param transactionId - Optional transaction ID
    */
-  async list(activityId: string, transactionId?: string | null): Promise<Tarea[]> {
+  async listByActivityAndTransaction(activityId: string, transactionId?: string | null): Promise<Tarea[]> {
     try {
       let tareas: Tarea[] = [];
       let embalaje: string;
@@ -338,13 +337,8 @@ export class TasksService {
       this.tasks.set(currentTransaction.Tareas);
       this.transactionService.setTransaction(currentTransaction);
       await this.saveTransaction();
-      console.log('currentTransaction', currentTransaction);
-      console.log('task', task);
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.CREATE, task);
-      console.log('requestsService');
-      console.log('synchronizationService');
       await this.synchronizationService.uploadData();
-      console.log('uploadData');
       return true;
     } catch (error) {
       this.logger.error('Error creating task', { task, error });

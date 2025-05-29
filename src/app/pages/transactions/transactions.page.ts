@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, signal, computed } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
+import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
 import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
@@ -10,7 +10,6 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { Card } from '@app/interfaces/card.interface';
 import { CardService } from '@app/services/core/card.service';
 import { SessionService } from '@app/services/core/session.service';
-import { Utils } from '@app/utils/utils';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
@@ -19,6 +18,7 @@ import { ComponentsModule } from '@app/components/components.module';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LoggerService } from '@app/services/core/logger.service';
 
 /**
  * TransactionsPage component that displays and manages a list of transactions for a specific activity.
@@ -33,38 +33,40 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   imports: [CommonModule, FormsModule, IonicModule, RouterModule, ComponentsModule, TranslateModule]
 })
 export class TransactionsPage implements OnInit {
-  /** Signal containing the current activity displayed as a card */
-  activity = signal<Card>({id:'', title: '', status: STATUS.PENDING, type:'activity'});
+  /** Title of the current activity */
+  title: string = '';
 
-  /** Signal containing the list of transactions from the service */
-  private transactionsSignal = this.transactionsService.transactions;
+  /** ID of the current activity */
+  activityId: string = '';
 
   /** Signal for loading state */
   loading = signal(false);
 
-  /** Signal containing the transformed transaction cards */
-  private cardsSignal = signal<Card[]>([]);
+  /** Signal for error state */
+  error = signal<Error | null>(null);
+
+  /** Signal containing the list of transactions from the service */
+  private transactionsSignal = this.transactionsService.transactions$;
 
   /** Computed property that transforms transactions into cards for display */
   transactionCards = computed(() => {
     const transactionList = this.transactionsSignal();
-    if (!transactionList) return [];
-
-    // Define el orden de los estados
+    // Define the order of the statuses
     const statusOrder = {
       [STATUS.PENDING]: 1,
       [STATUS.APPROVED]: 2,
       [STATUS.REJECTED]: 3
     };
 
-    // Ordenar las transacciones por estado
+    // Sort transactions by status
     const sortedTransactions = transactionList.sort((a, b) => {
-      const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
+      const orderA = statusOrder[a.IdEstado] || 4; // Other statuses go last
       const orderB = statusOrder[b.IdEstado] || 4;
       return orderA - orderB;
     });
 
-    return this.cardsSignal();
+    // Transform transactions to cards
+    return this.cardService.mapTransacciones(sortedTransactions);
   });
 
   /** Flag to track if data has been loaded */
@@ -88,7 +90,9 @@ export class TransactionsPage implements OnInit {
     private actionSheet: ActionSheetController,
     private authorizationService: AuthorizationService,
     private userNotificationService: UserNotificationService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private route: ActivatedRoute,
+    private logger: LoggerService
   ) {}
 
   /**
@@ -96,20 +100,17 @@ export class TransactionsPage implements OnInit {
    */
   async ngOnInit() {
     try {
-      const nav = this.router.getCurrentNavigation();
-      if (nav?.extras.state) {
-        const newActivity = nav.extras.state['activity'];
-        if (newActivity) {
-          this.activity.set(newActivity);
-          await this.loadData();
-        }
-        const activityData = await this.activitiesService.get(this.activity().id);
-        if (activityData) {
-          this.showAdd = activityData.IdEstado == STATUS.PENDING;
-          this.showNavigation = activityData.IdServicio == SERVICE_TYPES.TRANSPORT;
-          this.showSupport = activityData.IdServicio == SERVICE_TYPES.TRANSPORT;
-        }
+      this.route.queryParams.subscribe(params => {
+        this.activityId = params['activityId'];
+      });
+      const activityData = await this.activitiesService.get(this.activityId);
+      if (activityData) {
+        this.title = activityData.Titulo;
+        this.showAdd = activityData.IdEstado == STATUS.PENDING;
+        this.showNavigation = activityData.IdServicio == SERVICE_TYPES.TRANSPORT;
+        this.showSupport = activityData.IdServicio == SERVICE_TYPES.TRANSPORT;
       }
+      await this.loadData();
     } catch (error) {
       console.error('Error initializing transactions page:', error);
       await this.userNotificationService.showToast(
@@ -123,66 +124,22 @@ export class TransactionsPage implements OnInit {
    * Load transactions when the page is about to enter
    */
   async ionViewWillEnter() {
-    if (!this.isDataLoaded) {
-      try {
-        await this.loadData();
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-        await this.userNotificationService.showToast(
-          this.translate.instant('TRANSACTIONS.MESSAGES.LOAD_ERROR'),
-          'middle'
-        );
-      }
-    }
+    await this.loadData();
   }
 
   /**
-   * Load all necessary data for the page
+   * Load data for the current activity
    */
-  private async loadData() {
+  async loadData() {
     try {
       this.loading.set(true);
-      await this.transactionsService.load(this.activity().id);
-      await this.updateCards();
+      await this.transactionsService.list(this.activityId);
       this.isDataLoaded = true;
     } catch (error) {
-      console.error('Error loading data:', error);
-      throw error;
+      this.logger.error('Error loading data:', error);
+      this.error.set(error instanceof Error ? error : new Error(String(error)));
     } finally {
       this.loading.set(false);
-    }
-  }
-
-  /**
-   * Update the cards signal with the current transactions
-   */
-  private async updateCards() {
-    try {
-      const transactionList = this.transactionsSignal();
-      if (!transactionList) {
-        this.cardsSignal.set([]);
-        return;
-      }
-
-      // Define el orden de los estados
-      const statusOrder = {
-        [STATUS.PENDING]: 1,
-        [STATUS.APPROVED]: 2,
-        [STATUS.REJECTED]: 3
-      };
-
-      // Ordenar las transacciones por estado
-      const sortedTransactions = transactionList.sort((a, b) => {
-        const orderA = statusOrder[a.IdEstado] || 4; // Otros estados van al final
-        const orderB = statusOrder[b.IdEstado] || 4;
-        return orderA - orderB;
-      });
-
-      const cards = await this.cardService.mapTransacciones(sortedTransactions);
-      this.cardsSignal.set(cards);
-    } catch (error) {
-      console.error('Error updating cards:', error);
-      this.cardsSignal.set([]);
     }
   }
 
@@ -191,21 +148,7 @@ export class TransactionsPage implements OnInit {
    * @param event - The input event containing the search query
    */
   async handleInput(event: any) {
-    try {
-      const query = event.target.value.toLowerCase();
-      const transactionList = this.transactionsSignal().filter(transaction =>
-        (transaction.Punto?.toLowerCase().includes(query) ||
-         transaction.Tercero?.toLowerCase().includes(query))
-      );
-      this.transactionsService.transactions.set(transactionList);
-      await this.updateCards();
-    } catch (error) {
-      console.error('Error filtering transactions:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('TRANSACTIONS.MESSAGES.FILTER_ERROR'),
-        'middle'
-      );
-    }
+    await this.loadData();
   }
 
   /**
@@ -222,8 +165,7 @@ export class TransactionsPage implements OnInit {
   navigateToTasks(transaction: Card) {
     try {
       const navigationExtras: NavigationExtras = {
-        queryParams: { Mode: 'T', TransactionId: transaction.id },
-        state: { activity: this.activity() }
+        queryParams: { mode: 'T', transactionId: transaction.id, activityId: this.activityId },
       };
       this.navCtrl.navigateForward('/tasks', navigationExtras);
     } catch (error) {
@@ -242,7 +184,7 @@ export class TransactionsPage implements OnInit {
     try {
       const navigationExtras: NavigationExtras = {
         queryParams: {
-          IdActividad: this.activity().id,
+          IdActividad: this.activityId,
         }
       };
       this.navCtrl.navigateForward('/route', navigationExtras);
@@ -261,7 +203,7 @@ export class TransactionsPage implements OnInit {
   async showSupports() {
     try {
       const account = await this.authorizationService.getAccount();
-      const activityData = await this.activitiesService.get(this.activity().id);
+      const activityData = await this.activitiesService.get(this.activityId);
       const baseUrl = `${environment.filesUrl}/Cuentas/${account.IdPersonaCuenta}/Soportes/Ordenes/${activityData?.IdOrden}/`;
       const documentsArray = activityData?.Soporte?.split(';');
 
@@ -278,7 +220,7 @@ export class TransactionsPage implements OnInit {
             text: this.translate.instant('TRANSACTIONS.MESSAGES.NO_DOCUMENTS'),
             icon: 'alert',
             handler: () => {
-              console.log('No documents to show');
+              this.logger.debug('No documents to show');
             }
           }];
 
@@ -299,15 +241,14 @@ export class TransactionsPage implements OnInit {
 
   /**
    * Open the add transaction modal
-   * @param transaction - The transaction card to add tasks to
+   * @param id - The ID of the transaction to add tasks to
    */
-  async openAdd(transaction: Card) {
+  async openAdd() {
     try {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          activityId: this.activity().id,
-          transactionId: transaction.id,
+          activityId: this.activityId
         },
       });
 
@@ -315,14 +256,12 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
-        );
+        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
         await this.loadData();
         await this.userNotificationService.hideLoading();
       }
     } catch (error) {
-      console.error('Error opening add modal:', error);
+      this.logger.error('Error opening add modal:', error);
       await this.userNotificationService.showToast(
         this.translate.instant('TRANSACTIONS.MESSAGES.ADD_ERROR'),
         'middle'
@@ -339,7 +278,7 @@ export class TransactionsPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          activityId: this.activity().id,
+          activityId: this.activityId,
           transactionId: id,
         },
       });
@@ -372,7 +311,7 @@ export class TransactionsPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TransactionApproveComponent,
         componentProps: {
-          activityId: this.activity().id,
+          activityId: this.activityId,
           transactionId: id,
           isReject: true,
         },
@@ -382,9 +321,7 @@ export class TransactionsPage implements OnInit {
 
       const { data } = await modal.onDidDismiss();
       if (data) {
-        await this.userNotificationService.showLoading(
-          this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO')
-        );
+        await this.userNotificationService.showLoading(this.translate.instant('TRANSACTIONS.MESSAGES.UPDATING_INFO'));
         await this.loadData();
         await this.userNotificationService.hideLoading();
       }

@@ -37,13 +37,12 @@ export class TaskEditComponent implements OnInit {
   factor: number | null = null;
   measurement: string = '';
   photo!: SafeResourceUrl;
-  status: string = '';
-  showDetails: boolean = false;
-  showTratamiento: boolean = false;
-  task: Tarea | undefined = undefined;
   photosByMaterial: number = 2;
   photos: string[] = [];
-  imageUrl: string = '';
+  status: string = '';
+  showDetails: boolean = false;
+  showTreatment: boolean = false;
+  task: Tarea | undefined = undefined;
 
   /** Constructor */
   constructor(
@@ -285,29 +284,7 @@ export class TaskEditComponent implements OnInit {
     let task: Tarea = this.mapFormToTask();
     if (this.task) {
       await this.tasksService.update(task);
-    } else {
-      const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
-      if (transaction) {
-        const point = await this.pointsService.get(transaction.IdDeposito ?? '');
-        task.IdRecurso = activity.IdRecurso;
-        task.IdServicio = activity.IdServicio;
-
-        if (point?.Recepcion) { //No hay tarea -> Entrada
-          task.IdResiduo = '';
-          task.EntradaSalida = INPUT_OUTPUT.INPUT;
-          await this.tasksService.create(task);
-        } else { //No hay tarea -> Salida
-          task.IdResiduo = this.residueId;
-          task.EntradaSalida = INPUT_OUTPUT.OUTPUT;
-          await this.tasksService.create(task);
-
-          // Crear el residuo
-          const residue = this.mapResidueFromTask(task);
-          await this.inventoryService.createResidue(residue);
-        }
-      }
     }
-
     this.modalCtrl.dismiss(task);
   }
 

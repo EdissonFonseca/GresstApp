@@ -89,10 +89,8 @@ export class ActivitiesService {
   async load(): Promise<void> {
     try {
       const transaction = this.transactionService.getTransaction();
-      console.log('Current transaction in load:', transaction);
 
       if (!transaction?.Actividades) {
-        console.log('No activities found in transaction');
         this.activities.set([]);
         return;
       }
@@ -106,7 +104,6 @@ export class ActivitiesService {
         };
       });
 
-      console.log('Mapped activities:', activities);
       this.activities.set(activities);
     } catch (error) {
       console.error('Error loading activities:', error);

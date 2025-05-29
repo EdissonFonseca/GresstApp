@@ -8,16 +8,15 @@ import { PointsComponent } from '../points/points.component';
 import { ResiduesComponent } from '../residues/residues.component';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Tarea } from 'src/app/interfaces/tarea.interface';
-import { Residuo } from 'src/app/interfaces/residuo.interface';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { TreatmentsComponent } from '../treatments/treatments.component';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
-import { InventoryService } from '@app/services/transactions/inventory.service';
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
+import { LoggerService } from '@app/services/core/logger.service';
 
 /**
  * Component for adding new tasks to an activity
@@ -46,8 +45,8 @@ export class TaskAddComponent implements OnInit {
     private activitiesService: ActivitiesService,
     private transactionsService: TransactionsService,
     private tasksService: TasksService,
-    private inventoryService: InventoryService,
-    private userNotificationService: UserNotificationService
+    private userNotificationService: UserNotificationService,
+    private logger: LoggerService
   ) {
     this.initializeForm();
   }
@@ -362,7 +361,7 @@ export class TaskAddComponent implements OnInit {
     try {
       const formValue = this.formData.value;
       let transactionId = this.transactionId;
-        if (!this.transactionId) {
+      if (!this.transactionId) {
         var isExistingTransaction = true;
         if (activity.IdServicio === SERVICE_TYPES.COLLECTION || activity.IdServicio == SERVICE_TYPES.TRANSPORT) {
           const existingTransaction = await this.transactionsService.getByPoint(this.activityId, formValue.InputPointId);
@@ -380,10 +379,10 @@ export class TaskAddComponent implements OnInit {
       }
 
       await this.createTask(activity, transactionId);
-      await this.updateSignals(transactionId);
       this.modalCtrl.dismiss(true);
 
     } catch (error) {
+      this.logger.error('Error creating task', error);
       this.userNotificationService.showToast('TASK_ADD.MESSAGES.CREATE_ERROR', 'middle');
     }
   }
@@ -454,47 +453,5 @@ export class TaskAddComponent implements OnInit {
     };
 
     await this.tasksService.create(task);
-  }
-
-  /**
-   * Creates a new residue
-   */
-  private async createResidue(activity: Actividad, formValue: FormGroup['value']): Promise<Residuo> {
-    const residue: Residuo = {
-      IdResiduo: Utils.generateId(),
-      IdMaterial: formValue.MaterialId,
-      IdPropietario: formValue.InputThirdPartyId,
-      IdDepositoOrigen: formValue.InputPointId,
-      Aprovechable: true,
-      Cantidad: formValue.Quantity,
-      Peso: formValue.Weight,
-      Volumen: formValue.Volume,
-      IdEmbalaje: formValue.PackagingId,
-      CantidadEmbalaje: formValue.Quantity,
-      IdEstado: STATUS.ACTIVE,
-      Propietario: formValue.InputThirdParty,
-      Material: formValue.Material,
-      DepositoOrigen: formValue.InputPoint,
-      EntradaSalida: INPUT_OUTPUT.INPUT,
-      IdDeposito: activity.IdServicio == SERVICE_TYPES.RECEPTION ? activity.IdRecurso : '',
-      IdRuta: activity.IdServicio == SERVICE_TYPES.COLLECTION ? activity.IdRecurso : '',
-      IdVehiculo: activity.IdServicio == SERVICE_TYPES.TRANSPORT ? activity.IdRecurso : '',
-      Imagen: '',
-      Ubicacion: ''
-    };
-
-    await this.inventoryService.createResidue(residue);
-    return residue;
-  }
-
-  /**
-   * Updates signals after task creation
-   */
-  private async updateSignals(transactionId: string | null): Promise<void> {
-    if (transactionId) {
-      await this.tasksService.load(this.activityId, transactionId);
-      await this.transactionsService.load(this.activityId);
-      await this.activitiesService.load();
-    }
   }
 }
