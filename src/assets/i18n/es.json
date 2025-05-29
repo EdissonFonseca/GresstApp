@@ -9,7 +9,8 @@
     "LOADING": "Cargando...",
     "LANGUAGE": "Idioma",
     "CONTINUE": "Continuar",
-    "ACCEPT": "Aceptar"
+    "ACCEPT": "Aceptar",
+    "EXIT": "Salir"
   },
   "AUTH": {
     "LOGIN": {
@@ -115,53 +116,38 @@
     "SEARCH": "Buscar...",
     "APPROVE": {
       "TITLE": "Aprobar Actividad",
-      "IDENTIFICATION": "Identificación",
-      "IDENTIFICATION_PLACEHOLDER": "Ingrese su identificación",
-      "IDENTIFICATION_REQUIRED": "La identificación es requerida",
-      "NAME": "Nombre",
-      "NAME_PLACEHOLDER": "Ingrese su nombre",
-      "NAME_REQUIRED": "El nombre es requerido",
-      "POSITION": "Cargo",
-      "POSITION_PLACEHOLDER": "Ingrese su cargo",
-      "POSITION_REQUIRED": "El cargo es requerido",
+      "DETAILS": "Detalles",
       "MILEAGE": "Kilometraje",
-      "MILEAGE_PLACEHOLDER": "Ingrese el kilometraje",
       "MILEAGE_REQUIRED": "El kilometraje es requerido",
-      "MILEAGE_MIN": "El kilometraje debe ser mayor a 0",
+      "NAME": "Nombre",
+      "NAME_REQUIRED": "El nombre es requerido",
+      "ID": "Identificación",
+      "ID_REQUIRED": "La identificación es requerida",
+      "POSITION": "Cargo",
+      "POSITION_REQUIRED": "El cargo es requerido",
       "NOTES": "Observaciones",
-      "NOTES_PLACEHOLDER": "Ingrese observaciones adicionales",
       "SIGNATURE": "Firma",
       "SIGNATURE_REQUIRED": "La firma es requerida",
-      "CLEAR_SIGNATURE": "Limpiar firma",
-      "CONFIRM": "Confirmar",
-      "SENDING": "Enviando información...",
+      "BUTTON": "Aprobar",
+      "SENDING": "Enviando...",
       "SUCCESS": "Actividad aprobada exitosamente",
       "ERROR": "Error al aprobar la actividad"
     },
     "REJECT": {
       "TITLE": "Rechazar Actividad",
-      "CONFIRM": "Rechazar",
-      "SUCCESS": "Actividad rechazada exitosamente"
+      "BUTTON": "Rechazar",
+      "SENDING": "Enviando...",
+      "SUCCESS": "Actividad rechazada exitosamente",
+      "ERROR": "Error al rechazar la actividad"
     },
     "MESSAGES": {
       "FORM_ERROR": "Por favor complete todos los campos requeridos",
-      "STARTING_ROUTE": "Iniciando ruta",
-      "UPDATING_INFO": "Actualizando información",
-      "PERMISSION_ERROR": "Error al verificar permisos",
-      "LOAD_ERROR": "Error al cargar las actividades",
-      "FILTER_ERROR": "Error al filtrar las actividades",
-      "INITIAL_MILEAGE": "Kilometraje inicial",
-      "MILEAGE": "Kilometraje",
-      "MILEAGE_ERROR": "Error al solicitar el kilometraje",
-      "NAVIGATION_ERROR": "Error al navegar a la actividad",
-      "SERVICES": "Servicios",
-      "ADD_ERROR": "Error al agregar la actividad",
-      "MODAL_ERROR": "Error al mostrar el formulario",
-      "START_ERROR": "Error al iniciar la actividad. Continuando con la navegación..."
+      "LOAD_ERROR": "Error al cargar la actividad"
     }
   },
   "TRANSACTIONS": {
-    "SEARCH": "Buscar...",
+    "SEARCH": "Buscar transacciones...",
+    "TITLE": "Transacciones",
     "APPROVE": {
       "TITLE": "Aprobar Transacción",
       "POINT": "Punto",

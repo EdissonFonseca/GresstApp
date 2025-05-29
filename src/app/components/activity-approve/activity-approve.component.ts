@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Card } from '@app/interfaces/card.interface';
 import { ModalController } from '@ionic/angular';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
@@ -20,7 +20,7 @@ export class ActivityApproveComponent implements OnInit {
   @Input() showPin: boolean = true;
   @Input() showNotes: boolean = true;
   @Input() showSignPad: boolean = true;
-  @Input() approveOrReject: string = 'approve';
+  @Input() isReject: boolean = false;
   @Input() activityId: string = '';
 
   @ViewChild('canvas', { static: false }) signatureCanvas!: ElementRef;
@@ -33,7 +33,7 @@ export class ActivityApproveComponent implements OnInit {
   private drawing = signal<boolean>(false);
   private penColor = signal<string>('black');
 
-  activity = signal<Actividad | null>(null);
+  activity: Actividad | null = null;
 
   private isDataLoaded = false;
 
@@ -58,24 +58,35 @@ export class ActivityApproveComponent implements OnInit {
       Identificacion: [''],
       Nombre: [''],
       Cargo: [''],
-      Kilometraje: [null, [Validators.min(1), Validators.pattern("^[0-9]*$")]],
+      Kilometraje: [null],
       Observaciones: [''],
       Firma: [null]
     });
 
+    console.log('activityId', this.activityId);
     if (this.activityId) {
-      const actividad = await this.activitiesService.get(this.activityId);
-      if (actividad) {
-        this.activity.set(actividad);
-        this.frmActividad.patchValue({
-          Identificacion: actividad.ResponsableIdentificacion,
-          Nombre: actividad.ResponsableNombre,
-          Cargo: actividad.ResponsableCargo,
-          Kilometraje: actividad.KilometrajeFinal,
-          Observaciones: actividad.ResponsableObservaciones
-        });
+      try {
+        const actividad = await this.activitiesService.get(this.activityId);
+        if (actividad) {
+          this.activity = actividad;
+          this.frmActividad.patchValue({
+            Identificacion: actividad.ResponsableIdentificacion,
+            Nombre: actividad.ResponsableNombre,
+            Cargo: actividad.ResponsableCargo,
+            Kilometraje: actividad.KilometrajeFinal,
+            Observaciones: actividad.ResponsableObservaciones
+          });
 
-        this.summary = this.activitiesService.getSummary(actividad);
+          this.summary = this.activitiesService.getSummary(actividad);
+          console.log('Activity loaded:', actividad);
+          console.log('Summary:', this.summary);
+        }
+      } catch (error) {
+        console.error('Error loading activity:', error);
+        await this.userNotificationService.showToast(
+          this.translate.instant('ACTIVITIES.MESSAGES.LOAD_ERROR'),
+          'middle'
+        );
       }
     }
 
@@ -162,14 +173,6 @@ export class ActivityApproveComponent implements OnInit {
   }
 
   async getFormData(): Promise<Actividad | undefined> {
-    if (this.frmActividad.invalid) {
-      await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.FORM_ERROR'),
-        'middle'
-      );
-      return undefined;
-    }
-
     const actividad = await this.activitiesService.get(this.activityId);
     if (!actividad) return undefined;
 
@@ -191,21 +194,21 @@ export class ActivityApproveComponent implements OnInit {
 
     try {
       await this.userNotificationService.showLoading(
-        this.translate.instant('ACTIVITIES.APPROVE.SENDING')
+        this.translate.instant(this.isReject ? 'ACTIVITIES.REJECT.SENDING' : 'ACTIVITIES.APPROVE.SENDING')
       );
 
-      actividad.IdEstado = this.approveOrReject === 'reject' ? STATUS.REJECTED : STATUS.APPROVED;
+      actividad.IdEstado = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
       await this.activitiesService.update(actividad);
 
       await this.userNotificationService.showToast(
-        this.translate.instant(this.approveOrReject === 'reject' ? 'ACTIVITIES.REJECT.SUCCESS' : 'ACTIVITIES.APPROVE.SUCCESS'),
+        this.translate.instant(this.isReject ? 'ACTIVITIES.REJECT.SUCCESS' : 'ACTIVITIES.APPROVE.SUCCESS'),
         'top'
       );
 
       this.modalCtrl.dismiss(actividad);
     } catch (error) {
       await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.APPROVE.ERROR'),
+        this.translate.instant(this.isReject ? 'ACTIVITIES.REJECT.ERROR' : 'ACTIVITIES.APPROVE.ERROR'),
         'middle'
       );
     } finally {

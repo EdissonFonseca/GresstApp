@@ -9,7 +9,8 @@
     "LOADING": "Loading...",
     "LANGUAGE": "Language",
     "CONTINUE": "Continue",
-    "ACCEPT": "Accept"
+    "ACCEPT": "Accept",
+    "EXIT": "Exit"
   },
   "AUTH": {
     "LOGIN": {
@@ -115,53 +116,38 @@
     "SEARCH": "Search...",
     "APPROVE": {
       "TITLE": "Approve Activity",
-      "IDENTIFICATION": "Identification",
-      "IDENTIFICATION_PLACEHOLDER": "Enter your identification",
-      "IDENTIFICATION_REQUIRED": "Identification is required",
-      "NAME": "Name",
-      "NAME_PLACEHOLDER": "Enter your name",
-      "NAME_REQUIRED": "Name is required",
-      "POSITION": "Position",
-      "POSITION_PLACEHOLDER": "Enter your position",
-      "POSITION_REQUIRED": "Position is required",
+      "DETAILS": "Details",
       "MILEAGE": "Mileage",
-      "MILEAGE_PLACEHOLDER": "Enter mileage",
       "MILEAGE_REQUIRED": "Mileage is required",
-      "MILEAGE_MIN": "Mileage must be greater than 0",
+      "NAME": "Name",
+      "NAME_REQUIRED": "Name is required",
+      "ID": "ID",
+      "ID_REQUIRED": "ID is required",
+      "POSITION": "Position",
+      "POSITION_REQUIRED": "Position is required",
       "NOTES": "Notes",
-      "NOTES_PLACEHOLDER": "Enter additional notes",
       "SIGNATURE": "Signature",
       "SIGNATURE_REQUIRED": "Signature is required",
-      "CLEAR_SIGNATURE": "Clear signature",
-      "CONFIRM": "Confirm",
-      "SENDING": "Sending information...",
+      "BUTTON": "Approve",
+      "SENDING": "Sending...",
       "SUCCESS": "Activity approved successfully",
       "ERROR": "Error approving activity"
     },
     "REJECT": {
       "TITLE": "Reject Activity",
-      "CONFIRM": "Reject",
-      "SUCCESS": "Activity rejected successfully"
+      "BUTTON": "Reject",
+      "SENDING": "Sending...",
+      "SUCCESS": "Activity rejected successfully",
+      "ERROR": "Error rejecting activity"
     },
     "MESSAGES": {
       "FORM_ERROR": "Please fill in all required fields",
-      "STARTING_ROUTE": "Starting route",
-      "UPDATING_INFO": "Updating information",
-      "PERMISSION_ERROR": "Error checking permissions",
-      "LOAD_ERROR": "Error loading activities",
-      "FILTER_ERROR": "Error filtering activities",
-      "INITIAL_MILEAGE": "Initial mileage",
-      "MILEAGE": "Mileage",
-      "MILEAGE_ERROR": "Error requesting mileage",
-      "NAVIGATION_ERROR": "Error navigating to activity",
-      "SERVICES": "Services",
-      "ADD_ERROR": "Error adding activity",
-      "MODAL_ERROR": "Error showing form",
-      "START_ERROR": "Error starting activity. Continuing with navigation..."
+      "LOAD_ERROR": "Error loading activity"
     }
   },
   "TRANSACTIONS": {
-    "SEARCH": "Search...",
+    "SEARCH": "Search transactions...",
+    "TITLE": "Transactions",
     "APPROVE": {
       "TITLE": "Approve Transaction",
       "POINT": "Point",

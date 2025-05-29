@@ -364,7 +364,7 @@ export class ActivitiesPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: ActivityApproveComponent,
         componentProps: {
-          IdActividad: id,
+          activityId: id,
           activity: card[0]
         },
       });

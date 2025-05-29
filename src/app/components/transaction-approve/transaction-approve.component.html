@@ -1,10 +1,17 @@
 <!-- Header section with dynamic title based on mode (approve/reject) -->
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()" color="medium">
+        <ion-icon name="close-circle"></ion-icon>
+        {{ 'COMMON.EXIT' | translate }}
+      </ion-button>
+    </ion-buttons>
     <ion-title>{{ (isReject ? 'TRANSACTIONS.REJECT.TITLE' : 'TRANSACTIONS.APPROVE.TITLE') | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="cancel()">
-        <ion-icon name="close"></ion-icon>
+      <ion-button (click)="submit()" [color]="isReject ? 'danger' : 'success'">
+        <ion-icon [name]="isReject ? 'bag-remove' : 'bag-add'"></ion-icon>
+        {{ (isReject ? 'TRANSACTIONS.REJECT.CONFIRM' : 'TRANSACTIONS.APPROVE.CONFIRM') | translate }}
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
@@ -14,23 +21,23 @@
 <ion-content color="light">
   <!-- Transaction details section -->
   <ion-list color="light" class="ion-no-padding">
-    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="transactionDetails()?.Titulo">
+    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="transaction()">
       <ion-icon name="location-outline" slot="start"></ion-icon>
-      <ion-label size="small">{{ transactionDetails()?.Titulo }}</ion-label>
+      <ion-label size="small">{{ transaction()?.Titulo }}</ion-label>
     </ion-item>
   </ion-list>
 
   <!-- Task summary section -->
-  <ion-list color="light" class="ion-no-padding" *ngIf="taskSummary()">
+  <ion-list color="light" class="ion-no-padding" *ngIf="transaction()">
     <ion-item color="light" lines="none" class="ion-no-padding">
       <div class="summary-content">
         <div class="badges-left">
-          <ion-badge color="warning">{{ taskSummary()?.pending || 0 }}</ion-badge>
-          <ion-badge color="success">{{ taskSummary()?.approved || 0 }}</ion-badge>
-          <ion-badge color="danger">{{ taskSummary()?.rejected || 0 }}</ion-badge>
+          <ion-badge color="success">{{ transaction()?.approved || 0 }}</ion-badge>
+          <ion-badge color="warning">{{ transaction()?.pending || 0 }}</ion-badge>
+          <ion-badge color="danger">{{ transaction()?.rejected || 0 }}</ion-badge>
         </div>
         <div class="summary-badge">
-          {{ summary }}
+          {{ transaction()?.quantity || 0 }}
         </div>
       </div>
     </ion-item>
@@ -39,58 +46,46 @@
   <!-- Formulario de aprobación -->
   <form [formGroup]="frmTransaction">
     <ion-list>
-      <!-- Identificación -->
-      <ion-item *ngIf="showPin">
-        <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.IDENTIFICATION' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Identificacion"></ion-input>
+      <ion-item *ngIf="showMileage">
+        <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.MILEAGE' | translate }} ({{ mileageUnit }})</ion-label>
+        <ion-input type="number" formControlName="Kilometraje"></ion-input>
       </ion-item>
 
-      <!-- Nombre -->
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.NAME' | translate }}</ion-label>
         <ion-input type="text" formControlName="Nombre"></ion-input>
       </ion-item>
 
-      <!-- Cargo -->
-      <ion-item *ngIf="showPosition">
+      <ion-item *ngIf="showPin">
+        <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.IDENTIFICATION' | translate }}</ion-label>
+        <ion-input type="text" formControlName="Identificacion"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.POSITION' | translate }}</ion-label>
         <ion-input type="text" formControlName="Cargo"></ion-input>
       </ion-item>
 
-      <!-- Kilometraje -->
-      <ion-item *ngIf="showMileage">
-        <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.MILEAGE' | translate }} ({{ mileageUnit() }})</ion-label>
-        <ion-input type="number" formControlName="Kilometraje"></ion-input>
-      </ion-item>
-
-      <!-- Observaciones -->
       <ion-item *ngIf="showNotes">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.NOTES' | translate }}</ion-label>
-        <ion-textarea formControlName="Observaciones"></ion-textarea>
+        <ion-textarea formControlName="Observaciones" rows="3"></ion-textarea>
       </ion-item>
 
-      <!-- Firma -->
       <ion-item *ngIf="showSignPad">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.SIGNATURE' | translate }}</ion-label>
-        <canvas #canvas
-          (touchstart)="startDrawing($event)"
-          (touchmove)="draw($event)"
-          (touchend)="endDrawing()"
-          (touchcancel)="endDrawing()">
-        </canvas>
-        <ion-button fill="clear" (click)="clear()">
-          <ion-icon name="trash"></ion-icon>
-        </ion-button>
+        <div class="signature-container">
+          <canvas #canvas
+            (touchstart)="startDrawing($event)"
+            (touchmove)="draw($event)"
+            (touchend)="endDrawing()"
+            (touchcancel)="endDrawing()"
+            class="signature-pad">
+          </canvas>
+          <ion-button fill="clear" (click)="clear()">
+            <ion-icon name="trash"></ion-icon>
+          </ion-button>
+        </div>
       </ion-item>
     </ion-list>
   </form>
 </ion-content>
-
-<!-- Footer with submit button -->
-<ion-footer>
-  <ion-toolbar>
-    <ion-button expand="block" (click)="submit()" [disabled]="frmTransaction.invalid">
-      {{ (isReject ? 'TRANSACTIONS.REJECT.BUTTON' : 'TRANSACTIONS.APPROVE.BUTTON') | translate }}
-    </ion-button>
-  </ion-toolbar>
-</ion-footer>

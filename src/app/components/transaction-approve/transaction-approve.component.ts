@@ -1,6 +1,5 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Card } from '@app/interfaces/card.interface';
 import { ModalController } from '@ionic/angular';
 import { Transaccion } from 'src/app/interfaces/transaccion.interface';
 import { STATUS } from '@app/constants/constants';
@@ -8,18 +7,6 @@ import { TransactionsService } from '@app/services/transactions/transactions.ser
 import { Utils } from '@app/utils/utils';
 import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
-import { TasksService } from '@app/services/transactions/tasks.service';
-
-interface TaskSummary {
-  total: number;
-  pending: number;
-  completed: number;
-  approved: number;
-  rejected: number;
-  quantity: number;
-  weight: number;
-  volume: number;
-}
 
 /**
  * TransactionApproveComponent
@@ -52,8 +39,9 @@ export class TransactionApproveComponent implements OnInit {
   @Input() showSignPad: boolean = true;
   /** Determines if component is in reject mode */
   @Input() isReject: boolean = false;
-  /** Transaction card data to be approved/rejected */
-  @Input() transaction: Card = { id: '', title: '', status: '', type: '' };
+  /** Transaction data to be approved/rejected */
+  @Input() transactionId: string = '';
+  @Input() activityId: string = '';
 
   /** Reference to the signature canvas element */
   @ViewChild('canvas', { static: false }) signatureCanvas!: ElementRef;
@@ -61,21 +49,18 @@ export class TransactionApproveComponent implements OnInit {
   /** Form group for transaction approval/rejection data */
   frmTransaction!: FormGroup;
   /** Signal containing the mileage unit (km/mi) */
-  mileageUnit = signal<string>('');
+  mileageUnit = 'km';
   /** Canvas element for signature */
   private canvas: any;
   /** Canvas 2D context for drawing */
   private ctx: any;
   /** Signal tracking if user is currently drawing */
-  private drawing = signal<boolean>(false);
+  private drawing = false;
   /** Signal containing the pen color for signature */
-  private penColor = signal<string>('black');
-  /** Summary of the transaction */
-  summary = '';
+  private penColor = 'black';
 
   /** Signal containing the transaction details */
-  transactionDetails = signal<Transaccion | null>(null);
-  taskSummary = signal<TaskSummary | null>(null);
+  transaction = signal<Transaccion | null>(null);
 
   /** Flag to track if data has been loaded */
   private isDataLoaded = false;
@@ -89,8 +74,7 @@ export class TransactionApproveComponent implements OnInit {
     private modalCtrl: ModalController,
     private transactionsService: TransactionsService,
     private userNotificationService: UserNotificationService,
-    private translate: TranslateService,
-    private tasksService: TasksService
+    private translate: TranslateService
   ) {}
 
   /**
@@ -100,9 +84,10 @@ export class TransactionApproveComponent implements OnInit {
   async ngOnInit() {
     if (this.isDataLoaded) return;
 
-    this.mileageUnit.set(Utils.mileageUnit);
+    this.mileageUnit = Utils.mileageUnit;
     this.showMileage = Utils.requestMileage;
 
+    console.log('transactionId', this.transactionId);
     // Initialize form without required validators
     this.frmTransaction = this.formBuilder.group({
       Identificacion: [''],
@@ -114,10 +99,11 @@ export class TransactionApproveComponent implements OnInit {
     });
 
     // Load transaction data if available
-    if (this.transaction?.id) {
-      const transaccion = await this.transactionsService.get(this.transaction.parentId ?? '', this.transaction.id);
+    if (this.transactionId) {
+      const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
       if (transaccion) {
-        this.transactionDetails.set(transaccion);
+        console.log('transaccion', transaccion);
+        this.transaction.set(transaccion);
         this.frmTransaction.patchValue({
           Identificacion: transaccion.ResponsableIdentificacion,
           Nombre: transaccion.ResponsableNombre,
@@ -125,9 +111,6 @@ export class TransactionApproveComponent implements OnInit {
           Kilometraje: transaccion.Kilometraje,
           Observaciones: transaccion.ResponsableObservaciones
         });
-
-        // Obtener el resumen de tareas
-        this.summary = this.transactionsService.getSummary(transaccion);
       }
     }
 
@@ -144,7 +127,7 @@ export class TransactionApproveComponent implements OnInit {
       this.ctx = this.canvas.getContext('2d');
       this.renderer.setProperty(this.canvas, 'width', window.innerWidth);
       this.renderer.setProperty(this.canvas, 'height', 200);
-      this.ctx.strokeStyle = this.penColor();
+      this.ctx.strokeStyle = this.penColor;
       this.ctx.lineWidth = 2;
       this.ctx.lineCap = 'round';
       this.ctx.lineJoin = 'round';
@@ -165,7 +148,7 @@ export class TransactionApproveComponent implements OnInit {
     const x = (touch.clientX - rect.left) * scaleX;
     const y = (touch.clientY - rect.top) * scaleY;
 
-    this.drawing.set(true);
+    this.drawing = true;
     this.ctx.beginPath();
     this.ctx.moveTo(x, y);
   }
@@ -175,7 +158,7 @@ export class TransactionApproveComponent implements OnInit {
    * @param event Touch event containing coordinates
    */
   draw(event: any) {
-    if (!this.ctx || !this.drawing()) return;
+    if (!this.ctx || !this.drawing) return;
     event.preventDefault();
     const touch = event.touches[0];
     const rect = this.canvas.getBoundingClientRect();
@@ -194,7 +177,7 @@ export class TransactionApproveComponent implements OnInit {
    */
   endDrawing() {
     if (!this.ctx) return;
-    this.drawing.set(false);
+    this.drawing = false;
     this.updateSignatureField();
   }
 
@@ -255,10 +238,7 @@ export class TransactionApproveComponent implements OnInit {
       return undefined;
     }
 
-    const transaccion = await this.transactionsService.get(
-      this.transaction?.parentId ?? '',
-      this.transaction?.id ?? ''
-    );
+    const transaccion = await this.transactionsService.get(this.activityId, this.transactionId);
 
     if (!transaccion) return undefined;
 
