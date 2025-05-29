@@ -3,21 +3,26 @@
 }
 .header-green{
   --background:#45C4B0;
+  background: #45C4B0;
 
   ion-title {
     color: white;
+    font-weight: 500;
   }
 
   ion-back-button {
     --color: white;
+    --opacity: 1;
   }
 
   ion-button {
     --color: white;
+    --opacity: 1;
   }
 
   ion-icon {
     color: white;
+    --opacity: 1;
   }
 }
 
@@ -59,7 +64,6 @@
   display: block;
   width: 100%;
   height: 100%;
-  position: relative;
 }
 
 ion-content {
@@ -70,8 +74,7 @@ ion-content {
 }
 
 .content-wrapper {
-  padding: 8px;
-  padding-bottom: 80px; // Espacio para el FAB
+  padding: 16px;
 }
 
 ion-searchbar {
@@ -143,32 +146,12 @@ ion-item {
 
 .empty-state {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 24px 16px;
+  align-items: center;
+  height: 100%;
+  color: var(--ion-color-medium);
   text-align: center;
-  color: var(--ion-text-color-secondary);
-  width: 100%;
-  box-sizing: border-box;
-
-  ion-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    opacity: 0.5;
-  }
-
-  h3 {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin: 0 0 8px 0;
-  }
-
-  p {
-    font-size: 0.9rem;
-    margin: 0;
-    opacity: 0.8;
-  }
+  padding: 20px;
 }
 
 .transaction-card {
@@ -199,6 +182,24 @@ ion-item {
   }
 }
 
+// Estilos para el botón flotante
 ion-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
   z-index: 999;
+}
+
+ion-fab-button {
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 56px;
+  height: 56px;
+}
+
+// Estilos específicos para el card-list en la página de tareas
+app-card-list {
+  display: block;
+  width: 100%;
+  margin: 16px 0;
+  box-sizing: border-box;
 }

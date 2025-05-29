@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SERVICE_TYPES, STATUS } from '@app/constants/constants';
+import { STATUS } from '@app/constants/constants';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
 import { TransactionsService } from '@app/services/transactions/transactions.service';

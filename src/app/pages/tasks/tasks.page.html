@@ -1,7 +1,7 @@
 <!-- Header section with navigation and actions -->
 <ion-header [translucent]="true">
   <!-- Main toolbar with navigation and action buttons -->
-  <ion-toolbar>
+  <ion-toolbar class="header-green">
     <!-- Back button for navigation -->
     <ion-buttons slot="start">
       <ion-back-button [text]="''" (click)="goBack()"></ion-back-button>
@@ -12,7 +12,11 @@
 
     <!-- Action buttons for data synchronization -->
     <ion-buttons slot="end">
-      <ion-button (click)="synchronize()" [disabled]="loading()">
+      <!-- Synchronize button -->
+      <ion-button
+        (click)="synchronize()"
+        [disabled]="loading()"
+        aria-label="Synchronize data">
         <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -21,41 +25,50 @@
   <!-- Search toolbar for filtering tasks -->
   <ion-toolbar>
     <ion-searchbar
-      placeholder="TASKS.SEARCH_PLACEHOLDER | translate"
+      placeholder="{{ 'TASKS.SEARCH' | translate }}"
       (ionInput)="handleInput($event)"
       [disabled]="loading()"
-    ></ion-searchbar>
+      show-clear-button="focus"
+      aria-label="Search tasks">
+    </ion-searchbar>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">{{ title }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
   <div class="content-wrapper">
-    <!-- Transactions and tasks list container -->
-    <ng-container *ngIf="transactionsSignal() as transactions">
-      <ng-container *ngFor="let transaction of transactions">
-        <!-- Transaction title -->
-        <div class="card-container">
-          <ion-item lines="none" class="transparent-item">
-            <ion-label>
-              <h2>{{ transaction.Punto }}</h2>
-              <p>{{ transaction.Tercero }}</p>
-            </ion-label>
-          </ion-item>
+    <!-- Loading spinner -->
+    <div *ngIf="loading()" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
 
-          <!-- Tasks list for current transaction -->
-          <app-card-list
-            [cards]="filterTasks(transaction.IdTransaccion)"
-            (edit)="openEdit($event)"
-            aria-label="Lista de tareas"
-            role="list">
-          </app-card-list>
-        </div>
+    <!-- Tasks list -->
+    <ng-container *ngIf="!loading()">
+      <ng-container *ngIf="transactionsSignal() as transactions">
+        <ng-container *ngFor="let transaction of transactions">
+          <!-- Transaction title -->
+          <div class="card-container">
+            <ion-item lines="none" class="transparent-item">
+              <ion-label>
+                <h2>{{ transaction.Punto }}</h2>
+                <p>{{ transaction.Tercero }}</p>
+              </ion-label>
+            </ion-item>
+
+            <!-- Tasks list for current transaction -->
+            <app-card-list
+              [cards]="filterTasks(transaction.IdTransaccion)"
+              [showEdit]="true"
+              (edit)="openEdit($event)"
+              aria-label="Lista de tareas"
+              role="list">
+            </app-card-list>
+          </div>
+        </ng-container>
+
+        <!-- Empty state message -->
+        <ion-text *ngIf="transactions.length === 0" class="empty-state">
+          <p>{{ 'TASKS.MESSAGES.NO_TASKS' | translate }}</p>
+        </ion-text>
       </ng-container>
     </ng-container>
   </div>
@@ -72,9 +85,7 @@
     (click)="openAdd()"
     [disabled]="loading()"
     aria-label="Add icon">
-    <ion-icon
-      name="add"
-      aria-hidden="true">
+    <ion-icon name="add" aria-hidden="true">
     </ion-icon>
   </ion-fab-button>
 </ion-fab>

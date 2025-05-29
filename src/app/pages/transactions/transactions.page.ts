@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, signal, computed } from '@angular/core';
-import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
+import { Component, OnInit, signal, computed } from '@angular/core';
+import { ActivatedRoute, NavigationExtras } from '@angular/router';
 import { ActionSheetController, ModalController, NavController } from '@ionic/angular';
 import { TaskAddComponent } from 'src/app/components/task-add/task-add.component';
 import { TransactionApproveComponent } from 'src/app/components/transaction-approve/transaction-approve.component';
@@ -39,11 +39,17 @@ export class TransactionsPage implements OnInit {
   /** ID of the current activity */
   activityId: string = '';
 
+  /** Flag indicating whether the add transaction button should be shown */
+  showAdd: boolean = true;
+
+  /** Flag indicating whether the navigation button should be shown */
+  showNavigation: boolean = true;
+
+  /** Flag indicating whether the support documents button should be shown */
+  showSupport: boolean = true;
+
   /** Signal for loading state */
   loading = signal(false);
-
-  /** Signal for error state */
-  error = signal<Error | null>(null);
 
   /** Signal containing the list of transactions from the service */
   private transactionsSignal = this.transactionsService.transactions$;
@@ -69,19 +75,8 @@ export class TransactionsPage implements OnInit {
     return this.cardService.mapTransacciones(sortedTransactions);
   });
 
-  /** Flag to track if data has been loaded */
-  private isDataLoaded = false;
-
-  /** Flag indicating whether the add transaction button should be shown */
-  showAdd: boolean = true;
-  /** Flag indicating whether the navigation button should be shown */
-  showNavigation: boolean = true;
-  /** Flag indicating whether the support documents button should be shown */
-  showSupport: boolean = true;
-
   constructor(
     private navCtrl: NavController,
-    private router: Router,
     private activitiesService: ActivitiesService,
     private cardService: CardService,
     private transactionsService: TransactionsService,
@@ -134,10 +129,8 @@ export class TransactionsPage implements OnInit {
     try {
       this.loading.set(true);
       await this.transactionsService.list(this.activityId);
-      this.isDataLoaded = true;
     } catch (error) {
       this.logger.error('Error loading data:', error);
-      this.error.set(error instanceof Error ? error : new Error(String(error)));
     } finally {
       this.loading.set(false);
     }

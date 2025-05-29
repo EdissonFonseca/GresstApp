@@ -44,14 +44,11 @@ import { CardService } from '@app/services/core/card.service';
   ]
 })
 export class ActivitiesPage implements OnInit {
-  /** Signal containing the list of activities from the service */
-  private activitiesSignal = this.activitiesService.activities;
-
-  /** Signal containing the list of activity cards */
-  activityCards = signal<Card[]>([]);
-
   /** Flag to track if data has been loaded */
   private isDataLoaded = false;
+
+  /** Signal to track loading state */
+  loading = signal(false);
 
   /** Flag indicating whether the add activity button should be shown */
   showAdd: boolean = true;
@@ -61,6 +58,30 @@ export class ActivitiesPage implements OnInit {
 
   /** Current mileage value for the activity */
   mileage: number | null = null;
+
+  /** Signal containing the list of activities from the service */
+  private activitiesSignal = this.activitiesService.activities;
+
+  /** Signal containing the list of activity cards */
+  activityCards = computed(() => {
+    const activitiesList = this.activitiesSignal();
+    // Define the order of the statuses
+    const statusOrder = {
+      [STATUS.PENDING]: 1,
+      [STATUS.APPROVED]: 2,
+      [STATUS.REJECTED]: 3
+    };
+
+    // Sort transactions by status
+    const sortedActivities = activitiesList.sort((a, b) => {
+      const orderA = statusOrder[a.IdEstado] || 4; // Other statuses go last
+      const orderB = statusOrder[b.IdEstado] || 4;
+      return orderA - orderB;
+    });
+
+    // Transform transactions to cards
+    return this.cardService.mapActividades(sortedActivities);
+  });
 
   constructor(
     private navCtrl: NavController,
@@ -112,35 +133,10 @@ export class ActivitiesPage implements OnInit {
    */
   private async loadData() {
     try {
-      await this.activitiesService.load();
-      const activities = this.activitiesSignal();
-
-      if (!activities || activities.length === 0) {
-        this.activityCards.set([]);
-        return;
-      }
-
-      // Define el orden de los estados
-      const statusOrder = {
-        [STATUS.PENDING]: 1,
-        [STATUS.APPROVED]: 2,
-        [STATUS.REJECTED]: 3
-      };
-
-      // Sort activities by status
-      const sortedActivities = activities.sort((a, b) => {
-        const orderA = statusOrder[a.IdEstado] || 4;
-        const orderB = statusOrder[b.IdEstado] || 4;
-        return orderA - orderB;
-      });
-
-      // Use the CardService to map activities to cards
-      const cards = await this.cardService.mapActividades(sortedActivities);
-      this.activityCards.set(cards);
-      this.isDataLoaded = true;
-    } catch (error) {
-      console.error('Error loading data:', error);
-      this.activityCards.set([]);
+      this.loading.set(true);
+      await this.activitiesService.list();
+    } finally {
+      this.loading.set(false);
     }
   }
 
@@ -149,36 +145,7 @@ export class ActivitiesPage implements OnInit {
    * @param event - The input event containing the search query
    */
   async handleInput(event: any) {
-    try {
-      const query = event.target.value.toLowerCase();
-      const activityList = this.activitiesSignal().filter((activity: Actividad) =>
-        activity.Titulo.toLowerCase().indexOf(query) > -1
-      );
-
-      // Define the order of the statuses
-      const statusOrder = {
-        [STATUS.PENDING]: 1,
-        [STATUS.APPROVED]: 2,
-        [STATUS.REJECTED]: 3
-      };
-
-      // Sort activities by status
-      const sortedActivities = activityList.sort((a, b) => {
-        const orderA = statusOrder[a.IdEstado] || 4;
-        const orderB = statusOrder[b.IdEstado] || 4;
-        return orderA - orderB;
-      });
-
-      // Use the CardService to map activities to cards
-      const cards = await this.cardService.mapActividades(sortedActivities);
-      this.activityCards.set(cards);
-    } catch (error) {
-      console.error('Error filtering activities:', error);
-      await this.userNotificationService.showToast(
-        this.translate.instant('ACTIVITIES.MESSAGES.FILTER_ERROR'),
-        'middle'
-      );
-    }
+    await this.loadData();
   }
 
   /**
