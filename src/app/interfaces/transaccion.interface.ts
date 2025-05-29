@@ -69,4 +69,12 @@ export interface Transaccion {
   Capture?: string;
   Measurement?: string;
   Factor?: number;
+
+  //Summary Properties
+  pending?: number;
+  approved?: number;
+  rejected?: number;
+  quantity?: number;
+  weight?: number;
+  volume?: number;
 }

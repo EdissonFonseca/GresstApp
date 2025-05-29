@@ -12,7 +12,7 @@ import { Tratamiento } from '../../interfaces/tratamiento.interface';
 import { Vehiculo } from '../../interfaces/vehiculo.interface';
 import { Transaction } from '../../interfaces/transaction.interface';
 import { environment } from '../../../environments/environment';
-import { CRUD_OPERATIONS, DATA_TYPE, STORAGE } from '@app/constants/constants';
+import { CRUD_OPERATIONS, DATA_TYPE, STATUS, STORAGE } from '@app/constants/constants';
 import { LoggerService } from './logger.service';
 import { Inventario, InventoryApiService } from '../api/inventoryApi.service';
 import { APIRequest } from '@app/interfaces/APIRequest.interface';
@@ -109,6 +109,63 @@ export class SynchronizationService {
   async downloadTransactions(): Promise<void> {
     try {
       const transaction: Transaction = await this.transactionsService.get();
+
+      //Calculate task summary properties
+      transaction.Tareas.forEach(task => {
+        task.pending = task.IdEstado === STATUS.PENDING ? 1 : 0;
+        task.approved = task.IdEstado === STATUS.APPROVED ? 1 : 0;
+        task.rejected = task.IdEstado === STATUS.REJECTED ? 1 : 0;
+        task.quantity = task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
+        task.weight = task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
+        task.volume = task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
+      });
+
+      //Calculate transaction summary properties
+      transaction.Transacciones.forEach(transaccion => {
+        // Filter tasks of this transaction from the main array
+        const transactionTasks = transaction.Tareas.filter((task: Tarea) => task.IdTransaccion === transaccion.IdTransaccion);
+        const totals = transactionTasks.reduce((acc: { pending: number; approved: number; rejected: number; quantity: number; weight: number; volume: number }, task: Tarea) => {
+          acc.pending += task.IdEstado === STATUS.PENDING ? 1 : 0;
+          acc.approved += task.IdEstado === STATUS.APPROVED ? 1 : 0;
+          acc.rejected += task.IdEstado === STATUS.REJECTED ? 1 : 0;
+          acc.quantity += task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
+          acc.weight += task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
+          acc.volume += task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
+          return acc;
+        }, { pending: 0, approved: 0, rejected: 0, quantity: 0, weight: 0, volume: 0 });
+
+        // Assign totals to the transaction
+        transaccion.pending = totals.pending;
+        transaccion.approved = totals.approved;
+        transaccion.rejected = totals.rejected;
+        transaccion.quantity = totals.quantity;
+        transaccion.weight = totals.weight;
+        transaccion.volume = totals.volume;
+      });
+
+      //Calculate activity summary properties
+      transaction.Actividades.forEach(actividad => {
+        // Filter tasks of this transaction from the main array
+        const transactionTasks = transaction.Tareas.filter((task: Tarea) => task.IdActividad === actividad.IdActividad);
+        const totals = transactionTasks.reduce((acc: { pending: number; approved: number; rejected: number; quantity: number; weight: number; volume: number }, task: Tarea) => {
+          acc.pending += task.IdEstado === STATUS.PENDING ? 1 : 0;
+          acc.approved += task.IdEstado === STATUS.APPROVED ? 1 : 0;
+          acc.rejected += task.IdEstado === STATUS.REJECTED ? 1 : 0;
+          acc.quantity += task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
+          acc.weight += task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
+          acc.volume += task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
+          return acc;
+        }, { pending: 0, approved: 0, rejected: 0, quantity: 0, weight: 0, volume: 0 });
+
+        // Assign totals to the transaction
+        actividad.pending = totals.pending;
+        actividad.approved = totals.approved;
+        actividad.rejected = totals.rejected;
+        actividad.quantity = totals.quantity;
+        actividad.weight = totals.weight;
+        actividad.volume = totals.volume;
+      });
+
       await this.storage.set(STORAGE.TRANSACTION, transaction);
     } catch (error) {
       this.logger.error('Error downloading transactions', error);

@@ -35,10 +35,18 @@ export interface Actividad{
   Accion?: string;
   Icono?: string;
 
-  // Propiedades adicionales
+  // Additional properties
   requestPoint?: boolean;
   requestOwner?: boolean;
   requestPackaging?: boolean;
   requestTreatment?: boolean;
   title?: string;
+
+  //Summary Properties
+  pending?: number;
+  approved?: number;
+  rejected?: number;
+  quantity?: number;
+  weight?: number;
+  volume?: number;
 }

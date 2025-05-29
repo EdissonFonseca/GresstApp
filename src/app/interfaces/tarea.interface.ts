@@ -36,4 +36,12 @@ export interface Tarea{
   Embalaje?: string;
   Material?: string;
   Tratamiento?: string;
+
+  //Summary Properties
+  pending?: number;
+  approved?: number;
+  rejected?: number;
+  quantity?: number;
+  weight?: number;
+  volume?: number;
 }
