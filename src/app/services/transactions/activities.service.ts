@@ -177,6 +177,14 @@ export class ActivitiesService {
       actividad.LatitudInicial = latitud;
       actividad.LatitudInicial = longitud;
 
+      //Set activity summary properties
+      actividad.pending = 0;
+      actividad.approved = 0;
+      actividad.rejected = 0;
+      actividad.quantity = 0;
+      actividad.weight = 0;
+      actividad.volume = 0;
+
       transaction.Actividades.push(actividad);
       this.activities.set(transaction.Actividades);
       this.workflowService.setTransaction(transaction);
@@ -213,6 +221,51 @@ export class ActivitiesService {
         return false;
       }
 
+      // Find all pending tasks for this activity and mark them as rejected
+      const pendingTasks = transaction.Tareas.filter(
+        task => task.IdActividad === actividad.IdActividad && task.IdEstado === STATUS.PENDING
+      );
+
+      // Update each pending task to rejected status
+      pendingTasks.forEach(task => {
+        task.IdEstado = STATUS.REJECTED;
+        // Update task summary properties
+        task.pending = 0;
+        task.approved = 0;
+        task.rejected = 1;
+        task.quantity = 0;
+        task.weight = 0;
+        task.volume = 0;
+      });
+
+      // Find all pending transactions for this activity and mark them as rejected
+      const pendingTransactions = transaction.Transacciones.filter(
+        trans => trans.IdActividad === actividad.IdActividad && trans.IdEstado === STATUS.PENDING
+      );
+
+      // Update each pending transaction to rejected status
+      pendingTransactions.forEach(trans => {
+        trans.IdEstado = STATUS.REJECTED;
+        trans.FechaFinal = now;
+      });
+
+      // Calculate activity summary from all tasks
+      const allTasks = transaction.Tareas.filter(task => task.IdActividad === actividad.IdActividad);
+      const summary = allTasks.reduce((acc, task) => {
+        if (task.IdEstado === STATUS.PENDING) {
+          acc.pending += 1;
+        } else if (task.IdEstado === STATUS.APPROVED) {
+          acc.approved += 1;
+          acc.quantity += task.Cantidad ?? 0;
+          acc.weight += task.Peso ?? 0;
+          acc.volume += task.Volumen ?? 0;
+        } else if (task.IdEstado === STATUS.REJECTED) {
+          acc.rejected += 1;
+        }
+        return acc;
+      }, { pending: 0, approved: 0, rejected: 0, quantity: 0, weight: 0, volume: 0 });
+
+      // Update activity with new values and calculated summary
       transaction.Actividades[activityIndex] = {
         ...transaction.Actividades[activityIndex],
         FechaFinal: now,
@@ -223,21 +276,15 @@ export class ActivitiesService {
         ResponsableFirma: actividad.ResponsableFirma,
         ResponsableIdentificacion: actividad.ResponsableIdentificacion,
         ResponsableNombre: actividad.ResponsableNombre,
-        ResponsableObservaciones: actividad.ResponsableObservaciones
+        ResponsableObservaciones: actividad.ResponsableObservaciones,
+        // Update activity summary properties from tasks
+        pending: summary.pending,
+        approved: summary.approved,
+        rejected: summary.rejected,
+        quantity: summary.quantity,
+        weight: summary.weight,
+        volume: summary.volume
       };
-
-      const tareas = transaction.Tareas.filter(
-        x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
-      );
-      tareas.forEach(x => { x.IdEstado = STATUS.REJECTED });
-
-      const transacciones = transaction.Transacciones.filter(
-        x => x.IdActividad === actividad.IdActividad && x.IdEstado === STATUS.PENDING
-      );
-      transacciones.forEach(x => {
-        x.FechaInicial = now;
-        x.IdEstado = STATUS.REJECTED;
-      });
 
       this.activities.set(transaction.Actividades);
       this.workflowService.setTransaction(transaction);
@@ -278,6 +325,14 @@ export class ActivitiesService {
       current.IdEstado = actividad.IdEstado;
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
+
+      //Set activity summary properties
+      current.pending = 0;
+      current.approved = 0;
+      current.rejected = 0;
+      current.quantity = 0;
+      current.weight = 0;
+      current.volume = 0;
 
       this.workflowService.setTransaction(transaction);
       await this.saveTransaction();

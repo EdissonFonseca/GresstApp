@@ -333,12 +333,42 @@ export class TasksService {
         return false;
       }
 
+      //Set task summary properties
+      task.pending = 0;
+      task.approved = 1;
+      task.rejected = 0;
+      task.quantity = task.Cantidad;
+      task.weight = task.Peso ?? 0;
+      task.volume = task.Volumen ?? 0;
+
+      // If the task has a transaction associated, update its totals
+      if (task.IdTransaccion) {
+        const transaccion = currentTransaction.Transacciones.find(t => t.IdTransaccion === task.IdTransaccion);
+        if (transaccion) {
+          // Update the totals of the transaction
+          transaccion.approved = (transaccion.approved ?? 0) + 1;
+          transaccion.quantity = (transaccion.quantity ?? 0) + (task.Cantidad ?? 0);
+          transaccion.weight = (transaccion.weight ?? 0) + (task.Peso ?? 0);
+          transaccion.volume = (transaccion.volume ?? 0) + (task.Volumen ?? 0);
+        }
+      }
+      const activity = currentTransaction.Actividades.find(t => t.IdActividad === task.IdActividad);
+      if (activity) {
+        // Update the totals of the activity
+        activity.approved = (activity.approved ?? 0) + 1;
+        activity.quantity = (activity.quantity ?? 0) + (task.Cantidad ?? 0);
+        activity.weight = (activity.weight ?? 0) + (task.Peso ?? 0);
+        activity.volume = (activity.volume ?? 0) + (task.Volumen ?? 0);
+      }
+
       currentTransaction.Tareas.push(task);
       this.tasks.set(currentTransaction.Tareas);
       this.workflowService.setTransaction(currentTransaction);
       await this.saveTransaction();
+
       await this.requestsService.create(DATA_TYPE.TASK, CRUD_OPERATIONS.CREATE, task);
       await this.synchronizationService.uploadData();
+
       return true;
     } catch (error) {
       this.logger.error('Error creating task', { task, error });
@@ -366,6 +396,42 @@ export class TasksService {
         return false;
       }
 
+      // If the task has a transaction associated, update its totals
+      if (task.IdTransaccion) {
+        const transaccion = currentTransaction.Transacciones.find(t => t.IdTransaccion === task.IdTransaccion);
+        if (transaccion) {
+          // Subtract 1 from pending since the task was pending
+          transaccion.pending = (transaccion.pending ?? 0) - 1;
+
+          // Add the values of the new task
+          if (task.IdEstado === STATUS.APPROVED) {
+            transaccion.approved = (transaccion.approved ?? 0) + 1;
+            transaccion.quantity = (transaccion.quantity ?? 0) + (task.Cantidad ?? 0);
+            transaccion.weight = (transaccion.weight ?? 0) + (task.Peso ?? 0);
+            transaccion.volume = (transaccion.volume ?? 0) + (task.Volumen ?? 0);
+          } else if (task.IdEstado === STATUS.REJECTED) {
+            transaccion.rejected = (transaccion.rejected ?? 0) + 1;
+          }
+        }
+      }
+
+      // Update the totals of the activity
+      const activity = currentTransaction.Actividades.find(t => t.IdActividad === task.IdActividad);
+      if (activity) {
+        // Subtract 1 from pending since the task was pending
+        activity.pending = (activity.pending ?? 0) - 1;
+
+        // Add the values of the new task
+        if (task.IdEstado === STATUS.APPROVED) {
+          activity.approved = (activity.approved ?? 0) + 1;
+          activity.quantity = (activity.quantity ?? 0) + (task.Cantidad ?? 0);
+          activity.weight = (activity.weight ?? 0) + (task.Peso ?? 0);
+          activity.volume = (activity.volume ?? 0) + (task.Volumen ?? 0);
+        } else if (task.IdEstado === STATUS.REJECTED) {
+          activity.rejected = (activity.rejected ?? 0) + 1;
+        }
+      }
+
       currentTransaction.Tareas[taskIndex] = {
         ...currentTransaction.Tareas[taskIndex],
         IdEstado: task.IdEstado,
@@ -375,7 +441,14 @@ export class TasksService {
         Valor: task.Valor,
         FechaEjecucion: task.FechaEjecucion,
         Fotos: task.Fotos,
-        Observaciones: task.Observaciones
+        Observaciones: task.Observaciones,
+        // Update task summary properties
+        pending: task.IdEstado === STATUS.PENDING ? 1 : 0,
+        approved: task.IdEstado === STATUS.APPROVED ? 1 : 0,
+        rejected: task.IdEstado === STATUS.REJECTED ? 1 : 0,
+        quantity: task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0,
+        weight: task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0,
+        volume: task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0
       };
 
       this.tasks.set(currentTransaction.Tareas);

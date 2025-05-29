@@ -257,6 +257,15 @@ export class TransactionsService {
 
       if (transaction) {
         transaccion.FechaInicial = now;
+
+        //Set transaction summary properties
+        transaccion.pending = 0;
+        transaccion.approved = 0;
+        transaccion.rejected = 0;
+        transaccion.quantity = 0;
+        transaccion.weight = 0;
+        transaccion.volume = 0;
+
         transaction.Transacciones.push(transaccion);
         this.transactions.set(transaction.Transacciones);
           this.workflowService.setTransaction(transaction);
@@ -287,6 +296,31 @@ export class TransactionsService {
         );
 
         if (index !== -1) {
+          // Find all pending tasks associated with this transaction
+          const pendingTasks = transaction.Tareas.filter(task =>
+            task.IdTransaccion === transaccion.IdTransaccion &&
+            task.IdEstado === STATUS.PENDING
+          );
+
+          // Update each pending task to rejected status
+          pendingTasks.forEach(task => {
+            task.IdEstado = STATUS.REJECTED;
+            // Update task summary properties
+            task.pending = 0;
+            task.approved = 0;
+            task.rejected = 1;
+            task.quantity = 0;
+            task.weight = 0;
+            task.volume = 0;
+          });
+
+          // Calculate totals for the transaction
+          const totals = pendingTasks.reduce((acc, task) => {
+            acc.rejected += 1;
+            return acc;
+          }, { rejected: 0 });
+
+          // Update transaction with new values
           transaction.Transacciones[index] = {
             ...transaction.Transacciones[index],
             FechaFinal: now,
@@ -294,7 +328,15 @@ export class TransactionsService {
             Cantidad: transaccion.Cantidad,
             Peso: transaccion.Peso,
             Volumen: transaccion.Volumen,
-            Observaciones: transaccion.Observaciones
+            Observaciones: transaccion.Observaciones,
+
+            // Update transaction summary properties
+            pending: (transaction.Transacciones[index].pending ?? 0) - totals.rejected,
+            approved: transaction.Transacciones[index].approved ?? 0,
+            rejected: (transaction.Transacciones[index].rejected ?? 0) + totals.rejected,
+            quantity: transaction.Transacciones[index].quantity ?? 0,
+            weight: transaction.Transacciones[index].weight ?? 0,
+            volume: transaction.Transacciones[index].volume ?? 0
           };
 
           this.transactions.set(transaction.Transacciones);
