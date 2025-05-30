@@ -142,7 +142,17 @@
     },
     "MESSAGES": {
       "FORM_ERROR": "Por favor complete todos los campos requeridos",
-      "LOAD_ERROR": "Error al cargar la actividad"
+      "LOAD_ERROR": "Error al cargar la actividad",
+      "PERMISSION_ERROR": "No tiene permisos para realizar esta acción",
+      "STARTING_ROUTE": "Iniciando ruta...",
+      "INITIAL_MILEAGE": "Kilometraje Inicial",
+      "MILEAGE": "Kilometraje",
+      "MILEAGE_ERROR": "Error al ingresar el kilometraje",
+      "ADD_ERROR": "Error al agregar la actividad",
+      "UPDATE_ERROR": "Error al actualizar la actividad",
+      "APPROVE_ERROR": "Error al aprobar la actividad",
+      "REJECT_ERROR": "Error al rechazar la actividad",
+      "UPDATING_INFO": "Actualizando información..."
     }
   },
   "TRANSACTIONS": {

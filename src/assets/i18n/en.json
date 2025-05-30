@@ -142,7 +142,17 @@
     },
     "MESSAGES": {
       "FORM_ERROR": "Please fill in all required fields",
-      "LOAD_ERROR": "Error loading activity"
+      "LOAD_ERROR": "Error loading activity",
+      "PERMISSION_ERROR": "You don't have permission to perform this action",
+      "STARTING_ROUTE": "Starting route...",
+      "INITIAL_MILEAGE": "Initial Mileage",
+      "MILEAGE": "Mileage",
+      "MILEAGE_ERROR": "Error entering mileage",
+      "ADD_ERROR": "Error adding activity",
+      "UPDATE_ERROR": "Error updating activity",
+      "APPROVE_ERROR": "Error approving activity",
+      "REJECT_ERROR": "Error rejecting activity",
+      "UPDATING_INFO": "Updating information..."
     }
   },
   "TRANSACTIONS": {

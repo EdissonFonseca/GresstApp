@@ -163,7 +163,8 @@ export class ActivitiesPage implements OnInit {
       if (activityData.IdServicio === SERVICE_TYPES.COLLECTION ||
           activityData.IdServicio === SERVICE_TYPES.TRANSPORT) {
         // Initialize activity start if needed
-        if (activityData.FechaInicial == null) {
+        console.log('activityData', activityData);
+        if (!activityData.FechaInicial && activityData.approved === 0 && activityData.rejected === 0) {
           if (Utils.requestMileage) {
             const result = await this.requestMileagePrompt();
             if (!result) {
@@ -171,7 +172,6 @@ export class ActivitiesPage implements OnInit {
             }
             activityData.KilometrajeInicial = this.mileage;
           }
-
           await this.userNotificationService.showLoading(this.translate.instant('ACTIVITIES.MESSAGES.STARTING_ROUTE'));
           await this.activitiesService.updateStart(activityData);
           await this.userNotificationService.hideLoading();

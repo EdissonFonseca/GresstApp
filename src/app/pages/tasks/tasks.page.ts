@@ -104,7 +104,12 @@ export class TasksPage implements OnInit {
       const activityData = await this.activitiesService.get(this.activityId);
       if (activityData) {
         this.title = activityData.Titulo;
-        this.showAdd = activityData.IdEstado == STATUS.PENDING;
+      }
+      if (this.transactionId) {
+        const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+        if (transaction) {
+          this.showAdd = transaction.IdEstado == STATUS.PENDING;
+        }
       }
       await this.loadData();
     } catch (error) {

@@ -127,3 +127,36 @@ ion-searchbar {
     opacity: 0.8;
   }
 }
+
+.summary-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+
+  .badges-left {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+
+    ion-badge {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      border-radius: 12px;
+      font-weight: 500;
+      font-size: 0.8rem;
+    }
+  }
+
+  .summary-badge {
+    background: var(--ion-color-light-shade);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ion-text-color);
+  }
+}

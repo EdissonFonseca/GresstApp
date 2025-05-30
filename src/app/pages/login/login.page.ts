@@ -116,7 +116,6 @@ export class LoginPage implements OnInit {
             this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS_TITLE'),
             this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS_MESSAGE')
           );
-          throw new Error('INVALID_CREDENTIALS');
         }
       } else {
         await this.userNotificationService.hideLoading();
@@ -124,22 +123,10 @@ export class LoginPage implements OnInit {
           this.translate.instant('AUTH.ERRORS.NO_CONNECTION_TITLE'),
           this.translate.instant('AUTH.ERRORS.NO_CONNECTION_MESSAGE')
         );
-        throw new Error('NO_CONNECTION');
       }
     } catch (error: any) {
-      let errorMessage = '';
       let errorTitle = this.translate.instant('AUTH.ERRORS.TITLE');
-
-      if (error.message === 'INVALID_CREDENTIALS' || error.status === 401) {
-        errorMessage = this.translate.instant('AUTH.ERRORS.INVALID_CREDENTIALS');
-      } else if (error.message === 'NO_CONNECTION') {
-        errorTitle = this.translate.instant('AUTH.ERRORS.NO_CONNECTION_TITLE');
-        errorMessage = this.translate.instant('AUTH.ERRORS.NO_CONNECTION_MESSAGE');
-      } else {
-        errorMessage = this.translate.instant('AUTH.ERRORS.SERVER_ERROR');
-      }
-
-      await this.userNotificationService.showAlert(errorTitle, errorMessage);
+      await this.userNotificationService.showAlert(errorTitle, error.Message);
     } finally {
       this.isCheckingSession = false;
       await this.userNotificationService.hideLoading();

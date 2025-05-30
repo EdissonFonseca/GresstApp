@@ -4,6 +4,7 @@ import { HttpService } from './http.service';
 import { StorageService } from '../core/storage.service';
 import { LoggerService } from '../core/logger.service';
 import { STORAGE } from '@app/constants/constants';
+import { fakeAsync } from '@angular/core/testing';
 
 /**
  * Interface representing the token response from the authentication server
@@ -48,11 +49,7 @@ export class AuthenticationApiService {
         Password: password
       });
 
-      if (response.status !== 200) {
-        throw new Error('AUTH.ERRORS.SERVER_ERROR');
-      }
-
-      if (!response.data.AccessToken || !response.data.RefreshToken) {
+      if (response.status !== 200 || !response.data.AccessToken || !response.data.RefreshToken) {
         return false;
       }
 

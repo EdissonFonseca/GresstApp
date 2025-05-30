@@ -272,7 +272,7 @@ export class ActivitiesService {
 
       // Update each pending transaction to rejected status
       pendingTransactions.forEach(trans => {
-        trans.IdEstado = STATUS.REJECTED;
+        trans.IdEstado = STATUS.APPROVED;
         trans.FechaFinal = now;
       });
 
@@ -332,6 +332,7 @@ export class ActivitiesService {
    * @throws Error if update fails
    */
   async updateStart(actividad: Actividad): Promise<boolean> {
+    console.log('updateStart', actividad);
     try {
       const now = new Date().toISOString();
       const transaction = this.workflowService.getTransaction();
@@ -353,14 +354,7 @@ export class ActivitiesService {
       current.KilometrajeInicial = actividad.KilometrajeInicial;
       current.CantidadCombustibleInicial = actividad.CantidadCombustibleInicial;
 
-      //Set activity summary properties
-      current.pending = 0;
-      current.approved = 0;
-      current.rejected = 0;
-      current.quantity = 0;
-      current.weight = 0;
-      current.volume = 0;
-
+      this.activities.set(transaction.Actividades);
       this.workflowService.setTransaction(transaction);
       await this.saveTransaction();
       await this.requestsService.create(DATA_TYPE.START_ACTIVITY, CRUD_OPERATIONS.UPDATE, actividad);
