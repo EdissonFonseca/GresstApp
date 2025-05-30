@@ -3,6 +3,7 @@ import { IonicModule, MenuController, NavController, ToastController } from '@io
 import { PasswordCodePage } from './password-code.page';
 import { StorageService } from '@app/services/core/storage.service';
 import { FormsModule } from '@angular/forms';
+import { STORAGE } from '@app/constants/constants';
 
 describe('PasswordCodePage', () => {
   let component: PasswordCodePage;
@@ -56,7 +57,7 @@ describe('PasswordCodePage', () => {
     await component.verify();
     tick();
 
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Code');
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE);
     expect(navCtrlSpy.navigateRoot).toHaveBeenCalledWith('/password-key');
   }));
 
@@ -66,19 +67,14 @@ describe('PasswordCodePage', () => {
     component.verificationCode = '654321';
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
     await component.verify();
     tick();
 
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Code');
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE);
     expect(toastControllerSpy.create).toHaveBeenCalledWith({
       message: 'The code does not match',
       duration: 3000,
@@ -95,4 +91,32 @@ describe('PasswordCodePage', () => {
 
     await expectAsync(component.verify()).toBeRejectedWithError('Request error: Storage error');
   }));
+
+  it('should handle unknown error', fakeAsync(async () => {
+    storageServiceSpy.get.and.returnValue(Promise.reject('Unknown error'));
+    component.verificationCode = '123456';
+
+    await expectAsync(component.verify()).toBeRejectedWithError('Unknown error: Unknown error');
+  }));
+
+  it('should render verification code input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="verificationCode"]');
+    expect(input).toBeTruthy();
+    expect(input.getAttribute('type')).toBe('text');
+  });
+
+  it('should render verify button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Verificar Código');
+  });
+
+  it('should render back to login button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button[color="medium"]');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Regresar al inicio');
+  });
 });

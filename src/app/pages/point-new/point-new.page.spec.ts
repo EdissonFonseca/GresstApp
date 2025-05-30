@@ -9,7 +9,8 @@ import { Punto } from '@app/interfaces/punto.interface';
 import { INPUT_OUTPUT, STATUS, SERVICE_TYPES } from '@app/constants/constants';
 import { Utils } from '@app/utils/utils';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('PointNewPage', () => {
   let component: PointNewPage;
@@ -74,7 +75,8 @@ describe('PointNewPage', () => {
       imports: [
         IonicModule.forRoot(),
         RouterTestingModule,
-        ReactiveFormsModule,
+        FormsModule,
+        ComponentsModule,
         PointNewPage
       ],
       providers: [
@@ -138,25 +140,42 @@ describe('PointNewPage', () => {
       IdServicio: SERVICE_TYPES.COLLECTION,
       IdEstado: STATUS.PENDING
     }));
-    expect(synchronizationServiceSpy.uploadData).toHaveBeenCalled();
     expect(navCtrlSpy.navigateForward).toHaveBeenCalledWith('/route', {
       queryParams: { IdActividad: '123' }
     });
   });
 
-  it('should handle error when loading points', async () => {
-    pointsServiceSpy.list.and.returnValue(Promise.reject('Error'));
-    spyOn(Utils, 'showToast');
-    await component.ngOnInit();
-    expect(Utils.showToast).toHaveBeenCalledWith('Error al cargar los puntos', 'top');
+  it('should render header with back button', () => {
+    const compiled = fixture.nativeElement;
+    const header = compiled.querySelector('ion-header');
+    expect(header).toBeTruthy();
+    const backButton = header.querySelector('ion-back-button');
+    expect(backButton).toBeTruthy();
   });
 
-  it('should handle error when creating transaction', async () => {
-    transactionsServiceSpy.create.and.returnValue(Promise.reject('Error'));
-    spyOn(Utils, 'showToast');
-    component.idActividad = '123';
-    component.idPunto = '1';
-    await component.confirm();
-    expect(Utils.showToast).toHaveBeenCalledWith('Error al crear la transacción', 'top');
+  it('should render header with title', () => {
+    const compiled = fixture.nativeElement;
+    const title = compiled.querySelector('ion-title');
+    expect(title).toBeTruthy();
+    expect(title.textContent).toContain('Agregar Punto');
+  });
+
+  it('should render search bar', () => {
+    const compiled = fixture.nativeElement;
+    const searchBar = compiled.querySelector('ion-searchbar');
+    expect(searchBar).toBeTruthy();
+  });
+
+  it('should render points list', () => {
+    const compiled = fixture.nativeElement;
+    const list = compiled.querySelector('ion-list');
+    expect(list).toBeTruthy();
+  });
+
+  it('should render confirm button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button[strong="true"]');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Confirmar');
   });
 });

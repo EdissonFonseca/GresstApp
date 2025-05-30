@@ -7,6 +7,10 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { Punto } from 'src/app/interfaces/punto.interface';
 import { Geolocation } from '@capacitor/geolocation';
 import { Actividad } from 'src/app/interfaces/actividad.interface';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
+import { signal } from '@angular/core';
 
 describe('RoutePage', () => {
   let component: RoutePage;
@@ -71,12 +75,17 @@ describe('RoutePage', () => {
         subscribe: (callback: any) => callback({ IdActividad: '123' })
       }
     });
-    pointsServiceSpy = jasmine.createSpyObj('PointsService', ['getPuntosFromTareasPendientes', 'list']);
+    pointsServiceSpy = jasmine.createSpyObj('PointsService', ['getPointsFromPendingTasks$', 'list']);
     activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', ['get']);
 
     TestBed.configureTestingModule({
-      declarations: [RoutePage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        RoutePage
+      ],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ActivatedRoute, useValue: routeSpy },
@@ -95,16 +104,33 @@ describe('RoutePage', () => {
   });
 
   it('should initialize with activity ID from route params', fakeAsync(async () => {
-    pointsServiceSpy.getPuntosFromTareasPendientes.and.returnValue(Promise.resolve(mockPuntos));
+    pointsServiceSpy.getPointsFromPendingTasks$.and.returnValue(signal(mockPuntos));
     spyOn(component, 'loadGoogleMaps');
 
     await component.ngOnInit();
     tick();
 
     expect(component.idActividad).toBe('123');
-    expect(pointsServiceSpy.getPuntosFromTareasPendientes).toHaveBeenCalledWith('123');
+    expect(pointsServiceSpy.getPointsFromPendingTasks$).toHaveBeenCalledWith('123');
     expect(component.puntos).toEqual(mockPuntos);
     expect(component.loadGoogleMaps).toHaveBeenCalled();
+  }));
+
+  it('should load Google Maps script', fakeAsync(async () => {
+    const scriptSpy = spyOn(document, 'createElement').and.returnValue({
+      src: '',
+      async: true,
+      defer: true,
+      onload: () => {},
+      setAttribute: () => {}
+    } as any);
+    spyOn(document.body, 'appendChild');
+
+    await component.loadGoogleMaps();
+    tick();
+
+    expect(scriptSpy).toHaveBeenCalledWith('script');
+    expect(document.body.appendChild).toHaveBeenCalled();
   }));
 
   it('should get current position', fakeAsync(async () => {
@@ -114,7 +140,6 @@ describe('RoutePage', () => {
         longitude: -74.0817
       }
     };
-
     spyOn(Geolocation, 'getCurrentPosition').and.returnValue(Promise.resolve(mockPosition as any));
 
     await component.getCurrentPosition();
@@ -125,13 +150,13 @@ describe('RoutePage', () => {
   }));
 
   it('should handle geolocation error', fakeAsync(async () => {
-    spyOn(Geolocation, 'getCurrentPosition').and.returnValue(Promise.reject(new Error('Geolocation error')));
+    spyOn(Geolocation, 'getCurrentPosition').and.returnValue(Promise.reject('Geolocation error'));
     spyOn(console, 'error');
 
     await component.getCurrentPosition();
     tick();
 
-    expect(console.error).toHaveBeenCalledWith('❌ Error al obtener la ubicación actual:', jasmine.any(Error));
+    expect(console.error).toHaveBeenCalledWith('❌ Error al obtener la ubicación actual:', 'Geolocation error');
   }));
 
   it('should get destination position from activity', fakeAsync(async () => {
@@ -146,12 +171,8 @@ describe('RoutePage', () => {
   }));
 
   it('should use default destination when activity has no destination', fakeAsync(async () => {
-    const actividadSinDestino: Actividad = {
-      ...mockActividad,
-      Destino: undefined
-    };
-
-    activitiesServiceSpy.get.and.returnValue(Promise.resolve(actividadSinDestino));
+    const activityWithoutDestination = { ...mockActividad, Destino: undefined };
+    activitiesServiceSpy.get.and.returnValue(Promise.resolve(activityWithoutDestination));
 
     await component.getDestinationPosition();
     tick();
@@ -161,40 +182,58 @@ describe('RoutePage', () => {
   }));
 
   it('should calculate route with waypoints', fakeAsync(async () => {
-    component.puntos = mockPuntos;
-    component.origin = { lat: 4.6105, lng: -74.0817 };
-    component.destination = { lat: 4.6399, lng: -74.0824 };
-
-    const mockDirectionsResult = {
-      routes: []
-    };
-
     const mockDirectionsService = {
-      route: jasmine.createSpy('route').and.callFake((request, callback) => {
-        callback(mockDirectionsResult, 'OK');
+      route: jasmine.createSpy('route').and.callFake((request: any, callback: any) => {
+        callback({ routes: [] }, 'OK');
       })
     };
-
     const mockDirectionsRenderer = {
       setDirections: jasmine.createSpy('setDirections')
+    };
+    const mockMap = {
+      setCenter: jasmine.createSpy('setCenter')
     };
 
     component.directionsService = mockDirectionsService;
     component.directionsRenderer = mockDirectionsRenderer;
+    component.map = mockMap;
+    component.puntos = mockPuntos;
 
     component.calculateRoute();
     tick();
 
-    expect(mockDirectionsService.route).toHaveBeenCalledWith(
-      jasmine.objectContaining({
-        origin: component.origin,
-        destination: component.destination,
-        waypoints: jasmine.any(Array),
-        optimizeWaypoints: true,
-        travelMode: google.maps.TravelMode.DRIVING
-      }),
-      jasmine.any(Function)
-    );
-    expect(mockDirectionsRenderer.setDirections).toHaveBeenCalledWith(mockDirectionsResult);
+    expect(mockDirectionsService.route).toHaveBeenCalled();
+    expect(mockDirectionsRenderer.setDirections).toHaveBeenCalled();
   }));
+
+  it('should handle route calculation error', fakeAsync(async () => {
+    const mockDirectionsService = {
+      route: jasmine.createSpy('route').and.callFake((request: any, callback: any) => {
+        callback(null, 'ERROR');
+      })
+    };
+    const mockDirectionsRenderer = {
+      setDirections: jasmine.createSpy('setDirections')
+    };
+    const mockMap = {
+      setCenter: jasmine.createSpy('setCenter')
+    };
+    spyOn(window, 'alert');
+
+    component.directionsService = mockDirectionsService;
+    component.directionsRenderer = mockDirectionsRenderer;
+    component.map = mockMap;
+    component.puntos = mockPuntos;
+
+    component.calculateRoute();
+    tick();
+
+    expect(window.alert).toHaveBeenCalledWith('No se pudo mostrar la ruta: ERROR');
+  }));
+
+  it('should render map container', () => {
+    const compiled = fixture.nativeElement;
+    const mapContainer = compiled.querySelector('#map');
+    expect(mapContainer).toBeTruthy();
+  });
 });

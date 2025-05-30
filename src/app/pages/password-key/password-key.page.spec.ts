@@ -1,41 +1,37 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { IonicModule, NavController, ToastController, LoadingController, AlertController } from '@ionic/angular';
+import { IonicModule, NavController, LoadingController, AlertController, ToastController } from '@ionic/angular';
 import { PasswordKeyPage } from './password-key.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { FormsModule } from '@angular/forms';
+import { STORAGE } from '@app/constants/constants';
 
 describe('PasswordKeyPage', () => {
   let component: PasswordKeyPage;
   let fixture: ComponentFixture<PasswordKeyPage>;
   let navCtrlSpy: jasmine.SpyObj<NavController>;
-  let toastControllerSpy: jasmine.SpyObj<ToastController>;
   let loadingControllerSpy: jasmine.SpyObj<LoadingController>;
   let alertControllerSpy: jasmine.SpyObj<AlertController>;
+  let toastControllerSpy: jasmine.SpyObj<ToastController>;
   let authServiceSpy: jasmine.SpyObj<AuthenticationApiService>;
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
 
   beforeEach(async () => {
     navCtrlSpy = jasmine.createSpyObj('NavController', ['navigateRoot']);
-    toastControllerSpy = jasmine.createSpyObj('ToastController', ['create']);
     loadingControllerSpy = jasmine.createSpyObj('LoadingController', ['create']);
     alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
+    toastControllerSpy = jasmine.createSpyObj('ToastController', ['create']);
     authServiceSpy = jasmine.createSpyObj('AuthenticationApiService', ['changePassword']);
     storageServiceSpy = jasmine.createSpyObj('StorageService', ['get']);
 
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    };
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
-
     await TestBed.configureTestingModule({
       declarations: [PasswordKeyPage],
-      imports: [IonicModule.forRoot()],
+      imports: [IonicModule.forRoot(), FormsModule],
       providers: [
         { provide: NavController, useValue: navCtrlSpy },
-        { provide: ToastController, useValue: toastControllerSpy },
         { provide: LoadingController, useValue: loadingControllerSpy },
         { provide: AlertController, useValue: alertControllerSpy },
+        { provide: ToastController, useValue: toastControllerSpy },
         { provide: AuthenticationApiService, useValue: authServiceSpy },
         { provide: StorageService, useValue: storageServiceSpy }
       ]
@@ -60,12 +56,7 @@ describe('PasswordKeyPage', () => {
     component.confirmPassword = '';
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
@@ -87,18 +78,19 @@ describe('PasswordKeyPage', () => {
     component.newPassword = mockPassword;
     component.confirmPassword = mockPassword;
 
-    storageServiceSpy.get.and.returnValue(Promise.resolve(mockEmail));
-    authServiceSpy.changePassword.and.returnValue(Promise.resolve(true));
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
 
     const mockAlert = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     alertControllerSpy.create.and.returnValue(Promise.resolve(mockAlert as any));
+
+    storageServiceSpy.get.and.returnValue(Promise.resolve(mockEmail));
+    authServiceSpy.changePassword.and.returnValue(Promise.resolve(true));
 
     await component.create();
     tick();
@@ -107,8 +99,10 @@ describe('PasswordKeyPage', () => {
       message: 'Connecting...',
       spinner: 'circular'
     });
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Email');
+    expect(mockLoading.present).toHaveBeenCalled();
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.EMAIL);
     expect(authServiceSpy.changePassword).toHaveBeenCalledWith(mockEmail, mockPassword);
+    expect(mockLoading.dismiss).toHaveBeenCalled();
     expect(alertControllerSpy.create).toHaveBeenCalledWith({
       header: 'Password Changed',
       message: 'Your password has been successfully changed',
@@ -118,35 +112,66 @@ describe('PasswordKeyPage', () => {
     expect(navCtrlSpy.navigateRoot).toHaveBeenCalledWith('/login');
   }));
 
-  it('should handle authentication service error', fakeAsync(async () => {
+  it('should handle error when changing password', fakeAsync(async () => {
     const mockEmail = 'test@example.com';
     const mockPassword = 'newPassword123';
     component.newPassword = mockPassword;
     component.confirmPassword = mockPassword;
 
-    const errorMessage = 'Authentication error';
-    storageServiceSpy.get.and.returnValue(Promise.resolve(mockEmail));
-    authServiceSpy.changePassword.and.returnValue(Promise.reject(new Error(errorMessage)));
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
 
-    await expectAsync(component.create()).toBeRejectedWithError('Request error: Authentication error');
+    storageServiceSpy.get.and.returnValue(Promise.resolve(mockEmail));
+    authServiceSpy.changePassword.and.returnValue(Promise.reject(new Error('Network error')));
+
+    await expectAsync(component.create()).toBeRejectedWithError('Request error: Network error');
     tick();
 
+    expect(mockLoading.present).toHaveBeenCalled();
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.EMAIL);
+    expect(authServiceSpy.changePassword).toHaveBeenCalledWith(mockEmail, mockPassword);
+    expect(mockLoading.dismiss).toHaveBeenCalled();
     expect(toastControllerSpy.create).toHaveBeenCalledWith({
-      message: errorMessage,
+      message: 'Network error',
       duration: 3000,
       position: 'middle'
     });
     expect(mockToast.present).toHaveBeenCalled();
-    expect(navCtrlSpy.navigateRoot).not.toHaveBeenCalled();
   }));
+
+  it('should render new password input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="newPassword"]');
+    expect(input).toBeTruthy();
+    expect(input.getAttribute('type')).toBe('password');
+  });
+
+  it('should render confirm password input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="confirmPassword"]');
+    expect(input).toBeTruthy();
+    expect(input.getAttribute('type')).toBe('password');
+  });
+
+  it('should render change password button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Cambiar Contraseña');
+  });
+
+  it('should render back to login button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button[color="medium"]');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Regresar al inicio');
+  });
 });

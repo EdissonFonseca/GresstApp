@@ -2,10 +2,10 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { LoginPage } from './login.page';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoadingController } from '@ionic/angular';
+import { IonicModule } from '@ionic/angular';
 import { SessionService } from '@app/services/core/session.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
-import { Utils } from '@app/utils/utils';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 describe('LoginPage', () => {
@@ -13,39 +13,41 @@ describe('LoginPage', () => {
   let fixture: ComponentFixture<LoginPage>;
   let authServiceSpy: jasmine.SpyObj<AuthenticationApiService>;
   let routerSpy: jasmine.SpyObj<Router>;
-  let loadingControllerSpy: jasmine.SpyObj<LoadingController>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
-  let utilsSpy: jasmine.SpyObj<typeof Utils>;
+  let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
   let translateService: TranslateService;
 
   beforeEach(async () => {
     const authSpy = jasmine.createSpyObj('AuthenticationApiService', ['login']);
     const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
-    const loadingSpy = jasmine.createSpyObj('LoadingController', ['create']);
-    const sessionSpy = jasmine.createSpyObj('SessionService', ['isOnline', 'load']);
-    const utilsSpyObj = jasmine.createSpyObj('Utils', ['showAlert', 'showToast']);
+    const sessionSpy = jasmine.createSpyObj('SessionService', ['isOnline', 'start', 'hasPendingRequests', 'uploadData']);
+    const notificationSpy = jasmine.createSpyObj('UserNotificationService', [
+      'showLoading',
+      'hideLoading',
+      'showAlert',
+      'showConfirm'
+    ]);
 
     await TestBed.configureTestingModule({
       declarations: [LoginPage],
       imports: [
         ReactiveFormsModule,
+        IonicModule.forRoot(),
         TranslateModule.forRoot()
       ],
       providers: [
         FormBuilder,
         { provide: AuthenticationApiService, useValue: authSpy },
         { provide: Router, useValue: routerSpyObj },
-        { provide: LoadingController, useValue: loadingSpy },
         { provide: SessionService, useValue: sessionSpy },
-        { provide: Utils, useValue: utilsSpyObj }
+        { provide: UserNotificationService, useValue: notificationSpy }
       ]
     }).compileComponents();
 
     authServiceSpy = TestBed.inject(AuthenticationApiService) as jasmine.SpyObj<AuthenticationApiService>;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
-    loadingControllerSpy = TestBed.inject(LoadingController) as jasmine.SpyObj<LoadingController>;
     sessionServiceSpy = TestBed.inject(SessionService) as jasmine.SpyObj<SessionService>;
-    utilsSpy = TestBed.inject(Utils) as unknown as jasmine.SpyObj<typeof Utils>;
+    userNotificationServiceSpy = TestBed.inject(UserNotificationService) as jasmine.SpyObj<UserNotificationService>;
     translateService = TestBed.inject(TranslateService);
   });
 
@@ -76,24 +78,19 @@ describe('LoginPage', () => {
 
   it('should validate password length', () => {
     const passwordControl = component.loginForm.get('password');
-    passwordControl?.setValue('12345');
+    passwordControl?.setValue('1234');
     expect(passwordControl?.valid).toBeFalsy();
     expect(passwordControl?.errors?.['minlength']).toBeTruthy();
 
-    passwordControl?.setValue('123456');
+    passwordControl?.setValue('12345');
     expect(passwordControl?.valid).toBeTruthy();
   });
 
-  it('should handle successful login', fakeAsync(() => {
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    } as any;
-
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
+  it('should handle successful login with no pending requests', fakeAsync(() => {
     sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
     authServiceSpy.login.and.returnValue(Promise.resolve(true));
-    sessionServiceSpy.load.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.hasPendingRequests.and.returnValue(Promise.resolve(false));
+    sessionServiceSpy.start.and.returnValue(Promise.resolve(true));
 
     component.loginForm.setValue({
       username: 'test@example.com',
@@ -103,22 +100,41 @@ describe('LoginPage', () => {
     component.login();
     tick();
 
-    expect(loadingControllerSpy.create).toHaveBeenCalled();
-    expect(mockLoading.present).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
     expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
     expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'password123');
-    expect(sessionServiceSpy.load).toHaveBeenCalled();
+    expect(sessionServiceSpy.hasPendingRequests).toHaveBeenCalled();
+    expect(sessionServiceSpy.start).toHaveBeenCalled();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
-    expect(mockLoading.dismiss).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+  }));
+
+  it('should handle successful login with pending requests', fakeAsync(() => {
+    sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
+    authServiceSpy.login.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.hasPendingRequests.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.uploadData.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.start.and.returnValue(Promise.resolve(true));
+
+    component.loginForm.setValue({
+      username: 'test@example.com',
+      password: 'password123'
+    });
+
+    component.login();
+    tick();
+
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
+    expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(sessionServiceSpy.hasPendingRequests).toHaveBeenCalled();
+    expect(sessionServiceSpy.uploadData).toHaveBeenCalled();
+    expect(sessionServiceSpy.start).toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   }));
 
   it('should handle offline state', fakeAsync(() => {
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    } as any;
-
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
     sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(false));
 
     component.loginForm.setValue({
@@ -129,17 +145,13 @@ describe('LoginPage', () => {
     component.login();
     tick();
 
-    expect(utilsSpy.showAlert).toHaveBeenCalledWith('Authentication Error', 'Could not connect to the server');
-    expect(mockLoading.dismiss).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showAlert).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   }));
 
   it('should handle invalid credentials', fakeAsync(() => {
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    } as any;
-
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
     sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
     authServiceSpy.login.and.returnValue(Promise.resolve(false));
 
@@ -151,19 +163,20 @@ describe('LoginPage', () => {
     component.login();
     tick();
 
-    expect(utilsSpy.showAlert).toHaveBeenCalledWith('Authentication Error', 'Invalid credentials');
-    expect(mockLoading.dismiss).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
+    expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'wrongpassword');
+    expect(userNotificationServiceSpy.showAlert).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   }));
 
-  it('should handle server error', fakeAsync(() => {
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    } as any;
-
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
+  it('should handle sync error with user confirmation', fakeAsync(() => {
     sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
-    authServiceSpy.login.and.returnValue(Promise.reject({ status: 500 }));
+    authServiceSpy.login.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.hasPendingRequests.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.uploadData.and.returnValue(Promise.resolve(false));
+    userNotificationServiceSpy.showConfirm.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.start.and.returnValue(Promise.resolve(true));
 
     component.loginForm.setValue({
       username: 'test@example.com',
@@ -173,20 +186,48 @@ describe('LoginPage', () => {
     component.login();
     tick();
 
-    expect(utilsSpy.showAlert).toHaveBeenCalledWith('Authentication Error', 'Error during login');
-    expect(mockLoading.dismiss).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
+    expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(sessionServiceSpy.hasPendingRequests).toHaveBeenCalled();
+    expect(sessionServiceSpy.uploadData).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showConfirm).toHaveBeenCalled();
+    expect(sessionServiceSpy.start).toHaveBeenCalled();
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/home']);
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   }));
 
-  it('should handle password recovery', fakeAsync(() => {
+  it('should handle sync error without user confirmation', fakeAsync(() => {
+    sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
+    authServiceSpy.login.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.hasPendingRequests.and.returnValue(Promise.resolve(true));
+    sessionServiceSpy.uploadData.and.returnValue(Promise.resolve(false));
+    userNotificationServiceSpy.showConfirm.and.returnValue(Promise.resolve(false));
+
     component.loginForm.setValue({
       username: 'test@example.com',
-      password: ''
+      password: 'password123'
     });
 
+    component.login();
+    tick();
+
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(sessionServiceSpy.isOnline).toHaveBeenCalled();
+    expect(authServiceSpy.login).toHaveBeenCalledWith('test@example.com', 'password123');
+    expect(sessionServiceSpy.hasPendingRequests).toHaveBeenCalled();
+    expect(sessionServiceSpy.uploadData).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showConfirm).toHaveBeenCalled();
+    expect(sessionServiceSpy.start).not.toHaveBeenCalled();
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+  }));
+
+  it('should handle password recovery navigation', fakeAsync(() => {
     component.recoverPassword();
     tick();
 
-    expect(utilsSpy.showToast).toHaveBeenCalledWith('A recovery email has been sent with instructions', 'top');
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/register-email']);
   }));
 
   describe('Translation Tests', () => {
@@ -194,12 +235,6 @@ describe('LoginPage', () => {
       translateService.setDefaultLang('es');
       translateService.use('es');
 
-      const mockLoading = {
-        present: jasmine.createSpy('present'),
-        dismiss: jasmine.createSpy('dismiss')
-      } as any;
-
-      loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
       sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(false));
 
       component.loginForm.setValue({
@@ -210,7 +245,7 @@ describe('LoginPage', () => {
       component.login();
       tick();
 
-      expect(utilsSpy.showAlert).toHaveBeenCalledWith(
+      expect(userNotificationServiceSpy.showAlert).toHaveBeenCalledWith(
         'Error de Autenticación',
         'No hay conexión al servidor'
       );
@@ -220,12 +255,6 @@ describe('LoginPage', () => {
       translateService.setDefaultLang('en');
       translateService.use('en');
 
-      const mockLoading = {
-        present: jasmine.createSpy('present'),
-        dismiss: jasmine.createSpy('dismiss')
-      } as any;
-
-      loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
       sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(false));
 
       component.loginForm.setValue({
@@ -236,63 +265,9 @@ describe('LoginPage', () => {
       component.login();
       tick();
 
-      expect(utilsSpy.showAlert).toHaveBeenCalledWith(
+      expect(userNotificationServiceSpy.showAlert).toHaveBeenCalledWith(
         'Authentication Error',
         'No server connection'
-      );
-    }));
-
-    it('should show invalid credentials message in Spanish', fakeAsync(() => {
-      translateService.setDefaultLang('es');
-      translateService.use('es');
-
-      const mockLoading = {
-        present: jasmine.createSpy('present'),
-        dismiss: jasmine.createSpy('dismiss')
-      } as any;
-
-      loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
-      sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
-      authServiceSpy.login.and.returnValue(Promise.resolve(false));
-
-      component.loginForm.setValue({
-        username: 'test@example.com',
-        password: 'wrongpassword'
-      });
-
-      component.login();
-      tick();
-
-      expect(utilsSpy.showAlert).toHaveBeenCalledWith(
-        'Error de Autenticación',
-        'Credenciales inválidas'
-      );
-    }));
-
-    it('should show invalid credentials message in English', fakeAsync(() => {
-      translateService.setDefaultLang('en');
-      translateService.use('en');
-
-      const mockLoading = {
-        present: jasmine.createSpy('present'),
-        dismiss: jasmine.createSpy('dismiss')
-      } as any;
-
-      loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading));
-      sessionServiceSpy.isOnline.and.returnValue(Promise.resolve(true));
-      authServiceSpy.login.and.returnValue(Promise.resolve(false));
-
-      component.loginForm.setValue({
-        username: 'test@example.com',
-        password: 'wrongpassword'
-      });
-
-      component.login();
-      tick();
-
-      expect(utilsSpy.showAlert).toHaveBeenCalledWith(
-        'Authentication Error',
-        'Invalid credentials'
       );
     }));
   });

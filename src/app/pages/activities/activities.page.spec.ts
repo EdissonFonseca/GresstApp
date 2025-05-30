@@ -1,18 +1,16 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ActivitiesPage } from './activities.page';
 import { IonicModule, ModalController, NavController, AlertController, ActionSheetController } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
 import { CardService } from '@app/services/core/card.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
 import { AuthorizationService } from '@app/services/core/authorization.services';
-import { Utils } from '@app/utils/utils';
-import { of, throwError } from 'rxjs';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Card } from '@app/interfaces/card.interface';
 import { Actividad } from '@app/interfaces/actividad.interface';
 import { SERVICE_TYPES, STATUS } from '@app/constants/constants';
-import { signal, WritableSignal } from '@angular/core';
 
 /**
  * Test suite for ActivitiesPage component
@@ -33,19 +31,20 @@ describe('ActivitiesPage', () => {
   // Service spies
   let activitiesServiceSpy: jasmine.SpyObj<ActivitiesService>;
   let cardServiceSpy: jasmine.SpyObj<CardService>;
-  let synchronizationServiceSpy: jasmine.SpyObj<SynchronizationService>;
   let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
   let modalControllerSpy: jasmine.SpyObj<ModalController>;
   let alertControllerSpy: jasmine.SpyObj<AlertController>;
   let actionSheetControllerSpy: jasmine.SpyObj<ActionSheetController>;
   let navControllerSpy: jasmine.SpyObj<NavController>;
+  let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
+  let translateServiceSpy: jasmine.SpyObj<TranslateService>;
 
   // Mock data
   const mockCard: Card = {
     id: '1',
     title: 'Test Activity',
     description: 'Test Description',
-    status: 'active',
+    status: STATUS.PENDING,
     type: 'activity',
     iconName: 'test-icon',
     color: 'primary',
@@ -74,19 +73,12 @@ describe('ActivitiesPage', () => {
     activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', [
       'list',
       'get',
-      'updateStart',
-      'load',
-      'create',
-      'update'
+      'update',
+      'updateStart'
     ]);
 
     cardServiceSpy = jasmine.createSpyObj('CardService', [
-      'mapActividades',
-      'mapActividad'
-    ]);
-
-    synchronizationServiceSpy = jasmine.createSpyObj('SynchronizationService', [
-      'uploadData'
+      'mapActividades'
     ]);
 
     authorizationServiceSpy = jasmine.createSpyObj('AuthorizationService', [
@@ -98,25 +90,15 @@ describe('ActivitiesPage', () => {
     alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
     actionSheetControllerSpy = jasmine.createSpyObj('ActionSheetController', ['create']);
     navControllerSpy = jasmine.createSpyObj('NavController', ['navigateForward']);
+    userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
+    translateServiceSpy = jasmine.createSpyObj('TranslateService', ['instant']);
 
     // Configure spy return values
     activitiesServiceSpy.list.and.returnValue(Promise.resolve([mockActividad]));
-    activitiesServiceSpy.load.and.returnValue(Promise.resolve());
-    activitiesServiceSpy.updateStart.and.returnValue(Promise.resolve(true));
-    activitiesServiceSpy.create.and.returnValue(Promise.resolve(true));
-    activitiesServiceSpy.update.and.returnValue(Promise.resolve(true));
-
+    activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
     cardServiceSpy.mapActividades.and.returnValue(Promise.resolve([mockCard]));
-    cardServiceSpy.mapActividad.and.returnValue(Promise.resolve(mockCard));
-
     authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.resolve(true));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve('permission'));
-
-    // Setup activities signal
-    const activitiesSignal = signal<Actividad[]>([mockActividad]);
-    Object.defineProperty(activitiesServiceSpy, 'activities', {
-      get: () => activitiesSignal
-    });
+    translateServiceSpy.instant.and.returnValue('Translated text');
 
     // Configure testing module
     await TestBed.configureTestingModule({
@@ -124,17 +106,19 @@ describe('ActivitiesPage', () => {
         IonicModule.forRoot(),
         RouterTestingModule,
         ReactiveFormsModule,
+        TranslateModule.forRoot(),
         ActivitiesPage
       ],
       providers: [
         { provide: ActivitiesService, useValue: activitiesServiceSpy },
         { provide: CardService, useValue: cardServiceSpy },
-        { provide: SynchronizationService, useValue: synchronizationServiceSpy },
         { provide: AuthorizationService, useValue: authorizationServiceSpy },
         { provide: ModalController, useValue: modalControllerSpy },
         { provide: AlertController, useValue: alertControllerSpy },
         { provide: ActionSheetController, useValue: actionSheetControllerSpy },
-        { provide: NavController, useValue: navControllerSpy }
+        { provide: NavController, useValue: navControllerSpy },
+        { provide: UserNotificationService, useValue: userNotificationServiceSpy },
+        { provide: TranslateService, useValue: translateServiceSpy }
       ]
     }).compileComponents();
 
@@ -151,10 +135,9 @@ describe('ActivitiesPage', () => {
       expect(component).toBeTruthy();
     });
 
-    it('should initialize with default values', async () => {
+    it('should initialize with default values', () => {
       expect(component.showAdd).toBeTrue();
-      const activities = await component.activities();
-      expect(activities).toEqual([mockCard]);
+      expect(component.loading()).toBeFalse();
     });
   });
 
@@ -162,114 +145,170 @@ describe('ActivitiesPage', () => {
    * Activity Loading Tests
    */
   describe('Activity Loading', () => {
-    it('should load activities and check permissions on init', async () => {
-      await component.ionViewWillEnter();
-      expect(activitiesServiceSpy.load).toHaveBeenCalled();
-      expect(cardServiceSpy.mapActividades).toHaveBeenCalledWith([mockActividad]);
-      const activities = await component.activities();
-      expect(activities).toEqual([mockCard]);
-    });
+    it('should load activities and check permissions on init', fakeAsync(() => {
+      component.ngOnInit();
+      tick();
 
-    it('should handle error when loading activities', async () => {
-      activitiesServiceSpy.load.and.returnValue(Promise.reject('Error'));
-      const showToastSpy = spyOn(Utils, 'showToast' as any);
-      await component.ionViewWillEnter();
-      expect(showToastSpy).toHaveBeenCalledWith('Error al cargar las actividades', 'top');
-    });
+      expect(authorizationServiceSpy.allowAddActivity).toHaveBeenCalled();
+      expect(activitiesServiceSpy.list).toHaveBeenCalled();
+    }));
 
-    it('should filter activities on input', async () => {
+    it('should handle error when loading activities', fakeAsync(() => {
+      activitiesServiceSpy.list.and.returnValue(Promise.reject('Error'));
+
+      component.ngOnInit();
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
+
+    it('should load activities on view enter if not loaded', fakeAsync(() => {
+      component.ionViewWillEnter();
+      tick();
+
+      expect(activitiesServiceSpy.list).toHaveBeenCalled();
+    }));
+
+    it('should filter activities on input', fakeAsync(() => {
       const event = { target: { value: 'test' } };
-      await component.handleInput(event);
-      expect(activitiesServiceSpy.load).toHaveBeenCalled();
-      expect(cardServiceSpy.mapActividades).toHaveBeenCalled();
-    });
+      component.handleInput(event);
+      tick();
+
+      expect(activitiesServiceSpy.list).toHaveBeenCalled();
+    }));
   });
 
   /**
    * Activity Management Tests
    */
   describe('Activity Management', () => {
-    it('should handle mileage prompt', async () => {
-      const alertSpy = jasmine.createSpyObj('HTMLIonAlertElement', ['present']);
-      alertControllerSpy.create.and.returnValue(Promise.resolve(alertSpy));
-      alertSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { mileage: '100' } }));
+    it('should navigate to target for collection service', fakeAsync(() => {
+      const card = { ...mockCard, id: '1' };
+      component.navigateToTarget(card);
+      tick();
 
-      const result = await component.requestMileagePrompt();
-      expect(result).toBeTrue();
-    });
-
-    it('should initialize activity start', async () => {
-      const mockDate = new Date();
-      mockActividad.FechaInicial = null;
-      await component['initializeActivityStart'](mockActividad);
-      expect(activitiesServiceSpy.updateStart).toHaveBeenCalledWith(mockActividad);
-    });
-
-    it('should handle error when initializing activity start', async () => {
-      activitiesServiceSpy.updateStart.and.returnValue(Promise.reject('Error'));
-      const showToastSpy = spyOn(Utils, 'showToast' as any);
-      await component['initializeActivityStart'](mockActividad);
-      expect(showToastSpy).toHaveBeenCalledWith('Error al iniciar la ruta', 'middle');
-    });
-  });
-
-  /**
-   * Navigation Tests
-   */
-  describe('Navigation', () => {
-    it('should navigate to target for collection service', async () => {
-      activitiesServiceSpy.get.and.returnValue(Promise.resolve(mockActividad));
-      await component.navigateToTarget(mockCard);
+      expect(activitiesServiceSpy.get).toHaveBeenCalledWith('1');
       expect(navControllerSpy.navigateForward).toHaveBeenCalled();
-    });
+    }));
 
-    it('should handle navigation error', async () => {
+    it('should handle navigation error', fakeAsync(() => {
       activitiesServiceSpy.get.and.returnValue(Promise.reject('Error'));
-      const showToastSpy = spyOn(Utils, 'showToast' as any);
-      await component.navigateToTarget(mockCard);
-      expect(showToastSpy).toHaveBeenCalledWith('Error al navegar', 'middle');
-    });
+      const card = { ...mockCard, id: '1' };
+
+      component.navigateToTarget(card);
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
   });
 
   /**
    * Activity Creation Tests
    */
   describe('Activity Creation', () => {
-    it('should open add activity modal', async () => {
-      const actionSheetSpy = jasmine.createSpyObj('HTMLIonActionSheetElement', ['present']);
-      actionSheetControllerSpy.create.and.returnValue(Promise.resolve(actionSheetSpy));
-      actionSheetSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { role: 'handler' } }));
+    it('should open add activity action sheet', fakeAsync(() => {
+      authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve('C'));
 
-      await component.openAddActivity();
+      component.openAdd();
+      tick();
+
       expect(actionSheetControllerSpy.create).toHaveBeenCalled();
-    });
+    }));
 
-    it('should handle add activity error', async () => {
-      const actionSheetSpy = jasmine.createSpyObj('HTMLIonActionSheetElement', ['present']);
-      actionSheetControllerSpy.create.and.returnValue(Promise.resolve(actionSheetSpy));
-      actionSheetSpy.onDidDismiss.and.returnValue(Promise.reject('Error'));
+    it('should handle add activity error', fakeAsync(() => {
+      actionSheetControllerSpy.create.and.returnValue(Promise.reject('Error'));
 
-      const showToastSpy = spyOn(Utils, 'showToast' as any);
-      await component.openAddActivity();
-      expect(showToastSpy).toHaveBeenCalledWith('Error al crear la actividad', 'middle');
-    });
+      component.openAdd();
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
+
+    it('should present add modal', fakeAsync(() => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: { IdActividad: '1' } }));
+      modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      component.presentAdd(SERVICE_TYPES.COLLECTION);
+      tick();
+
+      expect(modalControllerSpy.create).toHaveBeenCalled();
+      expect(activitiesServiceSpy.update).toHaveBeenCalled();
+    }));
+
+    it('should handle add modal error', fakeAsync(() => {
+      modalControllerSpy.create.and.returnValue(Promise.reject('Error'));
+
+      component.presentAdd(SERVICE_TYPES.COLLECTION);
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
+
+    it('should open approve modal', fakeAsync(() => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: true }));
+      modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      component.openApprove('1');
+      tick();
+
+      expect(modalControllerSpy.create).toHaveBeenCalled();
+      expect(activitiesServiceSpy.list).toHaveBeenCalled();
+    }));
+
+    it('should handle approve error', fakeAsync(() => {
+      activitiesServiceSpy.get.and.returnValue(Promise.reject('Error'));
+
+      component.openApprove('1');
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
+
+    it('should open reject modal', fakeAsync(() => {
+      const modalSpy = jasmine.createSpyObj('HTMLIonModalElement', ['present', 'onDidDismiss']);
+      modalSpy.onDidDismiss.and.returnValue(Promise.resolve({ data: true }));
+      modalControllerSpy.create.and.returnValue(Promise.resolve(modalSpy));
+
+      component.openReject('1');
+      tick();
+
+      expect(modalControllerSpy.create).toHaveBeenCalled();
+      expect(activitiesServiceSpy.list).toHaveBeenCalled();
+    }));
+
+    it('should handle reject error', fakeAsync(() => {
+      activitiesServiceSpy.get.and.returnValue(Promise.reject('Error'));
+
+      component.openReject('1');
+      tick();
+
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
   });
 
   /**
    * Permission Tests
    */
   describe('Permissions', () => {
-    it('should handle error when checking permissions', async () => {
+    it('should handle error when checking permissions', fakeAsync(() => {
       authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.reject('Error'));
-      const showToastSpy = spyOn(Utils, 'showToast' as any);
-      await component.ngOnInit();
-      expect(component.showAdd).toBeFalse();
-    });
 
-    it('should update permissions when authorization changes', async () => {
-      authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.resolve(false));
-      await component.ngOnInit();
+      component.ngOnInit();
+      tick();
+
       expect(component.showAdd).toBeFalse();
-    });
+      expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+    }));
+
+    it('should update permissions when authorization changes', fakeAsync(() => {
+      authorizationServiceSpy.allowAddActivity.and.returnValue(Promise.resolve(false));
+
+      component.ngOnInit();
+      tick();
+
+      expect(component.showAdd).toBeFalse();
+    }));
   });
 });

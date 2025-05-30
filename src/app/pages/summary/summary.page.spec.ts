@@ -6,6 +6,9 @@ import { ActivitiesService } from '@app/services/transactions/activities.service
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { Card } from '@app/interfaces/card.interface';
 import { STATUS } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('SummaryPage', () => {
   let component: SummaryPage;
@@ -35,8 +38,13 @@ describe('SummaryPage', () => {
     transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['getSummary']);
 
     TestBed.configureTestingModule({
-      declarations: [SummaryPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        SummaryPage
+      ],
       providers: [
         { provide: NavController, useValue: navCtrlSpy },
         { provide: CardService, useValue: cardServiceSpy },
@@ -152,4 +160,30 @@ describe('SummaryPage', () => {
     expect(console.error).toHaveBeenCalledWith('❌ Error refreshing activities:', error);
     expect(mockEvent.target.complete).toHaveBeenCalled();
   }));
+
+  it('should render header with back button and title', () => {
+    const compiled = fixture.nativeElement;
+    const backButton = compiled.querySelector('ion-back-button');
+    const title = compiled.querySelector('ion-title');
+
+    expect(backButton).toBeTruthy();
+    expect(title.textContent).toContain('Resumen');
+  });
+
+  it('should render collapsed header with title', () => {
+    const compiled = fixture.nativeElement;
+    const collapsedHeader = compiled.querySelector('ion-header[collapse="condense"]');
+    const collapsedTitle = collapsedHeader?.querySelector('ion-title');
+
+    expect(collapsedHeader).toBeTruthy();
+    expect(collapsedTitle.textContent).toContain('puntos');
+  });
+
+  it('should render content with fullscreen attribute', () => {
+    const compiled = fixture.nativeElement;
+    const content = compiled.querySelector('ion-content');
+
+    expect(content).toBeTruthy();
+    expect(content.getAttribute('fullscreen')).toBe('true');
+  });
 });

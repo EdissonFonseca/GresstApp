@@ -5,7 +5,9 @@ import { SuppliesService } from '@app/services/masterdata/supplies.service';
 import { AuthorizationService } from '@app/services/core/authorization.services';
 import { Insumo } from '@app/interfaces/insumo.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
-import { Utils } from '@app/utils/utils';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('SupplyPage', () => {
   let component: SupplyPage;
@@ -30,8 +32,13 @@ describe('SupplyPage', () => {
     const authSpy = jasmine.createSpyObj('AuthorizationService', ['getPermission']);
 
     TestBed.configureTestingModule({
-      declarations: [SupplyPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        SupplyPage
+      ],
       providers: [
         { provide: SuppliesService, useValue: suppliesSpy },
         { provide: ModalController, useValue: modalSpy },
@@ -47,11 +54,8 @@ describe('SupplyPage', () => {
 
     fixture = TestBed.createComponent(SupplyPage);
     component = fixture.componentInstance;
-  }));
-
-  beforeEach(() => {
     fixture.detectChanges();
-  });
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -155,4 +159,20 @@ describe('SupplyPage', () => {
     expect(component.supplies).toEqual([mockSupply]);
     expect(component.enableNew).toBe(false);
   }));
+
+  it('should render header with back button and title', () => {
+    const compiled = fixture.nativeElement;
+    const backButton = compiled.querySelector('ion-back-button');
+    const title = compiled.querySelector('ion-title');
+
+    expect(backButton).toBeTruthy();
+    expect(title.textContent).toContain('Insumos');
+  });
+
+  it('should render supply component', () => {
+    const compiled = fixture.nativeElement;
+    const supplyComponent = compiled.querySelector('app-supply');
+
+    expect(supplyComponent).toBeTruthy();
+  });
 });

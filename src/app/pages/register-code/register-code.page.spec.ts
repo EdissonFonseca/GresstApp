@@ -2,6 +2,10 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, MenuController, NavController, ToastController } from '@ionic/angular';
 import { RegisterCodePage } from './register-code.page';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('RegisterCodePage', () => {
   let component: RegisterCodePage;
@@ -18,8 +22,13 @@ describe('RegisterCodePage', () => {
     toastCtrlSpy = jasmine.createSpyObj('ToastController', ['create']);
 
     TestBed.configureTestingModule({
-      declarations: [RegisterCodePage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        RegisterCodePage
+      ],
       providers: [
         { provide: MenuController, useValue: menuCtrlSpy },
         { provide: NavController, useValue: navCtrlSpy },
@@ -51,7 +60,7 @@ describe('RegisterCodePage', () => {
 
     await component.verify();
 
-    expect(storageSpy.get).toHaveBeenCalledWith('Code');
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE);
     expect(navCtrlSpy.navigateRoot).toHaveBeenCalledWith('/register-key');
   });
 
@@ -65,7 +74,7 @@ describe('RegisterCodePage', () => {
 
     await component.verify();
 
-    expect(storageSpy.get).toHaveBeenCalledWith('Code');
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith({
       message: 'The code does not match',
       duration: 3000,
@@ -80,5 +89,38 @@ describe('RegisterCodePage', () => {
     storageSpy.get.and.returnValue(Promise.reject(error));
 
     await expectAsync(component.verify()).toBeRejectedWithError('Request error: Storage error');
+  });
+
+  it('should handle unknown error', async () => {
+    storageSpy.get.and.returnValue(Promise.reject('Unknown error'));
+
+    await expectAsync(component.verify()).toBeRejectedWithError('Unknown error: Unknown error');
+  });
+
+  it('should render header with title', () => {
+    const compiled = fixture.nativeElement;
+    const title = compiled.querySelector('ion-title');
+    expect(title).toBeTruthy();
+    expect(title.textContent).toContain('Crear cuenta');
+  });
+
+  it('should render logo', () => {
+    const compiled = fixture.nativeElement;
+    const logo = compiled.querySelector('img.logo');
+    expect(logo).toBeTruthy();
+    expect(logo.getAttribute('src')).toContain('Gresst.png');
+  });
+
+  it('should render verification code input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="verificationCode"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('should render verify button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Verificar Código');
   });
 });

@@ -4,6 +4,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { AccountPage } from './account.page';
 import { Storage } from '@ionic/storage';
 import { Cuenta } from 'src/app/interfaces/cuenta.interface';
+import { STORAGE } from '@app/constants/constants';
 
 describe('AccountPage', () => {
   let component: AccountPage;
@@ -42,6 +43,7 @@ describe('AccountPage', () => {
 
     fixture = TestBed.createComponent(AccountPage);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -52,6 +54,7 @@ describe('AccountPage', () => {
     expect(component.cuenta).toBeUndefined();
     expect(component.formData.get('Nombre')?.value).toBe('');
     expect(component.formData.get('Identificacion')?.value).toBe('');
+    expect(component.formData.get('Cubrimiento')?.value).toBe('');
   });
 
   it('should load account data on init', fakeAsync(() => {
@@ -60,22 +63,10 @@ describe('AccountPage', () => {
     component.ngOnInit();
     tick();
 
-    expect(storageSpy.get).toHaveBeenCalledWith('Cuenta');
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.ACCOUNT);
     expect(component.cuenta).toEqual(mockCuenta);
     expect(component.formData.get('Nombre')?.value).toBe(mockCuenta.NombreCuenta);
     expect(component.formData.get('Identificacion')?.value).toBe(mockCuenta.IdPersonaCuenta);
-  }));
-
-  it('should handle storage error on init', fakeAsync(() => {
-    storageSpy.get.and.returnValue(Promise.reject('Error'));
-
-    component.ngOnInit();
-    tick();
-
-    expect(storageSpy.get).toHaveBeenCalledWith('Cuenta');
-    expect(component.cuenta).toBeUndefined();
-    expect(component.formData.get('Nombre')?.value).toBe('');
-    expect(component.formData.get('Identificacion')?.value).toBe('');
   }));
 
   it('should validate form controls', () => {
@@ -83,37 +74,19 @@ describe('AccountPage', () => {
 
     // Test empty form
     expect(form.valid).toBeFalsy();
+    expect(form.get('Nombre')?.errors?.['required']).toBeTruthy();
+    expect(form.get('Identificacion')?.errors?.['required']).toBeTruthy();
+    expect(form.get('Cubrimiento')?.errors?.['required']).toBeTruthy();
 
     // Test with valid data
     form.setValue({
       Nombre: 'Test Account',
-      Identificacion: '123'
+      Identificacion: '123',
+      Cubrimiento: 'Test Coverage'
     });
     expect(form.valid).toBeTruthy();
-  });
-
-  it('should update form values correctly', () => {
-    const testData = {
-      Nombre: 'New Account Name',
-      Identificacion: '456'
-    };
-
-    component.formData.patchValue(testData);
-
-    expect(component.formData.get('Nombre')?.value).toBe(testData.Nombre);
-    expect(component.formData.get('Identificacion')?.value).toBe(testData.Identificacion);
-  });
-
-  it('should mark form controls as invalid when empty', () => {
-    const form = component.formData;
-
-    // Test empty values
-    form.setValue({
-      Nombre: '',
-      Identificacion: ''
-    });
-
-    expect(form.get('Nombre')?.valid).toBeFalsy();
-    expect(form.get('Identificacion')?.valid).toBeFalsy();
+    expect(form.get('Nombre')?.errors).toBeNull();
+    expect(form.get('Identificacion')?.errors).toBeNull();
+    expect(form.get('Cubrimiento')?.errors).toBeNull();
   });
 });

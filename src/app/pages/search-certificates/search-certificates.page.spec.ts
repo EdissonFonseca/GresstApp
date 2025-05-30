@@ -3,6 +3,10 @@ import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { SearchCertificatesPage } from './search-certificates.page';
 import { TransactionsApiService } from '@app/services/api/transactionsApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('SearchCertificatesPage', () => {
   let component: SearchCertificatesPage;
@@ -19,8 +23,13 @@ describe('SearchCertificatesPage', () => {
     storageSpy = jasmine.createSpyObj('StorageService', ['get']);
 
     TestBed.configureTestingModule({
-      declarations: [SearchCertificatesPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        SearchCertificatesPage
+      ],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ToastController, useValue: toastCtrlSpy },
@@ -118,7 +127,7 @@ describe('SearchCertificatesPage', () => {
     await component.buscar();
     tick();
 
-    expect(storageSpy.get).toHaveBeenCalledWith('Transaccion');
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.TRANSACTION);
     expect(transactionsServiceSpy.emitCertificate).toHaveBeenCalledWith(mockTransaction);
     expect(toastCtrlSpy.create).toHaveBeenCalledWith({
       message: 'Certificado emitido exitosamente',
@@ -225,5 +234,43 @@ describe('SearchCertificatesPage', () => {
       component.onCertificateTypeChange(type);
       expect(component.certificateType).toBe(type);
     });
+  });
+
+  it('should render header with back button and title', () => {
+    const compiled = fixture.nativeElement;
+    const backButton = compiled.querySelector('ion-back-button');
+    const title = compiled.querySelector('ion-title');
+
+    expect(backButton).toBeTruthy();
+    expect(title.textContent).toContain('Descargar certificado');
+  });
+
+  it('should render certificate type select with all options', () => {
+    const compiled = fixture.nativeElement;
+    const select = compiled.querySelector('ion-select');
+    const options = compiled.querySelectorAll('ion-select-option');
+
+    expect(select).toBeTruthy();
+    expect(options.length).toBe(10);
+    expect(options[0].textContent).toContain('Acopio');
+    expect(options[9].textContent).toContain('Tratamiento');
+  });
+
+  it('should render date picker', () => {
+    const compiled = fixture.nativeElement;
+    const dateButton = compiled.querySelector('ion-datetime-button');
+    const datetime = compiled.querySelector('ion-datetime');
+
+    expect(dateButton).toBeTruthy();
+    expect(datetime).toBeTruthy();
+    expect(datetime.getAttribute('presentation')).toBe('date');
+  });
+
+  it('should render search button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Buscar');
   });
 });

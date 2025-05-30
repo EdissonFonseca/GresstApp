@@ -1,19 +1,20 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { ThirdPartiesPage } from './third-parties.page';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ComponentsModule } from '@app/components/components.module';
 import { StakeholdersComponent } from '@app/components/stakeholders/stakeholders.component';
 import { ThirdpartiesService } from '@app/services/masterdata/thirdparties.service';
-import { Utils } from '@app/utils/utils';
 import { Tercero } from '@app/interfaces/tercero.interface';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/constants/constants';
+import { AuthorizationService } from '@app/services/core/authorization.services';
 
 describe('ThirdPartiesPage', () => {
   let component: ThirdPartiesPage;
   let fixture: ComponentFixture<ThirdPartiesPage>;
   let thirdpartiesServiceSpy: jasmine.SpyObj<ThirdpartiesService>;
+  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
 
   const mockTerceros: Tercero[] = [
     {
@@ -38,26 +39,29 @@ describe('ThirdPartiesPage', () => {
     }
   ];
 
-  beforeEach(async () => {
+  beforeEach(waitForAsync(() => {
     thirdpartiesServiceSpy = jasmine.createSpyObj('ThirdpartiesService', ['list']);
+    authorizationServiceSpy = jasmine.createSpyObj('AuthorizationService', ['getPermission']);
 
-    await TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [
         IonicModule.forRoot(),
         RouterTestingModule,
+        FormsModule,
         ReactiveFormsModule,
         ComponentsModule,
         ThirdPartiesPage
       ],
       providers: [
-        { provide: ThirdpartiesService, useValue: thirdpartiesServiceSpy }
+        { provide: ThirdpartiesService, useValue: thirdpartiesServiceSpy },
+        { provide: AuthorizationService, useValue: authorizationServiceSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ThirdPartiesPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-  });
+  }));
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -68,17 +72,16 @@ describe('ThirdPartiesPage', () => {
     expect(fixture).toBeDefined();
   });
 
-  it('should have required imports', () => {
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled).toBeTruthy();
+  it('should render header with back button and title', () => {
+    const compiled = fixture.nativeElement;
+    const backButton = compiled.querySelector('ion-back-button');
+    const title = compiled.querySelector('ion-title');
+
+    expect(backButton).toBeTruthy();
+    expect(title.textContent).toContain('Terceros');
   });
 
-  it('should render without errors', () => {
-    const compiled = fixture.debugElement.nativeElement;
-    expect(compiled.innerHTML).toBeDefined();
-  });
-
-  it('should initialize with stakeholders component', () => {
+  it('should render stakeholders component', () => {
     const compiled = fixture.nativeElement;
     const stakeholdersElement = compiled.querySelector('app-stakeholders');
     expect(stakeholdersElement).toBeTruthy();
@@ -90,20 +93,17 @@ describe('ThirdPartiesPage', () => {
     expect(stakeholdersElement.getAttribute('showHeader')).toBe('false');
   });
 
-  it('should have a back button in the header', () => {
+  it('should render content with fullscreen attribute', () => {
     const compiled = fixture.nativeElement;
-    const backButton = compiled.querySelector('ion-back-button');
-    expect(backButton).toBeTruthy();
-  });
-
-  it('should have the correct title in the header', () => {
-    const compiled = fixture.nativeElement;
-    const title = compiled.querySelector('ion-title');
-    expect(title.textContent).toContain('Terceros');
+    const content = compiled.querySelector('ion-content');
+    expect(content).toBeTruthy();
+    expect(content.getAttribute('fullscreen')).toBe('true');
   });
 
   it('should load third parties on initialization', async () => {
     thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
+    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
+
     await component.ngOnInit();
     expect(thirdpartiesServiceSpy.list).toHaveBeenCalled();
   });
@@ -112,7 +112,26 @@ describe('ThirdPartiesPage', () => {
     const error = new Error('Failed to load third parties');
     thirdpartiesServiceSpy.list.and.returnValue(Promise.reject(error));
     spyOn(console, 'error');
+
     await component.ngOnInit();
     expect(console.error).toHaveBeenCalledWith('Error loading third parties:', error);
+  });
+
+  it('should check permissions on initialization', async () => {
+    thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
+    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
+
+    await component.ngOnInit();
+    expect(authorizationServiceSpy.getPermission).toHaveBeenCalledWith(PERMISSIONS.APP_THIRD_PARTY);
+  });
+
+  it('should handle permission check error', async () => {
+    thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
+    const error = new Error('Permission check failed');
+    authorizationServiceSpy.getPermission.and.returnValue(Promise.reject(error));
+    spyOn(console, 'error');
+
+    await component.ngOnInit();
+    expect(console.error).toHaveBeenCalledWith('Error checking permissions:', error);
   });
 });

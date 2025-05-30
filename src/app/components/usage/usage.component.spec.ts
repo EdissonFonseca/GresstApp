@@ -110,4 +110,64 @@ describe('UsageComponent', () => {
     });
     expect(form.valid).toBeTruthy();
   });
+
+  it('should handle negative values in form', () => {
+    const form = component.frmConsumo;
+
+    form.setValue({
+      Insumo: 'Test Insumo',
+      Cantidad: -10,
+      Precio: -100
+    });
+
+    component.confirm();
+    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('should handle zero values in form', () => {
+    const form = component.frmConsumo;
+
+    form.setValue({
+      Insumo: 'Test Insumo',
+      Cantidad: 0,
+      Precio: 0
+    });
+
+    component.confirm();
+    expect(modalCtrlSpy.dismiss).not.toHaveBeenCalled();
+  });
+
+  it('should handle decimal values in form', () => {
+    const form = component.frmConsumo;
+
+    form.setValue({
+      Insumo: 'Test Insumo',
+      Cantidad: 10.5,
+      Precio: 100.75
+    });
+
+    component.confirm();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      Insumo: 'Test Insumo',
+      Cantidad: 10.5,
+      Precio: 100.75
+    });
+  });
+
+  it('should handle special characters in input field', () => {
+    const form = component.frmConsumo;
+
+    form.setValue({
+      Insumo: 'Test Insumo #123',
+      Cantidad: 10,
+      Precio: 100
+    });
+
+    component.confirm();
+    expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith({
+      Insumo: 'Test Insumo #123',
+      Cantidad: 10,
+      Precio: 100
+    });
+  });
 });

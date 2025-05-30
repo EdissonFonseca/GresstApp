@@ -6,13 +6,15 @@ import { CardService } from '@app/services/core/card.service';
 import { TransactionsService } from '@app/services/transactions/transactions.service';
 import { TasksService } from '@app/services/transactions/tasks.service';
 import { SessionService } from '@app/services/core/session.service';
-import { SynchronizationService } from '@app/services/core/synchronization.service';
-import { Utils } from '@app/utils/utils';
 import { Card } from '@app/interfaces/card.interface';
 import { STATUS } from '@app/constants/constants';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { ComponentsModule } from '@app/components/components.module';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
+import { ActivitiesService } from '@app/services/transactions/activities.service';
+import { LoggerService } from '@app/services/core/logger.service';
 
 describe('TasksPage', () => {
   let component: TasksPage;
@@ -22,9 +24,12 @@ describe('TasksPage', () => {
   let transactionsServiceSpy: jasmine.SpyObj<TransactionsService>;
   let tasksServiceSpy: jasmine.SpyObj<TasksService>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
-  let syncServiceSpy: jasmine.SpyObj<SynchronizationService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let routeSpy: jasmine.SpyObj<ActivatedRoute>;
+  let translateServiceSpy: jasmine.SpyObj<TranslateService>;
+  let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
+  let activitiesServiceSpy: jasmine.SpyObj<ActivitiesService>;
+  let loggerServiceSpy: jasmine.SpyObj<LoggerService>;
 
   const mockCard: Card = {
     id: '1',
@@ -69,20 +74,46 @@ describe('TasksPage', () => {
 
   beforeEach(async () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
-    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'mapTareas', 'mapTarea', 'updateVisibleProperties']);
+    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'mapTareas']);
     transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['list', 'get']);
-    tasksServiceSpy = jasmine.createSpyObj('TasksService', ['listSugeridas']);
-    sessionServiceSpy = jasmine.createSpyObj('SessionService', ['refresh']);
-    syncServiceSpy = jasmine.createSpyObj('SynchronizationService', ['uploadData']);
-    routerSpy = jasmine.createSpyObj('Router', ['getCurrentNavigation']);
+    tasksServiceSpy = jasmine.createSpyObj('TasksService', ['list']);
+    sessionServiceSpy = jasmine.createSpyObj('SessionService', ['synchronize']);
+    routerSpy = jasmine.createSpyObj('Router', ['navigate']);
+    translateServiceSpy = jasmine.createSpyObj('TranslateService', ['instant']);
+    userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
+    activitiesServiceSpy = jasmine.createSpyObj('ActivitiesService', ['get']);
+    loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error']);
+
     routeSpy = jasmine.createSpyObj('ActivatedRoute', [], {
       queryParams: {
         subscribe: jasmine.createSpy('subscribe').and.callFake((callback) => {
-          callback({ Mode: 'T', TransactionId: '1' });
+          callback({ mode: 'T', transactionId: '1', activityId: '1' });
           return { unsubscribe: () => {} };
         })
       }
     });
+
+    activitiesServiceSpy.get.and.returnValue(Promise.resolve({
+      IdActividad: '1',
+      FechaOrden: new Date().toISOString(),
+      IdRecurso: '1',
+      NavegarPorTransaccion: false,
+      Titulo: 'Test Activity',
+      IdEstado: STATUS.PENDING,
+      IdServicio: 'TRANSPORT'
+    }));
+    transactionsServiceSpy.get.and.returnValue(Promise.resolve({
+      IdActividad: '1',
+      IdTransaccion: '1',
+      EntradaSalida: 'E',
+      IdEstado: STATUS.PENDING,
+      Punto: 'Test Point',
+      Tercero: 'Test Third Party',
+      IdRecurso: '1',
+      IdServicio: 'TRANSPORT',
+      Titulo: 'Test Transaction'
+    }));
+    translateServiceSpy.instant.and.returnValue('Translated text');
 
     await TestBed.configureTestingModule({
       imports: [
@@ -90,6 +121,7 @@ describe('TasksPage', () => {
         RouterTestingModule,
         ReactiveFormsModule,
         ComponentsModule,
+        TranslateModule.forRoot(),
         TasksPage
       ],
       providers: [
@@ -98,9 +130,12 @@ describe('TasksPage', () => {
         { provide: TransactionsService, useValue: transactionsServiceSpy },
         { provide: TasksService, useValue: tasksServiceSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
-        { provide: SynchronizationService, useValue: syncServiceSpy },
         { provide: Router, useValue: routerSpy },
-        { provide: ActivatedRoute, useValue: routeSpy }
+        { provide: ActivatedRoute, useValue: routeSpy },
+        { provide: TranslateService, useValue: translateServiceSpy },
+        { provide: UserNotificationService, useValue: userNotificationServiceSpy },
+        { provide: ActivitiesService, useValue: activitiesServiceSpy },
+        { provide: LoggerService, useValue: loggerServiceSpy }
       ]
     }).compileComponents();
 
@@ -114,129 +149,139 @@ describe('TasksPage', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.activity()).toEqual({ id: '', title: '', status: STATUS.PENDING, type: 'activity' });
-    expect(component.transactions()).toEqual([]);
-    expect(component.tasks()).toEqual([]);
-    expect(component.transactionId).toBe('1');
+    expect(component.activityId).toBe('');
+    expect(component.transactionId).toBe('');
     expect(component.title).toBe('');
     expect(component.showAdd).toBeTrue();
-    expect(component.mode).toBe('T');
+    expect(component.mode).toBe('A');
   });
 
   it('should load data on initialization', async () => {
-    const mockTransactions = [mockTransaction];
-    const mockTasks = [mockTask];
-    transactionsServiceSpy.list.and.returnValue(Promise.resolve([]));
-    cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve(mockTransactions));
-    tasksServiceSpy.listSugeridas.and.returnValue(Promise.resolve([]));
-    cardServiceSpy.mapTareas.and.returnValue(mockTasks);
+    await component.ngOnInit();
 
+    expect(activitiesServiceSpy.get).toHaveBeenCalled();
+    expect(transactionsServiceSpy.get).toHaveBeenCalled();
+    expect(component.title).toBe('Test Activity');
+    expect(component.showAdd).toBeTrue();
+  });
+
+  it('should handle initialization error', async () => {
+    activitiesServiceSpy.get.and.returnValue(Promise.reject('Error'));
+
+    await component.ngOnInit();
+
+    expect(loggerServiceSpy.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+  });
+
+  it('should load data on view enter', async () => {
     await component.ionViewWillEnter();
 
     expect(transactionsServiceSpy.list).toHaveBeenCalled();
-    expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
-    expect(tasksServiceSpy.listSugeridas).toHaveBeenCalled();
-    expect(cardServiceSpy.mapTareas).toHaveBeenCalled();
-    expect(component.transactions()).toEqual(mockTransactions);
-    expect(component.tasks()).toEqual(mockTasks);
-  });
-
-  it('should filter tasks by transaction ID', () => {
-    component.tasks.set([mockTask]);
-    const filteredTasks = component.filterTareas('1');
-    expect(filteredTasks).toEqual([mockTask]);
+    expect(tasksServiceSpy.list).toHaveBeenCalled();
   });
 
   it('should handle search input', async () => {
     const mockEvent = { target: { value: 'test' } };
-    const mockTransactions = [mockTransaction];
-    const mockTasks = [mockTask];
-    transactionsServiceSpy.list.and.returnValue(Promise.resolve([]));
-    cardServiceSpy.mapTransacciones.and.returnValue(Promise.resolve(mockTransactions));
-    tasksServiceSpy.listSugeridas.and.returnValue(Promise.resolve([]));
-    cardServiceSpy.mapTareas.and.returnValue(mockTasks);
 
     await component.handleInput(mockEvent);
 
     expect(transactionsServiceSpy.list).toHaveBeenCalled();
-    expect(cardServiceSpy.mapTransacciones).toHaveBeenCalled();
-    expect(tasksServiceSpy.listSugeridas).toHaveBeenCalled();
-    expect(cardServiceSpy.mapTareas).toHaveBeenCalled();
+    expect(tasksServiceSpy.list).toHaveBeenCalled();
+  });
+
+  it('should filter tasks by transaction ID', () => {
+    const mockTasks = [mockTask];
+    cardServiceSpy.mapTareas.and.returnValue(mockTasks);
+
+    const filteredTasks = component.filterTasks('1');
+    expect(filteredTasks).toEqual([mockTask]);
   });
 
   it('should open add task modal', async () => {
-    const mockModal: any = {
+    const mockModal = {
       present: jasmine.createSpy('present'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: mockTask }))
-    };
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { IdTransaccion: '1' } }))
+    } as any;
     modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
-    spyOn(Utils, 'showLoading');
-    spyOn(Utils, 'hideLoading');
-    cardServiceSpy.mapTarea.and.returnValue(mockTask);
 
-    await component.openAddTarea();
+    await component.openAdd();
 
-    expect(modalCtrlSpy.create).toHaveBeenCalledWith({
-      component: jasmine.any(Function),
-      componentProps: jasmine.any(Object)
-    });
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
     expect(mockModal.present).toHaveBeenCalled();
-    expect(Utils.showLoading).toHaveBeenCalledWith('Actualizando información');
-    expect(cardServiceSpy.mapTarea).toHaveBeenCalled();
-    expect(Utils.hideLoading).toHaveBeenCalled();
-    expect(syncServiceSpy.uploadData).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   });
 
-  it('should handle successful synchronization', async () => {
-    spyOn(Utils, 'showLoading');
-    spyOn(Utils, 'hideLoading');
-    spyOn(Utils, 'showToast');
-    sessionServiceSpy.refresh.and.returnValue(Promise.resolve(true));
-    spyOn(component, 'ionViewWillEnter');
+  it('should handle add task modal error', async () => {
+    modalCtrlSpy.create.and.returnValue(Promise.reject('Error'));
 
-    await component.synchronize();
+    await component.openAdd();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
-    expect(sessionServiceSpy.refresh).toHaveBeenCalled();
-    expect(Utils.hideLoading).toHaveBeenCalled();
-    expect(Utils.showToast).toHaveBeenCalledWith('Sincronización exitosa', 'top');
-    expect(component.ionViewWillEnter).toHaveBeenCalled();
+    expect(loggerServiceSpy.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
   });
 
-  it('should handle failed synchronization', async () => {
-    spyOn(Utils, 'showLoading');
-    spyOn(Utils, 'hideLoading');
-    spyOn(Utils, 'showToast');
-    sessionServiceSpy.refresh.and.returnValue(Promise.resolve(false));
+  it('should open edit task modal', async () => {
+    const mockModal = {
+      present: jasmine.createSpy('present'),
+      onDidDismiss: jasmine.createSpy('onDidDismiss').and.returnValue(Promise.resolve({ data: { IdTransaccion: '1' } }))
+    } as any;
+    modalCtrlSpy.create.and.returnValue(Promise.resolve(mockModal));
 
+    await component.openEdit(mockTask);
+
+    expect(modalCtrlSpy.create).toHaveBeenCalled();
+    expect(mockModal.present).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+  });
+
+  it('should handle edit task modal error', async () => {
+    modalCtrlSpy.create.and.returnValue(Promise.reject('Error'));
+
+    await component.openEdit(mockTask);
+
+    expect(loggerServiceSpy.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+  });
+
+  it('should synchronize data', async () => {
     await component.synchronize();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
-    expect(sessionServiceSpy.refresh).toHaveBeenCalled();
-    expect(Utils.hideLoading).toHaveBeenCalled();
-    expect(Utils.showToast).toHaveBeenCalledWith(
-      'No hay conexión con el servidor. Intente de nuevo más tarde',
-      'top'
-    );
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'top');
   });
 
   it('should handle synchronization error', async () => {
-    spyOn(Utils, 'showLoading');
-    spyOn(Utils, 'hideLoading');
-    spyOn(Utils, 'showToast');
-    spyOn(console, 'error');
-    const error = new Error('Sync failed');
-    sessionServiceSpy.refresh.and.returnValue(Promise.reject(error));
+    tasksServiceSpy.list.and.returnValue(Promise.reject('Error'));
 
     await component.synchronize();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando...');
-    expect(sessionServiceSpy.refresh).toHaveBeenCalled();
-    expect(Utils.hideLoading).toHaveBeenCalled();
-    expect(console.error).toHaveBeenCalledWith('Error durante la sincronización:', error);
-    expect(Utils.showToast).toHaveBeenCalledWith(
-      'Error durante la sincronización. Intente de nuevo más tarde',
-      'top'
-    );
+    expect(loggerServiceSpy.error).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
+  });
+
+  it('should navigate back to transactions', () => {
+    component.mode = 'T';
+    component.activityId = '1';
+
+    component.goBack();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/transactions'], {
+      queryParams: {
+        mode: 'A',
+        activityId: '1'
+      }
+    });
+  });
+
+  it('should navigate back to activities', () => {
+    component.mode = 'A';
+
+    component.goBack();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/activities']);
   });
 });

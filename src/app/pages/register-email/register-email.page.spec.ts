@@ -4,6 +4,10 @@ import { RegisterEmailPage } from './register-email.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { MailService } from '@app/services/core/mail.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('RegisterEmailPage', () => {
   let component: RegisterEmailPage;
@@ -26,8 +30,13 @@ describe('RegisterEmailPage', () => {
     storageSpy = jasmine.createSpyObj('StorageService', ['set']);
 
     TestBed.configureTestingModule({
-      declarations: [RegisterEmailPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        RegisterEmailPage
+      ],
       providers: [
         { provide: MenuController, useValue: menuCtrlSpy },
         { provide: NavController, useValue: navCtrlSpy },
@@ -97,9 +106,9 @@ describe('RegisterEmailPage', () => {
     await component.verify();
     tick();
 
-    expect(storageSpy.set).toHaveBeenCalledWith('Email', mockEmail);
-    expect(storageSpy.set).toHaveBeenCalledWith('Name', mockName);
-    expect(storageSpy.set).toHaveBeenCalledWith('Code', mockCode);
+    expect(storageSpy.set).toHaveBeenCalledWith(STORAGE.EMAIL, mockEmail);
+    expect(storageSpy.set).toHaveBeenCalledWith(STORAGE.FULLNAME, mockName);
+    expect(storageSpy.set).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE, mockCode);
     expect(navCtrlSpy.navigateRoot).toHaveBeenCalledWith('/register-code');
   }));
 
@@ -166,4 +175,55 @@ describe('RegisterEmailPage', () => {
     });
     expect(mockToast.present).toHaveBeenCalled();
   }));
+
+  it('should handle unknown error', fakeAsync(async () => {
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingCtrlSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
+
+    const mockEmail = 'test@example.com';
+    const mockName = 'Test User';
+    component.email = mockEmail;
+    component.name = mockName;
+
+    authServiceSpy.existUser.and.returnValue(Promise.reject('Unknown error'));
+
+    await expectAsync(component.verify()).toBeRejectedWithError('Unknown error: Unknown error');
+    tick();
+  }));
+
+  it('should render header with title', () => {
+    const compiled = fixture.nativeElement;
+    const title = compiled.querySelector('ion-title');
+    expect(title).toBeTruthy();
+    expect(title.textContent).toContain('Crear cuenta');
+  });
+
+  it('should render logo', () => {
+    const compiled = fixture.nativeElement;
+    const logo = compiled.querySelector('img.logo');
+    expect(logo).toBeTruthy();
+    expect(logo.getAttribute('src')).toContain('Gresst.png');
+  });
+
+  it('should render email input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="email"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('should render name input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="name"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('should render verify button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Verificar Correo');
+  });
 });

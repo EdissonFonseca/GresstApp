@@ -3,6 +3,10 @@ import { IonicModule, NavController, LoadingController, AlertController } from '
 import { RegisterKeyPage } from './register-key.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { STORAGE } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('RegisterKeyPage', () => {
   let component: RegisterKeyPage;
@@ -21,8 +25,13 @@ describe('RegisterKeyPage', () => {
     storageSpy = jasmine.createSpyObj('StorageService', ['get']);
 
     TestBed.configureTestingModule({
-      declarations: [RegisterKeyPage],
-      imports: [IonicModule.forRoot()],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ComponentsModule,
+        RegisterKeyPage
+      ],
       providers: [
         { provide: NavController, useValue: navCtrlSpy },
         { provide: LoadingController, useValue: loadingCtrlSpy },
@@ -125,8 +134,8 @@ describe('RegisterKeyPage', () => {
     await component.create();
     tick();
 
-    expect(storageSpy.get).toHaveBeenCalledWith('Email');
-    expect(storageSpy.get).toHaveBeenCalledWith('Name');
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.EMAIL);
+    expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.FULLNAME);
     expect(authServiceSpy.register).toHaveBeenCalledWith(mockEmail, mockName, mockPassword);
     expect(alertCtrlSpy.create).toHaveBeenCalledWith({
       header: 'User registered',
@@ -164,4 +173,63 @@ describe('RegisterKeyPage', () => {
 
     expect(mockLoading.dismiss).toHaveBeenCalled();
   }));
+
+  it('should handle unknown error', fakeAsync(async () => {
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingCtrlSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
+
+    const mockEmail = 'test@example.com';
+    const mockName = 'Test User';
+    const mockPassword = 'password123';
+    component.newPassword = mockPassword;
+    component.confirmPassword = mockPassword;
+
+    storageSpy.get.and.returnValues(
+      Promise.resolve(mockEmail),
+      Promise.resolve(mockName)
+    );
+
+    authServiceSpy.register.and.returnValue(Promise.reject('Unknown error'));
+
+    await expectAsync(component.create()).toBeRejectedWithError('Unknown error: Unknown error');
+    tick();
+
+    expect(mockLoading.dismiss).toHaveBeenCalled();
+  }));
+
+  it('should render header with title', () => {
+    const compiled = fixture.nativeElement;
+    const title = compiled.querySelector('ion-title');
+    expect(title).toBeTruthy();
+    expect(title.textContent).toContain('login');
+  });
+
+  it('should render logo', () => {
+    const compiled = fixture.nativeElement;
+    const logo = compiled.querySelector('img.logo');
+    expect(logo).toBeTruthy();
+    expect(logo.getAttribute('src')).toContain('Gresst.png');
+  });
+
+  it('should render password input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="newPassword"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('should render confirm password input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="confirmPassword"]');
+    expect(input).toBeTruthy();
+  });
+
+  it('should render create account button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Crear la cuenta');
+  });
 });

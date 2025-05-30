@@ -4,6 +4,8 @@ import { PasswordEmailPage } from './password-email.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { MailService } from '@app/services/core/mail.service';
 import { StorageService } from '@app/services/core/storage.service';
+import { FormsModule } from '@angular/forms';
+import { STORAGE } from '@app/constants/constants';
 
 describe('PasswordEmailPage', () => {
   let component: PasswordEmailPage;
@@ -25,15 +27,9 @@ describe('PasswordEmailPage', () => {
     mailServiceSpy = jasmine.createSpyObj('MailService', ['sendWithToken']);
     storageServiceSpy = jasmine.createSpyObj('StorageService', ['set']);
 
-    const mockLoading = {
-      present: jasmine.createSpy('present'),
-      dismiss: jasmine.createSpy('dismiss')
-    };
-    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
-
     await TestBed.configureTestingModule({
       declarations: [PasswordEmailPage],
-      imports: [IonicModule.forRoot()],
+      imports: [IonicModule.forRoot(), FormsModule],
       providers: [
         { provide: MenuController, useValue: menuCtrlSpy },
         { provide: NavController, useValue: navCtrlSpy },
@@ -69,18 +65,19 @@ describe('PasswordEmailPage', () => {
     const mockCode = '123456';
     component.email = mockEmail;
 
-    authServiceSpy.existUser.and.returnValue(Promise.resolve(true));
-    mailServiceSpy.sendWithToken.and.returnValue(Promise.resolve(mockCode));
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    authServiceSpy.existUser.and.returnValue(Promise.resolve(true));
+    mailServiceSpy.sendWithToken.and.returnValue(Promise.resolve(mockCode));
 
     await component.verify();
     tick();
@@ -89,36 +86,41 @@ describe('PasswordEmailPage', () => {
       message: 'Connecting...',
       spinner: 'circular'
     });
+    expect(mockLoading.present).toHaveBeenCalled();
     expect(authServiceSpy.existUser).toHaveBeenCalledWith(mockEmail);
     expect(mailServiceSpy.sendWithToken).toHaveBeenCalledWith(
       mockEmail,
       'Gresst - Password Change',
       'To continue, enter the following code: {Token}, in the app'
     );
-    expect(storageServiceSpy.set).toHaveBeenCalledWith('Email', mockEmail);
-    expect(storageServiceSpy.set).toHaveBeenCalledWith('Code', mockCode);
+    expect(storageServiceSpy.set).toHaveBeenCalledWith(STORAGE.EMAIL, mockEmail);
+    expect(storageServiceSpy.set).toHaveBeenCalledWith(STORAGE.VERIFICATION_CODE, mockCode);
     expect(navCtrlSpy.navigateRoot).toHaveBeenCalledWith('/password-code');
+    expect(mockLoading.dismiss).toHaveBeenCalled();
   }));
 
   it('should show error toast when email is not registered', fakeAsync(async () => {
     const mockEmail = 'test@example.com';
     component.email = mockEmail;
 
-    authServiceSpy.existUser.and.returnValue(Promise.resolve(false));
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    authServiceSpy.existUser.and.returnValue(Promise.resolve(false));
 
     await component.verify();
     tick();
 
+    expect(mockLoading.present).toHaveBeenCalled();
+    expect(authServiceSpy.existUser).toHaveBeenCalledWith(mockEmail);
     expect(toastControllerSpy.create).toHaveBeenCalledWith({
       message: 'This email is not registered',
       duration: 3000,
@@ -127,36 +129,60 @@ describe('PasswordEmailPage', () => {
     });
     expect(mockToast.present).toHaveBeenCalled();
     expect(component.email).toBe('');
-    expect(navCtrlSpy.navigateRoot).not.toHaveBeenCalled();
+    expect(mockLoading.dismiss).toHaveBeenCalled();
   }));
 
-  it('should handle authentication service error', fakeAsync(async () => {
+  it('should handle error when checking user existence', fakeAsync(async () => {
     const mockEmail = 'test@example.com';
     component.email = mockEmail;
 
-    const errorMessage = 'Authentication error';
-    authServiceSpy.existUser.and.returnValue(Promise.reject(new Error(errorMessage)));
+    const mockLoading = {
+      present: jasmine.createSpy('present'),
+      dismiss: jasmine.createSpy('dismiss')
+    };
+    loadingControllerSpy.create.and.returnValue(Promise.resolve(mockLoading as any));
 
     const mockToast = {
-      present: jasmine.createSpy('present'),
-      addEventListener: jasmine.createSpy('addEventListener'),
-      removeEventListener: jasmine.createSpy('removeEventListener'),
-      dismiss: jasmine.createSpy('dismiss'),
-      onDidDismiss: jasmine.createSpy('onDidDismiss'),
-      onWillDismiss: jasmine.createSpy('onWillDismiss')
+      present: jasmine.createSpy('present')
     };
     toastControllerSpy.create.and.returnValue(Promise.resolve(mockToast as any));
+
+    authServiceSpy.existUser.and.returnValue(Promise.reject(new Error('Network error')));
 
     await component.verify();
     tick();
 
+    expect(mockLoading.present).toHaveBeenCalled();
+    expect(authServiceSpy.existUser).toHaveBeenCalledWith(mockEmail);
     expect(toastControllerSpy.create).toHaveBeenCalledWith({
-      message: errorMessage,
+      message: 'Network error',
       duration: 3000,
       position: 'middle',
       color: 'dark'
     });
     expect(mockToast.present).toHaveBeenCalled();
     expect(component.email).toBe('');
+    expect(mockLoading.dismiss).toHaveBeenCalled();
   }));
+
+  it('should render email input', () => {
+    const compiled = fixture.nativeElement;
+    const input = compiled.querySelector('ion-input[name="email"]');
+    expect(input).toBeTruthy();
+    expect(input.getAttribute('type')).toBe('email');
+  });
+
+  it('should render verify button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Verificar');
+  });
+
+  it('should render back to login button', () => {
+    const compiled = fixture.nativeElement;
+    const button = compiled.querySelector('ion-button[color="medium"]');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('Regresar al inicio');
+  });
 });

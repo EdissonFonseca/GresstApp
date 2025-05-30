@@ -5,6 +5,10 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { StorageService } from '@app/services/core/storage.service';
 import { Cuenta } from '@app/interfaces/cuenta.interface';
+import { STORAGE } from '@app/constants/constants';
+import { RouterTestingModule } from '@angular/router/testing';
+import { FormsModule } from '@angular/forms';
+import { ComponentsModule } from '@app/components/components.module';
 
 describe('ProfilePage', () => {
   let component: ProfilePage;
@@ -32,8 +36,14 @@ describe('ProfilePage', () => {
     alertControllerSpy = jasmine.createSpyObj('AlertController', ['create']);
 
     await TestBed.configureTestingModule({
-      declarations: [ProfilePage],
-      imports: [IonicModule.forRoot(), ReactiveFormsModule],
+      imports: [
+        IonicModule.forRoot(),
+        RouterTestingModule,
+        FormsModule,
+        ReactiveFormsModule,
+        ComponentsModule,
+        ProfilePage
+      ],
       providers: [
         FormBuilder,
         { provide: AuthenticationApiService, useValue: authServiceSpy },
@@ -44,6 +54,7 @@ describe('ProfilePage', () => {
 
     fixture = TestBed.createComponent(ProfilePage);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -56,7 +67,7 @@ describe('ProfilePage', () => {
     component.ngOnInit();
     tick();
 
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Cuenta');
+    expect(storageServiceSpy.get).toHaveBeenCalledWith(STORAGE.ACCOUNT);
     expect(component.cuenta).toEqual(mockCuenta);
     expect(component.formData.get('Nombre')?.value).toBe(mockCuenta.NombreUsuario);
     expect(component.formData.get('Correo')?.value).toBe(mockCuenta.LoginUsuario);
@@ -85,7 +96,7 @@ describe('ProfilePage', () => {
     tick();
 
     expect(authServiceSpy.changeName).toHaveBeenCalledWith('test@example.com', newName);
-    expect(storageServiceSpy.set).toHaveBeenCalledWith('Cuenta', mockCuenta);
+    expect(storageServiceSpy.set).toHaveBeenCalledWith(STORAGE.ACCOUNT, mockCuenta);
     expect(alertControllerSpy.create).toHaveBeenCalledWith({
       header: 'Name changed',
       subHeader: '',
@@ -130,7 +141,6 @@ describe('ProfilePage', () => {
     tick();
 
     expect(authServiceSpy.changePassword).toHaveBeenCalledWith('test@example.com', newPassword);
-    expect(storageServiceSpy.set).toHaveBeenCalledWith('Password', newPassword);
     expect(alertControllerSpy.create).toHaveBeenCalledWith({
       header: 'Password changed',
       subHeader: '',
@@ -183,4 +193,56 @@ describe('ProfilePage', () => {
       buttons: ['OK']
     });
   }));
+
+  it('should render header with back button', () => {
+    const compiled = fixture.nativeElement;
+    const header = compiled.querySelector('ion-header');
+    expect(header).toBeTruthy();
+    const backButton = header.querySelector('ion-back-button');
+    expect(backButton).toBeTruthy();
+  });
+
+  it('should render header with title', () => {
+    const compiled = fixture.nativeElement;
+    const title = compiled.querySelector('ion-title');
+    expect(title).toBeTruthy();
+    expect(title.textContent).toContain('Usuario');
+  });
+
+  it('should render email input', () => {
+    const compiled = fixture.nativeElement;
+    const emailInput = compiled.querySelector('ion-input[formControlName="Correo"]');
+    expect(emailInput).toBeTruthy();
+  });
+
+  it('should render name input', () => {
+    const compiled = fixture.nativeElement;
+    const nameInput = compiled.querySelector('ion-input[formControlName="Nombre"]');
+    expect(nameInput).toBeTruthy();
+  });
+
+  it('should render change name button', () => {
+    const compiled = fixture.nativeElement;
+    const changeNameButton = compiled.querySelector('ion-button:contains("Cambiar Nombre")');
+    expect(changeNameButton).toBeTruthy();
+  });
+
+  it('should render change password button', () => {
+    const compiled = fixture.nativeElement;
+    const changePasswordButton = compiled.querySelector('ion-button:contains("Cambiar Contraseña")');
+    expect(changePasswordButton).toBeTruthy();
+  });
+
+  it('should render password form when showPassword is true', () => {
+    component.showPassword = true;
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement;
+    const passwordForm = compiled.querySelector('ion-list');
+    expect(passwordForm).toBeTruthy();
+    expect(compiled.querySelector('ion-input[formControlName="ClaveActual"]')).toBeTruthy();
+    expect(compiled.querySelector('ion-input[formControlName="ClaveNueva"]')).toBeTruthy();
+    expect(compiled.querySelector('ion-input[formControlName="ClaveConfirmar"]')).toBeTruthy();
+    expect(compiled.querySelector('ion-button:contains("Guardar Contraseña")')).toBeTruthy();
+  });
 });

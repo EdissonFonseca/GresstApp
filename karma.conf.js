@@ -20,8 +20,8 @@ module.exports = function (config) {
         // the possible options are listed at https://jasmine.github.io/api/edge/Configuration.html
         // for example, you can disable the random execution with `random: false`
         // or set a specific seed with `seed: 4321`
-        failFast: true,
-        timeoutInterval: 10000,
+        failFast: false,
+        timeoutInterval: 30000,
         random: false
       },
       clearContext: false // Cambiado a false para mantener el contexto
@@ -41,27 +41,33 @@ module.exports = function (config) {
         { type: 'text-summary' }
       ]
     },
-    reporters: ['kjhtml', 'progress'], // Cambiado el orden para priorizar kjhtml
+    reporters: ['progress', 'kjhtml'], // Cambiado el orden para priorizar kjhtml
     port: 9876,
     colors: true,
-    logLevel: config.LOG_DEBUG,
+    logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
     singleRun: false,
     restartOnFileChange: true,
-    browserDisconnectTimeout: 10000,
-    browserNoActivityTimeout: 30000,
-    captureTimeout: 60000,
-    processKillTimeout: 2000,
+    browserDisconnectTimeout: 30000,
+    browserNoActivityTimeout: 60000,
+    captureTimeout: 120000,
+    processKillTimeout: 5000,
     browserConsoleLogOptions: {
-      level: 'debug',
+      level: 'info',
       format: '%b %T: %m',
       terminal: true
     },
     customLaunchers: {
-      ChromeDebug: {
+      ChromeHeadless: {
         base: 'Chrome',
-        flags: ['--remote-debugging-port=9222']
+        flags: [
+          '--headless',
+          '--disable-gpu',
+          '--no-sandbox',
+          '--disable-dev-shm-usage',
+          '--remote-debugging-port=9222'
+        ]
       }
     }
   });

@@ -4,8 +4,9 @@ import { BankPage } from './bank.page';
 import { InventoryApiService } from '@app/services/api/inventoryApi.service';
 import { StorageService } from '@app/services/core/storage.service';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
-import { Utils } from '@app/utils/utils';
+import { UserNotificationService } from '@app/services/core/user-notification.service';
 import { Banco } from 'src/app/interfaces/banco.interface';
+import { Utils } from '@app/utils/utils';
 
 describe('BankPage', () => {
   let component: BankPage;
@@ -14,6 +15,7 @@ describe('BankPage', () => {
   let inventoryServiceSpy: jasmine.SpyObj<InventoryApiService>;
   let storageServiceSpy: jasmine.SpyObj<StorageService>;
   let authServiceSpy: jasmine.SpyObj<AuthenticationApiService>;
+  let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
 
   const mockMaterial: Banco = {
     IdMaterial: '123',
@@ -30,9 +32,12 @@ describe('BankPage', () => {
     inventoryServiceSpy = jasmine.createSpyObj('InventoryApiService', ['getBank']);
     storageServiceSpy = jasmine.createSpyObj('StorageService', ['get']);
     authServiceSpy = jasmine.createSpyObj('AuthenticationApiService', ['login']);
+    userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', [
+      'showLoading',
+      'hideLoading',
+      'showToast'
+    ]);
 
-    spyOn(Utils, 'showLoading');
-    spyOn(Utils, 'hideLoading');
     spyOn(Utils, 'getImage').and.returnValue('test-image-url');
 
     await TestBed.configureTestingModule({
@@ -42,7 +47,8 @@ describe('BankPage', () => {
         { provide: NavController, useValue: navCtrlSpy },
         { provide: InventoryApiService, useValue: inventoryServiceSpy },
         { provide: StorageService, useValue: storageServiceSpy },
-        { provide: AuthenticationApiService, useValue: authServiceSpy }
+        { provide: AuthenticationApiService, useValue: authServiceSpy },
+        { provide: UserNotificationService, useValue: userNotificationServiceSpy }
       ]
     }).compileComponents();
 
@@ -61,10 +67,22 @@ describe('BankPage', () => {
     component.ngOnInit();
     tick();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando ...');
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
     expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
     expect(component.materiales).toEqual(mockMaterials);
-    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+  }));
+
+  it('should handle error when loading materials', fakeAsync(() => {
+    inventoryServiceSpy.getBank.and.returnValue(Promise.reject('Error'));
+
+    component.ngOnInit();
+    tick();
+
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
+    expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+    expect(component.materiales).toEqual([]);
   }));
 
   it('should get image for material', () => {
@@ -88,28 +106,47 @@ describe('BankPage', () => {
     component.handleInput(event);
     tick();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando ...');
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
     expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
     expect(component.materiales).toEqual(mockMaterials.filter(m => m.Nombre.toLowerCase().includes('test')));
-    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
   }));
 
-  it('should handle clear and refresh data', fakeAsync(() => {
-    const mockMaterials = [mockMaterial];
+  it('should handle error when filtering materials', fakeAsync(() => {
+    inventoryServiceSpy.getBank.and.returnValue(Promise.reject('Error'));
 
-    storageServiceSpy.get.and.returnValue(Promise.resolve('test-credentials'));
-    authServiceSpy.login.and.returnValue(Promise.resolve(true));
+    const event = { target: { value: 'test' } };
+    component.handleInput(event);
+    tick();
+
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
+    expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+    expect(component.materiales).toEqual([]);
+  }));
+
+  it('should handle clear input', fakeAsync(() => {
+    const mockMaterials = [mockMaterial];
     inventoryServiceSpy.getBank.and.returnValue(Promise.resolve(mockMaterials));
 
     component.handleClear();
     tick();
 
-    expect(Utils.showLoading).toHaveBeenCalledWith('Sincronizando ...');
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Login');
-    expect(storageServiceSpy.get).toHaveBeenCalledWith('Password');
-    expect(authServiceSpy.login).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
     expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
     expect(component.materiales).toEqual(mockMaterials);
-    expect(Utils.hideLoading).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+  }));
+
+  it('should handle error when clearing input', fakeAsync(() => {
+    inventoryServiceSpy.getBank.and.returnValue(Promise.reject('Error'));
+
+    component.handleClear();
+    tick();
+
+    expect(userNotificationServiceSpy.showLoading).toHaveBeenCalledWith('Sincronizando ...');
+    expect(inventoryServiceSpy.getBank).toHaveBeenCalled();
+    expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
+    expect(component.materiales).toEqual([]);
   }));
 });
