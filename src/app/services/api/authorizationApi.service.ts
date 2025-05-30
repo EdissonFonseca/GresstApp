@@ -24,7 +24,7 @@ interface Role {
   permissions: Permission[];
 }
 
-interface UserPermissions {
+export interface UserPermissions {
   roles: Role[];
   permissions: Permission[];
 }

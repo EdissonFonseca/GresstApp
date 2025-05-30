@@ -246,8 +246,8 @@ describe('LoginPage', () => {
       tick();
 
       expect(userNotificationServiceSpy.showAlert).toHaveBeenCalledWith(
-        'Error de Autenticación',
-        'No hay conexión al servidor'
+        'AUTH.ERRORS.NO_CONNECTION_TITLE',
+        'AUTH.ERRORS.NO_CONNECTION_MESSAGE'
       );
     }));
 
@@ -266,8 +266,8 @@ describe('LoginPage', () => {
       tick();
 
       expect(userNotificationServiceSpy.showAlert).toHaveBeenCalledWith(
-        'Authentication Error',
-        'No server connection'
+        'AUTH.ERRORS.NO_CONNECTION_TITLE',
+        'AUTH.ERRORS.NO_CONNECTION_MESSAGE'
       );
     }));
   });

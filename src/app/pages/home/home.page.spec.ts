@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { IonicModule, IonTabs } from '@ionic/angular';
+import { IonicModule, IonTabs, Platform, NavController, Config } from '@ionic/angular';
 import { HomePage } from './home.page';
 import { SessionService } from '@app/services/core/session.service';
 import { ComponentsModule } from '@app/components/components.module';
@@ -9,6 +9,11 @@ import { UserNotificationService } from '@app/services/core/user-notification.se
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { STORAGE } from '@app/constants/constants';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Storage } from '@ionic/storage-angular';
+import { SynchronizationService } from '@app/services/core/synchronization.service';
+import { AuthorizationApiService } from '@app/services/api/authorizationApi.service';
+import { EventEmitter } from '@angular/core';
 
 describe('HomePage', () => {
   let component: HomePage;
@@ -18,28 +23,56 @@ describe('HomePage', () => {
   let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
   let translateServiceSpy: jasmine.SpyObj<TranslateService>;
   let routerSpy: jasmine.SpyObj<Router>;
+  let storageSpy: jasmine.SpyObj<Storage>;
+  let syncServiceSpy: jasmine.SpyObj<SynchronizationService>;
+  let authApiServiceSpy: jasmine.SpyObj<AuthorizationApiService>;
+  let platformSpy: jasmine.SpyObj<Platform>;
+  let navControllerSpy: jasmine.SpyObj<NavController>;
+  let configSpy: jasmine.SpyObj<Config>;
 
   beforeEach(async () => {
     const sessionSpy = jasmine.createSpyObj('SessionService', ['countPendingRequests', 'pendingRequests']);
-    const storageSpy = jasmine.createSpyObj('StorageService', ['get']);
+    const storageServiceSpyObj = jasmine.createSpyObj('StorageService', ['get']);
     const notificationSpy = jasmine.createSpyObj('UserNotificationService', ['showToast']);
     const translateSpy = jasmine.createSpyObj('TranslateService', ['instant']);
     const routerSpyObj = jasmine.createSpyObj('Router', ['navigate']);
+    const storageSpyObj = jasmine.createSpyObj('Storage', ['create', 'get', 'set']);
+    const syncSpy = jasmine.createSpyObj('SynchronizationService', ['sync']);
+    const authApiSpy = jasmine.createSpyObj('AuthorizationApiService', ['get']);
+    const platformSpyObj = jasmine.createSpyObj('Platform', ['ready', 'is']);
+    const navControllerSpyObj = jasmine.createSpyObj('NavController', ['navigateRoot', 'navigateForward', 'navigateBack']);
+    const configSpyObj = jasmine.createSpyObj('Config', ['get']);
+
+    // Mock IonTabs
+    const mockIonTabs = {
+      ionTabsDidChange: new EventEmitter<any>(),
+      getSelected: () => 'activities'
+    };
 
     await TestBed.configureTestingModule({
-      declarations: [HomePage],
       imports: [
-        IonicModule.forRoot(),
+        HomePage,
+        CommonModule,
+        IonicModule.forRoot({
+          mode: 'ios'
+        }),
         ComponentsModule,
         RouterTestingModule,
         TranslateModule.forRoot()
       ],
       providers: [
         { provide: SessionService, useValue: sessionSpy },
-        { provide: StorageService, useValue: storageSpy },
+        { provide: StorageService, useValue: storageServiceSpyObj },
         { provide: UserNotificationService, useValue: notificationSpy },
         { provide: TranslateService, useValue: translateSpy },
-        { provide: Router, useValue: routerSpyObj }
+        { provide: Router, useValue: routerSpyObj },
+        { provide: Storage, useValue: storageSpyObj },
+        { provide: SynchronizationService, useValue: syncSpy },
+        { provide: AuthorizationApiService, useValue: authApiSpy },
+        { provide: IonTabs, useValue: mockIonTabs },
+        { provide: Platform, useValue: platformSpyObj },
+        { provide: NavController, useValue: navControllerSpyObj },
+        { provide: Config, useValue: configSpyObj }
       ]
     }).compileComponents();
 
@@ -48,14 +81,25 @@ describe('HomePage', () => {
     userNotificationServiceSpy = TestBed.inject(UserNotificationService) as jasmine.SpyObj<UserNotificationService>;
     translateServiceSpy = TestBed.inject(TranslateService) as jasmine.SpyObj<TranslateService>;
     routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+    storageSpy = TestBed.inject(Storage) as jasmine.SpyObj<Storage>;
+    syncServiceSpy = TestBed.inject(SynchronizationService) as jasmine.SpyObj<SynchronizationService>;
+    authApiServiceSpy = TestBed.inject(AuthorizationApiService) as jasmine.SpyObj<AuthorizationApiService>;
+    platformSpy = TestBed.inject(Platform) as jasmine.SpyObj<Platform>;
+    navControllerSpy = TestBed.inject(NavController) as jasmine.SpyObj<NavController>;
+    configSpy = TestBed.inject(Config) as jasmine.SpyObj<Config>;
 
     sessionServiceSpy.pendingRequests.and.returnValue(0);
     translateServiceSpy.instant.and.returnValue('Translated Text');
+    platformSpy.ready.and.returnValue(Promise.resolve('core'));
+    platformSpy.is.and.returnValue(false);
+    configSpy.get.and.returnValue('ios');
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(HomePage);
     component = fixture.componentInstance;
+    // Set the tabs property before detectChanges
+    component.tabs = TestBed.inject(IonTabs);
     fixture.detectChanges();
   });
 

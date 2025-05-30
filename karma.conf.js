@@ -1,8 +1,6 @@
 // Karma configuration file, see link for more information
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
-const path = require('path');
-
 module.exports = function (config) {
   config.set({
     basePath: '',
@@ -34,7 +32,7 @@ module.exports = function (config) {
       showStack: true
     },
     coverageReporter: {
-      dir: path.join(__dirname, './coverage/app'),
+      dir: require('path').join(__dirname, './coverage/app'),
       subdir: '.',
       reporters: [
         { type: 'html' },
@@ -46,7 +44,7 @@ module.exports = function (config) {
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeCustom'],
     singleRun: false,
     restartOnFileChange: true,
     browserDisconnectTimeout: 30000,
@@ -59,15 +57,10 @@ module.exports = function (config) {
       terminal: true
     },
     customLaunchers: {
-      ChromeHeadless: {
+      ChromeCustom: {
         base: 'Chrome',
-        flags: [
-          '--headless',
-          '--disable-gpu',
-          '--no-sandbox',
-          '--disable-dev-shm-usage',
-          '--remote-debugging-port=9222'
-        ]
+        flags: ['--no-sandbox'],
+        executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
       }
     }
   });
