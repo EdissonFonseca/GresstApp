@@ -7,7 +7,6 @@
         {{ 'COMMON.EXIT' | translate }}
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ (isReject ? 'ACTIVITIES.REJECT.TITLE' : 'ACTIVITIES.APPROVE.TITLE') | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="submit()" [color]="isReject ? 'danger' : 'success'">
         <ion-icon [name]="isReject ? 'bag-remove' : 'bag-add'"></ion-icon>

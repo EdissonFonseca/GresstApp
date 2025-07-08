@@ -10,13 +10,6 @@
       <ion-icon src="../../../assets/icon/workhistory.svg"></ion-icon>
       {{ 'HOME.TABS.SHIFT' | translate }}
     </ion-tab-button>
-    <ion-tab-button
-      tab="inventario"
-      (click)="setHeader('HOME.TABS.INVENTORY', 'help-inventario')"
-      [class.active]="currentTab() === 'inventario'">
-      <ion-icon src="../../../assets/icon/warehouse.svg"></ion-icon>
-      {{ 'HOME.TABS.INVENTORY' | translate }}
-    </ion-tab-button>
   </ion-tab-bar>
 
   <ion-tab tab="activities">
@@ -25,10 +18,5 @@
     </ion-content>
   </ion-tab>
 
-  <ion-tab tab="inventario">
-    <ion-content id="main-content" [fullscreen]="true">
-      <ion-router-outlet name="inventario"></ion-router-outlet>
-    </ion-content>
-  </ion-tab>
 </ion-tabs>
 

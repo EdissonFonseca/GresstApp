@@ -163,7 +163,6 @@ export class ActivitiesPage implements OnInit {
       if (activityData.IdServicio === SERVICE_TYPES.COLLECTION ||
           activityData.IdServicio === SERVICE_TYPES.TRANSPORT) {
         // Initialize activity start if needed
-        console.log('activityData', activityData);
         if (!activityData.FechaInicial && activityData.approved === 0 && activityData.rejected === 0) {
           if (Utils.requestMileage) {
             const result = await this.requestMileagePrompt();

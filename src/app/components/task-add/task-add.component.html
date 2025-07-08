@@ -67,14 +67,14 @@
       </ion-item>
 
       <!-- Weight -->
-      <ion-item class="ion-no-padding" *ngIf="formData.get('Measurement')?.value === 'WEIGHT'">
+      <ion-item class="ion-no-padding" *ngIf="measurementType === 'P' || captureType === 'P'">
         <ion-note slot="start">{{ 'TASK_ADD.WEIGHT' | translate }}</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="Weight" readonly></ion-input>
         <ion-note slot="end">kg</ion-note>
       </ion-item>
 
       <!-- Volume -->
-      <ion-item class="ion-no-padding" *ngIf="formData.get('Measurement')?.value === 'VOLUME'">
+      <ion-item class="ion-no-padding" *ngIf="measurementType === 'V' || captureType === 'V'">
         <ion-note slot="start">{{ 'TASK_ADD.VOLUME' | translate }}</ion-note>
         <ion-input type="number" inputmode="numeric" formControlName="Volume" readonly></ion-input>
         <ion-note slot="end">m3</ion-note>

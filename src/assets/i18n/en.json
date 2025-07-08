@@ -273,12 +273,25 @@
     "ASSIGNED_TO_REQUIRED": "Assignee is required",
     "SAVE": "Save",
     "CANCEL": "Cancel",
+    "CONFIRM": "Confirm",
+    "REJECT": "Reject",
+    "TREATMENT": "Treatment",
+    "SELECT_TREATMENT": "Select Treatment",
+    "QUANTITY": "Quantity",
+    "WEIGHT": "Weight",
+    "VOLUME": "Volume",
+    "PACKAGING": "Packaging",
+    "OBSERVATIONS": "Observations",
+    "TAKE_PHOTO": "Take Photo",
+    "DELETE_PHOTO": "Delete",
     "MESSAGES": {
       "SAVE_SUCCESS": "Task saved successfully",
       "SAVE_ERROR": "Error saving task",
       "LOAD_ERROR": "Error loading task",
       "DELETE_SUCCESS": "Task deleted successfully",
-      "DELETE_ERROR": "Error deleting task"
+      "DELETE_ERROR": "Error deleting task",
+      "PHOTO_ERROR": "Error taking photo",
+      "BASE64_ERROR": "Error processing image"
     }
   },
   "TASK_ADD": {

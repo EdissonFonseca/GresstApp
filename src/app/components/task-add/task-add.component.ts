@@ -31,7 +31,9 @@ export class TaskAddComponent implements OnInit {
   @Input() activityId: string = '';
   @Input() transactionId: string = '';
 
+  captureType: string = '';
   formData!: FormGroup;
+  measurementType: string = '';
   photos: string[] = [];
   photosPerMaterial: number = 2;
   requestPoint: boolean = false;
@@ -92,8 +94,6 @@ export class TaskAddComponent implements OnInit {
       Treatment: [null],
       ResidueId: [null],
       Residue: [null],
-      Capture: [null],
-      Measurement: [null],
       Factor: [null],
       Fotos: [[]]
     });
@@ -199,6 +199,8 @@ export class TaskAddComponent implements OnInit {
 
     modal.onDidDismiss().then((data) => {
       if (data?.data) {
+        this.captureType = data.data.capture;
+        this.measurementType = data.data.measure;
         this.formData.patchValue({
           MaterialId: data.data.id,
           Material: data.data.name,

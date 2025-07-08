@@ -273,12 +273,25 @@
     "ASSIGNED_TO_REQUIRED": "El asignado es requerido",
     "SAVE": "Guardar",
     "CANCEL": "Cancelar",
+    "CONFIRM": "Confirmar",
+    "REJECT": "Rechazar",
+    "TREATMENT": "Tratamiento",
+    "SELECT_TREATMENT": "Seleccionar Tratamiento",
+    "QUANTITY": "Cantidad",
+    "WEIGHT": "Peso",
+    "VOLUME": "Volumen",
+    "PACKAGING": "Embalaje",
+    "OBSERVATIONS": "Observaciones",
+    "TAKE_PHOTO": "Tomar Foto",
+    "DELETE_PHOTO": "Eliminar",
     "MESSAGES": {
       "SAVE_SUCCESS": "Tarea guardada exitosamente",
       "SAVE_ERROR": "Error al guardar la tarea",
       "LOAD_ERROR": "Error al cargar la tarea",
       "DELETE_SUCCESS": "Tarea eliminada exitosamente",
-      "DELETE_ERROR": "Error al eliminar la tarea"
+      "DELETE_ERROR": "Error al eliminar la tarea",
+      "PHOTO_ERROR": "Error al tomar la foto",
+      "BASE64_ERROR": "Error al procesar la imagen"
     }
   },
   "TASK_ADD": {
