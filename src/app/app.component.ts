@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { SessionService } from './services/core/session.service';
+import { SessionService } from './infrastructure/services/session.service';
 
 @Component({
   selector: 'app-root',
@@ -24,8 +24,10 @@ export class AppComponent implements OnInit {
       await SplashScreen.hide();
 
       const isLoggedIn = await this.sessionService.isLoggedIn();
+      console.log('isLoggedIn', isLoggedIn);
       if (isLoggedIn) {
         const isTokenValid = await this.sessionService.isRefreshTokenValid();
+        console.log('isTokenValid', isTokenValid);
         if (isTokenValid) {
           await this.router.navigate(['/home']);
         } else {

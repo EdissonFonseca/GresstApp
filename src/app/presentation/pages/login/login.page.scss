@@ -1,0 +1,259 @@
+ion-content {
+  --background: url('../../../../assets/img/Fondo.png') no-repeat center center / 100% 100%;
+  background-attachment: fixed;
+  height: 100vh;
+  position: fixed;
+
+  &.dark-theme {
+    --background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.logo-container {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.logo {
+  width: 180px;
+  height: auto;
+  max-width: 80%;
+}
+
+.login-form {
+  width: 90%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .dark-theme & {
+    background: rgba(45, 45, 45, 0.95);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.input-item {
+  --background: transparent;
+  --border-color: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  ion-icon {
+    color: var(--ion-color-medium);
+    font-size: 1.5rem;
+    margin-right: 1rem;
+  }
+}
+
+ion-input.custom {
+  --background: #CADCB6;
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 1rem;
+  --padding-bottom: 1rem;
+  --border-radius: 12px;
+  --placeholder-color: var(--ion-color-medium);
+  --color: var(--ion-color-dark);
+  margin: 0.5rem 0;
+  border-radius: 12px;
+  font-size: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  .dark-theme & {
+    --background: #3a3a3a;
+    --color: white;
+    --placeholder-color: #a0a0a0;
+  }
+
+  &.ion-valid {
+    --background: #CADCB6;
+    .dark-theme & {
+      --background: #3a3a3a;
+    }
+  }
+
+  &.ion-invalid {
+    --background: #CADCB6;
+    .dark-theme & {
+      --background: #3a3a3a;
+    }
+  }
+}
+
+.login-button {
+  --background: #526449;
+  --background-hover: #526449;
+  --background-activated: #526449;
+  --color: white;
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 2rem 0 1rem;
+  height: 3.5rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 0.3s;
+
+  &:hover {
+    --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  &:disabled {
+    --background: #526449;
+    --box-shadow: none;
+    opacity: 0.7;
+  }
+
+  ion-icon {
+    color: white;
+    margin-right: 0.5rem;
+  }
+}
+
+.forgot-password {
+  --color: var(--ion-color-medium);
+  font-weight: 500;
+  margin: 0.5rem 0;
+  height: 2.5rem;
+  opacity: 0;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: 0.4s;
+
+  &:hover {
+    --color: var(--ion-color-primary);
+  }
+
+  .dark-theme & {
+    --color: #a0a0a0;
+    &:hover {
+      --color: white;
+    }
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.welcome-text {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 2rem;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  top: 2rem;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .login-container {
+    padding: 1rem;
+  }
+
+  .login-form {
+    padding: 1.5rem;
+  }
+
+  .logo {
+    width: 160px;
+  }
+
+  .login-button {
+    margin: 1.5rem 0 1rem;
+  }
+}
+
+// Ajustes para el teclado
+@media (max-height: 600px) {
+  .login-container {
+    padding: 1rem;
+  }
+
+  .logo-container {
+    margin-bottom: 1rem;
+  }
+
+  .logo {
+    width: 140px;
+  }
+
+  .login-form {
+    padding: 1rem;
+  }
+
+  .input-item {
+    margin-bottom: 1rem;
+  }
+
+  .login-button {
+    margin: 1rem 0 0.5rem;
+    height: 3rem;
+  }
+}

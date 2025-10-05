@@ -1,0 +1,124 @@
+<!-- Header section with navigation controls -->
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button
+        (click)="cancel()"
+        color="medium"
+        aria-label="Cancel activity creation">
+        {{ 'COMMON.CANCEL' | translate }}
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'ACTIVITY.ADD_TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Main content section -->
+<ion-content color="light">
+  <!-- Activity creation form -->
+  <form [formGroup]="frmProcess">
+    <!-- Service type selection segment -->
+    <ion-item *ngIf="showProduce && showTransport && showCollect">
+      <ion-segment value="Produce">
+        <!-- Production service option -->
+        <ion-segment-button
+          *ngIf="showProduce"
+          value="Produce"
+          (click)="changeService('11')"
+          aria-label="Select production service">
+          <ion-icon
+            src="../../../assets/icon/factory.svg"
+            aria-hidden="true">
+          </ion-icon>
+          {{ 'ACTIVITY.SERVICE_TYPES.PRODUCTION' | translate }}
+        </ion-segment-button>
+
+        <!-- Transport service option -->
+        <ion-segment-button
+          *ngIf="showTransport"
+          value="Transport"
+          (click)="changeService('8')"
+          aria-label="Select transport service">
+          <ion-icon
+            src="../../../assets/icon/truck.svg"
+            aria-hidden="true">
+          </ion-icon>
+          {{ 'ACTIVITY.SERVICE_TYPES.TRANSPORT' | translate }}
+        </ion-segment-button>
+
+        <!-- Collection service option -->
+        <ion-segment-button
+          *ngIf="showCollect"
+          value="Receive"
+          (click)="changeService('13')"
+          aria-label="Select collection service">
+          <ion-icon
+            src="../../../assets/icon/trolley.svg"
+            aria-hidden="true">
+          </ion-icon>
+          {{ 'ACTIVITY.SERVICE_TYPES.COLLECTION' | translate }}
+        </ion-segment-button>
+      </ion-segment>
+    </ion-item>
+
+    <!-- Activity details form -->
+    <ion-list inset="true">
+      <!-- Vehicle selection for transport service -->
+      <ion-item *ngIf="idServicio === '8'">
+        <ion-note slot="start">{{ 'ACTIVITY.FIELDS.VEHICLE' | translate }}</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button
+          color="light"
+          (click)="selectVehicle()"
+          aria-label="Select vehicle for transport">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- Target point selection for production service -->
+      <ion-item *ngIf="idServicio === '11'">
+        <ion-note slot="start">{{ 'ACTIVITY.FIELDS.TARGET' | translate }}</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button
+          color="light"
+          (click)="selectTarget()"
+          aria-label="Select target point for production">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- Source point selection for production service -->
+      <ion-item *ngIf="idServicio === '11'">
+        <ion-note slot="start">{{ 'ACTIVITY.FIELDS.SOURCE' | translate }}</ion-note>
+        <ion-label>{{ recurso }}</ion-label>
+        <ion-button
+          color="light"
+          (click)="selectSource()"
+          aria-label="Select source point for production">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <!-- Mileage input for transport service -->
+      <ion-item *ngIf="showMileage && idServicio === '8'">
+        <ion-input
+          [label]="'ACTIVITY.FIELDS.MILEAGE' | translate"
+          labelPlacement="floating"
+          formControlName="Kilometraje"
+          type="number"
+          [placeholder]="unidadKilometraje"
+          aria-label="Enter mileage in kilometers">
+        </ion-input>
+      </ion-item>
+    </ion-list>
+
+    <!-- Form submission button -->
+    <ion-button
+      expand="full"
+      (click)="confirm()"
+      [disabled]="!frmProcess.valid"
+      aria-label="Start new activity">
+      {{ 'ACTIVITY.ACTIONS.START' | translate }}
+    </ion-button>
+  </form>
+</ion-content>

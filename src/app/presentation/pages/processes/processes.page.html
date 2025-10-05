@@ -1,0 +1,66 @@
+<!-- Header section -->
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>{{ 'PROCESSES.TITLE' | translate }}</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="{{ 'PROCESSES.SEARCH' | translate }}"
+      (ionInput)="handleInput($event)"
+      [disabled]="loading()"
+      animated
+      show-clear-button="focus"
+      aria-label="Search processes">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<!-- Main content section -->
+<ion-content [fullscreen]="true" style="--background: transparent;">
+  <div class="content-wrapper">
+    <!-- Loading spinner -->
+    <div *ngIf="loading()" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Process cards list -->
+    <ng-container *ngIf="!loading()">
+      <ng-container *ngIf="processCards()">
+        <app-card-list
+          *ngIf="processCards().length > 0"
+          #cardList
+          [cards]="processCards()"
+          [allowNavigate]="true"
+          [allowApprove]="true"
+          [showEdit]="true"
+          (edit)="navigateToTransactions($event)"
+          (approve)="openApprove($event)"
+          (reject)="openReject($event)"
+          aria-label="Processes list">
+        </app-card-list>
+
+        <!-- Empty state message -->
+        <ion-text *ngIf="processCards().length === 0" class="empty-state">
+          <p>{{ 'PROCESSES.MESSAGES.NO_PROCESSES' | translate }}</p>
+        </ion-text>
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <!-- Add process button -->
+  <ion-fab
+    slot="fixed"
+    vertical="bottom"
+    horizontal="end"
+    *ngIf="showAdd"
+    aria-label="Add new process">
+    <ion-fab-button
+      (click)="openAdd('COLLECTION')"
+      [disabled]="loading()">
+      <ion-icon name="add" aria-label="Add icon"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

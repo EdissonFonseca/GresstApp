@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { SessionService } from './services/core/session.service';
+import { SessionService } from './infrastructure/services/session.service';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {

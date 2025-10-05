@@ -1,0 +1,48 @@
+<ion-menu menuId="MainMenu" contentId="main-content">
+  <ion-header>
+    <ion-item>
+      <img src="../../../assets/img/Gresst.png" alt="" class="logo">
+    </ion-item>
+  </ion-header>
+  <ion-content>
+    <ion-list lines="none">
+      <ion-item-divider>{{ 'MENU.USER' | translate }}</ion-item-divider>
+      <ion-item *ngIf="showAccount" (click)="navigateTo('account')">
+        <ion-icon name="people-outline"></ion-icon>
+        {{ account }}
+      </ion-item>
+      <ion-item (click)="navigateTo('profile')">
+        <ion-icon name="person-outline"></ion-icon>
+        {{ user }}
+      </ion-item>
+      <ion-item-divider>{{ 'MENU.MASTER_DATA' | translate }}</ion-item-divider>
+      <ion-item (click)="synchronize()">
+        <ion-icon name="sync-outline"></ion-icon>{{ 'MENU.SYNCHRONIZE' | translate }}
+      </ion-item>
+      <ion-item-divider>{{ 'MENU.SESSION' | translate }}</ion-item-divider>
+      <ion-item *ngIf="!showForceQuit" (click)="logout()">
+        <ion-icon name="power-outline"></ion-icon>{{ 'MENU.CLOSE' | translate }}
+      </ion-item>
+      <ion-item *ngIf="showForceQuit" (click)="forceQuit()">
+        <ion-icon name="power-outline" color="danger"></ion-icon>{{ 'MENU.FORCE_CLOSE' | translate }}
+      </ion-item>
+    </ion-list>
+  </ion-content>
+  <ion-footer>
+    <ion-item *ngIf="showCertificate" (click)="navigateTo('certificados-buscar')">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>{{ 'MENU.CERTIFICATES' | translate }}
+    </ion-item>
+    <ion-item href="https://docs.app.gresst.com">
+      <ion-icon color="medium" name="help-circle-outline"></ion-icon>
+      {{ 'MENU.USER_MANUAL' | translate }}
+    </ion-item>
+    <ion-item href="https://gresst.com/Content/Gresst%20-%20Manual%20y%20Política%20de%20Protección%20de%20Datos%20del%20Producto.htm">
+      <ion-icon color="medium" name="information-outline"></ion-icon>
+      {{ 'MENU.LEGAL_INFO' | translate }}
+    </ion-item>
+    <ion-item href="https://gresst.com/Content/Gresst%20-%20Términos%20y%20Condiciones.htm">
+      <ion-icon color="medium" name="ribbon-outline"></ion-icon>
+      {{ 'MENU.TERMS_CONDITIONS' | translate }}
+    </ion-item>
+  </ion-footer>
+</ion-menu>

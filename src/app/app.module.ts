@@ -7,10 +7,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { AppLifecycleService } from './services/core/app-lifecycle.service';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { StorageService } from './services/core/storage.service';
+import { StorageService } from './infrastructure/repositories/api/storage.repository';
 import { TranslateService } from '@ngx-translate/core';
 
 // AoT requires an exported function for factories
@@ -37,7 +36,6 @@ export function HttpLoaderFactory(http: HttpClient) {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideAnimationsAsync(),
-    AppLifecycleService,
     StorageService,
     TranslateService
   ],

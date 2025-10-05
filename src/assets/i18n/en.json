@@ -322,5 +322,21 @@
       "BASE64_ERROR": "Error processing image",
       "TRANSACTION_EXISTS": "A transaction already exists for this point"
     }
+  },
+  "PROCESSES": {
+    "TITLE": "Processes",
+    "SEARCH": "Search processes...",
+    "MESSAGES": {
+      "NO_PROCESSES": "No processes available",
+      "INIT_ERROR": "Error initializing processes page",
+      "NAVIGATION_ERROR": "Navigation error",
+      "UPDATING_INFO": "Updating information...",
+      "ADD_ERROR": "Error adding process",
+      "APPROVE_ERROR": "Error approving process",
+      "REJECT_ERROR": "Error rejecting process",
+      "SYNCHRONIZING": "Synchronizing...",
+      "SYNC_SUCCESS": "Synchronization successful",
+      "SYNC_ERROR": "Synchronization failed. Please try again later"
+    }
   }
 }
