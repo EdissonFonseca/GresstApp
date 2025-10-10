@@ -7,9 +7,9 @@ import { RouterModule } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 import { Geolocation } from '@capacitor/geolocation';
 import { ModalController } from '@ionic/angular';
-import { Punto } from '@app/domain/entities/punto.entity';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
-import { PointsService } from '@app/infrastructure/repositories/masterdata/points.repository';
+import { Facility } from '@app/domain/entities/facility.entity';
+import { ProcessService } from '@app/application/services/process.service';
+import { FacilityRepository } from '@app/infrastructure/repositories/facility.repository';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -24,7 +24,7 @@ export class RoutePage implements OnInit {
   directionsService: any;
   directionsRenderer: any;
   idActividad!: string;
-  puntos: Punto[] = [];
+  puntos: Facility[] = [];
 
   origin = { lat: 4.6105, lng: -74.0817 };
   destination = { lat: 4.6399, lng: -74.0824 };
@@ -32,8 +32,8 @@ export class RoutePage implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private route: ActivatedRoute,
-    private pointsService: PointsService,
-    private processesService: ProcessesService
+    private facilityRepository: FacilityRepository,
+    private processService: ProcessService
   ) {}
 
   async ngOnInit() {
@@ -42,7 +42,7 @@ export class RoutePage implements OnInit {
       this.idActividad = params["IdActividad"];
       console.log('📌 ID Actividad:', this.idActividad);
     });
-    const puntosSignal = await this.pointsService.getPointsFromPendingTasks$(this.idActividad);
+    const puntosSignal = await this.facilityRepository.getPointsFromPendingTasks$(this.idActividad);
     this.puntos = puntosSignal();
     console.log('📍 Puntos obtenidos:', this.puntos);
     await this.loadGoogleMaps();
@@ -103,20 +103,20 @@ export class RoutePage implements OnInit {
 
   async getDestinationPosition() {
     console.log('🎯 Obteniendo posición del destino...');
-    const actividad = await this.processesService.get(this.idActividad);
+      const actividad = await this.processService.get(this.idActividad);
     console.log('📋 Actividad obtenida:', actividad);
 
-    if (actividad?.Destino?.IdDeposito) {
-      const idDeposito = actividad.Destino.IdDeposito;
+      if (actividad?.Destination?.Id) {
+      const idDeposito = actividad.Destination.Id;
       console.log('🔍 Buscando coordenadas del punto de destino:', idDeposito);
       // Buscar el punto en los puntos disponibles
-      const puntos = await this.pointsService.list();
-      const puntoDestino = puntos.find((p: Punto) => p.IdDeposito === idDeposito);
+      const puntos = await this.facilityRepository.getAll();
+      const puntoDestino = puntos.find((p: Facility) => p.Id === idDeposito);
       console.log('📍 Punto de destino encontrado:', puntoDestino);
 
-      if (puntoDestino?.Latitud && puntoDestino?.Longitud) {
-        this.destination.lat = parseFloat(puntoDestino.Latitud);
-        this.destination.lng = parseFloat(puntoDestino.Longitud);
+      if (puntoDestino?.Latitude && puntoDestino?.Longitude) {
+        this.destination.lat = parseFloat(puntoDestino.Latitude);
+        this.destination.lng = parseFloat(puntoDestino.Longitude);
         console.log('✅ Destino configurado:', this.destination);
       } else {
         console.warn('⚠️ El punto de destino no tiene coordenadas, usando punto fijo en Bogotá');
@@ -135,9 +135,9 @@ export class RoutePage implements OnInit {
     console.log('📍 Puntos intermedios:', this.puntos);
 
     const waypoints = this.puntos
-      .filter((x) => x.Latitud != null && x.Longitud != null)
+      .filter((x) => x.Latitude != null && x.Longitude != null)
       .map((point) => ({
-        location: new google.maps.LatLng(Number(point.Latitud), Number(point.Longitud)),
+        location: new google.maps.LatLng(Number(point.Latitude), Number(point.Longitude)),
         stopover: true,
       }));
 

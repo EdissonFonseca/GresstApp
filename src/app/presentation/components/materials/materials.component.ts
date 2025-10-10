@@ -1,12 +1,11 @@
 import { Component, Input, OnInit, Output, EventEmitter } from '@angular/core';
-import { IonicModule, ModalController } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
+import { ModalController } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Material } from '@app/domain/entities/material.entity';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/core/constants';
-import { MaterialsService } from '@app/infrastructure/repositories/masterdata/materials.repository';
+import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
 import { Utils } from '@app/core/utils';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 @Component({
   selector: 'app-materials',
@@ -36,10 +35,10 @@ export class MaterialsComponent implements OnInit {
   enableNew: boolean = false;
 
   constructor(
-    private materialsService: MaterialsService,
+    private materialsRepository: MaterialRepository,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private authorizationService: AuthorizationService,
+    private authorizationRepository: AuthorizationRepository,
     private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
@@ -58,8 +57,8 @@ export class MaterialsComponent implements OnInit {
 
   async loadMaterials() {
     try {
-      this.materials = await this.materialsService.list();
-      this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
+      this.materials = await this.materialsRepository.getAll();
+      this.enableNew = (await this.authorizationRepository.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
     } catch (error) {
       console.error('Error loading materials:', error);
       this.userNotificationService.showToast('Error al cargar los materiales', 'middle');
@@ -73,8 +72,8 @@ export class MaterialsComponent implements OnInit {
       const query = event.target.value.toLowerCase();
       this.formData.patchValue({ Nombre: this.selectedName });
 
-      const materials = await this.materialsService.list();
-      this.materials = materials.filter((material) => material.Nombre.toLowerCase().indexOf(query) > -1);
+      const materials = await this.materialsRepository.getAll();
+      this.materials = materials.filter((material) => material.Name.toLowerCase().indexOf(query) > -1);
     } catch (error) {
       console.error('Error searching materials:', error);
       this.userNotificationService.showToast('Error al buscar materiales', 'middle');
@@ -125,45 +124,6 @@ export class MaterialsComponent implements OnInit {
     this.showNew = false;
   }
 
-  async create() {
-    if (this.formData.valid) {
-      try {
-        const formData = this.formData.value;
-        let medicion = formData.Medicion || formData.Captura;
-        let captura = formData.Captura;
-        let factor = formData.Factor || 1;
-
-        medicion = this.convertMedida(medicion);
-        captura = this.convertMedida(captura);
-
-        const material: Material = {
-          IdMaterial: Utils.generateId(),
-          Nombre: formData.Nombre,
-          TipoCaptura: captura,
-          Factor: factor,
-          TipoMedicion: medicion,
-          Aprovechable: formData.Aprovechable,
-          Referencia: formData.Referencia
-        };
-
-        const created = await this.materialsService.create(material);
-        if (created) {
-          const data = { id: material.IdMaterial, name: material.Nombre };
-          if (this.showHeader) {
-            this.modalCtrl.dismiss(data);
-            this.selectedValue = material.IdMaterial;
-          } else {
-            await this.loadMaterials();
-            await this.userNotificationService.showToast(`Material ${material.Nombre} creado`, 'middle');
-            this.selectedValue = '';
-          }
-        }
-      } catch (error) {
-        console.error('Error creating material:', error);
-        this.userNotificationService.showToast('Error al crear el material', 'middle');
-      }
-    }
-  }
 
   private convertMedida(medida: string): string {
     switch (medida) {

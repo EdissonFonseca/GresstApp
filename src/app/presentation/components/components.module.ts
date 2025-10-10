@@ -14,17 +14,17 @@ import { LocationSelectComponent } from "./location-select/location-select.compo
 import { MaterialsComponent } from "./materials/materials.component";
 import { MenuComponent } from "./menu/menu.component";
 import { PackagesComponent } from "./packages/packages.component";
-import { PointComponent } from "./point/point.component";
-import { PointsComponent } from "./points/points.component";
-import { ResiduesComponent } from "./residues/residues.component";
+import { FacilityComponent } from "./facility/facility.component";
+import { FacilitiesComponent } from "./facilities/facilities.component";
+import { WastesComponent } from "./wastes/wastes.component";
 import { SearchComponent } from "./search/search.component";
 import { ServicesComponent } from "./services/services.component";
 import { SignPadComponent } from "./sign-pad/sign-pad.component";
-import { StakeholdersComponent } from "./stakeholders/stakeholders.component";
+import { PartiesComponent } from "./parties/parties.component";
 import { SuppliesComponent } from "./supplies/supplies.component";
 import { TaskAddComponent } from "./task-add/task-add.component";
 import { TaskEditComponent } from "./task-edit/task-edit.component";
-import { TransactionApproveComponent } from "./transaction-approve/transaction-approve.component";
+import { SubprocessApproveComponent } from "./subprocess-approve/subprocess-approve.component";
 import { TreatmentsComponent } from "./treatments/treatments.component";
 import { VehiclesComponent } from "./vehicles/vehicles.component";
 
@@ -39,17 +39,17 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
     MenuComponent,
     MaterialsComponent,
     PackagesComponent,
-    PointComponent,
-    PointsComponent,
-    ResiduesComponent,
+    FacilityComponent,
+    FacilitiesComponent,
+    WastesComponent,
     SearchComponent,
     ServicesComponent,
     SignPadComponent,
-    StakeholdersComponent,
+    PartiesComponent,
     SuppliesComponent,
     TaskAddComponent,
     TaskEditComponent,
-    TransactionApproveComponent,
+    SubprocessApproveComponent,
     TreatmentsComponent,
     VehiclesComponent
   ],
@@ -71,17 +71,17 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
     MenuComponent,
     MaterialsComponent,
     PackagesComponent,
-    PointComponent,
-    PointsComponent,
-    ResiduesComponent,
+    FacilityComponent,
+    FacilitiesComponent,
+    WastesComponent,
     SearchComponent,
     ServicesComponent,
     SignPadComponent,
-    StakeholdersComponent,
+    PartiesComponent,
     SuppliesComponent,
     TaskAddComponent,
     TaskEditComponent,
-    TransactionApproveComponent,
+    SubprocessApproveComponent,
     TreatmentsComponent,
     VehiclesComponent,
     ProcessAddComponent,

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {  NavController, ToastController, LoadingController, AlertController } from '@ionic/angular';
-import { AuthenticationApiService } from '@app/infrastructure/repositories/api/authenticationApi.repository';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 
 /**

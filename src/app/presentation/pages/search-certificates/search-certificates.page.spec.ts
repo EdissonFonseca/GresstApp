@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed, waitForAsync, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { SearchCertificatesPage } from './search-certificates.page';
-import { OperationsApiService } from '@app/infrastructure/repositories/api/operationsApi.repository';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { OperationsApiService } from '@app/infrastructure/services/operationsApi.service';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule } from '@angular/forms';

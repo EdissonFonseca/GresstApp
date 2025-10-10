@@ -1,0 +1,99 @@
+<!-- Header section with navigation and actions -->
+<ion-header [translucent]="true">
+  <!-- Main toolbar with navigation and action buttons -->
+  <ion-toolbar class="header-green">
+    <!-- Back button for navigation -->
+    <ion-buttons slot="start">
+      <ion-back-button [text]="''" (click)="goBack()"></ion-back-button>
+    </ion-buttons>
+
+    <!-- Page title showing current activity -->
+    <ion-title>{{ title }}</ion-title>
+
+    <!-- Action buttons for data synchronization -->
+    <ion-buttons slot="end">
+      <!-- Support button -->
+      <ion-button
+        *ngIf="showSupport"
+        (click)="showSupports()"
+        [disabled]="loading()"
+        aria-label="Show support documents">
+        <ion-icon slot="icon-only" name="reader-outline"></ion-icon>
+      </ion-button>
+
+      <!-- Navigation button -->
+      <ion-button
+        *ngIf="showNavigation"
+        (click)="navigateToMap()"
+        [disabled]="loading()"
+        aria-label="Navigate to map">
+        <ion-icon slot="icon-only" name="navigate-circle-outline"></ion-icon>
+      </ion-button>
+
+      <!-- Synchronize button -->
+      <ion-button
+        (click)="synchronize()"
+        [disabled]="loading()"
+        aria-label="Synchronize data">
+        <ion-icon slot="icon-only" name="sync-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Search toolbar for filtering subprocesses -->
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="{{ 'TRANSACTIONS.SEARCH' | translate }}"
+      (ionInput)="handleInput($event)"
+      [disabled]="loading()"
+      show-clear-button="focus"
+      aria-label="Search subprocesses">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="content-wrapper">
+    <!-- Loading spinner -->
+    <div *ngIf="loading()" class="loading-container">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Subprocesses list -->
+    <ng-container *ngIf="!loading()">
+      <ng-container *ngIf="transactionCards() | async as cards">
+        <app-card-list
+          *ngIf="cards.length > 0"
+          [cards]="cards"
+          (edit)="navigateToTasks($event)"
+          (approve)="openApprove($event)"
+          (reject)="openReject($event)"
+          aria-label="Lista de subprocesos"
+          role="list">
+        </app-card-list>
+
+        <!-- Empty state message -->
+        <ion-text *ngIf="cards.length === 0" class="empty-state">
+          <p>{{ 'TRANSACTIONS.MESSAGES.NO_TRANSACTIONS' | translate }}</p>
+        </ion-text>
+      </ng-container>
+    </ng-container>
+  </div>
+</ion-content>
+
+<!-- Floating action button for adding new subprocesses -->
+<ion-fab
+  slot="fixed"
+  vertical="bottom"
+  horizontal="end"
+  *ngIf="showAdd"
+  aria-label="Add new subprocess">
+  <ion-fab-button
+    (click)="openAdd()"
+    [disabled]="loading()"
+    aria-label="Add icon">
+    <ion-icon name="add" aria-hidden="true">
+    </ion-icon>
+  </ion-fab-button>
+</ion-fab>
+

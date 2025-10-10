@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { NavController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
@@ -7,7 +7,7 @@ import { PERMISSIONS, STORAGE } from '@app/core/constants';
 import { environment } from '@env/environment';
 import { SessionService } from '@app/infrastructure/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { TranslateService } from '@ngx-translate/core';
 
 /**
@@ -57,7 +57,7 @@ export class MenuComponent implements OnInit {
     private router: Router,
     private menuCtrl: MenuController,
     private sessionService: SessionService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationRepository,
     private notificationService: UserNotificationService,
     private translate: TranslateService
   ) { }

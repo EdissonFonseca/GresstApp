@@ -3,7 +3,7 @@ import { IonicModule, MenuController, NavController, LoadingController, ToastCon
 import { PasswordEmailPage } from './password-email.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
 import { MailService } from '@app/infrastructure/services/mail.service';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { FormsModule } from '@angular/forms';
 import { STORAGE } from '@app/core/constants';
 

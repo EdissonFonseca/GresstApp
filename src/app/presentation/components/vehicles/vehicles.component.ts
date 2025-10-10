@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
-import { Vehiculo } from '@app/domain/entities/vehiculo.entity';
-import { VehiclesService } from '@app/infrastructure/repositories/masterdata/vehicles.repository';
+import { Vehicle } from '@app/domain/entities/vehicle.entity';
+import { VehicleRepository } from '@app/infrastructure/repositories/vehicles.repository';
 
 @Component({
   selector: 'app-vehicles',
@@ -11,7 +11,7 @@ import { VehiclesService } from '@app/infrastructure/repositories/masterdata/veh
 })
 export class VehiclesComponent  implements OnInit {
   @Input() showHeader: boolean = true;
-  vehicles : Vehiculo[] = [];
+  vehicles : Vehicle[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
@@ -19,12 +19,12 @@ export class VehiclesComponent  implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
-    private vehiclesService: VehiclesService
+    private vehicleRepository: VehicleRepository
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.vehicles = await this.vehiclesService.list();
+    this.vehicles = await this.vehicleRepository.getAll();
   }
 
   async handleInput(event: any){
@@ -32,8 +32,8 @@ export class VehiclesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const vehiclesList = await this.vehiclesService.list();
-    this.vehicles = vehiclesList.filter((vehicle: Vehiculo) => (vehicle.Nombre??vehicle.IdVehiculo).toLowerCase().indexOf(query) > -1);
+    const vehiclesList = await this.vehicleRepository.getAll();
+    this.vehicles = vehiclesList.filter((vehicle: Vehicle) => (vehicle.Name??vehicle.Id).toLowerCase().indexOf(query) > -1);
   }
 
   select(idVehicle: string) {

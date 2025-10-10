@@ -3,10 +3,10 @@ import { IonicModule, AlertController, NavController, MenuController } from '@io
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuComponent } from './menu.component';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { SessionService } from '@app/infrastructure/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
 import { of } from 'rxjs';
 
 const mockAccount = {

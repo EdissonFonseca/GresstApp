@@ -3,11 +3,11 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PackagesComponent } from './packages.component';
-import { PackagingService } from '@app/infrastructure/repositories/masterdata/packaging.repository';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { PackagingService } from '@app/infrastructure/repositories/package.repository';
+import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/core/constants';
-import { Embalaje } from '@app/domain/entities/embalaje.entity';
+import { Embalaje } from '@app/domain/entities/package.entity';
 
 describe('PackagesComponent', () => {
   let component: PackagesComponent;

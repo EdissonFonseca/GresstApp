@@ -3,23 +3,23 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TaskEditComponent } from './task-edit.component';
 import { ActivitiesService } from '@app/services/transactions/activities.service';
-import { TasksService } from '@app/infrastructure/repositories/transactions/tasks.repository';
-import { MaterialsService } from '@app/infrastructure/repositories/masterdata/materials.repository';
-import { PointsService } from '@app/infrastructure/repositories/masterdata/points.repository';
-import { ThirdpartiesService } from '@app/infrastructure/repositories/masterdata/thirdparties.repository';
-import { PackagingService } from '@app/infrastructure/repositories/masterdata/packaging.repository';
-import { InventoryService } from '@app/infrastructure/repositories/transactions/inventory.repository';
-import { TransactionsService } from '@app/infrastructure/repositories/transactions/transactions.repository';
+import { TasksService } from '@app/application/services/task.service';
+import { MaterialsService } from '@app/infrastructure/repositories/material.repository';
+import { PointsService } from '@app/infrastructure/repositories/facility.repository';
+import { ThirdpartiesService } from '@app/infrastructure/repositories/party.repository';
+import { PackagingService } from '@app/infrastructure/repositories/package.repository';
+import { InventoryService } from '@app/infrastructure/repositories/inventory.repository';
+import { SubprocessesService } from '@app/application/services/subprocess.service';
 import { TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { Camera, Photo } from '@capacitor/camera';
 import { STATUS, MEASUREMENTS, INPUT_OUTPUT } from '@app/core/constants';
-import { Tarea } from '@app/domain/entities/tarea.entity';
+import { Task } from '@app/domain/entities/task.entity';
 import { Material } from '@app/domain/entities/material.entity';
-import { Punto } from '@app/domain/entities/punto.entity';
-import { Tercero } from '@app/domain/entities/tercero.entity';
-import { Embalaje } from '@app/domain/entities/embalaje.entity';
-import { Residuo } from '@app/domain/entities/residuo.entity';
+import { Punto } from '@app/domain/entities/facility.entity';
+import { Tercero } from '@app/domain/entities/party.entity';
+import { Embalaje } from '@app/domain/entities/package.entity';
+import { Residuo } from '@app/domain/entities/waste.entity';
 
 describe('TaskEditComponent', () => {
   let component: TaskEditComponent;
@@ -32,31 +32,31 @@ describe('TaskEditComponent', () => {
   let thirdpartiesServiceSpy: jasmine.SpyObj<ThirdpartiesService>;
   let packagingServiceSpy: jasmine.SpyObj<PackagingService>;
   let inventoryServiceSpy: jasmine.SpyObj<InventoryService>;
-  let transactionsServiceSpy: jasmine.SpyObj<TransactionsService>;
+  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
   let translateServiceSpy: jasmine.SpyObj<TranslateService>;
   let loggerServiceSpy: jasmine.SpyObj<LoggerService>;
 
-  const mockTask: Tarea = {
-    IdTarea: '1',
-    IdActividad: '1',
-    IdTransaccion: '1',
-    IdMaterial: '1',
-    IdResiduo: '1',
-    IdRecurso: '1',
-    IdServicio: '1',
-    EntradaSalida: INPUT_OUTPUT.INPUT,
-    Cantidad: 10,
-    Peso: 20,
-    Volumen: 30,
-    IdEmbalaje: '1',
-    IdDeposito: '1',
-    IdDepositoDestino: '2',
-    IdTercero: '1',
-    IdTerceroDestino: '2',
-    IdEstado: STATUS.PENDING,
-    FechaEjecucion: new Date().toISOString(),
-    Fotos: [],
-    Observaciones: 'Test observations'
+  const mockTask: Task = {
+    TaskId: '1',
+    ProcessId: '1',
+    SubprocessId: '1',
+    MaterialId: '1',
+    ResidueId: '1',
+    ResourceId: '1',
+    ServiceId: '1',
+    InputOutput: INPUT_OUTPUT.INPUT,
+    Quantity: 10,
+    Weight: 20,
+    Volume: 30,
+    PackagingId: '1',
+    PointId: '1',
+    DestinationPointId: '2',
+    ThirdPartyId: '1',
+    DestinationThirdPartyId: '2',
+    StatusId: STATUS.PENDING,
+    ExecutionDate: new Date().toISOString(),
+    Photos: [],
+    Observations: 'Test observations'
   };
 
   const mockMaterial: Material = {
@@ -118,7 +118,7 @@ describe('TaskEditComponent', () => {
     thirdpartiesServiceSpy = jasmine.createSpyObj('ThirdpartiesService', ['get']);
     packagingServiceSpy = jasmine.createSpyObj('PackagingService', ['get']);
     inventoryServiceSpy = jasmine.createSpyObj('InventoryService', ['getResidue']);
-    transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['get']);
+    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['get']);
     translateServiceSpy = jasmine.createSpyObj('TranslateService', ['instant']);
     loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error']);
 
@@ -138,7 +138,7 @@ describe('TaskEditComponent', () => {
         { provide: ThirdpartiesService, useValue: thirdpartiesServiceSpy },
         { provide: PackagingService, useValue: packagingServiceSpy },
         { provide: InventoryService, useValue: inventoryServiceSpy },
-        { provide: TransactionsService, useValue: transactionsServiceSpy },
+        { provide: SubprocessesService, useValue: transactionsServiceSpy },
         { provide: TranslateService, useValue: translateServiceSpy },
         { provide: LoggerService, useValue: loggerServiceSpy }
       ]
@@ -262,7 +262,7 @@ describe('TaskEditComponent', () => {
     await component.reject();
 
     expect(tasksServiceSpy.update).toHaveBeenCalledWith(jasmine.objectContaining({
-      IdEstado: STATUS.REJECTED
+      StatusId: STATUS.REJECTED
     }));
     expect(modalCtrlSpy.dismiss).toHaveBeenCalled();
   });

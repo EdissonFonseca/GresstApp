@@ -19,9 +19,9 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let vehicle of vehicles">
-      <ion-item (click)="select(vehicle.IdVehiculo)">
-        <ion-icon name="checkmark-outline" *ngIf="selectedValue === vehicle.IdVehiculo"></ion-icon>
-        <ion-label>{{ vehicle.Nombre }}</ion-label>
+      <ion-item (click)="select(vehicle.Id)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === vehicle.Id"></ion-icon>
+        <ion-label>{{ vehicle.Name }}</ion-label>
       </ion-item>
     </ion-list>
   </ion-content>

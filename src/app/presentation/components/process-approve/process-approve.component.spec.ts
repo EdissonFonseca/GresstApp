@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { ProcessApproveComponent } from './process-approve.component';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { ProcessesService } from '@app/application/services/process.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';

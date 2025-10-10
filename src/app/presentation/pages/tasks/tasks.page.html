@@ -49,14 +49,14 @@
           <div class="card-container">
             <ion-item lines="none" class="transparent-item">
               <ion-label>
-                <h2>{{ transaction.Punto }}</h2>
-                <p>{{ transaction.Tercero }}</p>
+                <h2>{{ transaction.FacilityName   }}</h2>
+                <p>{{ transaction.PartyName }}</p>
               </ion-label>
             </ion-item>
 
             <!-- Tasks list for current transaction -->
             <app-card-list
-              [cards]="filterTasks(transaction.IdTransaccion)"
+              [cards]="filterTasks(transaction.ProcessId)"
               [showEdit]="true"
               (edit)="openEdit($event)"
               aria-label="Lista de tareas"

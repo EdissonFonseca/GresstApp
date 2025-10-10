@@ -1,0 +1,17 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
+  <ion-content>
+    <ion-list *ngFor="let residue of residues">
+      <ion-item (click)="select(residue.Id, residue.MaterialName ?? '' )">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === residue.Id"></ion-icon>
+        <ion-label>{{ residue.MaterialName }}</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+

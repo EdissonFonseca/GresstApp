@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
-import { Servicio } from '@app/domain/entities/servicio.entity';
-import { ServicesService } from '@app/infrastructure/repositories/masterdata/services.repository';
+import { Service } from '@app/domain/entities/service.entity';
+import { ServiceRepository } from '@app/infrastructure/repositories/service.repository';
 import { SERVICES } from '@app/core/constants';
 
 @Component({
@@ -11,43 +11,28 @@ import { SERVICES } from '@app/core/constants';
 })
 export class ServicesComponent implements OnInit {
   @Input() showHeader: boolean = true;
-  services: Servicio[] = [];
+  services: Service[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
   items: { id: string, name: string, selected: boolean }[] = [];
 
   constructor(
-    private servicesService: ServicesService,
+    private servicesService: ServiceRepository,
     private toastCtrl: ToastController
   ) { }
 
   async ngOnInit() {
-    this.services = await this.servicesService.list();
+    this.services = await this.servicesService.getAll();
 
     SERVICES.forEach((item) => {
-      const selected = this.services.some(x => x.IdServicio === item.serviceId);
+      const selected = this.services.some(x => x.Id === item.serviceId);
       this.items.push({
         id: item.serviceId,
         name: item.Name,
         selected: selected
       });
     });
-  }
-
-  async changeSelection(idServicio: string, checked: boolean) {
-    try {
-      if (checked) {
-        await this.servicesService.create(idServicio);
-        await this.showToast('Servicio agregado');
-      } else {
-        await this.servicesService.delete(idServicio);
-        await this.showToast('Servicio eliminado');
-      }
-    } catch (error) {
-      await this.showToast('Error al modificar el servicio');
-      console.error('Error changing service selection:', error);
-    }
   }
 
   private async showToast(message: string) {

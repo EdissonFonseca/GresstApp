@@ -19,7 +19,7 @@
         <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
       </ion-item>
       <ion-item>
-        <ion-button (click)="create()">
+        <ion-button>
           <ion-icon name="save-outline"></ion-icon>
           Crear
         </ion-button>
@@ -28,9 +28,9 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let package_ of packages">
-      <ion-item (click)="select(package_.IdEmbalaje)">
-        <ion-icon name="checkmark-outline" *ngIf="selectedValue === package_.IdEmbalaje"></ion-icon>
-        <ion-label>{{ package_.Nombre }}</ion-label>
+      <ion-item (click)="select(package_.Id)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === package_.Id"></ion-icon>
+        <ion-label>{{ package_.Name }}</ion-label>
       </ion-item>
     </ion-list>
   </ion-content>

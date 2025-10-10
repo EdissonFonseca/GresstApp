@@ -20,9 +20,9 @@
 <ion-content color="light">
   <!-- Activity details section -->
   <ion-list color="light" class="ion-no-padding">
-    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="process?.Titulo">
-      <ion-icon [src]="process?.Icono" slot="start"></ion-icon>
-      <ion-label size="small">{{ process?.Titulo }}</ion-label>
+    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="process?.Title">
+      <ion-icon [src]="process?.Icon" slot="start"></ion-icon>
+      <ion-label size="small">{{ process?.Title }}</ion-label>
     </ion-item>
   </ion-list>
 
@@ -31,9 +31,9 @@
     <ion-item color="light" lines="none" class="ion-no-padding">
       <div class="summary-content">
         <div class="badges-left">
-          <ion-badge color="success">{{ process.approved || 0 }}</ion-badge>
+          <!--<ion-badge color="success">{{ process.approved || 0 }}</ion-badge>
           <ion-badge color="warning">{{ process.pending || 0 }}</ion-badge>
-          <ion-badge color="danger">{{ process.rejected || 0 }}</ion-badge>
+          <ion-badge color="danger">{{ process.rejected || 0 }}</ion-badge>-->
         </div>
         <div class="summary-badge">
           {{ summary }}

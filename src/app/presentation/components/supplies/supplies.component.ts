@@ -2,11 +2,10 @@ import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
-import { Insumo } from '@app/domain/entities/insumo.entity';
+import { Supply } from '@app/domain/entities/supply.entity';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/core/constants';
-import { SuppliesService } from '@app/infrastructure/repositories/masterdata/supplies.repository';
-import { Utils } from '@app/core/utils';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { SupplyRepository } from '@app/infrastructure/repositories/supply.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 @Component({
   selector: 'app-supplies',
@@ -15,7 +14,7 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
 })
 export class SuppliesComponent  implements OnInit {
   @Input() showHeader: boolean = true;
-  supplies : Insumo[] = [];
+  supplies : Supply[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
@@ -27,8 +26,8 @@ export class SuppliesComponent  implements OnInit {
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
     private formBuilder: FormBuilder,
-    private suppliesService: SuppliesService,
-    private authorizationService: AuthorizationService,
+    private suppliesService: SupplyRepository,
+    private authorizationService: AuthorizationRepository,
     private userNotificationService: UserNotificationService
   ) {
     this.formData = this.formBuilder.group({
@@ -38,7 +37,7 @@ export class SuppliesComponent  implements OnInit {
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.supplies = await this.suppliesService.list();
+    this.supplies = await this.suppliesService.getAll();
     this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_SUPPLY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
@@ -47,8 +46,8 @@ export class SuppliesComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const supplies = await this.suppliesService.list();
-    this.supplies = supplies.filter((supply) => supply.Nombre .toLowerCase().indexOf(query) > -1);
+    const supplies = await this.suppliesService.getAll();
+    this.supplies = supplies.filter((supply) => supply.Name .toLowerCase().indexOf(query) > -1);
   }
 
   select(idMaterial: string) {
@@ -63,27 +62,5 @@ export class SuppliesComponent  implements OnInit {
   new() {
     this.showNew = true;
     this.formData.setValue({Nombre: null});
-  }
-
-  async create() {
-    const formData = this.formData.value;
-    const insumo: Insumo = { IdInsumo: Utils.generateId(), Nombre: formData.Nombre, IdEstado: 'A'};
-    const created = await this.suppliesService.create(insumo);
-    if (created)
-    {
-      const data = {id: insumo.IdInsumo, name: formData.Nombre};
-      if (this.showHeader){
-        this.modalCtrl.dismiss(data);
-        this.selectedValue = insumo.IdInsumo;
-      }
-      else{
-        this.supplies = await this.suppliesService.list();
-        await this.userNotificationService.showToast(`Insumo ${formData.Nombre} creado`, 'middle');
-        this.selectedValue = '';
-        this.searchText = '';
-      }
-      this.formData.setValue({Nombre: null});
-      this.showNew = false;
-    }
   }
 }

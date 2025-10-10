@@ -6,11 +6,11 @@ import { RouterModule } from '@angular/router';
 import { ActionSheetButton, ActionSheetController, MenuController, ModalController, NavController } from '@ionic/angular';
 import { CapacitorHttp, HttpResponse  } from '@capacitor/core';
 import { CRUD_OPERATIONS, STATUS, PERMISSIONS } from '@app/core/constants';
-import { Residuo } from '@app/domain/entities/residuo.entity';
-import { InventoryService } from '@app/infrastructure/repositories/transactions/inventory.repository';
-import { MaterialsService } from '@app/infrastructure/repositories/masterdata/materials.repository';
+import { Waste } from '@app/domain/entities/waste.entity';
+import { InventoryRepository } from '@app/infrastructure/repositories/inventory.repository';
+import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
 import { Utils } from '@app/core/utils';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 @Component({
   selector: 'app-inventory',
@@ -20,17 +20,17 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
   imports: [CommonModule, FormsModule, IonicModule, RouterModule]
 })
 export class InventoryPage implements OnInit {
-  residuos: Residuo[] = [];
+  residuos: Waste[] = [];
   imagePath: string = '';
   permiteAgregar: boolean = true;
 
   constructor(
     private modalCtrl: ModalController,
     private menuCtrl: MenuController,
-    private inventoryService: InventoryService,
-    private materialsService: MaterialsService,
+    private inventoryService: InventoryRepository,
+    private materialsService: MaterialRepository,
     private actionSheetCtrl: ActionSheetController,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationRepository,
     private userNotificationService: UserNotificationService
     ) {
     }
@@ -73,12 +73,12 @@ export class InventoryPage implements OnInit {
     const residuo = await this.inventoryService.getResidue(idResiduo);
     if (!residuo) return;
 
-    const material = await this.materialsService.get(residuo.IdMaterial);
+    const material = await this.materialsService.get(residuo.MaterialId);
     if (!material) return;
 
     let actionButtons: ActionSheetButton[] = [];
-    if (residuo?.IdEstado == STATUS.ACTIVE ){
-      if (material.Aprovechable) {
+    if (residuo?.StatusId == STATUS.ACTIVE ){
+      if (material.IsRecyclable) {
         actionButtons = [
           {
             icon: "move-outline",
@@ -194,7 +194,7 @@ export class InventoryPage implements OnInit {
             break;
         }
       }
-    } else if (residuo.IdEstado == STATUS.PENDING) {
+    } else if (residuo.StatusId == STATUS.PENDING) {
     }
   }
 }

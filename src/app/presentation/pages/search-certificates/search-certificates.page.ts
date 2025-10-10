@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
-import { OperationsApiService } from '@app/infrastructure/repositories/api/operationsApi.repository';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { OperationsApiService } from '@app/infrastructure/services/operationsApi.service';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 
 @Component({
@@ -43,8 +43,8 @@ export class SearchCertificatesPage implements OnInit {
     }
 
     try {
-      const transaction = await this.storage.get(STORAGE.TRANSACTION);
-      const success = await this.operationsService.emitCertificate(transaction);
+      const operation = await this.storage.get(STORAGE.OPERATION);
+      const success = await this.operationsService.emitCertificate(operation);
 
       if (success) {
         await this.presentToast('Certificado emitido exitosamente', 'success');

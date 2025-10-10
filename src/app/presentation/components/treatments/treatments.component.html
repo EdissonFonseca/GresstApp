@@ -17,9 +17,9 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let treatment of treatments">
-      <ion-item (click)="select(treatment.IdTratamiento, treatment.Nombre)">
-        <ion-icon name="checkmark-outline" *ngIf="selectedValue === treatment.IdTratamiento"></ion-icon>
-        <ion-label>{{ treatment.Nombre }}</ion-label>
+      <ion-item (click)="select(treatment.Id, treatment.Name)">
+        <ion-icon name="checkmark-outline" *ngIf="selectedValue === treatment.Id"></ion-icon>
+        <ion-label>{{ treatment.Name }}</ion-label>
       </ion-item>
     </ion-list>
   </ion-content>

@@ -1,10 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProcessAddComponent } from './process-add.component';
 import { ModalController, NavParams } from '@ionic/angular';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { ProcessesService } from '@app/application/services/process.service';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
 import { TranslateService } from '@ngx-translate/core';
 import { STATUS, SERVICE_TYPES } from '@app/core/constants';
 import { Proceso } from '@app/interfaces/proceso.interface';

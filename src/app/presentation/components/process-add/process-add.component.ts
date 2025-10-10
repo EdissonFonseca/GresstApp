@@ -3,11 +3,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ModalController, NavParams, IonicModule } from '@ionic/angular';
 import { STATUS, SERVICE_TYPES } from '@app/core/constants';
 import { VehiclesComponent } from '../vehicles/vehicles.component';
-import { PointsComponent } from '../points/points.component';
-import { Proceso } from '@app/domain/entities/proceso.entity';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { FacilitiesComponent } from '../facilities/facilities.component';
+import { Process } from '@app/domain/entities/process.entity';
+import { ProcessService } from '@app/application/services/process.service';
 import { Utils } from '@app/core/utils';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
@@ -70,10 +70,10 @@ export class ProcessAddComponent implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private navParams: NavParams,
-    private processesService: ProcessesService,
+    private processesService: ProcessService,
     private formBuilder: FormBuilder,
     private userNotificationService: UserNotificationService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationRepository,
     private translate: TranslateService
   ) {
     this.frmProcess = this.formBuilder.group({
@@ -121,11 +121,11 @@ export class ProcessAddComponent implements OnInit {
     );
 
     if (this.idServicio === SERVICE_TYPES.TRANSPORT && this.idRecurso !== '') {
-      const lista = await this.processesService.list();
-      const procesos = lista.filter((x: Proceso) =>
-        x.IdServicio === this.idServicio &&
-        x.IdRecurso === this.idRecurso &&
-        x.IdEstado === STATUS.PENDING
+      const lista = await this.processesService.getAll();
+      const procesos = lista.filter((x: Process) =>
+        x.ServiceId === this.idServicio &&
+        x.ResourceId === this.idRecurso &&
+        x.StatusId === STATUS.PENDING
       );
 
       if (procesos.length > 0) {
@@ -142,22 +142,23 @@ export class ProcessAddComponent implements OnInit {
       titulo = recurso;
     }
 
-    const proceso: Proceso = {
-      IdProceso: Utils.generateId(),
-      IdServicio: this.idServicio,
-      IdRecurso: this.idRecurso,
-      Titulo: titulo,
-      FechaInicial: isoDate,
-      FechaOrden: isoToday,
-      IdEstado: STATUS.PENDING,
-      NavegarPorTransaccion: true,
-      KilometrajeInicial: this.frmProcess.get('Kilometraje')?.value,
+    const process: Process = {
+      ProcessId: Utils.generateId(),
+      ServiceId: this.idServicio,
+      ResourceId: this.idRecurso,
+      Title: titulo,
+      StartDate: isoDate,
+      ProcessDate: isoToday,
+      StatusId: STATUS.PENDING,
+      InitialMileage: this.frmProcess.get('Kilometraje')?.value,
+      Subprocesses: [],
+      Tasks: []
     };
 
     try {
-      await this.processesService.create(proceso);
+      await this.processesService.create(process);
       await this.userNotificationService.hideLoading();
-      this.modalCtrl.dismiss(proceso);
+      this.modalCtrl.dismiss(process);
     } catch (error) {
       console.error('Error creating process:', error);
       await this.userNotificationService.hideLoading();
@@ -215,7 +216,7 @@ export class ProcessAddComponent implements OnInit {
   async selectTarget() {
     try {
       const modal = await this.modalCtrl.create({
-        component: PointsComponent,
+        component: FacilitiesComponent,
         componentProps: {
           showHeader: false
         }
@@ -243,7 +244,7 @@ export class ProcessAddComponent implements OnInit {
   async selectSource() {
     try {
       const modal = await this.modalCtrl.create({
-        component: PointsComponent,
+        component: FacilitiesComponent,
         componentProps: {
           showHeader: false
         }

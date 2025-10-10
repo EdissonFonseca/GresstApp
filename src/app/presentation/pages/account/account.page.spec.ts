@@ -1,10 +1,16 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { AccountPage } from './account.page';
 import { Storage } from '@ionic/storage';
-import { Cuenta } from '@app/domain/entities/cuenta.entity';
+import { Account } from '@app/domain/entities/account.entity';
 import { STORAGE } from '@app/core/constants';
+
+// Alias type to match component usage
+type Cuenta = Account & {
+  NombreCuenta?: string;
+  IdPersonaCuenta?: string;
+};
 
 describe('AccountPage', () => {
   let component: AccountPage;
@@ -12,17 +18,19 @@ describe('AccountPage', () => {
   let navCtrlSpy: jasmine.SpyObj<NavController>;
   let storageSpy: jasmine.SpyObj<Storage>;
 
-  const mockCuenta: Cuenta = {
-    IdCuenta: '123',
-    IdPersonaCuenta: '123',
-    IdPersonaUsuario: '456',
-    IdUsuario: '789',
-    LoginUsuario: 'test@example.com',
+  const mockAccount: Cuenta = {
+    Id: '123',
+    PersonId: '123',
+    UserPersonId: '456',
+    UserId: '789',
+    Login: 'test@example.com',
+    Name: 'Test Account',
+    UserName: 'Test User',
     NombreCuenta: 'Test Account',
-    NombreUsuario: 'Test User',
-    Ajustes: {},
-    Parametros: {},
-    Permisos: {}
+    IdPersonaCuenta: '123',
+    Settings: {},
+    Parameters: {},
+    Permissions: {}
   };
 
   beforeEach(async () => {
@@ -36,6 +44,7 @@ describe('AccountPage', () => {
         ReactiveFormsModule
       ],
       providers: [
+        FormBuilder,
         { provide: NavController, useValue: navCtrlSpy },
         { provide: Storage, useValue: storageSpy }
       ]
@@ -58,15 +67,15 @@ describe('AccountPage', () => {
   });
 
   it('should load account data on init', fakeAsync(() => {
-    storageSpy.get.and.returnValue(Promise.resolve(mockCuenta));
+    storageSpy.get.and.returnValue(Promise.resolve(mockAccount));
 
     component.ngOnInit();
     tick();
 
     expect(storageSpy.get).toHaveBeenCalledWith(STORAGE.ACCOUNT);
-    expect(component.cuenta).toEqual(mockCuenta);
-    expect(component.formData.get('Nombre')?.value).toBe(mockCuenta.NombreCuenta);
-    expect(component.formData.get('Identificacion')?.value).toBe(mockCuenta.IdPersonaCuenta);
+    expect(component.cuenta).toEqual(mockAccount);
+    expect(component.formData.get('Nombre')?.value).toBe(mockAccount.NombreCuenta);
+    expect(component.formData.get('Identificacion')?.value).toBe(mockAccount.IdPersonaCuenta);
   }));
 
   it('should validate form controls', () => {

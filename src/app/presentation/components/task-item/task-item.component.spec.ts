@@ -1,36 +1,36 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 import { TaskItemComponent } from './task-item.component';
-import { Tarea } from '@app/domain/entities/tarea.entity';
+import { Task } from '@app/domain/entities/task.entity';
 import { STATUS } from '@app/core/constants';
 
 describe('TaskItemComponent', () => {
   let component: TaskItemComponent;
   let fixture: ComponentFixture<TaskItemComponent>;
 
-  const mockTask: Tarea = {
-    IdTarea: '1',
-    IdActividad: '1',
-    IdTransaccion: '1',
-    IdMaterial: '1',
-    IdResiduo: '1',
-    IdRecurso: '1',
-    IdServicio: '1',
-    EntradaSalida: 'I',
-    Cantidad: 10,
-    Peso: 20,
-    Volumen: 30,
-    IdEmbalaje: '1',
-    IdDeposito: '1',
-    IdDepositoDestino: '2',
-    IdTercero: '1',
-    IdTerceroDestino: '2',
-    IdEstado: STATUS.PENDING,
-    FechaEjecucion: new Date().toISOString(),
-    Fotos: [],
-    Observaciones: 'Test observations',
+  const mockTask: Task = {
+    TaskId: '1',
+    ProcessId: '1',
+    SubprocessId: '1',
+    MaterialId: '1',
+    ResidueId: '1',
+    ResourceId: '1',
+    ServiceId: '1',
+    InputOutput: 'I',
+    Quantity: 10,
+    Weight: 20,
+    Volume: 30,
+    PackagingId: '1',
+    PointId: '1',
+    DestinationPointId: '2',
+    ThirdPartyId: '1',
+    DestinationThirdPartyId: '2',
+    StatusId: STATUS.PENDING,
+    ExecutionDate: new Date().toISOString(),
+    Photos: [],
+    Observations: 'Test observations',
     Material: 'Test Material',
-    Solicitud: 'Test Request'
+    Request: 'Test Request'
   };
 
   beforeEach(waitForAsync(() => {
@@ -91,7 +91,7 @@ describe('TaskItemComponent', () => {
   });
 
   it('should not display request when not available', () => {
-    component.tarea = { ...mockTask, Solicitud: undefined };
+    component.tarea = { ...mockTask, Request: undefined };
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement;

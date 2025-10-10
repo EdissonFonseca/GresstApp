@@ -85,7 +85,7 @@
         </ion-item>
 
         <ion-item>
-          <ion-button (click)="create()" [disabled]="!formData.valid">
+          <ion-button [disabled]="!formData.valid">
             <ion-icon name="save-outline"></ion-icon>
             Crear
           </ion-button>
@@ -101,16 +101,16 @@
   <ion-list>
     <ion-item
       *ngFor="let material of materials"
-      (click)="select(material.IdMaterial, material.Nombre, material.TipoCaptura, material.TipoMedicion, material.Factor ?? 0)"
-      [class.selected]="selectedValue === material.IdMaterial">
+      (click)="select(material.Id, material.Name, material.Type, material.MeasurementType, material.EmissionCompensationFactor ?? 0)"
+      [class.selected]="selectedValue === material.Id">
       <ion-icon
         name="checkmark-outline"
-        *ngIf="selectedValue === material.IdMaterial"
+        *ngIf="selectedValue === material.Id"
         color="primary">
       </ion-icon>
       <ion-label>
-        <h2>{{ material.Nombre }}</h2>
-        <p *ngIf="material.Referencia">Ref: {{ material.Referencia }}</p>
+        <h2>{{ material.Name }}</h2>
+        <p *ngIf="material.Reference">Ref: {{ material.Reference }}</p>
       </ion-label>
     </ion-item>
   </ion-list>

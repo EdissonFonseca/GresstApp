@@ -5,9 +5,9 @@ import { STORAGE } from '../../core/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
-import { StorageService } from '../repositories/api/storage.repository';
-import { APIRequest } from '@app/domain/entities/APIRequest.entity';
-import { AuthenticationApiService } from '../repositories/api/authenticationApi.repository';
+import { StorageService } from './storage.service';
+import { Message } from '@app/domain/entities/message.entity';
+import { AuthenticationApiService } from './authenticationApi.service';
 
 /**
  * Interface representing the structure of backup data
@@ -71,7 +71,7 @@ export class SessionService {
    * @returns {Promise<boolean>} True if there are pending transactions
    */
   async hasPendingRequests(): Promise<boolean> {
-    const requests = await this.storage.get(STORAGE.REQUESTS);
+    const requests = await this.storage.get(STORAGE.MESSAGES);
     return requests && requests.length > 0;
   }
 
@@ -80,7 +80,7 @@ export class SessionService {
    * @returns {Promise<void>}
    */
   async countPendingRequests(): Promise<void> {
-    const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
+    const requests: Message[] = await this.storage.get(STORAGE.MESSAGES) || [];
     this.pendingRequests.set(requests.length);
   }
 
@@ -95,8 +95,8 @@ export class SessionService {
       await this.syncService.downloadAuthorizations();
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
-      await this.syncService.downloadTransactions();
-      await this.storage.set(STORAGE.REQUESTS, []);
+      await this.syncService.downloadOperation();
+      await this.storage.set(STORAGE.MESSAGES, []);
       await this.storage.set(STORAGE.START_DATE, new Date().toISOString());
     } catch (error) {
       this.logger.error('Error loading initial data', error);
@@ -121,7 +121,7 @@ export class SessionService {
           await this.syncService.downloadAuthorizations();
           await this.syncService.downloadInventory();
           await this.syncService.downloadMasterData();
-          await this.syncService.downloadTransactions();
+          await this.syncService.downloadOperation();
           return true;
         }
         return false;
@@ -172,7 +172,7 @@ export class SessionService {
   async forceQuit(): Promise<void> {
     try {
       // Get data from storage
-      const requests = await this.storage.get(STORAGE.REQUESTS);
+        const requests = await this.storage.get(STORAGE.MESSAGES);
 
       // Create backup data object
       const backupData: BackupData = {

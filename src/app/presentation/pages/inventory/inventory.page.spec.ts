@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule, ModalController, MenuController, ActionSheetController } from '@ionic/angular';
 import { InventoryPage } from './inventory.page';
-import { InventoryService } from '@app/infrastructure/repositories/transactions/inventory.repository';
-import { MaterialsService } from '@app/infrastructure/repositories/masterdata/materials.repository';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { InventoryService } from '@app/infrastructure/repositories/inventory.repository';
+import { MaterialsService } from '@app/infrastructure/repositories/material.repository';
+import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Residuo } from '@app/domain/entities/residuo.entity';
+import { Residuo } from '@app/domain/entities/waste.entity';
 import { Material } from '@app/domain/entities/material.entity';
 import { CRUD_OPERATIONS, STATUS, PERMISSIONS } from '@app/core/constants';
 
@@ -158,7 +158,7 @@ describe('InventoryPage', () => {
   it('should handle transfer residue', fakeAsync(() => {
     const mockModal = {
       present: () => Promise.resolve(),
-      onDidDismiss: () => Promise.resolve({ data: { ActivityId: '1' } })
+      onDidDismiss: () => Promise.resolve({ data: { SubprocessId: '1' } })
     };
     modalControllerSpy.create.and.returnValue(Promise.resolve(mockModal as any));
 

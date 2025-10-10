@@ -2,9 +2,9 @@ import { ComponentFixture, TestBed, waitForAsync, fakeAsync, tick } from '@angul
 import { IonicModule, ModalController } from '@ionic/angular';
 import { RoutePage } from './route.page';
 import { ActivatedRoute } from '@angular/router';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
-import { PointsService } from '@app/infrastructure/repositories/masterdata/points.repository';
-import { Punto } from '@app/domain/entities/punto.entity';
+import { ProcessesService } from '@app/application/services/process.service';
+import { PointsService } from '@app/infrastructure/repositories/facility.repository';
+import { Punto } from '@app/domain/entities/facility.entity';
 import { Geolocation } from '@capacitor/geolocation';
 import { Proceso } from 'src/app/interfaces/proceso.interface';
 import { RouterTestingModule } from '@angular/router/testing';

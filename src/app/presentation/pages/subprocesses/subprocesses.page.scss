@@ -1,0 +1,179 @@
+.header-green {
+  --background: #45C4B0;
+  background: #45C4B0;
+
+  ion-toolbar:first-child {
+    --background: #45C4B0;
+  }
+
+  ion-title {
+    color: white;
+    font-weight: 500;
+  }
+
+  ion-back-button {
+    --color: white;
+    --opacity: 1;
+  }
+
+  ion-button {
+    --color: white;
+    --opacity: 1;
+  }
+
+  ion-icon {
+    color: white;
+    --opacity: 1;
+  }
+
+  ion-searchbar {
+    --background: rgba(255, 255, 255, 0.2);
+    --color: white;
+    --placeholder-color: rgba(255, 255, 255, 0.6);
+    --icon-color: white;
+  }
+}
+
+.half {
+  width: 100%;
+}
+
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+ion-content {
+  --background: #f0f2f5;
+  --padding-start: 0;
+  --padding-end: 0;
+  height: 100%;
+}
+
+ion-searchbar {
+  --background: var(--ion-color-light);
+  --border-radius: 12px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin: 8px;
+  padding: 0;
+  width: calc(100% - 16px);
+}
+
+ion-list {
+  background: transparent;
+  padding: 0 8px;
+  margin: 0;
+  width: 100%;
+}
+
+ion-item {
+  --background: var(--ion-color-light);
+  --border-radius: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 12px;
+  --padding-bottom: 12px;
+  margin: 8px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  ion-label {
+    h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ion-text-color);
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 0.85rem;
+      color: var(--ion-text-color-secondary);
+      margin: 0;
+    }
+  }
+
+  ion-badge {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 4px;
+    --padding-bottom: 4px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.8rem;
+  }
+
+  ion-button {
+    --border-radius: 12px;
+    --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin: 4px;
+    height: 36px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--ion-color-medium);
+  text-align: center;
+  padding: 20px;
+}
+
+// Estilos para el header
+ion-toolbar {
+  --background: var(--ion-color-light);
+  --border-color: var(--ion-color-medium);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+// Estilos para los botones del header
+ion-buttons {
+  ion-button {
+    --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin: 4px;
+    height: 36px;
+  }
+}
+
+// Estilos para el botón flotante
+ion-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 999;
+}
+
+ion-fab-button {
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 56px;
+  height: 56px;
+}
+
+// Estilos específicos para el card-list en la página de subprocesos
+app-card-list {
+  display: block;
+  width: 100%;
+  margin: 16px 0;
+  box-sizing: border-box;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.content-wrapper {
+  padding: 16px;
+}
+

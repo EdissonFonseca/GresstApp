@@ -2,9 +2,9 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 import { ServicesComponent } from './services.component';
-import { ServicesService } from '@app/infrastructure/repositories/masterdata/services.repository';
+import { ServicesService } from '@app/infrastructure/repositories/service.repository';
 import { SERVICES } from '@app/core/constants';
-import { Servicio } from '@app/domain/entities/servicio.entity';
+import { Servicio } from '@app/domain/entities/service.entity';
 
 describe('ServicesComponent', () => {
   let component: ServicesComponent;

@@ -3,8 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { STATUS } from '@app/core/constants';
 import { TaskAddComponent } from '@app/presentation/components/task-add/task-add.component';
 import { ModalController } from '@ionic/angular';
-import { TransactionsService } from '@app/infrastructure/repositories/transactions/transactions.repository';
-import { TasksService } from '@app/infrastructure/repositories/transactions/tasks.repository';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
 import { TaskEditComponent } from '@app/presentation/components/task-edit/task-edit.component';
 import { CardService } from '@app/presentation/services/card.service';
 import { SessionService } from '@app/infrastructure/services/session.service';
@@ -17,7 +17,9 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { ProcessService } from '@app/application/services/process.service';
+import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { Task } from '@app/domain/entities/task.entity';
 
 /**
  * TasksPage Component
@@ -64,10 +66,10 @@ export class TasksPage implements OnInit {
   loading = signal(false);
 
   /** Signal containing the list of transactions from the service */
-  transactionsSignal = this.transactionsService.transactions$;
+  transactionsSignal = signal<Subprocess[]>([]);
 
   /** Signal containing the list of tasks from the service */
-  private tasksSignal = this.tasksService.tasks$;
+  private tasksSignal = signal<Task[]>([]);
 
   /** Computed property that provides the task cards */
   taskCards = computed(() => {
@@ -81,9 +83,9 @@ export class TasksPage implements OnInit {
     private router: Router,
     private modalCtrl: ModalController,
     private cardService: CardService,
-    private processesService: ProcessesService,
-    private transactionsService: TransactionsService,
-    private tasksService: TasksService,
+    private processService: ProcessService,
+    private subprocessService: SubprocessService,
+    private taskService: TaskService,
     public sessionService: SessionService,
     private userNotificationService: UserNotificationService,
     private translate: TranslateService,
@@ -101,14 +103,14 @@ export class TasksPage implements OnInit {
         this.transactionId = params['transactionId'];
         this.activityId = params['activityId'];
       });
-      const activityData = await this.processesService.get(this.activityId);
+      const activityData = await this.processService.get(this.activityId);
       if (activityData) {
-        this.title = activityData.Titulo;
+        this.title = activityData.Title;
       }
       if (this.transactionId) {
-        const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+        const transaction = await this.subprocessService.get(this.activityId, this.transactionId);
         if (transaction) {
-          this.showAdd = transaction.IdEstado == STATUS.PENDING;
+          this.showAdd = transaction.StatusId == STATUS.PENDING;
         }
       }
       await this.loadData();
@@ -149,10 +151,12 @@ export class TasksPage implements OnInit {
       this.loading.set(true);
 
       // Load transactions
-        await this.transactionsService.list(this.activityId);
+      const transactions = await this.subprocessService.listByProcess(this.activityId);
+      this.transactionsSignal.set(transactions);
 
       // Load tasks
-      await this.tasksService.list(this.activityId, this.transactionId);
+      const tasks = await this.taskService.listByProcessAndSubprocess(this.activityId, this.transactionId);
+      this.tasksSignal.set(tasks);
 
     } catch (error) {
       this.logger.error('Error loading data:', error);
@@ -281,7 +285,7 @@ export class TasksPage implements OnInit {
    */
   goBack() {
     if (this.mode === 'T') {
-      this.router.navigate(['/transactions'], {
+      this.router.navigate(['/subprocesses'], {
         queryParams: {
           mode: 'A',
           activityId: this.activityId

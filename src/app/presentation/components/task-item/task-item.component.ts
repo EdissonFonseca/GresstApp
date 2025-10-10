@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Tarea } from '@app/domain/entities/tarea.entity';
+import { Task } from '@app/domain/entities/task.entity';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 
@@ -11,11 +11,11 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, IonicModule]
 })
 export class TaskItemComponent {
-  @Input() tarea!: Tarea;
+  @Input() tarea!: Task;
   @Input() showEdit: boolean = false;
   @Output() edit = new EventEmitter<string>();
 
   openEdit() {
-    this.edit.emit(this.tarea.IdTarea);
+    this.edit.emit(this.tarea.TaskId);
   }
 }

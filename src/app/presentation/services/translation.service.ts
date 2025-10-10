@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { StorageService } from '../../infrastructure/repositories/api/storage.repository';
+import { StorageService } from '../../infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 
 @Injectable({

@@ -3,9 +3,9 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { TasksPage } from './tasks.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CardService } from '@app/presentation/services/card.service';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
-import { TransactionsService } from '@app/infrastructure/repositories/transactions/transactions.repository';
-import { TasksService } from '@app/infrastructure/repositories/transactions/tasks.repository';
+import { ProcessesService } from '@app/application/services/process.service';
+import { SubprocessesService } from '@app/application/services/subprocess.service';
+import { TasksService } from '@app/application/services/task.service';
 import { SessionService } from '@app/infrastructure/services/session.service';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { STATUS } from '@app/core/constants';
@@ -22,7 +22,7 @@ describe('TasksPage', () => {
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let cardServiceSpy: jasmine.SpyObj<CardService>;
   let processesServiceSpy: jasmine.SpyObj<ProcessesService>;
-  let transactionsServiceSpy: jasmine.SpyObj<TransactionsService>;
+  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
   let tasksServiceSpy: jasmine.SpyObj<TasksService>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let routerSpy: jasmine.SpyObj<Router>;
@@ -76,7 +76,7 @@ describe('TasksPage', () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
     cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'mapTareas']);
     processesServiceSpy = jasmine.createSpyObj('ProcessesService', ['list', 'get']);
-    transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['list', 'get']);
+    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['list', 'get']);
     tasksServiceSpy = jasmine.createSpyObj('TasksService', ['list']);
     sessionServiceSpy = jasmine.createSpyObj('SessionService', ['synchronize']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
@@ -95,24 +95,24 @@ describe('TasksPage', () => {
     });
 
     processesServiceSpy.get.and.returnValue(Promise.resolve({
-      IdProceso: '1',
-      FechaOrden: new Date().toISOString(),
-      IdRecurso: '1',
-      NavegarPorTransaccion: false,
-      Titulo: 'Test Activity',
-      IdEstado: STATUS.PENDING,
-      IdServicio: 'TRANSPORT'
+      ProcessId: '1',
+      OrderDate: new Date().toISOString(),
+      ResourceId: '1',
+      NavigateByActivity: false,
+      Title: 'Test Activity',
+      StatusId: STATUS.PENDING,
+      ServiceId: 'TRANSPORT'
     }));
     transactionsServiceSpy.get.and.returnValue(Promise.resolve({
-      IdProceso: '1',
-      IdTransaccion: '1',
-      EntradaSalida: 'E',
-      IdEstado: STATUS.PENDING,
-      Punto: 'Test Point',
-      Tercero: 'Test Third Party',
-      IdRecurso: '1',
-      IdServicio: 'TRANSPORT',
-      Titulo: 'Test Transaction'
+      ProcessId: '1',
+      SubprocessId: '1',
+      InputOutput: 'E',
+      StatusId: STATUS.PENDING,
+      PointId: '1',
+      ThirdParty: 'Test Third Party',
+      ResourceId: '1',
+      ServiceId: 'TRANSPORT',
+      Title: 'Test Transaction'
     }));
     translateServiceSpy.instant.and.returnValue('Translated text');
 
@@ -129,7 +129,7 @@ describe('TasksPage', () => {
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: CardService, useValue: cardServiceSpy },
         { provide: ProcessesService, useValue: processesServiceSpy },
-        { provide: TransactionsService, useValue: transactionsServiceSpy },
+        { provide: SubprocessesService, useValue: transactionsServiceSpy },
         { provide: TasksService, useValue: tasksServiceSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
         { provide: Router, useValue: routerSpy },
@@ -270,7 +270,7 @@ describe('TasksPage', () => {
 
     component.goBack();
 
-    expect(routerSpy.navigate).toHaveBeenCalledWith(['/transactions'], {
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/subprocesses'], {
       queryParams: {
         mode: 'A',
         activityId: '1'

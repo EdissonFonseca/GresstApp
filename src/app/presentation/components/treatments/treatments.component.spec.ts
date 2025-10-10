@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController, ToastController } from '@ionic/angular';
 import { TreatmentsComponent } from './treatments.component';
-import { TreatmentsService } from '@app/infrastructure/repositories/masterdata/treatments.repository';
+import { TreatmentsService } from '@app/infrastructure/repositories/treatment.repository';
 import { ActivatedRoute } from '@angular/router';
-import { Tratamiento } from '@app/domain/entities/tratamiento.entity';
+import { Tratamiento } from '@app/domain/entities/treatment.entity';
 
 describe('TreatmentsComponent', () => {
   let component: TreatmentsComponent;

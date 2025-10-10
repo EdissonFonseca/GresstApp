@@ -1,17 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
-import { ActionSheetController, AlertController, ModalController, NavController } from '@ionic/angular';
+import { NavigationExtras } from '@angular/router';
+import { ModalController, NavController } from '@ionic/angular';
 import { ProcessAddComponent } from '@app/presentation/components/process-add/process-add.component';
 import { ProcessApproveComponent } from '@app/presentation/components/process-approve/process-approve.component';
-import { Proceso } from '@app/domain/entities/proceso.entity';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
 import { CardService } from '@app/presentation/services/card.service';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
-import { PERMISSIONS, STATUS } from '@app/core/constants';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { TranslateService } from '@ngx-translate/core';
-import { signal, computed } from '@angular/core';
+import { signal } from '@angular/core';
 
 /**
  * ProcessesPage
@@ -31,22 +28,17 @@ export class ProcessesPage implements OnInit {
   loading = signal(false);
   /** Flag indicating whether the add process button should be shown */
   showAdd: boolean = false;
-  /** Signal containing the list of processes from the service */
-  private processesSignal = this.processesService.processes;
-  /** Signal containing the list of process cards */
-  processCards = signal<Card[]>([]);
+
+  /** Signal containing the list of process cards (already sorted by CardService) */
+  processCards = this.cardService.processes;
 
   constructor(
     private navCtrl: NavController,
-    private processesService: ProcessesService,
     private cardService: CardService,
     private userNotificationService: UserNotificationService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationRepository,
     private translate: TranslateService,
     private modalCtrl: ModalController,
-    private actionSheet: ActionSheetController,
-    private alertController: AlertController,
-    private router: Router
   ) {}
 
   /**
@@ -77,16 +69,9 @@ export class ProcessesPage implements OnInit {
   async loadData() {
     try {
       this.loading.set(true);
-      await this.processesService.list();
 
-      // Update process cards
-      const sortedProcesses = this.processesSignal().sort((a: Proceso, b: Proceso) => {
-        if (a.IdEstado === STATUS.PENDING && b.IdEstado !== STATUS.PENDING) return -1;
-        if (a.IdEstado !== STATUS.PENDING && b.IdEstado === STATUS.PENDING) return 1;
-        return 0;
-      });
-      const cards = await this.cardService.mapActividades(sortedProcesses);
-      this.processCards.set(cards);
+      // Load all hierarchy data through CardService
+      await this.cardService.loadAllHierarchy();
 
       this.showAdd = await this.authorizationService.allowAddActivity();
     } catch (error) {
@@ -112,7 +97,7 @@ export class ProcessesPage implements OnInit {
   }
 
   /**
-   * Navigate to transactions page for a specific process
+   * Navigate to subprocesses page for a specific process
    * @param process - The process card to navigate to
    */
   navigateToTransactions(process: Card) {
@@ -120,7 +105,7 @@ export class ProcessesPage implements OnInit {
       const navigationExtras: NavigationExtras = {
         queryParams: { activityId: process.id },
       };
-      this.navCtrl.navigateForward('/transactions', navigationExtras);
+      this.navCtrl.navigateForward('/subprocesses', navigationExtras);
     } catch (error) {
       console.error('Error navigating to transactions:', error);
       this.userNotificationService.showToast(
@@ -135,9 +120,10 @@ export class ProcessesPage implements OnInit {
    */
   navigateToMap() {
     try {
+      const firstProcess = this.processCards()[0];
       const navigationExtras: NavigationExtras = {
         queryParams: {
-          IdActividad: this.processesSignal()[0]?.IdProceso,
+          IdActividad: firstProcess?.id,
         }
       };
       this.navCtrl.navigateForward('/route', navigationExtras);

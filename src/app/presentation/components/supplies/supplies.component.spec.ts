@@ -3,11 +3,11 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { SuppliesComponent } from './supplies.component';
-import { SuppliesService } from '@app/infrastructure/repositories/masterdata/supplies.repository';
-import { AuthorizationService } from '@app/infrastructure/repositories/masterdata/authorization.repository';
+import { SuppliesService } from '@app/infrastructure/repositories/supply.repository';
+import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/core/constants';
-import { Insumo } from '@app/domain/entities/insumo.entity';
+import { Insumo } from '@app/domain/entities/supply.entity';
 
 describe('SuppliesComponent', () => {
   let component: SuppliesComponent;

@@ -20,8 +20,8 @@ const routes: Routes = [
     loadChildren: () => import('./presentation/pages/login/login.module').then(m => m.LoginPageModule)
   },
   {
-    path: 'point-new',
-    loadChildren: () => import('./presentation/pages/point-new/point-new.module').then( m => m.PointNewPageModule)
+    path: 'facility-new',
+    loadChildren: () => import('./presentation/pages/facility-new/facility-new.module').then( m => m.FacilityNewPageModule)
   },
   {
     path: 'search-certificates',
@@ -40,8 +40,8 @@ const routes: Routes = [
     loadChildren: () => import('./presentation/pages/tasks/tasks.module').then(m => m.TasksPageModule)
   },
   {
-    path: 'transactions',
-    loadChildren: () => import('./presentation/pages/transactions/transactions.module').then(m => m.TransactionsPageModule)
+    path: 'subprocesses',
+    loadChildren: () => import('./presentation/pages/subprocesses/subprocesses.module').then(m => m.SubprocessesPageModule)
   },
   {
     path: 'password-email',

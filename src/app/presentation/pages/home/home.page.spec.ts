@@ -4,7 +4,7 @@ import { HomePage } from './home.page';
 import { SessionService } from '@app/infrastructure/services/session.service';
 import { ComponentsModule } from '@app/components/components.module';
 import { RouterTestingModule } from '@angular/router/testing';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { STORAGE } from '@app/core/constants';
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Storage } from '@ionic/storage-angular';
 import { SynchronizationService } from '@app/infrastructure/services/synchronization.service';
-import { AuthorizationApiService } from '@app/infrastructure/repositories/api/authorizationApi.repository';
+import { AuthorizationApiService } from '@app/infrastructure/services/authorizationApi.service';
 import { EventEmitter } from '@angular/core';
 
 describe('HomePage', () => {

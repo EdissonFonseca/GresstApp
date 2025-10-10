@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { VehiclesComponent } from './vehicles.component';
-import { VehiclesService } from '@app/infrastructure/repositories/masterdata/vehicles.repository';
+import { VehiclesService } from '@app/infrastructure/repositories/vehicles.repository';
 import { ActivatedRoute } from '@angular/router';
-import { Vehiculo } from '@app/domain/entities/vehiculo.entity';
+import { Vehiculo } from '@app/domain/entities/vehicle.entity';
 
 describe('VehiclesComponent', () => {
   let component: VehiclesComponent;

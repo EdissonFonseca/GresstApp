@@ -3,35 +3,35 @@
     <ion-searchbar  placeholder="Buscar ..."></ion-searchbar>
   </ion-toolbar>
   <ion-list *ngFor="let residuo of residuos" inset=true>
-    <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
-      <ion-card-title>{{residuo.Material}} </ion-card-title>
+    <ion-item lines="none" (click)="openMenu(residuo.Id)">
+      <ion-card-title>{{residuo.MaterialName}} </ion-card-title>
     </ion-item>
-    <ion-item *ngIf="isNumeric(residuo.IdResiduo)" lines="none" (click)="openMenu(residuo.IdResiduo)">
-      <ion-note>#{{residuo.IdResiduo}}</ion-note>
+    <ion-item *ngIf="isNumeric(residuo.Id)" lines="none" (click)="openMenu(residuo.Id)">
+      <ion-note>#{{residuo.Id}}</ion-note>
     </ion-item>
-    <ion-item lines="none" (click)="openMenu(residuo.IdResiduo)">
-      <ion-card-subtitle>{{residuo.Propietario}}{{residuo.DepositoOrigen}}{{residuo.Solicitud}}</ion-card-subtitle>
+    <ion-item lines="none" (click)="openMenu(residuo.Id)">
+      <ion-card-subtitle>{{residuo.OwnerName}}{{residuo.OriginFacilityName}}{{residuo.RequestName}}</ion-card-subtitle>
     </ion-item>
     <ion-item>
-      <ion-label size="small">{{residuo.Ubicacion}}</ion-label>
+      <ion-label size="small">{{residuo.LocationName}}</ion-label>
       <ion-chip slot="end">
-        <ion-badge size="small" color="light" > {{ residuo.Cantidades }} </ion-badge>
+        <ion-badge size="small" color="light" > {{ residuo.QuantitiesName }} </ion-badge>
       </ion-chip>
       </ion-item>
     <ion-item lines="none">
-      <ion-button id="moveButton" fill="clear" color="primary" size="large" *ngIf="residuo.IdEstado == 'A'">
+      <ion-button id="moveButton" fill="clear" color="primary" size="large" *ngIf="residuo.StatusId == 'A'">
         <ion-icon name="move"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" color="primary" size="large"  *ngIf="residuo.IdEstado == 'A'">
+      <ion-button fill="clear" color="primary" size="large"  *ngIf="residuo.StatusId == 'A'">
         <ion-icon name="construct-outline"></ion-icon>
       </ion-button>
       <ion-button fill="clear" color="primary" size="large">
         <ion-icon name="share-outline"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" color="primary" size="large" *ngIf="residuo.IdEstado == 'A' && residuo.Aprovechable">
+        <ion-button fill="clear" color="primary" size="large" *ngIf="residuo.StatusId == 'A' && residuo.IsRecyclable">
         <ion-icon name="share-social"></ion-icon>
       </ion-button>
-      <ion-button fill="clear" color="danger" size="large" *ngIf="residuo.IdEstado == 'A'">
+      <ion-button fill="clear" color="danger" size="large" *ngIf="residuo.StatusId == 'A'">
         <ion-icon name="close"></ion-icon>
       </ion-button>
       </ion-item>

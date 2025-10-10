@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModalController, ToastController } from '@ionic/angular';
-import { Tratamiento } from '@app/domain/entities/tratamiento.entity';
-import { TreatmentsService } from '@app/infrastructure/repositories/masterdata/treatments.repository';
+import { Treatment } from '@app/domain/entities/treatment.entity';
+import { TreatmentRepository } from '@app/infrastructure/repositories/treatment.repository';
 
 @Component({
   selector: 'app-treatments',
@@ -11,7 +11,7 @@ import { TreatmentsService } from '@app/infrastructure/repositories/masterdata/t
 })
 export class TreatmentsComponent  implements OnInit {
   @Input() showHeader: boolean = true;
-  treatments : Tratamiento[] = [];
+  treatments : Treatment[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   searchText: string = '';
@@ -19,12 +19,12 @@ export class TreatmentsComponent  implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private modalCtrl: ModalController,
-    private treatmentsService: TreatmentsService
+    private treatmentsService: TreatmentRepository
   ) { }
 
   async ngOnInit() {
     this.route.queryParams.subscribe(params => {});
-    this.treatments = await this.treatmentsService.list();
+    this.treatments = await this.treatmentsService.getAll();
   }
 
   async handleInput(event: any){
@@ -32,12 +32,12 @@ export class TreatmentsComponent  implements OnInit {
     this.searchText = this.selectedName;
     const query = event.target.value.toLowerCase();
 
-    const treatments = await this.treatmentsService.list();
-    this.treatments = treatments.filter((treatment: Tratamiento) => treatment.Nombre .toLowerCase().indexOf(query) > -1);
+    const treatments = await this.treatmentsService.getAll();
+    this.treatments = treatments.filter((treatment: Treatment) => treatment.Name .toLowerCase().indexOf(query) > -1);
   }
 
-  select(idTratamiento: string, nombre: string) {
-    this.selectedValue = idTratamiento;
+  select(idTreatment: string, nombre: string) {
+    this.selectedValue = idTreatment;
     this.selectedName = nombre;
     const data = {id: this.selectedValue, name: this.selectedName};
     this.modalCtrl.dismiss(data);

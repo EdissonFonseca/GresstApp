@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController } from '@ionic/angular';
-import { Cuenta } from '@app/domain/entities/cuenta.entity';
-import { AuthenticationApiService } from '@app/infrastructure/repositories/api/authenticationApi.repository';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { Account } from '@app/domain/entities/account.entity';
+import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 
 /**
@@ -17,7 +17,7 @@ import { STORAGE } from '@app/core/constants';
 })
 export class ProfilePage implements OnInit {
   formData: FormGroup;
-  cuenta: Cuenta | undefined = undefined;
+  account: Account | undefined = undefined;
   showPassword: boolean = false;
 
   constructor(
@@ -40,11 +40,11 @@ export class ProfilePage implements OnInit {
    * Loads user account data and populates the form
    */
   async ngOnInit() {
-    this.cuenta = await this.storage.get(STORAGE.ACCOUNT);
+    this.account = await this.storage.get(STORAGE.ACCOUNT);
 
     this.formData.patchValue({
-      Nombre: this.cuenta?.NombreUsuario,
-      Correo: this.cuenta?.LoginUsuario
+      Nombre: this.account?.Name,
+      Correo: this.account?.Login
     });
   }
 
@@ -65,9 +65,9 @@ export class ProfilePage implements OnInit {
 
     try {
       await this.authenticationService.changeName(userName, formValues.Nombre);
-      if (this.cuenta) {
-        this.cuenta.NombreUsuario = formValues.Nombre;
-        await this.storage.set(STORAGE.ACCOUNT, this.cuenta);
+      if (this.account) {
+        this.account.Name = formValues.Nombre;
+        await this.storage.set(STORAGE.ACCOUNT, this.account);
       }
       await this.presentAlert('Name changed', '', 'Your name has been successfully changed');
     } catch (error) {

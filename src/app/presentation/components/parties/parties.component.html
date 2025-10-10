@@ -1,0 +1,68 @@
+<ion-header *ngIf="showHeader">
+  <ion-toolbar>
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()">Cancelar</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-toolbar>
+</ion-header>
+<ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
+<ion-item *ngIf="terceros.length != 0 && !showNew && enableNew">
+  <ion-button (click)="new()">
+    <ion-icon name="add"></ion-icon>
+    Nuevo
+  </ion-button>
+</ion-item>
+<ion-content *ngIf="(terceros.length == 0|| showNew) && enableNew">
+  <ion-item-divider> Nuevo</ion-item-divider>
+  <form [formGroup]="formData" >
+    <ion-list [inset]="true">
+      <ion-item>
+        <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input formControlName="Identificacion" label="Identificación" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input formControlName="Telefono" label="Teléfono" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input formControlName="Correo" label="Correo" labelPlacement="stacked"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-item>
+          <ion-button>
+            <ion-icon name="save-outline"></ion-icon>
+            Crear
+          </ion-button>
+          <ion-button (click)="search()">
+            <ion-icon name="close"></ion-icon>
+            Cancelar
+          </ion-button>
+        </ion-item>
+      </ion-item>
+  </ion-list>
+</form>
+</ion-content>
+<ion-content>
+  <ion-list *ngFor="let tercero of terceros">
+    <ion-item >
+      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.Id"></ion-icon>
+      <ion-label (click)="select(tercero.Id, tercero.Name)">{{ tercero.Name }}</ion-label>
+      <ion-badge slot="end" color="secondary" *ngIf="tercero.IsClient">
+        Cliente
+      </ion-badge>
+      <ion-badge slot="end" color="light" *ngIf="tercero.IsSupplier">
+        Proveedor
+      </ion-badge>
+      <ion-badge slot="end" color="warning" *ngIf="tercero.IsEmployee">
+        Interno
+      </ion-badge>
+      <ion-buttons slot="end">
+        <ion-button (click)="goToPuntos(tercero.Id)"><ion-icon name="location"></ion-icon></ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+</ion-content>
+

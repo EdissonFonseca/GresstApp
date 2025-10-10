@@ -9,7 +9,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { StorageService } from './infrastructure/repositories/api/storage.repository';
+import { StorageService } from './infrastructure/services/storage.service';
 import { TranslateService } from '@ngx-translate/core';
 
 // AoT requires an exported function for factories

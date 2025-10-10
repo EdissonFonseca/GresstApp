@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewChild } from '@angular/core';
 import { IonTabs, IonicModule } from '@ionic/angular';
 import { signal } from '@angular/core';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';

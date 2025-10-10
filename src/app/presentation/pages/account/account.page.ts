@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { Storage } from '@ionic/storage';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Cuenta } from '@app/domain/entities/cuenta.entity';
+import { Account } from '@app/domain/entities/account.entity';
 import { STORAGE } from '@app/core/constants';
 
 /**
@@ -16,7 +16,7 @@ import { STORAGE } from '@app/core/constants';
 })
 export class AccountPage implements OnInit {
   formData: FormGroup;
-  cuenta: Cuenta | undefined;
+  cuenta: Account | undefined;
 
   constructor(
     private navCtrl: NavController,
@@ -37,8 +37,8 @@ export class AccountPage implements OnInit {
     this.cuenta = await this.storage.get(STORAGE.ACCOUNT);
 
     this.formData.patchValue({
-      Nombre: this.cuenta?.NombreCuenta,
-      Identificacion: this.cuenta?.IdPersonaCuenta
+      Nombre: this.cuenta?.Name,
+      Identificacion: this.cuenta?.PersonId
     });
   }
 }

@@ -1,12 +1,12 @@
 export interface Material{
-  IdMaterial: string;
+  Id: string;
 
-  Aprovechable: boolean;
-  Nombre: string;
-  Referencia?: string;
-  Factor?: number;
-  PrecioCompra?: number;
-  PrecioServicio?: number;
-  TipoCaptura: string;
-  TipoMedicion: string;
+  Name: string;
+  Type: string;
+  IsRecyclable: boolean;
+  Reference?: string;
+  EmissionCompensationFactor?: number;
+  ServiceCost?: number;
+  PurchaseCost?: number;
+  MeasurementType: string;
 }

@@ -1,0 +1,33 @@
+<ion-header>
+</ion-header>
+<ion-content>
+  <ion-item>
+    <ion-note slot="start">Propietario</ion-note>
+    <ion-label>{{ propietario }}</ion-label>
+    <ion-button color="light" (click)="selectPropietario()">...</ion-button>
+</ion-item>
+  <ion-item>
+    <ion-label>Nombre</ion-label>
+    <ion-input label="Nombre"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label>Dirección</ion-label>
+    <ion-input label="Direccion"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label>Descripción</ion-label>
+    <ion-input label="Descripción"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-button (click)="getGeoLocation()">
+      <ion-icon name="location"></ion-icon>
+    </ion-button>
+    <ion-label>Ubicación</ion-label>
+    <ion-input label="Latitud"> {{longitude}} </ion-input>
+    <ion-input label="Longitud"> {{latitude}} </ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-button>Guardar</ion-button>
+  </ion-item>
+</ion-content>
+

@@ -1,25 +1,24 @@
 import { Injectable, signal } from '@angular/core';
-import { StorageService } from '../repositories/api/storage.repository';
-import { MasterDataApiService } from '../repositories/api/masterdataApi.repository';
-import { AuthorizationApiService } from '../repositories/api/authorizationApi.repository';
-import { OperationsApiService } from '../repositories/api/operationsApi.repository';
-import { Embalaje } from '../../domain/entities/embalaje.entity';
+import { StorageService } from './storage.service';
+import { MasterDataApiService } from './masterdataApi.service';
+import { AuthorizationApiService } from './authorizationApi.service';
+import { OperationsApiService } from './operationsApi.service';
+import { Package } from '../../domain/entities/package.entity';
 import { Material } from '../../domain/entities/material.entity';
-import { Punto } from '../../domain/entities/punto.entity';
-import { Servicio } from '../../domain/entities/servicio.entity';
-import { Tercero } from '../../domain/entities/tercero.entity';
-import { Tratamiento } from '../../domain/entities/tratamiento.entity';
-import { Vehiculo } from '../../domain/entities/vehiculo.entity';
-import { Operacion } from '../../domain/entities/operacion.entity';
+import { Facility } from '../../domain/entities/facility.entity';
+import { Service } from '../../domain/entities/service.entity';
+import { Treatment } from '../../domain/entities/treatment.entity';
+import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { environment } from '../../../environments/environment';
 import { CRUD_OPERATIONS, DATA_TYPE, STATUS, STORAGE } from '@app/core/constants';
 import { LoggerService } from './logger.service';
-import { Inventario, InventoryApiService } from '../repositories/api/inventoryApi.repository';
-import { APIRequest } from '@app/domain/entities/APIRequest.entity';
-import { Proceso } from '@app/domain/entities/proceso.entity';
-import { Insumo } from '@app/domain/entities/insumo.entity';
-import { Tarea } from '@app/domain/entities/tarea.entity';
-import { Transaccion } from '@app/domain/entities/transaccion.entity';
+import { Inventario, InventoryApiService } from './inventoryApi.service';
+import { Process } from '@app/domain/entities/process.entity';
+import { Task } from '@app/domain/entities/task.entity';
+import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { Message } from '@app/domain/entities/message.entity';
+import { Operation } from '@app/domain/entities/operation.entity';
+import { Party } from '@app/domain/entities/party.entity';
 
 /**
  * Service responsible for managing data synchronization between local storage and server.
@@ -76,25 +75,25 @@ export class SynchronizationService {
    */
   async downloadMasterData(): Promise<void> {
     try {
-      const packaging: Embalaje[] = await this.masterdataService.getPackaging();
+      const packaging: Package[] = await this.masterdataService.getPackages();
       await this.storage.set(STORAGE.PACKAGES, packaging);
 
       const materials: Material[] = await this.masterdataService.getMaterials();
       await this.storage.set(STORAGE.MATERIALS, materials);
 
-      const points: Punto[] = await this.masterdataService.getPoints();
-      await this.storage.set(STORAGE.POINTS, points);
+      const points: Facility[] = await this.masterdataService.getFacilities();
+      await this.storage.set(STORAGE.FACILITIES, points);
 
-      const services: Servicio[] = await this.masterdataService.getServices();
+      const services: Service[] = await this.masterdataService.getServices();
       await this.storage.set(STORAGE.SERVICES, services);
 
-      const thirdParties: Tercero[] = await this.masterdataService.getThirdParties();
-      await this.storage.set(STORAGE.THIRD_PARTIES, thirdParties);
+      const parties: Party[] = await this.masterdataService.getParties();
+      await this.storage.set(STORAGE.PARTIES, parties);
 
-      const treatments: Tratamiento[] = await this.masterdataService.getTreatments();
+      const treatments: Treatment[] = await this.masterdataService.getTreatments();
       await this.storage.set(STORAGE.TREATMENTS, treatments);
 
-      const vehicles: Vehiculo[] = await this.masterdataService.getVehicles();
+      const vehicles: Vehicle[] = await this.masterdataService.getVehicles();
       await this.storage.set(STORAGE.VEHICLES, vehicles);
     } catch (error) {
       this.logger.error('Error downloading master data', error);
@@ -106,67 +105,63 @@ export class SynchronizationService {
    * Downloads and stores transaction data from the server
    * @throws {Error} If the download fails
    */
-  async downloadTransactions(): Promise<void> {
+  async downloadOperation(): Promise<void> {
     try {
-      const transaction: Operacion = await this.operationsService.get();
+      const hierarchicalProcesses: Process[] = await this.operationsService.get();
+      const allProcesses: Process[] = [];
+      const allSubprocesses: Subprocess[] = [];
+      const allTasks: Task[] = [];
 
-      //Calculate task summary properties
-      transaction.Tareas.forEach(task => {
-        task.pending = task.IdEstado === STATUS.PENDING ? 1 : 0;
-        task.approved = task.IdEstado === STATUS.APPROVED ? 1 : 0;
-        task.rejected = task.IdEstado === STATUS.REJECTED ? 1 : 0;
-        task.quantity = task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
-        task.weight = task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
-        task.volume = task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
-      });
+      if (hierarchicalProcesses && Array.isArray(hierarchicalProcesses)) {
+        hierarchicalProcesses.forEach((process: any) => {
+          const processId = process.ProcessId || process.IdProceso;
 
-      //Calculate transaction summary properties
-      transaction.Transacciones.forEach(transaccion => {
-        // Filter tasks of this transaction from the main array
-        const transactionTasks = transaction.Tareas.filter((task: Tarea) => task.IdTransaccion === transaccion.IdTransaccion);
-        const totals = transactionTasks.reduce((acc: { pending: number; approved: number; rejected: number; quantity: number; weight: number; volume: number }, task: Tarea) => {
-          acc.pending += task.IdEstado === STATUS.PENDING ? 1 : 0;
-          acc.approved += task.IdEstado === STATUS.APPROVED ? 1 : 0;
-          acc.rejected += task.IdEstado === STATUS.REJECTED ? 1 : 0;
-          acc.quantity += task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
-          acc.weight += task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
-          acc.volume += task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
-          return acc;
-        }, { pending: 0, approved: 0, rejected: 0, quantity: 0, weight: 0, volume: 0 });
+          // Extract process-level tasks
+          if (process.Tasks && Array.isArray(process.Tasks)) {
+            process.Tasks.forEach((task: any) => {
+              task.ProcessId = processId;
+              task.SubprocessId = undefined;
+              allTasks.push(task);
+            });
+          }
 
-        // Assign totals to the transaction
-        transaccion.pending = totals.pending;
-        transaccion.approved = totals.approved;
-        transaccion.rejected = totals.rejected;
-        transaccion.quantity = totals.quantity;
-        transaccion.weight = totals.weight;
-        transaccion.volume = totals.volume;
-      });
+          // Extract subprocesses
+          if (process.Subprocesses && Array.isArray(process.Subprocesses)) {
+            process.Subprocesses.forEach((subprocess: any) => {
+              const subprocessId = subprocess.SubprocessId || subprocess.IdTransaccion;
 
-      //Calculate activity summary properties
-      transaction.Procesos.forEach(actividad => {
-        // Filter tasks of this transaction from the main array
-        const transactionTasks = transaction.Tareas.filter((task: Tarea) => task.IdProceso === actividad.IdProceso);
-        const totals = transactionTasks.reduce((acc: { pending: number; approved: number; rejected: number; quantity: number; weight: number; volume: number }, task: Tarea) => {
-          acc.pending += task.IdEstado === STATUS.PENDING ? 1 : 0;
-          acc.approved += task.IdEstado === STATUS.APPROVED ? 1 : 0;
-          acc.rejected += task.IdEstado === STATUS.REJECTED ? 1 : 0;
-          acc.quantity += task.IdEstado === STATUS.APPROVED ? task.Cantidad ?? 0 : 0;
-          acc.weight += task.IdEstado === STATUS.APPROVED ? task.Peso ?? 0 : 0;
-          acc.volume += task.IdEstado === STATUS.APPROVED ? task.Volumen ?? 0 : 0;
-          return acc;
-        }, { pending: 0, approved: 0, rejected: 0, quantity: 0, weight: 0, volume: 0 });
+              // Extract subprocess-level tasks
+              if (subprocess.Tasks && Array.isArray(subprocess.Tasks)) {
+                subprocess.Tasks.forEach((task: any) => {
+                  task.ProcessId = processId;
+                  task.SubprocessId = subprocessId;
+                  allTasks.push(task);
+                });
+              }
 
-        // Assign totals to the transaction
-        actividad.pending = totals.pending;
-        actividad.approved = totals.approved;
-        actividad.rejected = totals.rejected;
-        actividad.quantity = totals.quantity;
-        actividad.weight = totals.weight;
-        actividad.volume = totals.volume;
-      });
+              // Add subprocess without Tasks, but with ProcessId
+              const { Tasks, ...subprocessClean } = subprocess;
+              subprocessClean.ProcessId = processId;  // ✅ Set parent ID
+              subprocessClean.SubprocessId = subprocessId;
+              allSubprocesses.push(subprocessClean);
+            });
+          }
 
-      await this.storage.set(STORAGE.TRANSACTION, transaction);
+          // Add process without Subprocesses and Tasks
+          const { Subprocesses, Tasks, ...processClean } = process;
+          processClean.ProcessId = processId;
+          allProcesses.push(processClean);
+        });
+      }
+
+      const flattenedOperation: Operation = {
+        Processes: allProcesses,
+        Subprocesses: allSubprocesses,
+        Tasks: allTasks
+      };
+
+      await this.storage.set(STORAGE.OPERATION, flattenedOperation);
+
     } catch (error) {
       this.logger.error('Error downloading transactions', error);
       throw error;
@@ -183,7 +178,7 @@ export class SynchronizationService {
   async uploadData(): Promise<boolean> {
     try {
       // Get and sort requests by CRUDDate
-      const requests: APIRequest[] = await this.storage.get(STORAGE.REQUESTS) || [];
+      const requests: Message[] = await this.storage.get(STORAGE.MESSAGES) || [];
       requests.sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime());
 
       for (const request of requests) {
@@ -194,7 +189,7 @@ export class SynchronizationService {
           // Process request based on object type and CRUD operation
           switch (request.Object) {
             case DATA_TYPE.PROCESS:
-              const activity = request.Data as Proceso;
+              const activity = request.Data as Process;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
                 success = await this.operationsService.createProcess(activity);
               } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
@@ -209,74 +204,26 @@ export class SynchronizationService {
                 success = await this.inventoryService.update(inventory);
               }
               break;
-            case DATA_TYPE.MATERIAL:
-              const material = request.Data as Material;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createMaterial(material);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updateMaterial(material);
-              }
-              break;
-            case DATA_TYPE.PACKAGE:
-              const packaging = request.Data as Embalaje;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createPackage(packaging);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updatePackage(packaging);
-              }
-              break;
-            case DATA_TYPE.POINT:
-              const point = request.Data as Punto;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createPoint(point);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updatePoint(point);
-              }
-              break;
-              case DATA_TYPE.START_ACTIVITY:
-                const startActivity = request.Data as Proceso;
-                if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                  success = await this.operationsService.updateInitialProcess(startActivity);
-                }
-                break;
-              case DATA_TYPE.SUPPLY:
-              const supply = request.Data as Insumo;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createSupply(supply);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updateSupply(supply);
+            case DATA_TYPE.START_ACTIVITY:
+              const startActivity = request.Data as Process;
+              if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
+                success = await this.operationsService.updateInitialProcess(startActivity);
               }
               break;
             case DATA_TYPE.TASK:
-              const task = request.Data as Tarea;
+              const task = request.Data as Task;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
                 success = await this.operationsService.createTask(task);
               } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
                 success = await this.operationsService.updateTask(task);
               }
               break;
-            case DATA_TYPE.THIRD_PARTY:
-              const thirdParty = request.Data as Tercero;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createThirdParty(thirdParty);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updateThirdParty(thirdParty);
-              }
-              break;
             case DATA_TYPE.TRANSACTION:
-              const transaction = request.Data as Transaccion;
+              const transaction = request.Data as Subprocess;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
                 success = await this.operationsService.createTransaction(transaction);
               } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
                 success = await this.operationsService.updateTransaction(transaction);
-              }
-              break;
-            case DATA_TYPE.TREATMENT:
-              const treatment = request.Data as Tratamiento;
-              if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.masterdataService.createTreatment(treatment);
-              } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.masterdataService.updateTreatment(treatment);
               }
               break;
             default:
@@ -287,7 +234,7 @@ export class SynchronizationService {
             // Remove processed request from storage
             const updatedRequests = requests.filter(r => r !== request);
             this.logger.debug('Updated requests:', updatedRequests);
-            await this.storage.set(STORAGE.REQUESTS, updatedRequests);
+            await this.storage.set(STORAGE.MESSAGES, updatedRequests);
           } else {
             this.logger.error('Failed to process request', { request });
             return false;

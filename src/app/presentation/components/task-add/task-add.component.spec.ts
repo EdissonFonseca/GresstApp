@@ -2,22 +2,22 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TaskAddComponent } from './task-add.component';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
-import { TransactionsService } from '@app/infrastructure/repositories/transactions/transactions.repository';
-import { TasksService } from '@app/infrastructure/repositories/transactions/tasks.repository';
+import { ProcessesService } from '@app/application/services/process.service';
+import { SubprocessesService } from '@app/application/services/subprocess.service';
+import { TasksService } from '@app/application/services/task.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { Camera, Photo } from '@capacitor/camera';
 import { STATUS, SERVICE_TYPES, INPUT_OUTPUT } from '@app/core/constants';
-import { Proceso } from '@app/interfaces/proceso.interface';
-import { Transaccion } from '@app/domain/entities/transaccion.entity';
+import { Process } from '@app/interfaces/process.interface';
+import { Subprocess } from '@app/domain/entities/subprocess.entity';
 
 describe('TaskAddComponent', () => {
   let component: TaskAddComponent;
   let fixture: ComponentFixture<TaskAddComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let processesServiceSpy: jasmine.SpyObj<ProcessesService>;
-  let transactionsServiceSpy: jasmine.SpyObj<TransactionsService>;
+  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
   let tasksServiceSpy: jasmine.SpyObj<TasksService>;
   let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
   let loggerServiceSpy: jasmine.SpyObj<LoggerService>;
@@ -33,20 +33,20 @@ describe('TaskAddComponent', () => {
     NavegarPorTransaccion: false
   };
 
-  const mockTransaction: Transaccion = {
-    IdTransaccion: '1',
-    IdProceso: '1',
-    IdEstado: STATUS.APPROVED,
-    EntradaSalida: INPUT_OUTPUT.INPUT,
-    IdRecurso: '1',
-    IdServicio: SERVICE_TYPES.COLLECTION,
-    Titulo: 'Test Transaction'
+  const mockTransaction: Subprocess = {
+    SubprocessId: '1',
+    ProcessId: '1',
+    StatusId: STATUS.APPROVED,
+    InputOutput: INPUT_OUTPUT.INPUT,
+    ResourceId: '1',
+    ServiceId: SERVICE_TYPES.COLLECTION,
+    Title: 'Test Transaction'
   };
 
   beforeEach(waitForAsync(() => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
     processesServiceSpy = jasmine.createSpyObj('ProcessesService', ['get']);
-    transactionsServiceSpy = jasmine.createSpyObj('TransactionsService', ['getByPoint', 'getByThirdParty', 'create']);
+    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['getByPoint', 'getByThirdParty', 'create']);
     tasksServiceSpy = jasmine.createSpyObj('TasksService', ['create']);
     userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
     loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error']);
@@ -61,7 +61,7 @@ describe('TaskAddComponent', () => {
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: ProcessesService, useValue: processesServiceSpy },
-        { provide: TransactionsService, useValue: transactionsServiceSpy },
+        { provide: SubprocessesService, useValue: transactionsServiceSpy },
         { provide: TasksService, useValue: tasksServiceSpy },
         { provide: UserNotificationService, useValue: userNotificationServiceSpy },
         { provide: LoggerService, useValue: loggerServiceSpy }

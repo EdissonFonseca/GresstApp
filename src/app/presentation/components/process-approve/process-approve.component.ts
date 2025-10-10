@@ -1,8 +1,8 @@
 import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { Proceso } from '@app/domain/entities/proceso.entity';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { Process } from '@app/domain/entities/process.entity';
+import { ProcessService } from '@app/application/services/process.service';
 import { STATUS } from '@app/core/constants';
 import { Utils } from '@app/core/utils';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
@@ -32,7 +32,7 @@ export class ProcessApproveComponent implements OnInit {
   private drawing = signal<boolean>(false);
   private penColor = signal<string>('black');
 
-  process: Proceso | null = null;
+  process: Process | null = null;
 
   private isDataLoaded = false;
 
@@ -41,7 +41,7 @@ export class ProcessApproveComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
-    private processesService: ProcessesService,
+    private processService: ProcessService,
     private userNotificationService: UserNotificationService,
     private modalCtrl: ModalController,
     private translate: TranslateService
@@ -65,19 +65,19 @@ export class ProcessApproveComponent implements OnInit {
     console.log('processId', this.processId);
     if (this.processId) {
       try {
-        const proceso = await this.processesService.get(this.processId);
-        if (proceso) {
-          this.process = proceso;
+        const process = await this.processService.get(this.processId);
+        if (process) {
+          this.process = process;
           this.frmActividad.patchValue({
-            Identificacion: proceso.ResponsableIdentificacion,
-            Nombre: proceso.ResponsableNombre,
-            Cargo: proceso.ResponsableCargo,
-            Kilometraje: proceso.KilometrajeFinal,
-            Observaciones: proceso.ResponsableObservaciones
+            Identificacion: process.ResponsibleIdentification,
+            Nombre: process.ResponsibleName,
+            Cargo: process.ResponsiblePosition,
+            Kilometraje: process.FinalMileage,
+            Observaciones: process.ResponsibleNotes
           });
 
-          this.summary = this.processesService.getSummary(proceso);
-          console.log('Process loaded:', proceso);
+          //this.summary = this.processService.getSummary(process);
+          console.log('Process loaded:', process);
           console.log('Summary:', this.summary);
         }
       } catch (error) {
@@ -171,40 +171,40 @@ export class ProcessApproveComponent implements OnInit {
     return this.canvas.toDataURL();
   }
 
-  async getFormData(): Promise<Proceso | undefined> {
-    const proceso = await this.processesService.get(this.processId);
-    if (!proceso) return undefined;
+  async getFormData(): Promise<Process | undefined> {
+    const process = await this.processService.get(this.processId);
+    if (!process) return undefined;
 
     const formData = this.frmActividad.value;
     return {
-      ...proceso,
-      KilometrajeFinal: formData.Kilometraje,
-      ResponsableCargo: formData.Cargo,
-      ResponsableFirma: formData.Firma,
-      ResponsableIdentificacion: formData.Identificacion,
-      ResponsableNombre: formData.Nombre,
-      ResponsableObservaciones: formData.Observaciones
+      ...process,
+      FinalMileage: formData.Kilometraje,
+      ResponsiblePosition: formData.Cargo,
+      ResponsibleSignature: formData.Firma,
+      ResponsibleIdentification: formData.Identificacion,
+      ResponsibleName: formData.Nombre,
+      ResponsibleNotes: formData.Observaciones
     };
   }
 
   async submit() {
-    const actividad = await this.getFormData();
-    if (!actividad) return;
+    const process = await this.getFormData();
+    if (!process) return;
 
     try {
       await this.userNotificationService.showLoading(
         this.translate.instant(this.isReject ? 'PROCESSES.REJECT.SENDING' : 'PROCESSES.APPROVE.SENDING')
       );
 
-      actividad.IdEstado = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
-      await this.processesService.update(actividad);
+      process.StatusId = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
+      await this.processService.update(process);
 
       await this.userNotificationService.showToast(
         this.translate.instant(this.isReject ? 'PROCESSES.REJECT.SUCCESS' : 'PROCESSES.APPROVE.SUCCESS'),
         'top'
       );
 
-      this.modalCtrl.dismiss(actividad);
+      this.modalCtrl.dismiss(process);
     } catch (error) {
       await this.userNotificationService.showToast(
         this.translate.instant(this.isReject ? 'PROCESSES.REJECT.ERROR' : 'PROCESSES.APPROVE.ERROR'),

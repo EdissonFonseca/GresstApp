@@ -2,6 +2,7 @@ import { EventEmitter } from "@angular/core";
 
 export interface Card {
   id: string;
+  parentId?: string | null | undefined;
   title: string;
   status: string;
   type: string;
@@ -10,7 +11,6 @@ export interface Card {
   description?: string | undefined | null;
   iconName?: string | undefined | null;
   iconSource?: string | undefined | null;
-  parentId?: string | null | undefined;
   pendingItems?: number | null | undefined;
   quantity?: number | null | undefined;
   rejectedItems?: number | null | undefined;
@@ -29,4 +29,8 @@ export interface Card {
   showReject?: boolean | undefined | null;
   showItems?: boolean | undefined | null;
   showSummary?: boolean | undefined | null;
+
+  level?: number | undefined | null;
+  hasChildren?: boolean | undefined | null;
+  childrenCount?: number | undefined | null;
 }

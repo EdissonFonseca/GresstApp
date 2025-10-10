@@ -3,20 +3,20 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
-import { Tarea } from '@app/domain/entities/tarea.entity';
+import { Task } from '@app/domain/entities/task.entity';
 import { INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/core/constants';
-import { InventoryService } from '@app/infrastructure/repositories/transactions/inventory.repository';
-import { MaterialsService } from '@app/infrastructure/repositories/masterdata/materials.repository';
-import { PointsService } from '@app/infrastructure/repositories/masterdata/points.repository';
-import { TasksService } from '@app/infrastructure/repositories/transactions/tasks.repository';
-import { ThirdpartiesService } from '@app/infrastructure/repositories/masterdata/thirdparties.repository';
-import { TransactionsService } from '@app/infrastructure/repositories/transactions/transactions.repository';
-import { PackagingService } from '@app/infrastructure/repositories/masterdata/packaging.repository';
+import { InventoryRepository } from '@app/infrastructure/repositories/inventory.repository';
+import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
+import { FacilityRepository } from '@app/infrastructure/repositories/facility.repository';
+import { TaskService } from '@app/application/services/task.service';
+import { PartyRepository } from '@app/infrastructure/repositories/party.repository';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { PackageRepository } from '@app/infrastructure/repositories/package.repository';
 import { Utils } from '@app/core/utils';
-import { Residuo } from '@app/domain/entities/residuo.entity';
+import { Waste } from '@app/domain/entities/waste.entity';
 import { TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
-import { ProcessesService } from '@app/infrastructure/repositories/transactions/processes.repository';
+import { ProcessService } from '@app/application/services/process.service';
 
 @Component({
   selector: 'app-task-edit',
@@ -26,6 +26,7 @@ import { ProcessesService } from '@app/infrastructure/repositories/transactions/
 export class TaskEditComponent implements OnInit {
   /** Inputs */
   @Input() activityId: string = '';
+  @Input() processId: string = '';
   @Input() transactionId: string = '';
   @Input() taskId: string = '';
   @Input() materialId: string = '';
@@ -43,20 +44,21 @@ export class TaskEditComponent implements OnInit {
   status: string = '';
   showDetails: boolean = false;
   showTreatment: boolean = false;
-  task: Tarea | undefined = undefined;
+  task: Task | undefined = undefined;
 
   /** Constructor */
   constructor(
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
-    private processesService: ProcessesService,
-    private packagingService: PackagingService,
-    private transactionsService: TransactionsService,
-    private tasksService: TasksService,
-    private inventoryService: InventoryService,
-    private materialsService: MaterialsService,
-    private pointsService: PointsService,
-    private thirdpartiesService: ThirdpartiesService,
+    private processService: ProcessService,
+    private packageRepository: PackageRepository,
+    private subprocessService: SubprocessService,
+    private tasksService: TaskService,
+    private inventoryService: InventoryRepository,
+    private materialsService: MaterialRepository,
+    private materialsRepository: MaterialRepository,
+    private facilityRepository: FacilityRepository,
+    private partiesService: PartyRepository,
     private translate: TranslateService,
     private logger: LoggerService
   ) {
@@ -90,64 +92,64 @@ export class TaskEditComponent implements OnInit {
     this.task = await this.tasksService.get(this.taskId);
 
     if (this.task) {
-      this.status = this.task.IdEstado;
-      this.photos = this.task.Fotos ?? [];
+      this.status = this.task.StatusId;
+      this.photos = this.task.Photos ?? [];
 
-      const materialItem = await this.materialsService.get(this.task.IdMaterial);
+      const materialItem = await this.materialsRepository.get(this.task.MaterialId);
       if (materialItem) {
-        this.measurement = materialItem.TipoMedicion;
-        this.captureType = materialItem.TipoCaptura;
-        this.factor = materialItem.Factor ?? 1;
+        this.measurement = materialItem.MeasurementType;
+        this.captureType = materialItem.Type;
+        this.factor = materialItem.EmissionCompensationFactor ?? 1;
         this.frmTask.patchValue({
-          Material: materialItem.Nombre
+          Material: materialItem.Name
         });
       }
 
-      if (this.task.IdDeposito) {
-        const itemPoint = await this.pointsService.get(this.task.IdDeposito);
+      if (this.task.FacilityId) {
+        const itemPoint = await this.facilityRepository.get(this.task.FacilityId);
         if (itemPoint) {
           this.frmTask.patchValue({
-            IdDeposito: itemPoint.IdDeposito,
-            Deposito: itemPoint.Nombre
+            IdDeposito: itemPoint.Id,
+            Deposito: itemPoint.Name
           });
         }
       }
 
-      if (this.task.IdDepositoDestino) {
-        const itemPoint = await this.pointsService.get(this.task.IdDepositoDestino);
+      if (this.task.DestinationFacilityId) {
+        const itemPoint = await this.facilityRepository.get(this.task.DestinationFacilityId);
         if (itemPoint) {
           this.frmTask.patchValue({
-            IdDepositoDestino: itemPoint.IdDeposito,
-            DepositoDestino: itemPoint.Nombre
+            IdDepositoDestino: itemPoint.Id,
+            DepositoDestino: itemPoint.Name
           });
-          if (itemPoint.IdPersona) {
-            const thirdParty = await this.thirdpartiesService.get(itemPoint.IdPersona);
+          if (itemPoint.OwnerId) {
+            const thirdParty = await this.partiesService.get(itemPoint.OwnerId);
             if (thirdParty) {
               this.frmTask.patchValue({
-                IdTerceroDestino: thirdParty.IdPersona,
-                TerceroDestino: thirdParty.Nombre
+                IdTerceroDestino: thirdParty.Id,
+                TerceroDestino: thirdParty.Name
               });
             }
           }
         }
       }
 
-      if (this.task.IdTercero) {
-        const thirdParty = await this.thirdpartiesService.get(this.task.IdTercero);
-        if (thirdParty) {
+      if (this.task.PartyId) {
+        const party = await this.partiesService.get(this.task.PartyId);
+        if (party) {
           this.frmTask.patchValue({
-            IdTercero: thirdParty.IdPersona,
-            Tercero: thirdParty.Nombre
+            IdTercero: party.Id,
+            Tercero: party.Name
           });
         }
       }
 
-      if (this.task.IdEmbalaje) {
-        const packageItem = await this.packagingService.get(this.task.IdEmbalaje);
+      if (this.task.PackageId) {
+        const packageItem = await this.packageRepository.get(this.task.PackageId);
         if (packageItem) {
           this.frmTask.patchValue({
-            IdEmbalaje: this.task.IdEmbalaje,
-            Embalaje: packageItem.Nombre
+            IdEmbalaje: this.task.PackageId,
+            Embalaje: packageItem.Name
           });
         }
       }
@@ -156,36 +158,36 @@ export class TaskEditComponent implements OnInit {
         const residueItem = await this.inventoryService.getResidue(this.residueId);
         if (residueItem) {
           this.frmTask.patchValue({
-            Cantidad: residueItem.Cantidad ?? 0,
-            Peso: residueItem.Peso ?? 0,
-            Volumen: residueItem.Volumen ?? 0
+            Cantidad: residueItem.Quantity ?? 0,
+            Peso: residueItem.Weight ?? 0,
+            Volumen: residueItem.Volume ?? 0
           });
         }
       }
 
       this.frmTask.patchValue({
-        Cantidad: this.task.Cantidad ?? 0,
-        Peso: this.task.Peso ?? 0,
-        Volumen: this.task.Volumen ?? 0,
-        Valor: this.task.Valor,
-        Observaciones: this.task.Observaciones
+        Cantidad: this.task.Quantity ?? 0,
+        Peso: this.task.Weight ?? 0,
+        Volumen: this.task.Volume ?? 0,
+        Valor: this.task.Price,
+        Observaciones: this.task.Notes
       });
     } else {
       if (this.transactionId) {
-        const transaction = await this.transactionsService.get(this.activityId, this.transactionId);
+        const transaction = await this.subprocessService.get(this.activityId, this.transactionId);
         if (transaction) {
-          const point = await this.pointsService.get(transaction.IdDeposito ?? '');
+          const point = await this.facilityRepository.get(transaction.FacilityId ?? '');
           if (point) {
             this.frmTask.patchValue({
-              IdDeposito: point.IdDeposito,
-              Deposito: point.Nombre
+              IdDeposito: point.Id,
+              Deposito: point.Name
             });
-            if (point.IdPersona) {
-              const owner = await this.thirdpartiesService.get(point.IdPersona);
+            if (point.OwnerId) {
+              const owner = await this.partiesService.get(point.Id);
               if (owner) {
                 this.frmTask.patchValue({
-                  IdTercero: owner.IdPersona,
-                  Tercero: owner.Nombre
+                  IdTercero: owner.Id,
+                  Tercero: owner.Name
                 });
               }
             }
@@ -195,82 +197,82 @@ export class TaskEditComponent implements OnInit {
 
       const material = await this.materialsService.get(this.materialId);
       if (material) {
-        this.measurement = material.TipoMedicion;
-        this.captureType = material.TipoCaptura;
+        this.measurement = material.MeasurementType;
+        this.captureType = material.Type;
         this.frmTask.patchValue({
-          Material: material.Nombre
+          Material: material.Name
         });
       }
 
       const residueItem = await this.inventoryService.getResidue(this.residueId);
       if (residueItem) {
         this.frmTask.patchValue({
-          Cantidad: residueItem.Cantidad ?? 0,
-          Peso: residueItem.Peso ?? 0,
-          Volumen: residueItem.Volumen ?? 0
+          Cantidad: residueItem.Quantity ?? 0,
+          Peso: residueItem.Weight ?? 0,
+          Volumen: residueItem.Volume ?? 0
         });
       }
     }
   }
 
   /**
-   * Map the form to the Tarea interface
+   * Map the form to the Task interface
    */
-  private mapFormToTask(): Tarea {
+  private mapFormToTask(): Task {
     const formValue = this.frmTask.value;
     const now = new Date().toISOString();
 
     return {
-      IdTarea: this.taskId || Utils.generateId(),
-      IdProceso: this.activityId,
-      IdTransaccion: this.transactionId,
-      IdMaterial: this.materialId,
-      IdResiduo: this.residueId,
-      EntradaSalida: this.task?.EntradaSalida || this.inputOutput,
-      Cantidad: formValue.Cantidad,
-      Peso: formValue.Peso,
-      Volumen: formValue.Volumen,
-      Valor: formValue.Valor,
-      IdEmbalaje: formValue.IdEmbalaje,
-      IdDeposito: formValue.IdDeposito,
-      IdDepositoDestino: formValue.IdDepositoDestino,
-      IdTercero: formValue.IdTercero,
-      IdTerceroDestino: formValue.IdTerceroDestino,
-      IdTratamiento: this.task?.IdTratamiento || formValue.IdTratamiento,
-      FechaEjecucion: now,
-      Fotos: this.photos,
-      Observaciones: formValue.Observaciones,
-      IdEstado: STATUS.APPROVED,
-      IdRecurso: this.task?.IdRecurso || '',
-      IdServicio: this.task?.IdServicio || '',
+      TaskId: this.taskId || Utils.generateId(),
+      ProcessId: this.processId,
+      SubprocessId: this.transactionId,
+      MaterialId: this.materialId,
+      WasteId: this.residueId,
+      InputOutput: this.inputOutput,
+      Quantity: formValue.Cantidad,
+      Weight: formValue.Peso,
+      Volume: formValue.Volumen,
+      Price: formValue.Valor,
+      PackageId: formValue.IdEmbalaje,
+      FacilityId: formValue.IdDeposito,
+      DestinationFacilityId: formValue.IdDepositoDestino,
+      PartyId: formValue.IdTercero,
+      DestinationPartyId: formValue.IdTerceroDestino,
+      TreatmentId: formValue.IdTratamiento,
+      ExecutionDate: now,
+      Photos: this.photos,
+      Notes: formValue.Observaciones,
+      StatusId: STATUS.APPROVED,
+      ResourceId: this.task?.ResourceId || '',
+      ServiceId: this.task?.ServiceId || '',
       Item: this.task?.Item || 0,
-      FechaProgramada: this.task?.FechaProgramada || now,
-      FechaSolicitud: this.task?.FechaSolicitud || now,
-      IdSolicitud: this.task?.IdSolicitud || 0,
-      Solicitud: this.task?.Solicitud || ''
+      ScheduledDate: this.task?.ScheduledDate || now,
+      RequestDate: now,
+      RequestId: 0,
+      RequestName: ''
     };
   }
 
   /**
    * Map the task to a residue
    */
-  private mapResidueFromTask(task: Tarea): Residuo {
+  private mapResidueFromTask(task: Task): Waste {
     return {
-      IdResiduo: Utils.generateId(),
-      IdMaterial: this.materialId,
-      IdPropietario: task.IdTercero || '',
-      IdDeposito: task.IdDeposito || '',
-      IdVehiculo: '',
-      IdDepositoOrigen: task.IdDeposito || '',
-      Aprovechable: true,
-      Cantidad: task.Cantidad || 0,
-      Peso: task.Peso || 0,
-      IdEmbalaje: task.IdEmbalaje || '',
-      CantidadEmbalaje: 0,
-      IdEstado: STATUS.APPROVED,
-      Material: this.frmTask.value.Material || '',
-      Ubicacion: '',
-      Volumen: task.Volumen || 0,
+      Id: Utils.generateId(),
+      MaterialId: this.materialId,
+      OwnerId: task.PartyId || '',
+      FacilityId: task.FacilityId || '',
+      VehicleId: '',
+      OriginFacilityId: task.FacilityId || '',
+      IsRecyclable: true,
+      Quantity: task.Quantity || 0,
+      PackageQuantity: 0,
+      Weight: task.Weight || 0,
+      PackageId: task.PackageId || '',
+      StatusId: STATUS.APPROVED,
+      MaterialName: this.frmTask.value.Material || '',
+      LocationName: '',
+      Volume: task.Volume || 0,
     };
   }
 
@@ -280,10 +282,10 @@ export class TaskEditComponent implements OnInit {
   async confirm() {
     if (!this.frmTask.valid) return;
 
-    const activity = await this.processesService.get(this.activityId);
+    const activity = await this.processService.get(this.activityId);
     if (!activity) return;
 
-    let task: Tarea = this.mapFormToTask();
+    let task: Task = this.mapFormToTask();
     if (this.task) {
       await this.tasksService.update(task);
     }
@@ -296,9 +298,9 @@ export class TaskEditComponent implements OnInit {
   async reject() {
     const task = await this.tasksService.get(this.taskId);
     if (task) {
-      task.Observaciones = this.frmTask.value.Observaciones;
-      task.IdEstado = STATUS.REJECTED;
-      task.FechaEjecucion = new Date().toISOString();
+      task.Notes = this.frmTask.value.Observaciones;
+      task.StatusId = STATUS.REJECTED;
+      task.ExecutionDate = new Date().toISOString();
       await this.tasksService.update(task);
     }
     this.modalCtrl.dismiss(task);

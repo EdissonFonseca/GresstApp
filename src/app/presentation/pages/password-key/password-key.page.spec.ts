@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { IonicModule, NavController, LoadingController, AlertController, ToastController } from '@ionic/angular';
 import { PasswordKeyPage } from './password-key.page';
 import { AuthenticationApiService } from '@app/services/api/authenticationApi.service';
-import { StorageService } from '@app/infrastructure/repositories/api/storage.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { FormsModule } from '@angular/forms';
 import { STORAGE } from '@app/core/constants';
 
