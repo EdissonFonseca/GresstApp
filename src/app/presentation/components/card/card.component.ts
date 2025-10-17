@@ -10,6 +10,7 @@ export class CardComponent implements OnInit {
   @Input() card!: Card;
   @Input() allowNavigate: boolean = true;
   @Input() allowApprove: boolean = true;
+  @Input() isHeader: boolean = false;
 
   @Output() edit = new EventEmitter<Card>();
   @Output() approve = new EventEmitter<string>();

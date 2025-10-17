@@ -44,14 +44,15 @@
     <!-- Tasks list -->
     <ng-container *ngIf="!loading()">
       <ng-container *ngFor="let subprocess of subprocessCards()">
-        <!-- Subprocess title -->
         <div class="card-container">
-          <ion-item lines="none" class="transparent-item">
-            <ion-label>
-              <h2>{{ subprocess.description }}</h2>
-              <p>{{ subprocess.title }}</p>
-            </ion-label>
-          </ion-item>
+          <!-- Subprocess card showing summaries -->
+          <app-card
+            [card]="subprocess"
+            [allowNavigate]="false"
+            [allowApprove]="false"
+            [isHeader]="true"
+            aria-label="Subprocess card">
+          </app-card>
 
           <!-- Tasks list for current subprocess -->
           <app-card-list

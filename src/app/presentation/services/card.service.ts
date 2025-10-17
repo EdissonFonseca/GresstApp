@@ -3,9 +3,11 @@ import { Process } from '@app/domain/entities/process.entity';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { Task } from '@app/domain/entities/task.entity';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { Material } from '@app/domain/entities/material.entity';
 import { STATUS, SERVICES } from '@app/core/constants';
 import { Utils } from '@app/core/utils';
 import { OperationRepository } from '@app/infrastructure/repositories/operation.repository';
+import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 
 @Injectable({
@@ -14,6 +16,7 @@ import { LoggerService } from '@app/infrastructure/services/logger.service';
 export class CardService {
   constructor(
     private operationRepository: OperationRepository,
+    private materialRepository: MaterialRepository,
     private logger: LoggerService
   ) {}
 
@@ -50,19 +53,25 @@ export class CardService {
         return;
       }
 
-      // 2. Mapear cada array a Cards
-      const processCards = this.mapProcesses(operation.Processes || []);
-      const subprocessCards = this.mapSubprocesses(operation.Subprocesses || []);
-      const taskCards = this.mapTasks(operation.Tasks || []);
+      // 2. Cargar materials desde storage para obtener nombres
+      const materials = await this.materialRepository.getAll();
 
-      // 3. Combinar todo en un solo array
-      const allCards = [
-        ...processCards,
+      // 3. Mapear cada array a Cards
+      const taskCards = this.mapTasks(operation.Tasks || [], materials);
+      const subprocessCards = this.mapSubprocesses(operation.Subprocesses || []);
+      const processCards = this.mapProcesses(operation.Processes || []);
+
+      // 4. Combinar todo en un solo array
+      let allCards = [
+        ...taskCards,
         ...subprocessCards,
-        ...taskCards
+        ...processCards
       ];
 
-      // 4. Actualizar el signal único
+      // 5. Calcular sumatorias jerárquicas (de abajo hacia arriba)
+      allCards = this.calculateHierarchicalSummaries(allCards);
+
+      // 6. Actualizar el signal único
       this.allCards.set(allCards);
 
       this.logger.debug('Cards loaded', {
@@ -105,6 +114,52 @@ export class CardService {
     };
   }
 
+  /**
+   * Calculate hierarchical summaries for all cards
+   * Calculates totals from bottom-up: Tasks → Subprocesses → Processes
+   *
+   * Rules:
+   * - At task level: pendingItems/successItems/rejectedItems = 1 based on task status
+   * - At higher levels: sum the counts from children
+   * - quantity/weight/volume: Only sum values from APPROVED items
+   *
+   * @param cards - Array of all cards
+   * @returns Array of cards with calculated summaries
+   */
+  private calculateHierarchicalSummaries(cards: Card[]): Card[] {
+    // First pass: Calculate totals for subprocesses from their tasks
+    cards.filter(c => c.type === 'subprocess').forEach(subprocessCard => {
+      const tasks = cards.filter(c => c.type === 'task' && c.parentId === subprocessCard.id);
+
+      // Sum quantities, weights, and volumes (already filtered by APPROVED in mapTasks)
+      subprocessCard.quantity = tasks.reduce((sum, task) => sum + (task.quantity || 0), 0);
+      subprocessCard.weight = tasks.reduce((sum, task) => sum + (task.weight || 0), 0);
+      subprocessCard.volume = tasks.reduce((sum, task) => sum + (task.volume || 0), 0);
+
+      // Sum item counts (tasks already have 1 or 0 based on their status)
+      subprocessCard.pendingItems = tasks.reduce((sum, t) => sum + (t.pendingItems || 0), 0);
+      subprocessCard.successItems = tasks.reduce((sum, t) => sum + (t.successItems || 0), 0);
+      subprocessCard.rejectedItems = tasks.reduce((sum, t) => sum + (t.rejectedItems || 0), 0);
+    });
+
+    // Second pass: Calculate totals for processes from their subprocesses
+    cards.filter(c => c.type === 'process').forEach(processCard => {
+      const subprocesses = cards.filter(c => c.type === 'subprocess' && c.parentId === processCard.id);
+
+      // Sum quantities, weights, and volumes from subprocesses (only approved values)
+      processCard.quantity = subprocesses.reduce((sum, sp) => sum + (sp.quantity || 0), 0);
+      processCard.weight = subprocesses.reduce((sum, sp) => sum + (sp.weight || 0), 0);
+      processCard.volume = subprocesses.reduce((sum, sp) => sum + (sp.volume || 0), 0);
+
+      // Sum item counts from subprocesses
+      processCard.pendingItems = subprocesses.reduce((sum, sp) => sum + (sp.pendingItems || 0), 0);
+      processCard.successItems = subprocesses.reduce((sum, sp) => sum + (sp.successItems || 0), 0);
+      processCard.rejectedItems = subprocesses.reduce((sum, sp) => sum + (sp.rejectedItems || 0), 0);
+    });
+
+    return cards;
+  }
+
   mapProcesses(actividades: Process[]): Card[] {
     return actividades.map(actividad => {
       // Find service info to get Icon and Action
@@ -122,6 +177,14 @@ export class CardService {
         iconName: undefined,
         iconSource: service?.Icon || actividad.Icon,
         parentId: null,
+
+        // Initialize summary values (will be calculated later)
+        quantity: 0,
+        weight: 0,
+        volume: 0,
+        pendingItems: 0,
+        successItems: 0,
+        rejectedItems: 0,
       };
       this.updateVisibleProperties(card);
       return card;
@@ -143,6 +206,14 @@ export class CardService {
         iconSource: undefined,
         parentId: transaccion.ProcessId,
         summary: this.buildSubprocessSummary(transaccion),
+
+        // Initialize summary values (will be calculated later)
+        quantity: 0,
+        weight: 0,
+        volume: 0,
+        pendingItems: 0,
+        successItems: 0,
+        rejectedItems: 0,
       };
       this.updateVisibleProperties(card);
       return card;
@@ -168,23 +239,38 @@ export class CardService {
     return parts.join(' - ');
   }
 
-  mapTasks(tareas: Task[]): Card[] {
+  mapTasks(tareas: Task[], materials: Material[] = []): Card[] {
     return tareas.map(tarea => {
+      // Get material name from storage if MaterialId is present
+      let title = tarea.MaterialId ?? '';
+      if (tarea.MaterialId && materials.length > 0) {
+        const material = materials.find(m => m.Id === tarea.MaterialId);
+        if (material) {
+          title = material.Name;
+        }
+      }
+
       const card: Card = {
         id: tarea.TaskId,
-        title: tarea.MaterialId ?? '',
+        title: title,
         status: tarea.StatusId,
         type: 'task',
         level: 2,
         iconName: 'trash-bin-outline',
         iconSource: undefined,
         parentId: tarea.SubprocessId,
-        pendingItems: null,
-        rejectedItems: null,
-        successItems: null,
-        quantity: tarea.Quantity,
-        weight: tarea.Weight,
-        volume: tarea.Volume,
+        materialId: tarea.MaterialId,
+
+        // Tasks have their own values (only count if APPROVED)
+        quantity: tarea.StatusId === STATUS.APPROVED ? (tarea.Quantity || 0) : 0,
+        weight: tarea.StatusId === STATUS.APPROVED ? (tarea.Weight || 0) : 0,
+        volume: tarea.StatusId === STATUS.APPROVED ? (tarea.Volume || 0) : 0,
+
+        // Count this task as 1 in the appropriate status
+        pendingItems: tarea.StatusId === STATUS.PENDING ? 1 : 0,
+        successItems: tarea.StatusId === STATUS.APPROVED ? 1 : 0,
+        rejectedItems: tarea.StatusId === STATUS.REJECTED ? 1 : 0,
+
         summary: this.buildTaskSummary(tarea),
       };
       this.updateVisibleProperties(card);

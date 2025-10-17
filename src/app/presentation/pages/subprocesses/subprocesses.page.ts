@@ -51,6 +51,14 @@ export class SubprocessesPage implements OnInit {
   /** Signal for loading state */
   loading = signal(false);
 
+  /** Computed signal that gets the process card from CardService */
+  processCard = computed(() => {
+    const processId = this.activityId();
+    if (!processId) return null;
+    const processes = this.cardService.processes();
+    return processes.find(p => p.id === processId) || null;
+  });
+
   /** Computed signal that gets subprocesses cards filtered by process ID from CardService */
   transactionCards = computed(() => {
     const processId = this.activityId();

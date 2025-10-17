@@ -59,8 +59,18 @@
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- Subprocesses list -->
     <ng-container *ngIf="!loading()">
+      <!-- Process card showing summaries -->
+      <app-card
+        *ngIf="processCard()"
+        [card]="processCard()!"
+        [allowNavigate]="false"
+        [allowApprove]="false"
+        [isHeader]="true"
+        aria-label="Process card">
+      </app-card>
+
+      <!-- Subprocesses list -->
       <app-card-list
         *ngIf="transactionCards().length > 0"
         [cards]="transactionCards()"

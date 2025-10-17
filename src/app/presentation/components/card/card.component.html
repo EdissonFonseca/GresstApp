@@ -1,6 +1,6 @@
 <!-- Main content area -->
-<div class="card-container" [class.clickable]="allowNavigate" [style.background-color]="card.color">
-  <div class="card">
+<div class="card-container" [class.clickable]="allowNavigate" [class.header-card]="isHeader" [style.background-color]="card.color">
+  <div class="card" [class.header-content]="isHeader">
     <!-- Header with icon and title -->
     <ion-item lines="none" class="transparent-item" (click)="onEdit(card)">
       <ion-icon slot="start" size="large" [name]="card.iconName ? card.iconName : null" [src]="!card.iconName ? card.iconSource : null"></ion-icon>
