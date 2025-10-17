@@ -103,7 +103,7 @@ export class ProcessesPage implements OnInit {
   navigateToTransactions(process: Card) {
     try {
       const navigationExtras: NavigationExtras = {
-        queryParams: { activityId: process.id },
+        queryParams: { processId: process.id },
       };
       this.navCtrl.navigateForward('/subprocesses', navigationExtras);
     } catch (error) {
@@ -123,7 +123,7 @@ export class ProcessesPage implements OnInit {
       const firstProcess = this.processCards()[0];
       const navigationExtras: NavigationExtras = {
         queryParams: {
-          IdActividad: firstProcess?.id,
+          processId: firstProcess?.id,
         }
       };
       this.navCtrl.navigateForward('/route', navigationExtras);

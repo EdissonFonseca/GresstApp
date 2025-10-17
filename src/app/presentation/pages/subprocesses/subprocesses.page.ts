@@ -36,8 +36,8 @@ export class SubprocessesPage implements OnInit {
   /** Title of the current activity */
   title: string = '';
 
-  /** ID of the current activity */
-  activityId: string = '';
+  /** Signal for the ID of the current activity */
+  activityId = signal<string>('');
 
   /** Flag indicating whether the add subprocess button should be shown */
   showAdd: boolean = true;
@@ -51,24 +51,11 @@ export class SubprocessesPage implements OnInit {
   /** Signal for loading state */
   loading = signal(false);
 
-  /** Signal containing the list of subprocesses from the service */
-  private transactionsSignal = signal([]);
-
-  /** Computed property that transforms subprocesses into cards for display */
+  /** Computed signal that gets subprocesses cards filtered by process ID from CardService */
   transactionCards = computed(() => {
-    const transactionList = this.transactionsSignal();
-    // Define the order of the statuses
-    const statusOrder = {
-      [STATUS.PENDING]: 1,
-      [STATUS.APPROVED]: 2,
-      [STATUS.REJECTED]: 3
-    };
-
-    // Sort subprocesses by status
-    const sortedTransactions = transactionList;
-
-    // Transform subprocesses to cards
-    return this.cardService.mapTransacciones(sortedTransactions);
+    const processId = this.activityId();
+    if (!processId) return [];
+    return this.cardService.getSubprocessesByProcess(processId)();
   });
 
   constructor(
@@ -92,9 +79,10 @@ export class SubprocessesPage implements OnInit {
   async ngOnInit() {
     try {
       this.route.queryParams.subscribe(params => {
-        this.activityId = params['activityId'];
+        // Support new parameter name (processId) and legacy name (activityId) for backward compatibility
+        this.activityId.set(params['processId'] || params['activityId']);
       });
-      const activityData = await this.processService.get(this.activityId);
+      const activityData = await this.processService.get(this.activityId());
       if (activityData) {
         this.title = activityData.Title;
         this.showAdd = activityData.StatusId == STATUS.PENDING;
@@ -120,11 +108,15 @@ export class SubprocessesPage implements OnInit {
 
   /**
    * Load data for the current activity
+   * Note: Data is automatically loaded from CardService's global signal
+   * This method is kept for explicit refresh operations if needed
    */
   async loadData() {
     try {
       this.loading.set(true);
-      await this.subprocessService.listByProcess(this.activityId);
+      // Data is already loaded in CardService.allCards signal
+      // No need to fetch again, just trigger change detection
+      await this.cardService.loadAllHierarchy();
     } catch (error) {
       this.logger.error('Error loading data:', error);
     } finally {
@@ -154,7 +146,7 @@ export class SubprocessesPage implements OnInit {
   navigateToTasks(transaction: Card) {
     try {
       const navigationExtras: NavigationExtras = {
-        queryParams: { mode: 'T', transactionId: transaction.id, activityId: this.activityId },
+        queryParams: { mode: 'T', subprocessId: transaction.id, processId: this.activityId() },
       };
       this.navCtrl.navigateForward('/tasks', navigationExtras);
     } catch (error) {
@@ -173,7 +165,7 @@ export class SubprocessesPage implements OnInit {
     try {
       const navigationExtras: NavigationExtras = {
         queryParams: {
-          IdActividad: this.activityId,
+          processId: this.activityId(),
         }
       };
       this.navCtrl.navigateForward('/route', navigationExtras);
@@ -192,7 +184,7 @@ export class SubprocessesPage implements OnInit {
   async showSupports() {
     try {
       const account = await this.authorizationService.getAccount();
-      const activityData = await this.processService.get(this.activityId);
+      const activityData = await this.processService.get(this.activityId());
       const baseUrl = `${environment.filesUrl}/Cuentas/${account.IdPersonaCuenta}/Soportes/Ordenes/${activityData?.OrderId}/`;
       const documentsArray = activityData?.Support?.split(';');
 
@@ -237,7 +229,7 @@ export class SubprocessesPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          activityId: this.activityId
+          processId: this.activityId()
         },
       });
 
@@ -267,8 +259,8 @@ export class SubprocessesPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: SubprocessApproveComponent,
         componentProps: {
-          activityId: this.activityId,
-          transactionId: id,
+          processId: this.activityId(),
+          subprocessId: id,
         },
       });
 
@@ -300,8 +292,8 @@ export class SubprocessesPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: SubprocessApproveComponent,
         componentProps: {
-          activityId: this.activityId,
-          transactionId: id,
+          processId: this.activityId(),
+          subprocessId: id,
           isReject: true,
         },
       });

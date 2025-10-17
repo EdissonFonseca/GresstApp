@@ -61,22 +61,20 @@
 
     <!-- Subprocesses list -->
     <ng-container *ngIf="!loading()">
-      <ng-container *ngIf="transactionCards() | async as cards">
-        <app-card-list
-          *ngIf="cards.length > 0"
-          [cards]="cards"
-          (edit)="navigateToTasks($event)"
-          (approve)="openApprove($event)"
-          (reject)="openReject($event)"
-          aria-label="Lista de subprocesos"
-          role="list">
-        </app-card-list>
+      <app-card-list
+        *ngIf="transactionCards().length > 0"
+        [cards]="transactionCards()"
+        (edit)="navigateToTasks($event)"
+        (approve)="openApprove($event)"
+        (reject)="openReject($event)"
+        aria-label="Lista de subprocesos"
+        role="list">
+      </app-card-list>
 
-        <!-- Empty state message -->
-        <ion-text *ngIf="cards.length === 0" class="empty-state">
-          <p>{{ 'TRANSACTIONS.MESSAGES.NO_TRANSACTIONS' | translate }}</p>
-        </ion-text>
-      </ng-container>
+      <!-- Empty state message -->
+      <ion-text *ngIf="transactionCards().length === 0" class="empty-state">
+        <p>{{ 'TRANSACTIONS.MESSAGES.NO_TRANSACTIONS' | translate }}</p>
+      </ion-text>
     </ng-container>
   </div>
 </ion-content>

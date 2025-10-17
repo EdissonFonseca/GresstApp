@@ -95,7 +95,6 @@ export class SessionService {
       await this.syncService.downloadAuthorizations();
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
-      console.log('downloading operation');
       await this.syncService.downloadOperation();
       await this.storage.set(STORAGE.MESSAGES, []);
       await this.storage.set(STORAGE.START_DATE, new Date().toISOString());

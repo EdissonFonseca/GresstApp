@@ -43,33 +43,31 @@
 
     <!-- Tasks list -->
     <ng-container *ngIf="!loading()">
-      <ng-container *ngIf="transactionsSignal() as transactions">
-        <ng-container *ngFor="let transaction of transactions">
-          <!-- Transaction title -->
-          <div class="card-container">
-            <ion-item lines="none" class="transparent-item">
-              <ion-label>
-                <h2>{{ transaction.FacilityName   }}</h2>
-                <p>{{ transaction.PartyName }}</p>
-              </ion-label>
-            </ion-item>
+      <ng-container *ngFor="let subprocess of subprocessCards()">
+        <!-- Subprocess title -->
+        <div class="card-container">
+          <ion-item lines="none" class="transparent-item">
+            <ion-label>
+              <h2>{{ subprocess.description }}</h2>
+              <p>{{ subprocess.title }}</p>
+            </ion-label>
+          </ion-item>
 
-            <!-- Tasks list for current transaction -->
-            <app-card-list
-              [cards]="filterTasks(transaction.ProcessId)"
-              [showEdit]="true"
-              (edit)="openEdit($event)"
-              aria-label="Lista de tareas"
-              role="list">
-            </app-card-list>
-          </div>
-        </ng-container>
-
-        <!-- Empty state message -->
-        <ion-text *ngIf="transactions.length === 0" class="empty-state">
-          <p>{{ 'TASKS.MESSAGES.NO_TASKS' | translate }}</p>
-        </ion-text>
+          <!-- Tasks list for current subprocess -->
+          <app-card-list
+            [cards]="getTasksForSubprocess(subprocess.id)"
+            [showEdit]="true"
+            (edit)="openEdit($event)"
+            aria-label="Lista de tareas"
+            role="list">
+          </app-card-list>
+        </div>
       </ng-container>
+
+      <!-- Empty state message -->
+      <ion-text *ngIf="subprocessCards().length === 0" class="empty-state">
+        <p>{{ 'TASKS.MESSAGES.NO_TASKS' | translate }}</p>
+      </ion-text>
     </ng-container>
   </div>
 </ion-content>

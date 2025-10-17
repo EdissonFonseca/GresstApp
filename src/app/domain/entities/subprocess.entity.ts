@@ -69,5 +69,5 @@ export interface Subprocess {
   Factor?: number;
 
   // Those arrays are used just for receive from api but not used in the domain
-  Tasks: Task[];
+  Tasks?: Task[];
 }

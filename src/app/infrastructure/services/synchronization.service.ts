@@ -99,56 +99,61 @@ export class SynchronizationService {
   }
 
   /**
-   * Downloads and stores transaction data from the server
+   * Downloads and flattens hierarchical operation data from the server
+   * Structure: Process -> Subprocess -> Task
+   * Result: flat lists of Processes, Subprocesses, and Tasks preserving relationships
    * @throws {Error} If the download fails
    */
   async downloadOperation(): Promise<void> {
     try {
-      console.log('downloading operation');
       const hierarchicalProcesses: Process[] = await this.operationsService.get();
+
       const allProcesses: Process[] = [];
       const allSubprocesses: Subprocess[] = [];
       const allTasks: Task[] = [];
 
-      if (hierarchicalProcesses && Array.isArray(hierarchicalProcesses)) {
-        hierarchicalProcesses.forEach((process: any) => {
-          const processId = process.ProcessId || process.IdProceso;
+      if (Array.isArray(hierarchicalProcesses)) {
+        hierarchicalProcesses.forEach((process) => {
+          const processId = process.ProcessId;
 
-          // Extract process-level tasks
-          if (process.Tasks && Array.isArray(process.Tasks)) {
-            process.Tasks.forEach((task: any) => {
-              task.ProcessId = processId;
-              task.SubprocessId = undefined;
-              allTasks.push(task);
+          // ✅ Extract process-level tasks
+          process.Tasks?.forEach((task) => {
+            allTasks.push({
+              ...task,
+              ProcessId: processId,
+              SubprocessId: undefined
             });
-          }
+          });
 
-          // Extract subprocesses
-          if (process.Subprocesses && Array.isArray(process.Subprocesses)) {
-            process.Subprocesses.forEach((subprocess: any) => {
-              const subprocessId = subprocess.SubprocessId || subprocess.IdTransaccion;
+          // ✅ Extract subprocesses and their tasks
+          process.Subprocesses?.forEach((subprocess: any) => {
+            // API returns "SubProcessId" (capital P) but entity expects "SubprocessId" (lowercase p)
+            const subprocessId = subprocess.SubProcessId || subprocess.SubprocessId;
 
-              // Extract subprocess-level tasks
-              if (subprocess.Tasks && Array.isArray(subprocess.Tasks)) {
-                subprocess.Tasks.forEach((task: any) => {
-                  task.ProcessId = processId;
-                  task.SubprocessId = subprocessId;
-                  allTasks.push(task);
-                });
-              }
-
-              // Add subprocess without Tasks, but with ProcessId
-              const { Tasks, ...subprocessClean } = subprocess;
-              subprocessClean.ProcessId = processId;  // ✅ Set parent ID
-              subprocessClean.SubprocessId = subprocessId;
-              allSubprocesses.push(subprocessClean);
+            // Subprocess-level tasks
+            subprocess.Tasks?.forEach((task: any) => {
+              allTasks.push({
+                ...task,
+                ProcessId: processId,
+                SubprocessId: subprocessId
+              });
             });
-          }
 
-          // Add process without Subprocesses and Tasks
+            // Add subprocess without Tasks and SubProcessId, preserving ProcessId and normalized SubprocessId
+            const { Tasks, SubProcessId, ...subprocessClean } = subprocess;
+            allSubprocesses.push({
+              ...subprocessClean,
+              ProcessId: processId,
+              SubprocessId: subprocessId
+            });
+          });
+
+          // ✅ Add process without Subprocesses or Tasks
           const { Subprocesses, Tasks, ...processClean } = process;
-          processClean.ProcessId = processId;
-          allProcesses.push(processClean);
+          allProcesses.push({
+            ...processClean,
+            ProcessId: processId
+          });
         });
       }
 
@@ -159,13 +164,13 @@ export class SynchronizationService {
       };
 
       await this.storage.set(STORAGE.OPERATION, flattenedOperation);
+      this.logger.info('Operation data downloaded and flattened successfully.');
 
     } catch (error) {
       this.logger.error('Error downloading transactions', error);
       throw error;
     }
   }
-
 
   /**
    * Uploads pending API requests in chronological order

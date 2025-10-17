@@ -18,8 +18,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { ProcessService } from '@app/application/services/process.service';
-import { Subprocess } from '@app/domain/entities/subprocess.entity';
-import { Task } from '@app/domain/entities/task.entity';
 
 /**
  * TasksPage Component
@@ -47,11 +45,11 @@ import { Task } from '@app/domain/entities/task.entity';
   ]
 })
 export class TasksPage implements OnInit {
-  /** ID of the current activity */
-  activityId: string = '';
+  /** Signal for the ID of the current activity (process) */
+  activityId = signal<string>('');
 
-  /** ID of the current transaction being viewed */
-  transactionId: string = '';
+  /** Signal for the ID of the current transaction (subprocess) being viewed */
+  subprocessId = signal<string>('');
 
   /** Title of the current activity */
   title: string = '';
@@ -65,16 +63,46 @@ export class TasksPage implements OnInit {
   /** Signal for loading state */
   loading = signal(false);
 
-  /** Signal containing the list of transactions from the service */
-  transactionsSignal = signal<Subprocess[]>([]);
+  /** Computed signal that gets subprocess cards filtered by process ID and optionally by subprocess ID */
+  subprocessCards = computed(() => {
+    const processId = this.activityId();
+    const subprocessId = this.subprocessId();
 
-  /** Signal containing the list of tasks from the service */
-  private tasksSignal = signal<Task[]>([]);
+    if (!processId) return [];
 
-  /** Computed property that provides the task cards */
+    const allSubprocesses = this.cardService.getSubprocessesByProcess(processId)();
+
+    // If we have a specific subprocess ID, filter to show only that one
+    if (subprocessId) {
+      return allSubprocesses.filter(sp => sp.id === subprocessId);
+    }
+
+    // Otherwise show all subprocesses for the process
+    return allSubprocesses;
+  });
+
+  /** Computed signal that gets all task cards filtered by process or subprocess */
   taskCards = computed(() => {
-    const taskList = this.tasksSignal();
-    return this.cardService.mapTareas(taskList);
+    const processId = this.activityId();
+    const subprocessId = this.subprocessId();
+
+    // If we have a specific subprocess, filter tasks by that subprocess
+    if (subprocessId) {
+      return this.cardService.getTasksBySubprocess(subprocessId)();
+    }
+
+    // Otherwise, get all tasks for the process (across all subprocesses)
+    if (processId) {
+      const subprocesses = this.cardService.getSubprocessesByProcess(processId)();
+      const allTasks: Card[] = [];
+      subprocesses.forEach(subprocess => {
+        const tasks = this.cardService.getTasksBySubprocess(subprocess.id)();
+        allTasks.push(...tasks);
+      });
+      return allTasks;
+    }
+
+    return [];
   });
 
 
@@ -100,15 +128,16 @@ export class TasksPage implements OnInit {
     try {
       this.route.queryParams.subscribe(params => {
         this.mode = params['mode'];
-        this.transactionId = params['transactionId'];
-        this.activityId = params['activityId'];
+        // Support new parameter names (SubprocessId, ProcessId) and legacy names for backward compatibility
+        this.subprocessId.set(params['subprocessId'] || params['transactionId'] || '');
+        this.activityId.set(params['processId'] || params['activityId'] || '');
       });
-      const activityData = await this.processService.get(this.activityId);
+      const activityData = await this.processService.get(this.activityId());
       if (activityData) {
         this.title = activityData.Title;
       }
-      if (this.transactionId) {
-        const transaction = await this.subprocessService.get(this.activityId, this.transactionId);
+      if (this.subprocessId()) {
+        const transaction = await this.subprocessService.get(this.activityId(), this.subprocessId());
         if (transaction) {
           this.showAdd = transaction.StatusId == STATUS.PENDING;
         }
@@ -142,22 +171,15 @@ export class TasksPage implements OnInit {
 
   /**
    * Load all necessary data for the page
-   * - Loads transactions for the current activity
-   * - Loads tasks for the current activity/transaction
-   * - Sets up edit permissions based on status
+   * Note: Data is automatically loaded from CardService's global signal
+   * This method is kept for explicit refresh operations if needed
    */
   async loadData() {
     try {
       this.loading.set(true);
-
-      // Load transactions
-      const transactions = await this.subprocessService.listByProcess(this.activityId);
-      this.transactionsSignal.set(transactions);
-
-      // Load tasks
-      const tasks = await this.taskService.listByProcessAndSubprocess(this.activityId, this.transactionId);
-      this.tasksSignal.set(tasks);
-
+      // Data is already loaded in CardService.allCards signal
+      // No need to fetch again, just trigger change detection
+      await this.cardService.loadAllHierarchy();
     } catch (error) {
       this.logger.error('Error loading data:', error);
     } finally {
@@ -166,11 +188,11 @@ export class TasksPage implements OnInit {
   }
 
   /**
-   * Filter tasks by transaction ID and sort them by status
-   * @param transactionId - The ID of the transaction to filter tasks for
-   * @returns Array of tasks belonging to the specified transaction, sorted by status
+   * Get tasks for a specific subprocess, sorted by status
+   * @param subprocessId - The ID of the subprocess to get tasks for
+   * @returns Array of tasks belonging to the specified subprocess, sorted by status
    */
-  filterTasks(transactionId: string): Card[] {
+  getTasksForSubprocess(subprocessId: string): Card[] {
     // Define the order of statuses
     const statusOrder: Record<string, number> = {
       [STATUS.PENDING]: 1,
@@ -178,11 +200,10 @@ export class TasksPage implements OnInit {
       [STATUS.REJECTED]: 3
     };
 
-    const taskList = this.taskCards();
-    const filteredTasks = taskList.filter((x: Card) => x.parentId === transactionId);
+    const tasks = this.cardService.getTasksBySubprocess(subprocessId)();
 
     // Sort tasks by status
-    return filteredTasks.sort((a: Card, b: Card) => {
+    return tasks.sort((a: Card, b: Card) => {
       const orderA = statusOrder[a.status] || 4; // Other statuses go last
       const orderB = statusOrder[b.status] || 4;
       return orderA - orderB;
@@ -198,8 +219,8 @@ export class TasksPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TaskAddComponent,
         componentProps: {
-          activityId: this.activityId,
-          transactionId: this.transactionId,
+          processId: this.activityId(),
+          subprocessId: this.subprocessId(),
         },
       });
 
@@ -230,8 +251,8 @@ export class TasksPage implements OnInit {
       const modal = await this.modalCtrl.create({
         component: TaskEditComponent,
         componentProps: {
-          activityId: this.activityId,
-          transactionId: card.parentId,
+          processId: this.activityId(),
+          subprocessId: card.parentId,
           taskId: card.id,
           materialId: card.materialId,
           residueId: card.residueId,
@@ -288,7 +309,7 @@ export class TasksPage implements OnInit {
       this.router.navigate(['/subprocesses'], {
         queryParams: {
           mode: 'A',
-          activityId: this.activityId
+          processId: this.activityId()
         }
       });
     } else {

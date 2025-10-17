@@ -105,27 +105,6 @@ export class ProcessService {
   }
 
   /**
-   * Gets a process by service and resource IDs
-   * @param idServicio - The service ID
-   * @param idRecurso - The resource ID
-   * @returns Promise<Process | undefined> The process if found, undefined otherwise
-   * @throws Error if retrieval fails
-   */
-  async getByServiceAndResource(idServicio: string, idRecurso: string): Promise<Process | undefined> {
-    try {
-      const operation = await this.operationRepository.get();
-      if (!operation?.Processes) return undefined;
-
-      return operation.Processes.find(
-        item => item.ServiceId === idServicio && item.ResourceId === idRecurso
-      );
-    } catch (error) {
-      this.logger.error('Error getting process by service', { idServicio, idRecurso, error });
-      throw error;
-    }
-  }
-
-  /**
    * Creates a new process
    * @param proceso - The process to create
    * @returns Promise<boolean> True if creation was successful

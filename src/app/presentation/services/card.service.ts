@@ -3,20 +3,18 @@ import { Process } from '@app/domain/entities/process.entity';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { Task } from '@app/domain/entities/task.entity';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
-import { ProcessService } from '@app/application/services/process.service';
-import { SubprocessService } from '@app/application/services/subprocess.service';
-import { STATUS } from '@app/core/constants';
+import { STATUS, SERVICES } from '@app/core/constants';
 import { Utils } from '@app/core/utils';
-import { TaskService } from '@app/application/services/task.service';
+import { OperationRepository } from '@app/infrastructure/repositories/operation.repository';
+import { LoggerService } from '@app/infrastructure/services/logger.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CardService {
   constructor(
-    private processService: ProcessService,
-    private subprocessService: SubprocessService,
-    private taskService: TaskService
+    private operationRepository: OperationRepository,
+    private logger: LoggerService
   ) {}
 
   private allCards = signal<Card[]>([]);
@@ -33,36 +31,50 @@ export class CardService {
     });
   });
 
-  public getTransactionsByProcess = (processId: string) => computed(() =>
-    this.allCards().filter(c => c.level === 1 && c.parentId === processId)
+  public getSubprocessesByProcess = (processId: string) => computed(() =>
+    this.allCards().filter(c => c.type === 'subprocess' && c.parentId === processId)
   );
 
-  public getTasksByTransaction = (transactionId: string) => computed(() =>
-    this.allCards().filter(c => c.level === 2 && c.parentId === transactionId)
+  public getTasksBySubprocess = (subprocessId: string) => computed(() =>
+    this.allCards().filter(c => c.type === 'task' && c.parentId === subprocessId)
   );
 
   async loadAllHierarchy() {
-    // 1. Cargar todos los procesos
-    const processes = await this.processService.getAll();
-    const processCards = await this.mapActividades(processes);
+    try {
+      // 1. Cargar Operation completa desde storage (contiene los 3 arrays)
+      const operation = await this.operationRepository.get();
 
-    // 2. Cargar todas las transacciones
-    const subprocesses = await this.subprocessService.list();
-    const subprocessCards = await this.mapTransacciones(subprocesses);
+      if (!operation) {
+        this.logger.warn('No operation data found in storage');
+        this.allCards.set([]);
+        return;
+      }
 
-    // 3. Cargar todas las tareas
-    const tasks = await this.taskService.list();
-    const taskCards = await this.mapTareas(tasks);
+      // 2. Mapear cada array a Cards
+      const processCards = this.mapProcesses(operation.Processes || []);
+      const subprocessCards = this.mapSubprocesses(operation.Subprocesses || []);
+      const taskCards = this.mapTasks(operation.Tasks || []);
 
-    // 4. Combinar todo en un solo array
-    const allCards = [
-      ...processCards,
-      ...subprocessCards,
-      ...taskCards
-    ];
+      // 3. Combinar todo en un solo array
+      const allCards = [
+        ...processCards,
+        ...subprocessCards,
+        ...taskCards
+      ];
 
-    // 5. Actualizar el signal único
-    this.allCards.set(allCards);
+      // 4. Actualizar el signal único
+      this.allCards.set(allCards);
+
+      this.logger.debug('Cards loaded', {
+        processes: processCards.length,
+        subprocesses: subprocessCards.length,
+        tasks: taskCards.length,
+        total: allCards.length
+      });
+    } catch (error) {
+      this.logger.error('Error loading hierarchy', error);
+      throw error;
+    }
   }
 
   addCard(card: Card) {
@@ -93,92 +105,77 @@ export class CardService {
     };
   }
 
-  async mapActividades(actividades: Process[]): Promise<Card[]> {
-    const cards = await Promise.all(actividades.map(async actividad => {
+  mapProcesses(actividades: Process[]): Card[] {
+    return actividades.map(actividad => {
+      // Find service info to get Icon and Action
+      const service = SERVICES.find(s => s.serviceId === actividad.ServiceId);
+
       const card: Card = {
         id: actividad.ProcessId,
         title: actividad.Title,
         status: actividad.StatusId,
-        type: 'activity',
+        type: 'process',
+        level: 0,
 
-        actionName: actividad.Action,
+        actionName: service?.Action || actividad.Action,
         description: '',
         iconName: undefined,
-        iconSource: actividad.Icon,
+        iconSource: service?.Icon || actividad.Icon,
         parentId: null,
       };
       this.updateVisibleProperties(card);
       return card;
-    }));
-
-    return cards;
+    });
   }
 
-  async mapActividad(actividad: Process): Promise<Card> {
-    const card: Card = {
-      id: actividad.ProcessId,
-      title: actividad.Title,
-      status: actividad.StatusId,
-      type: 'activity',
-
-      actionName: actividad.Action,
-      description: '',
-      iconName: undefined,
-      iconSource: actividad.Icon,
-      parentId: null,
-    };
-    this.updateVisibleProperties(card);
-
-    return card;
-  }
-
-  async mapTransacciones(transacciones: Subprocess[]): Promise<Card[]> {
-    return Promise.all(transacciones.map(async transaccion => {
+  mapSubprocesses(transacciones: Subprocess[]): Card[] {
+    return transacciones.map(transaccion => {
       const card: Card = {
         id: transaccion.SubprocessId,
         title: transaccion.Title,
         status: transaccion.StatusId,
-        type: 'transaction',
+        type: 'subprocess',
+        level: 1,
 
         actionName: transaccion.Action,
         description: transaccion.FacilityName,
         iconName: transaccion.Icon,
         iconSource: undefined,
         parentId: transaccion.ProcessId,
-        summary: this.subprocessService.getSummary(transaccion),
+        summary: this.buildSubprocessSummary(transaccion),
       };
       this.updateVisibleProperties(card);
       return card;
-    }));
+    });
   }
 
-  async mapTransaccion(transaccion: Subprocess): Promise<Card> {
-    const card: Card = {
-      id: transaccion.SubprocessId,
-      title: transaccion.Title,
-      status: transaccion.StatusId,
-      type: 'transaction',
+  /**
+   * Build summary for subprocess card
+   * @param subprocess - The subprocess entity
+   * @returns Summary string
+   */
+  private buildSubprocessSummary(subprocess: Subprocess): string {
+    const parts: string[] = [];
 
-      actionName: transaccion.Action,
-      description: transaccion.FacilityName,
-      iconName: transaccion.Icon,
-      iconSource: undefined,
-      parentId: transaccion.ProcessId,
-      summary: this.subprocessService.getSummary(transaccion),
-    };
-    this.updateVisibleProperties(card);
-    return card;
+    if (subprocess.PartyName) {
+      parts.push(subprocess.PartyName);
+    }
+
+    if (subprocess.FacilityName) {
+      parts.push(subprocess.FacilityName);
+    }
+
+    return parts.join(' - ');
   }
 
-  mapTareas(tareas: Task[]): Card[] {
-    let tasks: Card[] = tareas.map(tarea => {
+  mapTasks(tareas: Task[]): Card[] {
+    return tareas.map(tarea => {
       const card: Card = {
         id: tarea.TaskId,
         title: tarea.MaterialId ?? '',
         status: tarea.StatusId,
         type: 'task',
-        //actionName: tarea.Action,
-        //description: tarea.DestinationPoint,
+        level: 2,
         iconName: 'trash-bin-outline',
         iconSource: undefined,
         parentId: tarea.SubprocessId,
@@ -188,36 +185,34 @@ export class CardService {
         quantity: tarea.Quantity,
         weight: tarea.Weight,
         volume: tarea.Volume,
-        summary: this.taskService.getSummary(tarea),
+        summary: this.buildTaskSummary(tarea),
       };
       this.updateVisibleProperties(card);
       return card;
     });
-
-    return tasks;
   }
 
-  mapTarea(tarea: Task): Card {
-    const card: Card = {
-      id: tarea.TaskId,
-      title: tarea.MaterialId ?? '',
-      status: tarea.StatusId,
-      type: 'task',
-      //actionName: tarea.Action,
-      //description: tarea.DestinationPoint,
-      iconName: 'trash-bin-outline',
-      iconSource: '',
-      parentId: tarea.SubprocessId,
-      pendingItems: null,
-      rejectedItems: null,
-      successItems: null,
-      quantity: tarea.Quantity,
-      weight: tarea.Weight,
-      volume: tarea.Volume,
-      summary: this.taskService.getSummary(tarea),
-    };
-    this.updateVisibleProperties(card);
-    return card;
+  /**
+   * Build summary for task card
+   * @param task - The task entity
+   * @returns Summary string
+   */
+  private buildTaskSummary(task: Task): string {
+    const parts: string[] = [];
+
+    if (task.Quantity) {
+      parts.push(`${task.Quantity} unidades`);
+    }
+
+    if (task.Weight) {
+      parts.push(`${task.Weight} kg`);
+    }
+
+    if (task.Volume) {
+      parts.push(`${task.Volume} m³`);
+    }
+
+    return parts.join(' - ');
   }
 
   updateVisibleProperties(card: Card) {

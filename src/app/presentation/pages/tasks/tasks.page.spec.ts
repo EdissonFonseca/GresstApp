@@ -3,27 +3,28 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { TasksPage } from './tasks.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CardService } from '@app/presentation/services/card.service';
-import { ProcessesService } from '@app/application/services/process.service';
-import { SubprocessesService } from '@app/application/services/subprocess.service';
-import { TasksService } from '@app/application/services/task.service';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { ProcessService } from '@app/application/services/process.service';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
+import { SessionService } from '@app/application/services/session.service';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { STATUS } from '@app/core/constants';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { ComponentsModule } from '@app/components/components.module';
+import { ComponentsModule } from '@app/presentation/components/components.module';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
+import { signal } from '@angular/core';
 
 describe('TasksPage', () => {
   let component: TasksPage;
   let fixture: ComponentFixture<TasksPage>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
   let cardServiceSpy: jasmine.SpyObj<CardService>;
-  let processesServiceSpy: jasmine.SpyObj<ProcessesService>;
-  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
-  let tasksServiceSpy: jasmine.SpyObj<TasksService>;
+  let processServiceSpy: jasmine.SpyObj<ProcessService>;
+  let subprocessServiceSpy: jasmine.SpyObj<SubprocessService>;
+  let taskServiceSpy: jasmine.SpyObj<TaskService>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let routerSpy: jasmine.SpyObj<Router>;
   let routeSpy: jasmine.SpyObj<ActivatedRoute>;
@@ -74,47 +75,54 @@ describe('TasksPage', () => {
 
   beforeEach(async () => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['create']);
-    cardServiceSpy = jasmine.createSpyObj('CardService', ['mapTransacciones', 'mapTareas']);
-    processesServiceSpy = jasmine.createSpyObj('ProcessesService', ['list', 'get']);
-    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['list', 'get']);
-    tasksServiceSpy = jasmine.createSpyObj('TasksService', ['list']);
+    cardServiceSpy = jasmine.createSpyObj('CardService', [
+      'loadAllHierarchy',
+      'getSubprocessesByProcess',
+      'getTasksBySubprocess'
+    ]);
+    processServiceSpy = jasmine.createSpyObj('ProcessService', ['get']);
+    subprocessServiceSpy = jasmine.createSpyObj('SubprocessService', ['get']);
+    taskServiceSpy = jasmine.createSpyObj('TaskService', ['list']);
     sessionServiceSpy = jasmine.createSpyObj('SessionService', ['synchronize']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     translateServiceSpy = jasmine.createSpyObj('TranslateService', ['instant']);
     userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
-    processesServiceSpy = jasmine.createSpyObj('ProcessesService', ['get']);
-    loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error']);
+    loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error', 'debug', 'info']);
 
     routeSpy = jasmine.createSpyObj('ActivatedRoute', [], {
       queryParams: {
         subscribe: jasmine.createSpy('subscribe').and.callFake((callback) => {
-          callback({ mode: 'T', transactionId: '1', activityId: '1' });
+          callback({ mode: 'T', subprocessId: '1', processId: '1' });
           return { unsubscribe: () => {} };
         })
       }
     });
 
-    processesServiceSpy.get.and.returnValue(Promise.resolve({
+    processServiceSpy.get.and.returnValue(Promise.resolve({
       ProcessId: '1',
-      OrderDate: new Date().toISOString(),
+      ProcessDate: new Date().toISOString(),
       ResourceId: '1',
-      NavigateByActivity: false,
       Title: 'Test Activity',
       StatusId: STATUS.PENDING,
       ServiceId: 'TRANSPORT'
     }));
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve({
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve({
       ProcessId: '1',
       SubprocessId: '1',
       InputOutput: 'E',
       StatusId: STATUS.PENDING,
-      PointId: '1',
-      ThirdParty: 'Test Third Party',
+      FacilityId: '1',
+      PartyName: 'Test Third Party',
       ResourceId: '1',
       ServiceId: 'TRANSPORT',
       Title: 'Test Transaction'
     }));
     translateServiceSpy.instant.and.returnValue('Translated text');
+
+    // Setup CardService computed signals
+    cardServiceSpy.loadAllHierarchy.and.returnValue(Promise.resolve());
+    cardServiceSpy.getSubprocessesByProcess.and.returnValue(signal([mockTransaction]) as any);
+    cardServiceSpy.getTasksBySubprocess.and.returnValue(signal([mockTask]) as any);
 
     await TestBed.configureTestingModule({
       imports: [
@@ -128,9 +136,9 @@ describe('TasksPage', () => {
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
         { provide: CardService, useValue: cardServiceSpy },
-        { provide: ProcessesService, useValue: processesServiceSpy },
-        { provide: SubprocessesService, useValue: transactionsServiceSpy },
-        { provide: TasksService, useValue: tasksServiceSpy },
+        { provide: ProcessService, useValue: processServiceSpy },
+        { provide: SubprocessService, useValue: subprocessServiceSpy },
+        { provide: TaskService, useValue: taskServiceSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: routeSpy },
@@ -150,24 +158,24 @@ describe('TasksPage', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.activityId).toBe('');
-    expect(component.transactionId).toBe('');
+    expect(component.activityId()).toBe('1');
+    expect(component.subprocessId()).toBe('1');
     expect(component.title).toBe('');
     expect(component.showAdd).toBeTrue();
-    expect(component.mode).toBe('A');
+    expect(component.mode).toBe('T');
   });
 
   it('should load data on initialization', async () => {
     await component.ngOnInit();
 
-    expect(processesServiceSpy.get).toHaveBeenCalled();
-    expect(processesServiceSpy.get).toHaveBeenCalled();
+    expect(processServiceSpy.get).toHaveBeenCalled();
+    expect(subprocessServiceSpy.get).toHaveBeenCalled();
     expect(component.title).toBe('Test Activity');
     expect(component.showAdd).toBeTrue();
   });
 
   it('should handle initialization error', async () => {
-    processesServiceSpy.get.and.returnValue(Promise.reject('Error'));
+    processServiceSpy.get.and.returnValue(Promise.reject('Error'));
 
     await component.ngOnInit();
 
@@ -178,8 +186,7 @@ describe('TasksPage', () => {
   it('should load data on view enter', async () => {
     await component.ionViewWillEnter();
 
-    expect(processesServiceSpy.list).toHaveBeenCalled();
-    expect(tasksServiceSpy.list).toHaveBeenCalled();
+    expect(cardServiceSpy.loadAllHierarchy).toHaveBeenCalled();
   });
 
   it('should handle search input', async () => {
@@ -187,16 +194,13 @@ describe('TasksPage', () => {
 
     await component.handleInput(mockEvent);
 
-    expect(processesServiceSpy.list).toHaveBeenCalled();
-    expect(tasksServiceSpy.list).toHaveBeenCalled();
+    expect(cardServiceSpy.loadAllHierarchy).toHaveBeenCalled();
   });
 
-  it('should filter tasks by transaction ID', () => {
-    const mockTasks = [mockTask];
-    cardServiceSpy.mapTareas.and.returnValue(mockTasks);
-
-    const filteredTasks = component.filterTasks('1');
-    expect(filteredTasks).toEqual([mockTask]);
+  it('should get tasks for subprocess', () => {
+    const tasks = component.getTasksForSubprocess('1');
+    expect(tasks).toEqual([mockTask]);
+    expect(cardServiceSpy.getTasksBySubprocess).toHaveBeenCalledWith('1');
   });
 
   it('should open add task modal', async () => {
@@ -251,12 +255,13 @@ describe('TasksPage', () => {
     await component.synchronize();
 
     expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
+    expect(cardServiceSpy.loadAllHierarchy).toHaveBeenCalled();
     expect(userNotificationServiceSpy.hideLoading).toHaveBeenCalled();
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'top');
   });
 
   it('should handle synchronization error', async () => {
-    tasksServiceSpy.list.and.returnValue(Promise.reject('Error'));
+    cardServiceSpy.loadAllHierarchy.and.returnValue(Promise.reject('Error'));
 
     await component.synchronize();
 
@@ -264,25 +269,25 @@ describe('TasksPage', () => {
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalledWith('Translated text', 'middle');
   });
 
-  it('should navigate back to transactions', () => {
+  it('should navigate back to subprocesses', () => {
     component.mode = 'T';
-    component.activityId = '1';
+    component.activityId.set('1');
 
     component.goBack();
 
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/subprocesses'], {
       queryParams: {
         mode: 'A',
-        activityId: '1'
+        processId: '1'
       }
     });
   });
 
-  it('should navigate back to activities', () => {
+  it('should navigate back to processes', () => {
     component.mode = 'A';
 
     component.goBack();
 
-            expect(routerSpy.navigate).toHaveBeenCalledWith(['/processes']);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/processes']);
   });
 });

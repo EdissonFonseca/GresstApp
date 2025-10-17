@@ -39,6 +39,6 @@ export interface Process{
   Icon?: string;
 
   // Those arrays are used just for receive from api but not used in the domain
-  Subprocesses: Subprocess[];
-  Tasks: Task[];
+  Subprocesses?: Subprocess[];
+  Tasks?: Task[];
 }

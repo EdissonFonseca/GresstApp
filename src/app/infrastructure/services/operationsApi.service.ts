@@ -37,9 +37,7 @@ export class OperationsApiService {
    */
   async get(): Promise<Process[]> {
     try {
-      console.log('getting operations');
       const response = await this.http.get<Process[]>('/operations/get');
-      console.log('operations', response.data);
       return response.data;
     } catch (error) {
       this.logger.error('Error getting transactions', error);
