@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { Package } from '../../domain/entities/package.entity';
-import { Supply } from '../../domain/entities/supply.entity';
 import { Material } from '../../domain/entities/material.entity';
 import { Facility } from '../../domain/entities/facility.entity';
 import { Service } from '../../domain/entities/service.entity';
 import { Party } from '../../domain/entities/party.entity';
-import { Treatment } from '../../domain/entities/treatment.entity';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { HttpService } from './http.service';
 import { LoggerService } from './logger.service';
@@ -23,29 +21,24 @@ export class MasterDataApiService {
   ) {}
 
   /**
-   * Gets all packaging types
-   * @returns {Promise<Package[]>} Array of packaging types
+   * Gets all points from both facilities endpoints and combines them
+   * @returns {Promise<Facility[]>} Array of combined facilities
    */
-  async getPackages(): Promise<Package[]> {
+  async getFacilities(): Promise<Facility[]> {
     try {
-      const response = await this.http.get<Package[]>('/packages/get');
-      return response.data;
-    } catch (error) {
-      this.logger.error('Error getting packaging types', error);
-      throw error;
-    }
-  }
+      // Make both API calls in parallel
+      const [facilitiesResponse, partiesResponse] = await Promise.all([
+        this.http.get<Facility[]>('/facilities/get'),
+        this.http.get<Facility[]>('/facilities/getforparties')
+      ]);
 
-  /**
-   * Gets all supplies
-   * @returns {Promise<Insumo[]>} Array of supplies
-   */
-  async getSupplies(): Promise<Supply[]> {
-    try {
-      const response = await this.http.get<Supply[]>('/supplies/get');
-      return response.data;
+      // Combine both arrays
+      const combinedFacilities = [...facilitiesResponse.data, ...partiesResponse.data];
+
+      // Filter out headquarters (keep only IsHeadQuarter = false)
+      return combinedFacilities.filter(facility => !facility.IsHeadQuarter);
     } catch (error) {
-      this.logger.error('Error getting supplies', error);
+      this.logger.error('Error getting facilities', error);
       throw error;
     }
   }
@@ -65,29 +58,15 @@ export class MasterDataApiService {
   }
 
   /**
-   * Gets all points
-   * @returns {Promise<Punto[]>} Array of points
+   * Gets all packaging types
+   * @returns {Promise<Package[]>} Array of packaging types
    */
-  async getFacilities(): Promise<Facility[]> {
+  async getPackages(): Promise<Package[]> {
     try {
-      const response = await this.http.get<Facility[]>('/facilities/get');
+      const response = await this.http.get<Package[]>('/packages/get');
       return response.data;
     } catch (error) {
-      this.logger.error('Error getting points', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Gets all services
-   * @returns {Promise<Service[]>} Array of services
-   */
-  async getServices(): Promise<Service[]> {
-    try {
-      const response = await this.http.get<Service[]>('/services/get');
-      return response.data;
-    } catch (error) {
-      this.logger.error('Error getting services', error);
+      this.logger.error('Error getting packaging types', error);
       throw error;
     }
   }
@@ -106,16 +85,17 @@ export class MasterDataApiService {
     }
   }
 
+
   /**
-   * Gets all treatments
-   * @returns {Promise<Tratamiento[]>} Array of treatments
+   * Gets all services
+   * @returns {Promise<Service[]>} Array of services
    */
-  async getTreatments(): Promise<Treatment[]> {
+  async getServices(): Promise<Service[]> {
     try {
-      const response = await this.http.get<Treatment[]>('/tratamientos/get');
+      const response = await this.http.get<Service[]>('/services/get');
       return response.data;
     } catch (error) {
-      this.logger.error('Error getting treatments', error);
+      this.logger.error('Error getting services', error);
       throw error;
     }
   }
@@ -126,7 +106,7 @@ export class MasterDataApiService {
    */
   async getVehicles(): Promise<Vehicle[]> {
     try {
-      const response = await this.http.get<Vehicle[]>('/vehicles/');
+      const response = await this.http.get<Vehicle[]>('/vehicles/get');
       return response.data;
     } catch (error) {
       this.logger.error('Error getting vehicles', error);

@@ -7,7 +7,6 @@ import { Package } from '../../domain/entities/package.entity';
 import { Material } from '../../domain/entities/material.entity';
 import { Facility } from '../../domain/entities/facility.entity';
 import { Service } from '../../domain/entities/service.entity';
-import { Treatment } from '../../domain/entities/treatment.entity';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { environment } from '../../../environments/environment';
 import { CRUD_OPERATIONS, DATA_TYPE, STATUS, STORAGE } from '@app/core/constants';
@@ -75,26 +74,24 @@ export class SynchronizationService {
    */
   async downloadMasterData(): Promise<void> {
     try {
-      const packaging: Package[] = await this.masterdataService.getPackages();
-      await this.storage.set(STORAGE.PACKAGES, packaging);
+      const points: Facility[] = await this.masterdataService.getFacilities();
+      await this.storage.set(STORAGE.FACILITIES, points);
 
       const materials: Material[] = await this.masterdataService.getMaterials();
       await this.storage.set(STORAGE.MATERIALS, materials);
 
-      const points: Facility[] = await this.masterdataService.getFacilities();
-      await this.storage.set(STORAGE.FACILITIES, points);
-
-      const services: Service[] = await this.masterdataService.getServices();
-      await this.storage.set(STORAGE.SERVICES, services);
+      const packaging: Package[] = await this.masterdataService.getPackages();
+      await this.storage.set(STORAGE.PACKAGES, packaging);
 
       const parties: Party[] = await this.masterdataService.getParties();
       await this.storage.set(STORAGE.PARTIES, parties);
 
-      const treatments: Treatment[] = await this.masterdataService.getTreatments();
-      await this.storage.set(STORAGE.TREATMENTS, treatments);
+      const services: Service[] = await this.masterdataService.getServices();
+      await this.storage.set(STORAGE.SERVICES, services);
 
       const vehicles: Vehicle[] = await this.masterdataService.getVehicles();
       await this.storage.set(STORAGE.VEHICLES, vehicles);
+
     } catch (error) {
       this.logger.error('Error downloading master data', error);
       throw error;
@@ -107,6 +104,7 @@ export class SynchronizationService {
    */
   async downloadOperation(): Promise<void> {
     try {
+      console.log('downloading operation');
       const hierarchicalProcesses: Process[] = await this.operationsService.get();
       const allProcesses: Process[] = [];
       const allSubprocesses: Subprocess[] = [];
@@ -189,11 +187,11 @@ export class SynchronizationService {
           // Process request based on object type and CRUD operation
           switch (request.Object) {
             case DATA_TYPE.PROCESS:
-              const activity = request.Data as Process;
+              const process = request.Data as Process;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.operationsService.createProcess(activity);
+                success = await this.operationsService.createProcess(process);
               } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.operationsService.updateProceso(activity);
+                success = await this.operationsService.updateProcess(process);
               }
               break;
             case DATA_TYPE.INVENTORY:
@@ -207,7 +205,7 @@ export class SynchronizationService {
             case DATA_TYPE.START_ACTIVITY:
               const startActivity = request.Data as Process;
               if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.operationsService.updateInitialProcess(startActivity);
+                success = await this.operationsService.updateProcessStart(startActivity);
               }
               break;
             case DATA_TYPE.TASK:
@@ -221,9 +219,9 @@ export class SynchronizationService {
             case DATA_TYPE.TRANSACTION:
               const transaction = request.Data as Subprocess;
               if (request.CRUD === CRUD_OPERATIONS.CREATE) {
-                success = await this.operationsService.createTransaction(transaction);
+                success = await this.operationsService.createSubprocess(transaction);
               } else if (request.CRUD === CRUD_OPERATIONS.UPDATE) {
-                success = await this.operationsService.updateTransaction(transaction);
+                success = await this.operationsService.updateSubprocess(transaction);
               }
               break;
             default:

@@ -21,11 +21,9 @@ import { SearchComponent } from "./search/search.component";
 import { ServicesComponent } from "./services/services.component";
 import { SignPadComponent } from "./sign-pad/sign-pad.component";
 import { PartiesComponent } from "./parties/parties.component";
-import { SuppliesComponent } from "./supplies/supplies.component";
 import { TaskAddComponent } from "./task-add/task-add.component";
 import { TaskEditComponent } from "./task-edit/task-edit.component";
 import { SubprocessApproveComponent } from "./subprocess-approve/subprocess-approve.component";
-import { TreatmentsComponent } from "./treatments/treatments.component";
 import { VehiclesComponent } from "./vehicles/vehicles.component";
 
 @NgModule({
@@ -46,11 +44,9 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
     ServicesComponent,
     SignPadComponent,
     PartiesComponent,
-    SuppliesComponent,
     TaskAddComponent,
     TaskEditComponent,
     SubprocessApproveComponent,
-    TreatmentsComponent,
     VehiclesComponent
   ],
   imports: [
@@ -78,11 +74,9 @@ import { VehiclesComponent } from "./vehicles/vehicles.component";
     ServicesComponent,
     SignPadComponent,
     PartiesComponent,
-    SuppliesComponent,
     TaskAddComponent,
     TaskEditComponent,
     SubprocessApproveComponent,
-    TreatmentsComponent,
     VehiclesComponent,
     ProcessAddComponent,
   ],

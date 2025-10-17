@@ -9,7 +9,6 @@ import { WastesComponent } from '../wastes/wastes.component';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { Task } from '@app/domain/entities/task.entity';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
-import { TreatmentsComponent } from '../treatments/treatments.component';
 import { TaskService } from '@app/application/services/task.service';
 import { ProcessService } from '@app/application/services/process.service';
 import { SubprocessService } from '@app/application/services/subprocess.service';
@@ -287,26 +286,6 @@ export class TaskAddComponent implements OnInit {
     await modal.present();
   }
 
-  /**
-   * Opens modal to select treatment
-   */
-  async selectTreatment(): Promise<void> {
-    const modal = await this.modalCtrl.create({
-      component: TreatmentsComponent,
-      componentProps: {},
-    });
-
-    modal.onDidDismiss().then((data) => {
-      if (data?.data) {
-        this.formData.patchValue({
-          TreatmentId: data.data.id,
-          Treatment: data.data.name
-        });
-      }
-    });
-
-    await modal.present();
-  }
 
   /**
    * Takes a photo using the device camera

@@ -3,7 +3,6 @@ import { environment } from '../../../environments/environment';
 import { Task } from '../../domain/entities/task.entity';
 import { Subprocess } from '../../domain/entities/subprocess.entity';
 import { Process } from '@app/domain/entities/process.entity';
-import { Operation } from '@app/domain/entities/operation.entity';
 import { StorageService } from './storage.service';
 import { LoggerService } from './logger.service';
 import { HttpService } from './http.service';
@@ -38,10 +37,119 @@ export class OperationsApiService {
    */
   async get(): Promise<Process[]> {
     try {
-      const response = await this.http.get<Process[]>('/apptransactions/get');
+      console.log('getting operations');
+      const response = await this.http.get<Process[]>('/operations/get');
+      console.log('operations', response.data);
       return response.data;
     } catch (error) {
       this.logger.error('Error getting transactions', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new process
+   * @param {Process} process - Process to create
+   * @returns {Promise<boolean>} True if creation successful
+   */
+  async createProcess(process: Process): Promise<boolean> {
+    try {
+      this.logger.debug('createProcess process', process);
+      const response = await this.http.post<ActivityResponse>('/operations/createprocess', process);
+      if (response.status === 201 && response.data) {
+        process.ProcessId = response.data.IdProceso;
+        this.logger.info('Process created successfully', { processId: process.ProcessId });
+        return true;
+      }
+      this.logger.debug('createProcess response status', response.status);
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating process', { process, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates an existing process
+   * @param {Process} process - Process to update
+   * @returns {Promise<boolean>} True if update successful
+   */
+  async updateProcess(process: Process): Promise<boolean> {
+    try {
+      this.logger.debug('updateProcess process', process);
+      const response = await this.http.post('/operations/updateprocess', process);
+      if (response.status === 200) {
+        this.logger.info('Process updated successfully', { processId: process.ProcessId });
+        return true;
+      }
+      this.logger.debug('updateProcess response status', response.status);
+      return false;
+    } catch (error) {
+      this.logger.error('Error updating process', { process, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates the start of a process
+   * @param {Process} process - Process to update
+   * @returns {Promise<boolean>} True if creation successful
+   */
+  async updateProcessStart(process: Process): Promise<boolean> {
+    try {
+        this.logger.debug('updateProcessStart process', process);
+      const response = await this.http.post<ActivityResponse>('/operations/updatesprocessstart', process);
+      if ((response.status === 200 || response.status === 201)) {
+        this.logger.info('Process start updated successfully', { processId: process.ProcessId });
+        return true;
+      }
+      this.logger.debug('updateProcessStart response status', response.status);
+      return false;
+    } catch (error) {
+      this.logger.error('Error updating process start', { process, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Creates a new subprocess
+   * @param {Subprocess} subprocess - Transaction to create
+   * @returns {Promise<boolean>} True if creation successful
+   */
+  async createSubprocess(subprocess: Subprocess): Promise<boolean> {
+    try {
+      this.logger.debug('createSubprocess subprocess', subprocess);
+      const response = await this.http.post<TransactionResponse>('/operations/createsubprocess', subprocess);
+      if (response.status === 201 && response.data) {
+        subprocess.SubprocessId = response.data.IdTransaccion;
+        this.logger.info('Subprocess created successfully', { subprocessId: subprocess.SubprocessId });
+        return true;
+      }
+      this.logger.debug('createSubprocess response status', response.status);
+      return false;
+    } catch (error) {
+      this.logger.error('Error creating subprocess', { subprocess, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates an existing transaction
+   * @param {Subprocess} subprocess - Transaction to update
+   * @returns {Promise<boolean>} True if update successful
+   */
+  async updateSubprocess(subprocess: Subprocess): Promise<boolean> {
+    try {
+      this.logger.debug('updateSubprocess subprocess', subprocess);
+      const response = await this.http.post('/operations/updatesubprocess', subprocess);
+      if (response.status === 200) {
+        this.logger.info('Subprocess updated successfully', { subprocessId: subprocess.SubprocessId });
+        return true;
+      }
+      this.logger.debug('updateSubprocess response status', response.status);
+      return false;
+    } catch (error) {
+      this.logger.error('Error updating subprocess', { subprocess, error });
       throw error;
     }
   }
@@ -54,7 +162,7 @@ export class OperationsApiService {
   async createTask(task: Task): Promise<boolean> {
     try {
       this.logger.debug('createTask task', task);
-      const response = await this.http.post<TaskResponse>('/appoperations/createtarea', task);
+      const response = await this.http.post<TaskResponse>('/operations/createtask', task);
       if (response.status === 201 && response.data) {
         task.TaskId = response.data.IdTarea;
         this.logger.info('Task created successfully', { taskId: task.TaskId });
@@ -76,7 +184,7 @@ export class OperationsApiService {
   async updateTask(task: Task): Promise<boolean> {
     try {
       this.logger.debug('updateTask task', task);
-      const response = await this.http.post('/appoperations/updatetarea', task);
+      const response = await this.http.post('/operations/updatetask', task);
       if (response.status === 200) {
         this.logger.info('Task updated successfully', { taskId: task.TaskId });
         return true;
@@ -90,49 +198,6 @@ export class OperationsApiService {
   }
 
   /**
-   * Creates a new transaction
-   * @param {Subprocess} transaction - Transaction to create
-   * @returns {Promise<boolean>} True if creation successful
-   */
-  async createTransaction(transaction: Subprocess): Promise<boolean> {
-    try {
-      this.logger.debug('createTransaction transaction', transaction);
-      const response = await this.http.post<TransactionResponse>('/appoperations/createtransaccion', transaction);
-      if (response.status === 201 && response.data) {
-        transaction.SubprocessId = response.data.IdTransaccion;
-        this.logger.info('Transaction created successfully', { transactionId: transaction.SubprocessId });
-        return true;
-      }
-      this.logger.debug('createTransaction response status', response.status);
-      return false;
-    } catch (error) {
-      this.logger.error('Error creating transaction', { transaction, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Updates an existing transaction
-   * @param {Subprocess} transaction - Transaction to update
-   * @returns {Promise<boolean>} True if update successful
-   */
-  async updateTransaction(transaction: Subprocess): Promise<boolean> {
-    try {
-      this.logger.debug('updateTransaction transaction', transaction);
-      const response = await this.http.post('/appoperations/updatetransaccion', transaction);
-      if (response.status === 200) {
-        this.logger.info('Transaction updated successfully', { transactionId: transaction.SubprocessId });
-        return true;
-      }
-      this.logger.debug('updateTransaction response status', response.status);
-      return false;
-    } catch (error) {
-      this.logger.error('Error updating transaction', { transaction, error });
-      throw error;
-    }
-  }
-
-  /**
    * Emits a certificate for a transaction
    * @param {Subprocess} transaction - Transaction to emit certificate for
    * @returns {Promise<boolean>} True if emission successful
@@ -140,7 +205,7 @@ export class OperationsApiService {
   async emitCertificate(transaction: Subprocess): Promise<boolean> {
     try {
       this.logger.debug('emitCertificate transaction', transaction);
-      const response = await this.http.post('/appoperations/emitcertificate', transaction);
+      const response = await this.http.post('/operations/emitcertificate', transaction);
       if (response.status === 200) {
         this.logger.info('Certificate emitted successfully', { transactionId: transaction.SubprocessId });
         return true;
@@ -153,67 +218,5 @@ export class OperationsApiService {
     }
   }
 
-  /**
-   * Creates a new activity
-   * @param {Process} activity - Activity to create
-   * @returns {Promise<boolean>} True if creation successful
-   */
-  async createProcess(activity: Process): Promise<boolean> {
-    try {
-      this.logger.debug('createActivity activity', activity);
-      const response = await this.http.post<ActivityResponse>('/appoperations/createproceso', activity);
-      if (response.status === 201 && response.data) {
-        activity.ProcessId = response.data.IdProceso;
-        this.logger.info('Activity created successfully', { activityId: activity.ProcessId });
-        return true;
-      }
-      this.logger.debug('createActivity response status', response.status);
-      return false;
-    } catch (error) {
-      this.logger.error('Error creating activity', { activity, error });
-      throw error;
-    }
-  }
 
-  /**
-   * Updates an existing activity
-   * @param {Process} activity - Activity to update
-   * @returns {Promise<boolean>} True if update successful
-   */
-  async updateProceso(activity: Process): Promise<boolean> {
-    try {
-      this.logger.debug('updateActivity activity', activity);
-      const response = await this.http.post('/appoperations/updateactividad', activity);
-      if (response.status === 200) {
-        this.logger.info('Activity updated successfully', { activityId: activity.ProcessId });
-        return true;
-      }
-      this.logger.debug('updateActivity response status', response.status);
-      return false;
-    } catch (error) {
-      this.logger.error('Error updating activity', { activity, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Creates an initial activity
-   * @param {Process} activity - Initial activity to create
-   * @returns {Promise<boolean>} True if creation successful
-   */
-  async updateInitialProcess(activity: Process): Promise<boolean> {
-    try {
-      this.logger.debug('updateInitialActivity activity', activity);
-      const response = await this.http.post<ActivityResponse>('/appoperations/updateactividadInicio', activity);
-      if ((response.status === 200 || response.status === 201)) {
-        this.logger.info('Initial activity created successfully', { activityId: activity.ProcessId });
-        return true;
-      }
-      this.logger.debug('updateInitialActivity response status', response.status);
-      return false;
-    } catch (error) {
-      this.logger.error('Error creating initial activity', { activity, error });
-      throw error;
-    }
-  }
 }

@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { SynchronizationService } from '@app/infrastructure/services/synchronization.service';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription, interval } from 'rxjs';

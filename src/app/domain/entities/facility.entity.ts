@@ -1,5 +1,6 @@
 export interface Facility {
   Id: string;
+  ParentId?: string;
 
   Address?: string;
   OwnerId: string;
@@ -7,11 +8,11 @@ export interface Facility {
   Longitude?: string;
   LocationId?: string;
   Name: string;
-  Type: string;
+  IsDelivery: boolean;
+  IsDisposal: boolean;
+  IsHeadQuarter: boolean;
   IsStockPilling: boolean;
   IsStorage: boolean;
-  IsDisposal: boolean;
-  IsDelivery: boolean;
   IsGeneration: boolean;
   IsReception: boolean;
   IsTreatment: boolean;

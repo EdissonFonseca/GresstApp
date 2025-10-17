@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { PERMISSIONS, STORAGE } from '@app/core/constants';
 import { environment } from '@env/environment';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { TranslateService } from '@ngx-translate/core';

@@ -19,7 +19,6 @@ export class MaterialsComponent implements OnInit {
     name: string;
     capture: string;
     measure: string;
-    factor: number;
   }>();
 
   formData: FormGroup;
@@ -28,7 +27,6 @@ export class MaterialsComponent implements OnInit {
   selectedName: string = '';
   selectedCaptura: string = '';
   selectedMedicion: string = '';
-  selectedFactor: number | null = null;
   searchText: string = '';
   showFactor: boolean = false;
   showNew: boolean = false;
@@ -80,20 +78,18 @@ export class MaterialsComponent implements OnInit {
     }
   }
 
-  async select(idMaterial: string, nombre: string, captura: string, medicion: string, factor: number) {
+  async select(idMaterial: string, nombre: string, captura: string, medicion: string) {
     try {
       this.selectedValue = idMaterial;
       this.selectedName = nombre;
       this.selectedCaptura = captura;
       this.selectedMedicion = medicion;
-      this.selectedFactor = factor;
 
       const data = {
         id: this.selectedValue,
         name: this.selectedName,
         capture: this.selectedCaptura,
         measure: this.selectedMedicion,
-        factor: this.selectedFactor
       };
 
       this.materialSelected.emit(data);

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { NavController } from '@ionic/angular';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 @Component({
   selector: 'app-synchronization',

@@ -1,13 +1,13 @@
 import { Injectable, signal } from '@angular/core';
 import { Network } from '@capacitor/network';
-import { SynchronizationService } from './synchronization.service';
+import { SynchronizationService } from '@app/infrastructure/services/synchronization.service';
 import { STORAGE } from '../../core/constants';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { LoggerService } from './logger.service';
+import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { environment } from '../../../environments/environment';
-import { StorageService } from './storage.service';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { Message } from '@app/domain/entities/message.entity';
-import { AuthenticationApiService } from './authenticationApi.service';
+import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
 
 /**
  * Interface representing the structure of backup data
@@ -95,6 +95,7 @@ export class SessionService {
       await this.syncService.downloadAuthorizations();
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
+      console.log('downloading operation');
       await this.syncService.downloadOperation();
       await this.storage.set(STORAGE.MESSAGES, []);
       await this.storage.set(STORAGE.START_DATE, new Date().toISOString());

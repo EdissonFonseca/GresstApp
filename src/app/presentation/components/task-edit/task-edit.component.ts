@@ -98,8 +98,7 @@ export class TaskEditComponent implements OnInit {
       const materialItem = await this.materialsRepository.get(this.task.MaterialId);
       if (materialItem) {
         this.measurement = materialItem.MeasurementType;
-        this.captureType = materialItem.Type;
-        this.factor = materialItem.EmissionCompensationFactor ?? 1;
+        this.captureType = materialItem.CaptureType;
         this.frmTask.patchValue({
           Material: materialItem.Name
         });

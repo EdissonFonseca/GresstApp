@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Platform } from '@ionic/angular';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { SessionService } from './infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 
 @Component({
   selector: 'app-root',

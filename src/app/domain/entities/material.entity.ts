@@ -5,8 +5,6 @@ export interface Material{
   Type: string;
   IsRecyclable: boolean;
   Reference?: string;
-  EmissionCompensationFactor?: number;
-  ServiceCost?: number;
-  PurchaseCost?: number;
+  CaptureType: string;
   MeasurementType: string;
 }

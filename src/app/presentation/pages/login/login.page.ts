@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
 import { TranslateService } from '@ngx-translate/core';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';

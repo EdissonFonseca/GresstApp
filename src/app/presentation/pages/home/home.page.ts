@@ -5,7 +5,7 @@ import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { CommonModule } from '@angular/common';
 import { ComponentsModule } from '@app/presentation/components/components.module';
 import { Router } from '@angular/router';

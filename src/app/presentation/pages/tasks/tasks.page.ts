@@ -7,7 +7,7 @@ import { SubprocessService } from '@app/application/services/subprocess.service'
 import { TaskService } from '@app/application/services/task.service';
 import { TaskEditComponent } from '@app/presentation/components/task-edit/task-edit.component';
 import { CardService } from '@app/presentation/services/card.service';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';

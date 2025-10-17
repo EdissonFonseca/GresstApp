@@ -52,13 +52,6 @@
         <ion-button color="light" (click)="selectMaterial()">...</ion-button>
       </ion-item>
 
-      <!-- Treatment -->
-      <ion-item class="ion-no-padding" *ngIf="requestTreatment">
-        <ion-note slot="start">{{ 'TASK_ADD.TREATMENT' | translate }}</ion-note>
-        <ion-label>{{ formData.get('Treatment')?.value }}</ion-label>
-        <ion-button color="light" (click)="selectTreatment()">...</ion-button>
-      </ion-item>
-
       <!-- Quantity -->
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_ADD.QUANTITY' | translate }}</ion-note>

@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
 import { SubprocessService } from '@app/application/services/subprocess.service';
 import { Card } from '@app/presentation/view-models/card.viewmodel';
 import { CardService } from '@app/presentation/services/card.service';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
