@@ -147,6 +147,9 @@ export class CardService {
         subprocessCard.weight,
         subprocessCard.volume
       );
+
+      // Update visible properties after calculating summaries
+      this.updateVisibleProperties(subprocessCard);
     });
 
     // Second pass: Calculate totals for processes from their subprocesses
@@ -169,6 +172,9 @@ export class CardService {
         processCard.weight,
         processCard.volume
       );
+
+      // Update visible properties after calculating summaries
+      this.updateVisibleProperties(processCard);
     });
 
     return cards;
@@ -323,10 +329,25 @@ export class CardService {
 
   updateVisibleProperties(card: Card) {
     card.color = Utils.getStateColor(card.status);
-    card.showReject = card.type !== 'task' && card.status === STATUS.PENDING && card.successItems === 0;
-    card.showApprove = card.type !== 'task' && card.status === STATUS.PENDING && (card.successItems ?? 0) > 0;
     card.showItems = card.type !== 'task';
     card.showSummary = card.status !== STATUS.REJECTED;
+    card.showEdit = card.type === 'task';
+
+    // Lógica de botones según el tipo de card
+    if (card.type === 'subprocess') {
+      // Subprocess: Solo si está PENDING y basado en tasks aprobadas
+      card.showApprove = card.status === STATUS.PENDING && (card.successItems ?? 0) > 0;
+      card.showReject = card.status === STATUS.PENDING && (card.successItems === 0 || card.successItems === null || card.successItems === undefined);
+    } else if (card.type === 'process') {
+      // Process: Solo si está PENDING y basado en si hay AL MENOS 1 task aprobada (quantity > 0 indica que hay tasks aprobadas)
+      card.showApprove = card.status === STATUS.PENDING && (card.quantity ?? 0) > 0;
+      card.showReject = card.status === STATUS.PENDING && (card.quantity === 0 || card.quantity === null || card.quantity === undefined);
+    } else {
+      // Tasks no tienen botones de aprobar/rechazar
+      card.showApprove = false;
+      card.showReject = false;
+    }
+
     if (card.status !== STATUS.PENDING)
       card.actionName = "Ver";
   }

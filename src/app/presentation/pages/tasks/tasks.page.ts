@@ -132,17 +132,26 @@ export class TasksPage implements OnInit {
         this.subprocessId.set(params['subprocessId'] || params['transactionId'] || '');
         this.activityId.set(params['processId'] || params['activityId'] || '');
       });
+
+      await this.loadData();
+
+      // Get process title
       const activityData = await this.processService.get(this.activityId());
       if (activityData) {
         this.title = activityData.Title;
       }
+
+      // Check subprocess status to determine if add button should be shown
       if (this.subprocessId()) {
-        const transaction = await this.subprocessService.get(this.activityId(), this.subprocessId());
-        if (transaction) {
-          this.showAdd = transaction.StatusId == STATUS.PENDING;
+        const subprocessCards = this.subprocessCards();
+        if (subprocessCards.length > 0) {
+          // Use the card's status (already loaded from CardService)
+          this.showAdd = subprocessCards[0].status === STATUS.PENDING;
         }
+      } else {
+        // If no specific subprocess, don't allow adding tasks
+        this.showAdd = false;
       }
-      await this.loadData();
     } catch (error) {
       this.logger.error('Error initializing tasks page:', error);
       await this.userNotificationService.showToast(

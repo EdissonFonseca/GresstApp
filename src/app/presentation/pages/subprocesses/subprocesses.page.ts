@@ -90,14 +90,22 @@ export class SubprocessesPage implements OnInit {
         // Support new parameter name (processId) and legacy name (activityId) for backward compatibility
         this.activityId.set(params['processId'] || params['activityId']);
       });
-      const activityData = await this.processService.get(this.activityId());
-      if (activityData) {
-        this.title = activityData.Title;
-        this.showAdd = activityData.StatusId == STATUS.PENDING;
-        this.showNavigation = activityData.ServiceId == SERVICE_TYPES.TRANSPORT;
-        this.showSupport = activityData.ServiceId == SERVICE_TYPES.TRANSPORT;
-      }
+
       await this.loadData();
+
+      // Check process status to determine if add button should be shown
+      const processCard = this.processCard();
+      if (processCard) {
+        this.title = processCard.title;
+        this.showAdd = processCard.status === STATUS.PENDING;
+
+        // Get original process data for service-specific features
+        const activityData = await this.processService.get(this.activityId());
+        if (activityData) {
+          this.showNavigation = activityData.ServiceId == SERVICE_TYPES.TRANSPORT;
+          this.showSupport = activityData.ServiceId == SERVICE_TYPES.TRANSPORT;
+        }
+      }
     } catch (error) {
       console.error('Error initializing subprocesses page:', error);
       await this.userNotificationService.showToast(

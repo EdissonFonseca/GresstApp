@@ -34,10 +34,10 @@
     <!-- Footer with badges and action buttons -->
     <ion-item lines="none" *ngIf="(allowApprove && (card.showApprove || card.showReject)) || (card.showEdit)">
       <div class="action-buttons" slot="end">
-        <ion-button shape="round" color="success" size="small" *ngIf="allowApprove && card.showApprove && card.status == 'P' && (card.successItems ?? 0) > 0" (click)="onApprove(card.id)">
+        <ion-button shape="round" color="success" size="small" *ngIf="allowApprove && card.showApprove" (click)="onApprove(card.id)">
           <ion-icon name="checkmark"></ion-icon>
         </ion-button>
-        <ion-button shape="round" color="danger" size="small" *ngIf="allowApprove && card.showReject && card.status == 'P' && (card.successItems ?? 0) == 0" (click)="onReject(card.id)">
+        <ion-button shape="round" color="danger" size="small" *ngIf="allowApprove && card.showReject" (click)="onReject(card.id)">
           <ion-icon name="close"></ion-icon>
         </ion-button>
       </div>
