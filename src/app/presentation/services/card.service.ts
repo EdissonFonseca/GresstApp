@@ -119,9 +119,9 @@ export class CardService {
    * Calculates totals from bottom-up: Tasks → Subprocesses → Processes
    *
    * Rules:
-   * - At task level: pendingItems/successItems/rejectedItems = 1 based on task status
-   * - At higher levels: sum the counts from children
-   * - quantity/weight/volume: Only sum values from APPROVED items
+   * - quantity/weight/volume: Sum from children (only APPROVED values)
+   * - Subprocess counters: Count TASKS by status (pending/approved/rejected)
+   * - Process counters: Count SUBPROCESSES by status (pending/approved/rejected)
    *
    * @param cards - Array of all cards
    * @returns Array of cards with calculated summaries
@@ -136,10 +136,17 @@ export class CardService {
       subprocessCard.weight = tasks.reduce((sum, task) => sum + (task.weight || 0), 0);
       subprocessCard.volume = tasks.reduce((sum, task) => sum + (task.volume || 0), 0);
 
-      // Sum item counts (tasks already have 1 or 0 based on their status)
+      // Count TASKS by their status (tasks already have 1 or 0 based on their status)
       subprocessCard.pendingItems = tasks.reduce((sum, t) => sum + (t.pendingItems || 0), 0);
       subprocessCard.successItems = tasks.reduce((sum, t) => sum + (t.successItems || 0), 0);
       subprocessCard.rejectedItems = tasks.reduce((sum, t) => sum + (t.rejectedItems || 0), 0);
+
+      // Build summary with calculated totals
+      subprocessCard.summary = this.buildNumericSummary(
+        subprocessCard.quantity,
+        subprocessCard.weight,
+        subprocessCard.volume
+      );
     });
 
     // Second pass: Calculate totals for processes from their subprocesses
@@ -151,13 +158,45 @@ export class CardService {
       processCard.weight = subprocesses.reduce((sum, sp) => sum + (sp.weight || 0), 0);
       processCard.volume = subprocesses.reduce((sum, sp) => sum + (sp.volume || 0), 0);
 
-      // Sum item counts from subprocesses
-      processCard.pendingItems = subprocesses.reduce((sum, sp) => sum + (sp.pendingItems || 0), 0);
-      processCard.successItems = subprocesses.reduce((sum, sp) => sum + (sp.successItems || 0), 0);
-      processCard.rejectedItems = subprocesses.reduce((sum, sp) => sum + (sp.rejectedItems || 0), 0);
+      // Count SUBPROCESSES by their status (not sum of task counts)
+      processCard.pendingItems = subprocesses.filter(sp => sp.status === STATUS.PENDING).length;
+      processCard.successItems = subprocesses.filter(sp => sp.status === STATUS.APPROVED).length;
+      processCard.rejectedItems = subprocesses.filter(sp => sp.status === STATUS.REJECTED).length;
+
+      // Build summary with calculated totals
+      processCard.summary = this.buildNumericSummary(
+        processCard.quantity,
+        processCard.weight,
+        processCard.volume
+      );
     });
 
     return cards;
+  }
+
+  /**
+   * Build numeric summary from quantity, weight, and volume
+   * @param quantity - Quantity value
+   * @param weight - Weight value
+   * @param volume - Volume value
+   * @returns Formatted summary string
+   */
+  private buildNumericSummary(quantity?: number | null, weight?: number | null, volume?: number | null): string {
+    const parts: string[] = [];
+
+    if (quantity && quantity > 0) {
+      parts.push(`${quantity} un`);
+    }
+
+    if (weight && weight > 0) {
+      parts.push(`${weight} kg`);
+    }
+
+    if (volume && volume > 0) {
+      parts.push(`${volume} m³`);
+    }
+
+    return parts.join(' - ');
   }
 
   mapProcesses(actividades: Process[]): Card[] {
@@ -185,6 +224,7 @@ export class CardService {
         pendingItems: 0,
         successItems: 0,
         rejectedItems: 0,
+        summary: '', // Will be built after hierarchical calculations
       };
       this.updateVisibleProperties(card);
       return card;
@@ -222,21 +262,14 @@ export class CardService {
 
   /**
    * Build summary for subprocess card
+   * Note: This is a placeholder. The actual summary (quantity/weight/volume)
+   * will be calculated in calculateHierarchicalSummaries() and built dynamically in the UI
    * @param subprocess - The subprocess entity
-   * @returns Summary string
+   * @returns Summary string (empty for now, will be built from calculated values)
    */
   private buildSubprocessSummary(subprocess: Subprocess): string {
-    const parts: string[] = [];
-
-    if (subprocess.PartyName) {
-      parts.push(subprocess.PartyName);
-    }
-
-    if (subprocess.FacilityName) {
-      parts.push(subprocess.FacilityName);
-    }
-
-    return parts.join(' - ');
+    // Summary will be built from quantity/weight/volume after hierarchical calculation
+    return '';
   }
 
   mapTasks(tareas: Task[], materials: Material[] = []): Card[] {
@@ -279,26 +312,13 @@ export class CardService {
   }
 
   /**
-   * Build summary for task card
+   * Build summary for task card using original values from entity
+   * Note: This uses original values, not the calculated ones (which are 0 if not APPROVED)
    * @param task - The task entity
    * @returns Summary string
    */
   private buildTaskSummary(task: Task): string {
-    const parts: string[] = [];
-
-    if (task.Quantity) {
-      parts.push(`${task.Quantity} unidades`);
-    }
-
-    if (task.Weight) {
-      parts.push(`${task.Weight} kg`);
-    }
-
-    if (task.Volume) {
-      parts.push(`${task.Volume} m³`);
-    }
-
-    return parts.join(' - ');
+    return this.buildNumericSummary(task.Quantity, task.Weight, task.Volume);
   }
 
   updateVisibleProperties(card: Card) {

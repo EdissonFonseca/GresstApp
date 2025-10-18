@@ -25,13 +25,16 @@ import { ProcessService } from '@app/application/services/process.service';
 })
 export class TaskEditComponent implements OnInit {
   /** Inputs */
-  @Input() activityId: string = '';
   @Input() processId: string = '';
-  @Input() transactionId: string = '';
+  @Input() subprocessId: string = '';
   @Input() taskId: string = '';
   @Input() materialId: string = '';
   @Input() residueId: string = '';
   @Input() inputOutput: string = '';
+
+  // Deprecated - usar processId y subprocessId
+  @Input() activityId: string = '';
+  @Input() transactionId: string = '';
 
   /** Variables */
   frmTask: FormGroup;
@@ -88,6 +91,10 @@ export class TaskEditComponent implements OnInit {
    * Form initialization
    */
   async ngOnInit() {
+    // Support backward compatibility
+    const finalProcessId = this.processId || this.activityId;
+    const finalSubprocessId = this.subprocessId || this.transactionId;
+
     this.photosByMaterial = Utils.photosByMaterial;
     this.task = await this.tasksService.get(this.taskId);
 
@@ -172,8 +179,8 @@ export class TaskEditComponent implements OnInit {
         Observaciones: this.task.Notes
       });
     } else {
-      if (this.transactionId) {
-        const transaction = await this.subprocessService.get(this.activityId, this.transactionId);
+      if (finalSubprocessId) {
+        const transaction = await this.subprocessService.get(finalProcessId, finalSubprocessId);
         if (transaction) {
           const point = await this.facilityRepository.get(transaction.FacilityId ?? '');
           if (point) {
@@ -220,11 +227,13 @@ export class TaskEditComponent implements OnInit {
   private mapFormToTask(): Task {
     const formValue = this.frmTask.value;
     const now = new Date().toISOString();
+    const finalProcessId = this.processId || this.activityId;
+    const finalSubprocessId = this.subprocessId || this.transactionId;
 
     return {
       TaskId: this.taskId || Utils.generateId(),
-      ProcessId: this.processId,
-      SubprocessId: this.transactionId,
+      ProcessId: finalProcessId,
+      SubprocessId: finalSubprocessId,
       MaterialId: this.materialId,
       WasteId: this.residueId,
       InputOutput: this.inputOutput,
@@ -277,17 +286,31 @@ export class TaskEditComponent implements OnInit {
 
   /**
    * Confirm the task
+   * Steps:
+   * 1. Update task in repository (with status = APPROVED)
+   * 2. Save to storage
+   * 3. Add to message queue
+   * 4. Try to upload to server (if fails, stays in queue)
+   * 5. Return task to caller (which will reload CardService and recalculate summaries)
    */
   async confirm() {
     if (!this.frmTask.valid) return;
 
-    const activity = await this.processService.get(this.activityId);
+    const finalProcessId = this.processId || this.activityId;
+    const activity = await this.processService.get(finalProcessId);
     if (!activity) return;
 
     let task: Task = this.mapFormToTask();
     if (this.task) {
+      // Update task - this will:
+      // - Update in operation.Tasks
+      // - Save to storage
+      // - Add to message queue
+      // - Try to upload (if fails, message stays in queue)
       await this.tasksService.update(task);
     }
+
+    // Return task to caller - the page will reload CardService which recalculates hierarchical summaries
     this.modalCtrl.dismiss(task);
   }
 
