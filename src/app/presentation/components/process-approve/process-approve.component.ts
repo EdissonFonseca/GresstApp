@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { Process } from '@app/domain/entities/process.entity';
 import { ProcessService } from '@app/application/services/process.service';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
 import { STATUS } from '@app/core/constants';
 import { Utils } from '@app/core/utils';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
@@ -42,6 +44,8 @@ export class ProcessApproveComponent implements OnInit {
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
     private processService: ProcessService,
+    private subprocessService: SubprocessService,
+    private taskService: TaskService,
     private userNotificationService: UserNotificationService,
     private modalCtrl: ModalController,
     private translate: TranslateService
@@ -62,7 +66,6 @@ export class ProcessApproveComponent implements OnInit {
       Firma: [null]
     });
 
-    console.log('processId', this.processId);
     if (this.processId) {
       try {
         const process = await this.processService.get(this.processId);
@@ -75,10 +78,6 @@ export class ProcessApproveComponent implements OnInit {
             Kilometraje: process.FinalMileage,
             Observaciones: process.ResponsibleNotes
           });
-
-          //this.summary = this.processService.getSummary(process);
-          console.log('Process loaded:', process);
-          console.log('Summary:', this.summary);
         }
       } catch (error) {
         console.error('Error loading activity:', error);
@@ -197,6 +196,35 @@ export class ProcessApproveComponent implements OnInit {
       );
 
       process.StatusId = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
+
+      // Get all subprocesses for this process
+      const subprocesses = await this.subprocessService.listByProcess(this.processId);
+
+      // Process each subprocess
+      for (const subprocess of subprocesses) {
+        if (subprocess.StatusId === STATUS.PENDING) {
+          // Get all tasks for this subprocess
+          const tasks = await this.taskService.listByProcessAndSubprocess(this.processId, subprocess.SubprocessId);
+
+          // Reject all pending tasks
+          const pendingTasks = tasks.filter(task => task.StatusId === STATUS.PENDING);
+          for (const task of pendingTasks) {
+            task.StatusId = STATUS.REJECTED;
+            task.ExecutionDate = new Date().toISOString();
+            await this.taskService.update(task);
+          }
+
+          // Check if subprocess has any approved tasks
+          const hasApprovedTasks = tasks.some(task => task.StatusId === STATUS.APPROVED);
+
+          // Update subprocess status
+          subprocess.StatusId = hasApprovedTasks ? STATUS.APPROVED : STATUS.REJECTED;
+          subprocess.ExecutionDate = new Date().toISOString();
+          await this.subprocessService.update(subprocess);
+        }
+      }
+
+      // Update process
       await this.processService.update(process);
 
       await this.userNotificationService.showToast(

@@ -2,8 +2,10 @@ import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } fr
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { Task } from '@app/domain/entities/task.entity';
 import { STATUS } from '@app/core/constants';
 import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
 import { Utils } from '@app/core/utils';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateService } from '@ngx-translate/core';
@@ -40,6 +42,10 @@ export class SubprocessApproveComponent implements OnInit {
   /** Determines if component is in reject mode */
   @Input() isReject: boolean = false;
   /** Subprocess data to be approved/rejected */
+  @Input() subprocessId: string = '';
+  @Input() processId: string = '';
+
+  // Deprecated - use processId and subprocessId
   @Input() transactionId: string = '';
   @Input() activityId: string = '';
 
@@ -73,6 +79,7 @@ export class SubprocessApproveComponent implements OnInit {
     private renderer: Renderer2,
     private modalCtrl: ModalController,
     private subprocessService: SubprocessService,
+    private taskService: TaskService,
     private userNotificationService: UserNotificationService,
     private translate: TranslateService
   ) {}
@@ -87,7 +94,10 @@ export class SubprocessApproveComponent implements OnInit {
     this.mileageUnit = Utils.mileageUnit;
     this.showMileage = Utils.requestMileage;
 
-    console.log('transactionId', this.transactionId);
+    // Support backward compatibility
+    const finalProcessId = this.processId || this.activityId;
+    const finalSubprocessId = this.subprocessId || this.transactionId;
+
     // Initialize form without required validators
     this.frmTransaction = this.formBuilder.group({
       Identificacion: [''],
@@ -99,10 +109,9 @@ export class SubprocessApproveComponent implements OnInit {
     });
 
     // Load subprocess data if available
-    if (this.transactionId) {
-      const transaccion = await this.subprocessService.get(this.activityId, this.transactionId);
+    if (finalSubprocessId) {
+      const transaccion = await this.subprocessService.get(finalProcessId, finalSubprocessId);
       if (transaccion) {
-        console.log('transaccion', transaccion);
         this.transaction.set(transaccion);
         this.frmTransaction.patchValue({
           Identificacion: transaccion.ResponsibleIdentification,
@@ -238,7 +247,9 @@ export class SubprocessApproveComponent implements OnInit {
       return undefined;
     }
 
-    const transaccion = await this.subprocessService.get(this.activityId, this.transactionId);
+    const finalProcessId = this.processId || this.activityId;
+    const finalSubprocessId = this.subprocessId || this.transactionId;
+    const transaccion = await this.subprocessService.get(finalProcessId, finalSubprocessId);
 
     if (!transaccion) return undefined;
 
@@ -256,7 +267,11 @@ export class SubprocessApproveComponent implements OnInit {
 
   /**
    * Handle form submission based on mode
-   * Updates subprocess status and saves changes
+   * Steps:
+   * 1. Update subprocess status (APPROVED or REJECTED)
+   * 2. Update all PENDING tasks to REJECTED
+   * 3. Save subprocess
+   * 4. CardService will recalculate summaries (including process counters)
    */
   async submit() {
     const transaccion = await this.getFormData();
@@ -267,8 +282,25 @@ export class SubprocessApproveComponent implements OnInit {
         this.translate.instant('TRANSACTIONS.APPROVE.SENDING')
       );
 
+      // Set subprocess status
       transaccion.StatusId = this.isReject ? STATUS.REJECTED : STATUS.APPROVED;
-        await this.subprocessService.update(transaccion);
+
+      // Get all tasks for this subprocess
+      const finalProcessId = this.processId || this.activityId;
+      const finalSubprocessId = this.subprocessId || this.transactionId;
+      const tasks = await this.taskService.listByProcessAndSubprocess(finalProcessId, finalSubprocessId);
+
+      // Update all PENDING tasks to REJECTED
+      const pendingTasks = tasks.filter(task => task.StatusId === STATUS.PENDING);
+      for (const task of pendingTasks) {
+        task.StatusId = STATUS.REJECTED;
+        task.ExecutionDate = new Date().toISOString();
+        await this.taskService.update(task);
+      }
+
+      // Update subprocess
+      await this.subprocessService.update(transaccion);
+
       await this.userNotificationService.showToast(
         this.translate.instant(this.isReject ? 'TRANSACTIONS.REJECT.SUCCESS' : 'TRANSACTIONS.APPROVE.SUCCESS'),
         'top'
