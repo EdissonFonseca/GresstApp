@@ -3,7 +3,7 @@ export interface Party {
   Email?: string;
   Identification: string;
   IsClient?: boolean | null;
-  IsSupplier?: boolean | null;
+  IsProvider?: boolean | null;
   IsEmployee?: boolean | null;
   IsTransporter?: boolean | null;
   Name: string;

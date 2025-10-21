@@ -1,51 +1,51 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FacilitiesComponent } from './facilities.component';
-import { PointsService } from '@app/infrastructure/repositories/facility.repository';
-import { PartiesService } from '@app/infrastructure/repositories/party.repository';
-import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
+import { FacilityRepository } from '@app/infrastructure/repositories/facility.repository';
+import { PartyRepository } from '@app/infrastructure/repositories/party.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { of } from 'rxjs';
 import { PERMISSIONS, CRUD_OPERATIONS, THIRD_PARTY_TYPES } from '@app/core/constants';
 
-const mockTerceros = [
-  { IdPersona: '1', Nombre: 'Cliente 1', Cliente: true, Proveedor: false, Empleado: false, Identificacion: '111', Telefono: '123' },
-  { IdPersona: '2', Nombre: 'Proveedor 1', Cliente: false, Proveedor: true, Empleado: false, Identificacion: '222', Telefono: '456' },
-  { IdPersona: '3', Nombre: 'Empleado 1', Cliente: false, Proveedor: false, Empleado: true, Identificacion: '333', Telefono: '789' }
+const mockParties = [
+  { Id: '1', Name: 'Cliente 1', IsClient: true, IsProvider: false, IsEmployee: false, Identification: '111', Phone: '123' },
+  { Id: '2', Name: 'Proveedor 1', IsClient: false, IsProvider: true, IsEmployee: false, Identification: '222', Phone: '456' },
+  { Id: '3', Name: 'Empleado 1', IsClient: false, IsProvider: false, IsEmployee: true, Identification: '333', Phone: '789' }
 ];
 
-const mockPuntos = [
-  { IdDeposito: 'p1', IdPersona: '1', Nombre: 'Punto Cliente', IdMateriales: [], Tipo: '', Acopio: false, Almacenamiento: false, Direccion: '', Descripcion: '', Latitud: '', Longitud: '', Activo: true, Disposicion: false, Entrega: false, Generacion: false, Recepcion: false, Tratamiento: false },
-  { IdDeposito: 'p2', IdPersona: '2', Nombre: 'Punto Proveedor', IdMateriales: [], Tipo: '', Acopio: false, Almacenamiento: false, Direccion: '', Descripcion: '', Latitud: '', Longitud: '', Activo: true, Disposicion: false, Entrega: false, Generacion: false, Recepcion: false, Tratamiento: false },
-  { IdDeposito: 'p3', IdPersona: '3', Nombre: 'Punto Empleado', IdMateriales: [], Tipo: '', Acopio: false, Almacenamiento: false, Direccion: '', Descripcion: '', Latitud: '', Longitud: '', Activo: true, Disposicion: false, Entrega: false, Generacion: false, Recepcion: false, Tratamiento: false }
+const mockFacilities = [
+  { Id: 'p1', OwnerId: '1', Name: 'Punto Cliente', ParentId: '', Address: '', Latitude: '', Longitude: '', LocationId: '', IsDelivery: false, IsDisposal: false, IsHeadQuarter: false, IsStockPilling: false, IsStorage: false, IsGeneration: false, IsReception: false, IsTreatment: false, Facilities: [] },
+  { Id: 'p2', OwnerId: '2', Name: 'Punto Proveedor', ParentId: '', Address: '', Latitude: '', Longitude: '', LocationId: '', IsDelivery: false, IsDisposal: false, IsHeadQuarter: false, IsStockPilling: false, IsStorage: false, IsGeneration: false, IsReception: false, IsTreatment: false, Facilities: [] },
+  { Id: 'p3', OwnerId: '3', Name: 'Punto Empleado', ParentId: '', Address: '', Latitude: '', Longitude: '', LocationId: '', IsDelivery: false, IsDisposal: false, IsHeadQuarter: false, IsStockPilling: false, IsStorage: false, IsGeneration: false, IsReception: false, IsTreatment: false, Facilities: [] }
 ];
 
 describe('FacilitiesComponent', () => {
   let component: FacilitiesComponent;
   let fixture: ComponentFixture<FacilitiesComponent>;
-  let pointsServiceSpy: jasmine.SpyObj<PointsService>;
-  let thirdpartiesServiceSpy: jasmine.SpyObj<PartiesService>;
+  let facilityRepositorySpy: jasmine.SpyObj<FacilityRepository>;
+  let partyRepositorySpy: jasmine.SpyObj<PartyRepository>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
-  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
+  let authorizationRepositorySpy: jasmine.SpyObj<AuthorizationRepository>;
 
   beforeEach(waitForAsync(() => {
-    pointsServiceSpy = jasmine.createSpyObj('PointsService', ['list']);
-    thirdpartiesServiceSpy = jasmine.createSpyObj('PartiesService', ['list']);
+    facilityRepositorySpy = jasmine.createSpyObj('FacilityRepository', ['getAll']);
+    partyRepositorySpy = jasmine.createSpyObj('PartyRepository', ['getAll']);
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
-    authorizationServiceSpy = jasmine.createSpyObj('AuthorizationService', ['getPermission', 'getPersonId']);
+    authorizationRepositorySpy = jasmine.createSpyObj('AuthorizationRepository', ['getPermission', 'getPersonId']);
 
-    pointsServiceSpy.list.and.returnValue(Promise.resolve(mockPuntos));
-    thirdpartiesServiceSpy.list.and.returnValue(Promise.resolve(mockTerceros));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
-    authorizationServiceSpy.getPersonId.and.returnValue(Promise.resolve('1'));
+    facilityRepositorySpy.getAll.and.returnValue(Promise.resolve(mockFacilities));
+    partyRepositorySpy.getAll.and.returnValue(Promise.resolve(mockParties));
+    authorizationRepositorySpy.getPermission.and.returnValue(Promise.resolve(CRUD_OPERATIONS.CREATE));
+    authorizationRepositorySpy.getPersonId.and.returnValue(Promise.resolve('1'));
 
     TestBed.configureTestingModule({
       declarations: [FacilitiesComponent],
       imports: [IonicModule.forRoot()],
       providers: [
-        { provide: PointsService, useValue: pointsServiceSpy },
-        { provide: PartiesService, useValue: thirdpartiesServiceSpy },
+        { provide: FacilityRepository, useValue: facilityRepositorySpy },
+        { provide: PartyRepository, useValue: partyRepositorySpy },
         { provide: ModalController, useValue: modalCtrlSpy },
-        { provide: AuthorizationService, useValue: authorizationServiceSpy }
+        { provide: AuthorizationRepository, useValue: authorizationRepositorySpy }
       ]
     }).compileComponents();
 
@@ -57,62 +57,62 @@ describe('FacilitiesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize and load points and terceros', async () => {
-    component.idTercero = '';
+  it('should initialize and load facilities and parties', async () => {
+    component.partyId = '';
     await component.ngOnInit();
-    expect(thirdpartiesServiceSpy.list).toHaveBeenCalled();
-    expect(pointsServiceSpy.list).toHaveBeenCalled();
-    expect(component.terceros.length).toBe(3);
-    expect(component.puntos.length).toBe(3);
+    expect(partyRepositorySpy.getAll).toHaveBeenCalled();
+    expect(facilityRepositorySpy.getAll).toHaveBeenCalled();
+    expect(component.parties.length).toBe(3);
+    expect(component.facilities.length).toBe(3);
     expect(component.enableNew).toBeTrue();
   });
 
-  it('should filter by idTercero', async () => {
-    component.idTercero = '1';
+  it('should filter by partyId', async () => {
+    component.partyId = '1';
     await component.ngOnInit();
-    expect(component.terceros.length).toBe(1);
-    expect(component.puntos.length).toBe(1);
-    expect(component.puntos[0].Nombre).toBe('Punto Cliente');
+    expect(component.parties.length).toBe(1);
+    expect(component.facilities.length).toBe(1);
+    expect(component.facilities[0].Name).toBe('Punto Cliente');
   });
 
-  it('should filter by tipoTercero CLIENT', async () => {
-    component.idTercero = '';
-    component.tipoTercero = THIRD_PARTY_TYPES.CLIENT;
+  it('should filter by partyType CLIENT', async () => {
+    component.partyId = '';
+    component.partyType = THIRD_PARTY_TYPES.CLIENT;
     await component.ngOnInit();
-    expect(component.terceros.length).toBe(1);
-    expect(component.terceros[0].Cliente).toBeTrue();
+    expect(component.parties.length).toBe(1);
+    expect(component.parties[0].IsClient).toBeTrue();
   });
 
-  it('should filter by tipoTercero SUPPLIER', async () => {
-    component.idTercero = '';
-    component.tipoTercero = THIRD_PARTY_TYPES.SUPPLIER;
+  it('should filter by partyType SUPPLIER', async () => {
+    component.partyId = '';
+    component.partyType = THIRD_PARTY_TYPES.SUPPLIER;
     await component.ngOnInit();
-    expect(component.terceros.length).toBe(1);
-    expect(component.terceros[0].Proveedor).toBeTrue();
+    expect(component.parties.length).toBe(1);
+    expect(component.parties[0].IsProvider).toBeTrue();
   });
 
-  it('should filter by tipoTercero INTERNAL', async () => {
-    component.idTercero = '';
-    component.tipoTercero = THIRD_PARTY_TYPES.INTERNAL;
+  it('should filter by partyType INTERNAL', async () => {
+    component.partyId = '';
+    component.partyType = THIRD_PARTY_TYPES.INTERNAL;
     await component.ngOnInit();
-    expect(component.terceros.length).toBe(1);
-    expect(component.terceros[0].Empleado).toBeTrue();
+    expect(component.parties.length).toBe(1);
+    expect(component.parties[0].IsEmployee).toBeTrue();
   });
 
-  it('should filter puntos by idTercero', async () => {
-    component.idTercero = '2';
+  it('should filter facilities by owner', async () => {
+    component.partyId = '2';
     await component.ngOnInit();
-    const filtered = component.filterPuntos('2');
+    const filtered = component.filterFacilitiesByOwner('2');
     expect(filtered.length).toBe(1);
-    expect(filtered[0].Nombre).toBe('Punto Proveedor');
+    expect(filtered[0].Name).toBe('Punto Proveedor');
   });
 
-  it('should handle input search and filter points', async () => {
+  it('should handle input search and filter facilities', async () => {
     await component.ngOnInit();
     const event = { target: { value: 'Cliente' } };
     await component.handleInput(event);
-    expect(component.filteredPuntos.length).toBe(1);
-    expect(component.filteredPuntos[0].Nombre).toBe('Punto Cliente');
+    expect(component.filteredFacilities.length).toBe(1);
+    expect(component.filteredFacilities[0].Name).toBe('Punto Cliente');
   });
 
   it('should select a point and dismiss modal', async () => {
@@ -130,7 +130,7 @@ describe('FacilitiesComponent', () => {
   });
 
   it('should select a point and set selectedName with owner if not self', async () => {
-    authorizationServiceSpy.getPersonId.and.returnValue(Promise.resolve('2'));
+    authorizationRepositorySpy.getPersonId.and.returnValue(Promise.resolve('2'));
     await component.ngOnInit();
     await component.select('p1', '1', 'Cliente 1', 'Punto Cliente');
     expect(component.selectedName).toBe('Cliente 1 - Punto Cliente');
@@ -139,6 +139,21 @@ describe('FacilitiesComponent', () => {
   it('should cancel and dismiss modal with null', () => {
     component.cancel();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(null);
+  });
+
+  it('should return only visible parties with facilities', async () => {
+    await component.ngOnInit();
+    const visibleParties = component.getVisibleParties();
+    expect(visibleParties.length).toBe(3);
+  });
+
+  it('should filter visible parties when searching', async () => {
+    await component.ngOnInit();
+    const event = { target: { value: 'Cliente' } };
+    await component.handleInput(event);
+    const visibleParties = component.getVisibleParties();
+    expect(visibleParties.length).toBe(1);
+    expect(visibleParties[0].Name).toBe('Cliente 1');
   });
 
   it('should render template elements', () => {

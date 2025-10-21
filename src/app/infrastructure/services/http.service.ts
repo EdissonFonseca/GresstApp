@@ -82,19 +82,18 @@ export class HttpService {
     };
 
     if (this.needsAuth(url)) {
-      const token = await this.storage.get(STORAGE.ACCESS_TOKEN);
-
-      if (token) {
+      const session = await this.storage.get(STORAGE.SESSION);
+      if (session.AccessToken) {
         // Check if token is expired before using it
-        if (this.isTokenExpired(token)) {
+        if (this.isTokenExpired(session.AccessToken)) {
           this.logger.info('Token expired, refreshing before request');
           await this.refreshToken();
-          const newToken = await this.storage.get(STORAGE.ACCESS_TOKEN);
-          if (newToken) {
-            headers['Authorization'] = `Bearer ${newToken}`;
+          const newSession = await this.storage.get(STORAGE.SESSION);
+          if (newSession.AccessToken) {
+            headers['Authorization'] = `Bearer ${newSession.AccessToken}`;
           }
         } else {
-          headers['Authorization'] = `Bearer ${token}`;
+          headers['Authorization'] = `Bearer ${session.AccessToken}`;
         }
       }
     }
@@ -113,10 +112,9 @@ export class HttpService {
 
     this.isRefreshing = true;
     try {
-      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
-      const username = await this.storage.get(STORAGE.USERNAME);
+      const session = await this.storage.get(STORAGE.SESSION);
 
-      if (!refreshToken || !username) {
+      if (!session.RefreshToken || !session.UserName) {
         throw new Error('No refresh token or username found');
       }
 
@@ -127,14 +125,17 @@ export class HttpService {
           'Content-Type': 'application/json'
         },
         data: {
-          RefreshToken: refreshToken,
-          Username: username
+          RefreshToken: session.RefreshToken,
+          Username: session.UserName
         }
       });
 
       if (response.status === 200 && response.data) {
-        await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
-        await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
+        await this.storage.set(STORAGE.SESSION, {
+          AccessToken: response.data.AccessToken,
+          RefreshToken: response.data.RefreshToken,
+          UserName: session.UserName
+        });
       } else {
         throw new Error('Failed to refresh token');
       }

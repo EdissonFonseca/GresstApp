@@ -25,6 +25,7 @@ export class FacilityRepository {
 
   async getAll(): Promise<Facility[]> {
     const facilities = await this.storage.get(STORAGE.FACILITIES) as Facility[];
+    console.log(facilities);
     return facilities;
   }
 

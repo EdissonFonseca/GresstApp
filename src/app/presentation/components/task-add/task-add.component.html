@@ -35,14 +35,14 @@
       <ion-item class="ion-no-padding" *ngIf="requestPoint">
         <ion-note slot="start">{{ 'TASK_ADD.COLLECTION_POINT' | translate }}</ion-note>
         <ion-label>{{ formData.get('InputPoint')?.value }}</ion-label>
-        <ion-button color="light" (click)="selectInputPoint()">...</ion-button>
+        <ion-button color="light" (click)="selectInputFacility()">...</ion-button>
       </ion-item>
 
       <!-- Delivery Point -->
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_ADD.DELIVERY_POINT' | translate }}</ion-note>
         <ion-label>{{ formData.get('OutputPoint')?.value }}</ion-label>
-        <ion-button color="light" (click)="selectOutputPoint()">...</ion-button>
+        <ion-button color="light" (click)="selectOutputFacility()">...</ion-button>
       </ion-item>
 
       <!-- Material -->

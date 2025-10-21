@@ -8,13 +8,13 @@
   </ion-toolbar>
 </ion-header>
 <ion-searchbar (ionInput)="handleInput($event)" [(ngModel)]="searchText"></ion-searchbar>
-<ion-item *ngIf="terceros.length != 0 && !showNew && enableNew">
+<ion-item *ngIf="parties.length != 0 && !showNew && enableNew">
   <ion-button (click)="new()">
     <ion-icon name="add"></ion-icon>
     Nuevo
   </ion-button>
 </ion-item>
-<ion-content *ngIf="(terceros.length == 0|| showNew) && enableNew">
+<ion-content *ngIf="(parties.length == 0|| showNew) && enableNew">
   <ion-item-divider> Nuevo</ion-item-divider>
   <form [formGroup]="formData" >
     <ion-list [inset]="true">
@@ -46,21 +46,21 @@
 </form>
 </ion-content>
 <ion-content>
-  <ion-list *ngFor="let tercero of terceros">
+  <ion-list *ngFor="let party of parties">
     <ion-item >
-      <ion-icon name="checkmark-outline" *ngIf="selectedValue === tercero.Id"></ion-icon>
-      <ion-label (click)="select(tercero.Id, tercero.Name)">{{ tercero.Name }}</ion-label>
-      <ion-badge slot="end" color="secondary" *ngIf="tercero.IsClient">
+      <ion-icon name="checkmark-outline" *ngIf="selectedValue === party.Id"></ion-icon>
+      <ion-label (click)="select(party.Id, party.Name)">{{ party.Name }}</ion-label>
+      <ion-badge slot="end" color="secondary" *ngIf="party.IsClient">
         Cliente
       </ion-badge>
-      <ion-badge slot="end" color="light" *ngIf="tercero.IsSupplier">
+      <ion-badge slot="end" color="light" *ngIf="party.IsProvider">
         Proveedor
       </ion-badge>
-      <ion-badge slot="end" color="warning" *ngIf="tercero.IsEmployee">
+      <ion-badge slot="end" color="warning" *ngIf="party.IsEmployee">
         Interno
       </ion-badge>
       <ion-buttons slot="end">
-        <ion-button (click)="goToPuntos(tercero.Id)"><ion-icon name="location"></ion-icon></ion-button>
+        <ion-button (click)="goToPuntos(party.Id)"><ion-icon name="location"></ion-icon></ion-button>
       </ion-buttons>
     </ion-item>
   </ion-list>

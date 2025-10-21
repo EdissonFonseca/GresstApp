@@ -18,6 +18,7 @@ import { Subprocess } from '@app/domain/entities/subprocess.entity';
 import { Message } from '@app/domain/entities/message.entity';
 import { Operation } from '@app/domain/entities/operation.entity';
 import { Party } from '@app/domain/entities/party.entity';
+import { AuthenticationApiService } from './authenticationApi.service';
 
 /**
  * Service responsible for managing data synchronization between local storage and server.
@@ -32,6 +33,7 @@ export class SynchronizationService {
 
   constructor(
     private storage: StorageService,
+    private authenticationService: AuthenticationApiService,
     private authorizationService: AuthorizationApiService,
     private inventoryService: InventoryApiService,
     private masterdataService: MasterDataApiService,
@@ -43,10 +45,14 @@ export class SynchronizationService {
    * Downloads and stores authorization data from the server
    * @throws {Error} If the download fails
    */
-  async downloadAuthorizations(): Promise<void> {
+  async downloadPermissions(): Promise<void> {
     try {
-      const permissions = await this.authorizationService.get();
-      await this.storage.set(STORAGE.ACCOUNT, permissions);
+      const permissions = await this.authorizationService.getPermissions();
+      const account = await this.authenticationService.getAccount();
+      const user = await this.authenticationService.getUser();
+      await this.storage.set(STORAGE.PERMISSIONS, permissions);
+      await this.storage.set(STORAGE.ACCOUNT, account);
+      await this.storage.set(STORAGE.USER, user);
     } catch (error) {
       this.logger.error('Error downloading authorizations', error);
       throw error;

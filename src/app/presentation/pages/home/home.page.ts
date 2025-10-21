@@ -133,11 +133,11 @@ export class HomePage implements OnInit {
    */
   private async loadUserData() {
     try {
-      const user = await this.storage.get(STORAGE.USERNAME);
-      if (!user) {
+      const user = await this.storage.get(STORAGE.USER);
+      if (!user.Name) {
         throw new Error('User data not found');
       }
-      this.nombreUsuario.set(user.Nombre || '');
+      this.nombreUsuario.set(user.Name || '');
     } catch (error) {
       console.error('Error loading user data:', error);
       throw error;

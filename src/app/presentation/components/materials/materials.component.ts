@@ -56,6 +56,8 @@ export class MaterialsComponent implements OnInit {
   async loadMaterials() {
     try {
       this.materials = await this.materialsRepository.getAll();
+      // Sort materials by name
+      this.materials = this.materials.sort((a, b) => a.Name.localeCompare(b.Name));
       this.enableNew = (await this.authorizationRepository.getPermission(PERMISSIONS.APP_MATERIAL))?.includes(CRUD_OPERATIONS.CREATE);
     } catch (error) {
       console.error('Error loading materials:', error);
@@ -72,6 +74,8 @@ export class MaterialsComponent implements OnInit {
 
       const materials = await this.materialsRepository.getAll();
       this.materials = materials.filter((material) => material.Name.toLowerCase().indexOf(query) > -1);
+      // Sort filtered materials by name
+      this.materials = this.materials.sort((a, b) => a.Name.localeCompare(b.Name));
     } catch (error) {
       console.error('Error searching materials:', error);
       this.userNotificationService.showToast('Error al buscar materiales', 'middle');

@@ -65,8 +65,10 @@ export class PasswordEmailPage implements OnInit {
         );
 
         if (this.verificationCode) {
-          await this.storage.set(STORAGE.EMAIL, this.email);
-          await this.storage.set(STORAGE.VERIFICATION_CODE, this.verificationCode);
+          const session = await this.storage.get(STORAGE.SESSION);
+          session.Email = this.email;
+          session.VerificationCode = this.verificationCode;
+          await this.storage.set(STORAGE.SESSION, session);
           this.navCtrl.navigateRoot('/password-code');
         }
       } else {

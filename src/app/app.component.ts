@@ -24,10 +24,8 @@ export class AppComponent implements OnInit {
       await SplashScreen.hide();
 
       const isLoggedIn = await this.sessionService.isLoggedIn();
-      console.log('isLoggedIn', isLoggedIn);
       if (isLoggedIn) {
         const isTokenValid = await this.sessionService.isRefreshTokenValid();
-        console.log('isTokenValid', isTokenValid);
         if (isTokenValid) {
           await this.router.navigate(['/home']);
         } else {

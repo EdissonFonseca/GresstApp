@@ -2,35 +2,36 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TaskAddComponent } from './task-add.component';
-import { ProcessesService } from '@app/application/services/process.service';
-import { SubprocessesService } from '@app/application/services/subprocess.service';
-import { TasksService } from '@app/application/services/task.service';
+import { ProcessService } from '@app/application/services/process.service';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { Camera, Photo } from '@capacitor/camera';
 import { STATUS, SERVICE_TYPES, INPUT_OUTPUT } from '@app/core/constants';
-import { Process } from '@app/interfaces/process.interface';
+import { Process } from '@app/domain/entities/process.entity';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
 
 describe('TaskAddComponent', () => {
   let component: TaskAddComponent;
   let fixture: ComponentFixture<TaskAddComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
-  let processesServiceSpy: jasmine.SpyObj<ProcessesService>;
-  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
-  let tasksServiceSpy: jasmine.SpyObj<TasksService>;
+  let processServiceSpy: jasmine.SpyObj<ProcessService>;
+  let subprocessServiceSpy: jasmine.SpyObj<SubprocessService>;
+  let taskServiceSpy: jasmine.SpyObj<TaskService>;
   let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
   let loggerServiceSpy: jasmine.SpyObj<LoggerService>;
 
-  const mockActivity: Proceso = {
-    IdProceso: '1',
-    IdServicio: SERVICE_TYPES.COLLECTION,
-    IdRecurso: '1',
-    IdOrden: '1',
-    Titulo: 'Test Activity',
-    IdEstado: STATUS.APPROVED,
-    FechaOrden: new Date().toISOString(),
-    NavegarPorTransaccion: false
+  const mockActivity: Process = {
+    ProcessId: '1',
+    ServiceId: SERVICE_TYPES.COLLECTION,
+    ResourceId: '1',
+    OrderId: '1',
+    Title: 'Test Activity',
+    StatusId: STATUS.APPROVED,
+    ProcessDate: new Date().toISOString(),
+    StartDate: new Date().toISOString(),
+    EndDate: new Date().toISOString()
   };
 
   const mockTransaction: Subprocess = {
@@ -45,9 +46,9 @@ describe('TaskAddComponent', () => {
 
   beforeEach(waitForAsync(() => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss', 'create']);
-    processesServiceSpy = jasmine.createSpyObj('ProcessesService', ['get']);
-    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['getByPoint', 'getByThirdParty', 'create']);
-    tasksServiceSpy = jasmine.createSpyObj('TasksService', ['create']);
+    processServiceSpy = jasmine.createSpyObj('ProcessService', ['get']);
+    subprocessServiceSpy = jasmine.createSpyObj('SubprocessService', ['getByPoint', 'getByThirdParty', 'create']);
+    taskServiceSpy = jasmine.createSpyObj('TaskService', ['create']);
     userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showToast', 'showLoading', 'hideLoading']);
     loggerServiceSpy = jasmine.createSpyObj('LoggerService', ['error']);
 
@@ -60,9 +61,9 @@ describe('TaskAddComponent', () => {
       ],
       providers: [
         { provide: ModalController, useValue: modalCtrlSpy },
-        { provide: ProcessesService, useValue: processesServiceSpy },
-        { provide: SubprocessesService, useValue: transactionsServiceSpy },
-        { provide: TasksService, useValue: tasksServiceSpy },
+        { provide: ProcessService, useValue: processServiceSpy },
+        { provide: SubprocessService, useValue: subprocessServiceSpy },
+        { provide: TaskService, useValue: taskServiceSpy },
         { provide: UserNotificationService, useValue: userNotificationServiceSpy },
         { provide: LoggerService, useValue: loggerServiceSpy }
       ]
@@ -79,15 +80,14 @@ describe('TaskAddComponent', () => {
 
   it('should initialize form with default values', () => {
     expect(component.formData).toBeTruthy();
-    expect(component.formData.get('IdActividad')?.value).toBe('1');
-    expect(component.formData.get('IdEstado')?.value).toBe(STATUS.APPROVED);
-    expect(component.formData.get('EntradaSalida')?.value).toBe(INPUT_OUTPUT.INPUT);
+    expect(component.formData.get('StatusId')?.value).toBe(STATUS.APPROVED);
+    expect(component.formData.get('InputOutput')?.value).toBe(INPUT_OUTPUT.INPUT);
   });
 
   it('should load activity data on init', async () => {
-    processesServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
+    processServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
     await component.ngOnInit();
-    expect(processesServiceSpy.get).toHaveBeenCalledWith('1');
+    expect(processServiceSpy.get).toHaveBeenCalledWith('1');
     expect(component.requestPackaging).toBeTrue();
   });
 
@@ -141,10 +141,10 @@ describe('TaskAddComponent', () => {
   });
 
   it('should submit form and create task', async () => {
-    processesServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
-    transactionsServiceSpy.getByPoint.and.returnValue(Promise.resolve(undefined));
-    transactionsServiceSpy.create.and.returnValue(Promise.resolve());
-    tasksServiceSpy.create.and.returnValue(Promise.resolve(true));
+    processServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
+    subprocessServiceSpy.getByPoint.and.returnValue(Promise.resolve(undefined));
+    subprocessServiceSpy.create.and.returnValue(Promise.resolve());
+    taskServiceSpy.create.and.returnValue(Promise.resolve());
 
     component.formData.patchValue({
       MaterialId: '1',
@@ -154,13 +154,13 @@ describe('TaskAddComponent', () => {
 
     await component.submit();
 
-    expect(tasksServiceSpy.create).toHaveBeenCalled();
+    expect(taskServiceSpy.create).toHaveBeenCalled();
     expect(modalCtrlSpy.dismiss).toHaveBeenCalledWith(true);
   });
 
   it('should handle submit error', async () => {
-    processesServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
-    tasksServiceSpy.create.and.returnValue(Promise.reject('error'));
+    processServiceSpy.get.and.returnValue(Promise.resolve(mockActivity));
+    taskServiceSpy.create.and.returnValue(Promise.reject('error'));
 
     component.formData.patchValue({
       MaterialId: '1',
@@ -179,7 +179,7 @@ describe('TaskAddComponent', () => {
   });
 
   it('should show error for non-existent activity', async () => {
-    processesServiceSpy.get.and.returnValue(Promise.resolve(undefined));
+    processServiceSpy.get.and.returnValue(Promise.resolve(undefined));
     component.formData.patchValue({
       MaterialId: '1',
       Quantity: 10

@@ -16,17 +16,16 @@ import { STORAGE } from '@app/core/constants';
 })
 export class AccountPage implements OnInit {
   formData: FormGroup;
-  cuenta: Account | undefined;
+  account: Account | undefined;
 
   constructor(
-    private navCtrl: NavController,
     private formBuilder: FormBuilder,
     private storage: Storage
   ) {
     this.formData = this.formBuilder.group({
-      Nombre: ['', Validators.required],
-      Identificacion: ['', Validators.required],
-      Cubrimiento: ['', Validators.required],
+      Name: ['', Validators.required],
+      Identification: ['', Validators.required],
+      Coverage: ['', Validators.required],
     });
   }
 
@@ -34,11 +33,11 @@ export class AccountPage implements OnInit {
    * Initialize the page and load account data
    */
   async ngOnInit() {
-    this.cuenta = await this.storage.get(STORAGE.ACCOUNT);
+    this.account = await this.storage.get(STORAGE.ACCOUNT);
 
     this.formData.patchValue({
-      Nombre: this.cuenta?.Name,
-      Identificacion: this.cuenta?.PersonId
+      Nombre: this.account?.Name,
+      Identificacion: this.account?.PersonId
     });
   }
 }

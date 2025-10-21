@@ -43,7 +43,8 @@ export class PasswordCodePage implements OnInit {
    */
   async verify() {
     try {
-      const generatedCode = await this.storage.get(STORAGE.VERIFICATION_CODE);
+      const session = await this.storage.get(STORAGE.SESSION);
+      const generatedCode = session.VerificationCode;
 
       if (this.verificationCode !== generatedCode) {
         await this.presentToast('The code does not match', 'middle');

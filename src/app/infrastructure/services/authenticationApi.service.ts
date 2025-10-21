@@ -4,7 +4,9 @@ import { HttpService } from './http.service';
 import { StorageService } from './storage.service';
 import { LoggerService } from './logger.service';
 import { STORAGE } from '@app/core/constants';
-
+import { Session } from '@app/domain/entities/session.entity';
+import { Account } from '@app/domain/entities/account.entity';
+import { User } from '@app/domain/entities/user.entity';
 /**
  * Interface representing the token response from the authentication server
  */
@@ -52,9 +54,13 @@ export class AuthenticationApiService {
         return false;
       }
 
-      await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
-      await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
-      await this.storage.set(STORAGE.USERNAME, username);
+      const session: Session = {
+        AccessToken: response.data.AccessToken,
+        RefreshToken: response.data.RefreshToken,
+        UserName: username,
+        StartDate: new Date().toISOString(),
+      };
+      await this.storage.set(STORAGE.SESSION, session);
 
       return true;
     } catch (error) {
@@ -133,16 +139,15 @@ export class AuthenticationApiService {
 
   async isRefreshTokenValid(): Promise<boolean> {
     try {
-      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
-      const username = await this.storage.get(STORAGE.USERNAME);
+      const session = await this.storage.get(STORAGE.SESSION);
 
-      if (!refreshToken || !username) {
-        this.logger.error('No refresh token or username found during validation', { refreshToken, username });
+      if (!session.RefreshToken || !session.UserName) {
+        this.logger.error('No refresh token or username found during validation', { session });
         return false;
       }
       const response = await this.http.post<boolean>('/authentication/isvalidrefreshtoken', {
-        RefreshToken: refreshToken,
-        Username: username
+        RefreshToken: session.RefreshToken,
+        Username: session.UserName
       });
 
       return (response.status === 200);
@@ -157,17 +162,16 @@ export class AuthenticationApiService {
    */
   async refreshToken(): Promise<boolean> {
     try {
-      const refreshToken = await this.storage.get(STORAGE.REFRESH_TOKEN);
-      const username = await this.storage.get(STORAGE.USERNAME);
+      const session = await this.storage.get(STORAGE.SESSION);
 
-      if (!refreshToken || !username) {
-        this.logger.error('No refresh token or username found during refresh', { refreshToken, username });
+      if (!session.RefreshToken || !session.UserName) {
+        this.logger.error('No refresh token or username found during refresh', { session });
         return false;
       }
 
       const response = await this.http.post<TokenResponse>('/authentication/refreshtoken', {
-        RefreshToken: refreshToken,
-        Username: username
+        RefreshToken: session.RefreshToken,
+        Username: session.UserName
       });
 
       if (!response.data.AccessToken || !response.data.RefreshToken) {
@@ -175,13 +179,42 @@ export class AuthenticationApiService {
         return false;
       }
 
-      await this.storage.set(STORAGE.ACCESS_TOKEN, response.data.AccessToken);
-      await this.storage.set(STORAGE.REFRESH_TOKEN, response.data.RefreshToken);
+      await this.storage.set(STORAGE.SESSION, {
+        AccessToken: response.data.AccessToken,
+        RefreshToken: response.data.RefreshToken,
+        UserName: session.UserName
+      });
       return true;
     } catch (error) {
       this.logger.error('Error refreshing token', error);
       await this.logout();
       return false;
+    }
+  }
+  /// <summary>
+  /// Gets the user account from the authentication server
+  /// </summary>
+  /// <returns>The user account</returns>
+  async getAccount(): Promise<Account> {
+    try {
+      const response = await this.http.get<Account>('/authentication/getaccount');
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error getting user account', error);
+      throw error;
+    }
+  }
+  /// <summary>
+  /// Gets the user data from the authentication server
+  /// </summary>
+  /// <returns>The user data</returns>
+  async getUser(): Promise<User> {
+    try {
+      const response = await this.http.get<User>('/authentication/getuser');
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error getting user data', error);
+      throw error;
     }
   }
 

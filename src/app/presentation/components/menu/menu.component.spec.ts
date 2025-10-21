@@ -4,9 +4,9 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MenuComponent } from './menu.component';
 import { StorageService } from '@app/infrastructure/services/storage.service';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
-import { AuthorizationService } from '@app/infrastructure/repositories/authorization.repository';
+import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { of } from 'rxjs';
 
 const mockAccount = {
@@ -24,7 +24,7 @@ describe('MenuComponent', () => {
   let menuCtrlSpy: jasmine.SpyObj<MenuController>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let notificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
-  let authorizationServiceSpy: jasmine.SpyObj<AuthorizationService>;
+  let authorizationRepositorySpy: jasmine.SpyObj<AuthorizationRepository>;
   let translateSpy: jasmine.SpyObj<TranslateService>;
 
   beforeEach(waitForAsync(() => {
@@ -36,7 +36,7 @@ describe('MenuComponent', () => {
     notificationServiceSpy = jasmine.createSpyObj('UserNotificationService', [
       'showToast', 'showLoading', 'hideLoading', 'showAlert', 'showConfirm'
     ]);
-    authorizationServiceSpy = jasmine.createSpyObj('AuthorizationService', ['getPermission']);
+    authorizationRepositorySpy = jasmine.createSpyObj('AuthorizationRepository', ['getPermission']);
     translateSpy = jasmine.createSpyObj('TranslateService', ['instant']);
 
     TestBed.configureTestingModule({
@@ -49,7 +49,7 @@ describe('MenuComponent', () => {
         { provide: MenuController, useValue: menuCtrlSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
         { provide: UserNotificationService, useValue: notificationServiceSpy },
-        { provide: AuthorizationService, useValue: authorizationServiceSpy },
+        { provide: AuthorizationRepository, useValue: authorizationRepositorySpy },
         { provide: TranslateService, useValue: translateSpy }
       ]
     }).compileComponents();
@@ -64,7 +64,7 @@ describe('MenuComponent', () => {
 
   it('should initialize and load user/account data', fakeAsync(async () => {
     storageSpy.get.and.returnValue(Promise.resolve(mockAccount));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve('C'));
+    authorizationRepositorySpy.getPermission.and.returnValue(Promise.resolve('C'));
     await component.ngOnInit();
     expect(component.account).toBe('Cuenta Test');
     expect(component.user).toBe('usuario.test');
@@ -81,7 +81,7 @@ describe('MenuComponent', () => {
 
   it('should set menu item visibility based on permissions', fakeAsync(async () => {
     storageSpy.get.and.returnValue(Promise.resolve(mockAccount));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve('C'));
+    authorizationRepositorySpy.getPermission.and.returnValue(Promise.resolve('C'));
     await component.ngOnInit();
     expect(component.showCertificate).toBeTrue();
     expect(component.showAccount).toBeTrue();
@@ -97,7 +97,7 @@ describe('MenuComponent', () => {
 
   it('should hide menu item if permission is empty', fakeAsync(async () => {
     storageSpy.get.and.returnValue(Promise.resolve(mockAccount));
-    authorizationServiceSpy.getPermission.and.returnValue(Promise.resolve(''));
+    authorizationRepositorySpy.getPermission.and.returnValue(Promise.resolve(''));
     await component.ngOnInit();
     expect(component.showCertificate).toBeFalse();
   }));

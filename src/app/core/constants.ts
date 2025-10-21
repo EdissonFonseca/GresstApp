@@ -94,7 +94,7 @@ export const PERMISSIONS = {
   APP_PACKAGE: "AppEmbalaje",
   APP_SUPPLY: "AppInsumo",
   APP_MATERIAL: "AppMaterial",
-  APP_POINT: "AppPunto",
+  APP_FACILITY: "AppPunto",
   APP_SERVICE: "AppServicio",
   APP_THIRD_PARTY: "AppTercero",
   APP_VEHICLE: "AppVehiculo",
@@ -205,7 +205,6 @@ export const STATUSES: { IdEstado: string, Nombre: string, Color: string }[] = [
  * Defines the keys used for storing data in local storage
  */
 export const STORAGE = {
-  ACCESS_TOKEN: 'AccessToken',
   ACCOUNT: 'Account',
   EMAIL: 'Email',
   FACILITIES: 'Facilities',
@@ -216,17 +215,13 @@ export const STORAGE = {
   PACKAGES: 'Packages',
   PARTIES: 'Parties',
   PERMISSIONS: 'Permissions',
-  REFRESH_TOKEN: 'RefreshToken',
   MESSAGES: 'Messages',
   SERVICES: 'Services',
+  SESSION: 'Session',
   SUPPLIES: 'Supplies',
-  START_DATE: 'StartDate',
   TREATMENTS: 'Treatments',
-  USERNAME: 'Username',
-  USER_LANGUAGE: 'UserLanguage',
+  USER: 'User',
   VEHICLES: 'Vehicles',
-  VERIFICATION_CODE: 'Code',
-  WASTES: 'Wastes',
 }
 
 /**

@@ -6,19 +6,19 @@
   </ion-toolbar>
 </ion-header>
 <ion-searchbar (ionInput)="handleInput($event)"></ion-searchbar>
-<ion-content *ngIf="puntos.length == 0">
+<ion-content *ngIf="facilities.length == 0">
   <app-facility></app-facility>
 </ion-content>
 <ion-content>
-  <ion-item-group *ngFor="let tercero of terceros">
+  <ion-item-group *ngFor="let party of getVisibleParties()">
     <ion-item-divider color="light">
-      <ion-label>{{tercero.Name}}</ion-label>
+      <ion-label>{{party.Name}}</ion-label>
     </ion-item-divider>
-    <ion-list *ngFor="let punto of filterPuntos(tercero.Id)" (click)="select(punto.Id, tercero.Id, tercero.Name, punto.Name)">
+    <ion-list *ngFor="let facility of filterFacilitiesByOwner(party.Id)" (click)="select(facility.Id, party.Id, party.Name, facility.Name)">
       <ion-item lines="none">
-        {{punto.Name}}
+        {{facility.Name}}
       </ion-item>
-      </ion-list>
+    </ion-list>
   </ion-item-group>
 </ion-content>
 

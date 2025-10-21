@@ -27,8 +27,8 @@ import { LoggerService } from '@app/infrastructure/services/logger.service';
   styleUrls: ['./task-add.component.scss']
 })
 export class TaskAddComponent implements OnInit {
-  @Input() activityId: string = '';
-  @Input() transactionId: string = '';
+  @Input() processId: string = '';
+  @Input() subprocessId: string = '';
 
   captureType: string = '';
   formData!: FormGroup;
@@ -58,15 +58,15 @@ export class TaskAddComponent implements OnInit {
   private initializeForm(): void {
     this.formData = this.formBuilder.group({
       // Non-editable fields
-      IdActividad: [this.activityId],
-      IdTransaccion: [this.transactionId],
-      IdTarea: [Utils.generateId()],
-      IdEstado: [STATUS.APPROVED],
-      FechaSolicitud: [new Date().toISOString()],
-      FechaProgramada: [new Date().toISOString()],
-      FechaEjecucion: [new Date().toISOString()],
-      Accion: ['Ver'],
-      EntradaSalida: [INPUT_OUTPUT.INPUT],
+      ProcessId: [this.processId],
+      SubprocessId: [this.subprocessId],
+      TaskId: [Utils.generateId()],
+      StatusId: [STATUS.APPROVED],
+      RequestDate: [new Date().toISOString()],
+      ScheduledDate: [new Date().toISOString()],
+      ExecutionDate: [new Date().toISOString()],
+      Action: ['Ver'],
+      InputOutput: [INPUT_OUTPUT.INPUT],
 
       // Editable fields
       Quantity: [null, Validators.required],
@@ -103,28 +103,28 @@ export class TaskAddComponent implements OnInit {
    */
   async ngOnInit() {
     this.photosPerMaterial = Utils.photosByMaterial ?? 2;
-    await this.loadActivityData();
+    await this.loadProcessData();
   }
 
   /**
    * Loads activity data and sets up component state based on activity type
    */
-  private async loadActivityData(): Promise<void> {
-    const activity = await this.processService.get(this.activityId);
-    if (!activity) return;
+  private async loadProcessData(): Promise<void> {
+    const process = await this.processService.get(this.processId);
+    if (!process) return;
 
     // Set non-editable fields from activity
     this.formData.patchValue({
-      IdServicio: activity.ServiceId,
-      IdRecurso: activity.ResourceId,
-      IdOrden: activity.OrderId,
-      Titulo: activity.Title
+      ServiceId: process.ServiceId,
+      ResourceId: process.ResourceId,
+      OrderId: process.OrderId,
+      Title: process.Title
     });
 
-    if (activity.ServiceId == SERVICE_TYPES.COLLECTION || activity.ServiceId == SERVICE_TYPES.TRANSPORT) {
+    if (process.ServiceId == SERVICE_TYPES.COLLECTION || process.ServiceId == SERVICE_TYPES.TRANSPORT) {
       this.requestPackaging = true;
-      await this.handleTransportOrCollectionActivity(activity);
-    } else if (activity.ServiceId == SERVICE_TYPES.RECEPTION) {
+      await this.handleTransportOrCollectionActivity(process);
+    } else if (process.ServiceId == SERVICE_TYPES.RECEPTION) {
       this.requestOwner = true;
     }
   }
@@ -133,8 +133,8 @@ export class TaskAddComponent implements OnInit {
    * Handles activity data for transport or collection services
    */
   private async handleTransportOrCollectionActivity(activity: Process): Promise<void> {
-    if (this.transactionId) {
-      const subprocess = await this.subprocessService.get(this.activityId, this.transactionId);
+    if (this.subprocessId) {
+      const subprocess = await this.subprocessService.get(this.processId, this.subprocessId);
       if (!subprocess) {
         this.requestPoint = true;
       } else {
@@ -216,11 +216,11 @@ export class TaskAddComponent implements OnInit {
   /**
    * Opens modal to select input point
    */
-  async selectInputPoint(): Promise<void> {
+  async selectInputFacility(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: FacilitiesComponent,
       componentProps: {
-        tipoTercero: THIRD_PARTY_TYPES.CLIENT,
+        partyType: THIRD_PARTY_TYPES.CLIENT,
         includeMe: false,
       },
     });
@@ -242,11 +242,11 @@ export class TaskAddComponent implements OnInit {
   /**
    * Opens modal to select output point
    */
-  async selectOutputPoint(): Promise<void> {
+  async selectOutputFacility(): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: FacilitiesComponent,
       componentProps: {
-        tipoTercero: THIRD_PARTY_TYPES.SUPPLIER,
+        partyType: THIRD_PARTY_TYPES.SUPPLIER,
         includeMe: true,
       },
     });
@@ -333,33 +333,33 @@ export class TaskAddComponent implements OnInit {
       return;
     }
 
-    const activity = await this.processService.get(this.activityId);
-    if (!activity) {
-      this.userNotificationService.showToast('TASK_ADD.MESSAGES.ACTIVITY_NOT_FOUND', 'middle');
+    const process = await this.processService.get(this.processId);
+    if (!process) {
+      this.userNotificationService.showToast('TASK_ADD.MESSAGES.PROCESS_NOT_FOUND', 'middle');
       return;
     }
 
     try {
       const formValue = this.formData.value;
-      let transactionId = this.transactionId;
-      if (!this.transactionId) {
+      let subprocessId = this.subprocessId;
+      if (!this.subprocessId) {
         var isExistingTransaction = true;
-        if (activity.ServiceId === SERVICE_TYPES.COLLECTION || activity.ServiceId == SERVICE_TYPES.TRANSPORT) {
-          const existingTransaction = await this.subprocessService.getByPoint(this.activityId, formValue.InputPointId);
+        if (process.ServiceId === SERVICE_TYPES.COLLECTION || process.ServiceId == SERVICE_TYPES.TRANSPORT) {
+          const existingTransaction = await this.subprocessService.getByPoint(this.processId, formValue.InputPointId);
           if (!existingTransaction)
             isExistingTransaction = false;
-        } else if (activity.ServiceId == SERVICE_TYPES.RECEPTION) {
-          const existingTransaction = await this.subprocessService.getByThirdParty(this.activityId, formValue.InputThirdPartyId);
+        } else if (process.ServiceId == SERVICE_TYPES.RECEPTION) {
+          const existingTransaction = await this.subprocessService.getByThirdParty(this.processId, formValue.InputThirdPartyId);
           if (!existingTransaction)
             isExistingTransaction = false;
         }
         if (!isExistingTransaction) {
-          const transaction = await this.createTransaction(activity, formValue);
-          transactionId = transaction.SubprocessId;
+          const transaction = await this.createTransaction(process, formValue);
+          subprocessId = transaction.SubprocessId;
         }
       }
 
-      await this.createTask(activity, transactionId);
+      await this.createTask(process, subprocessId);
       this.modalCtrl.dismiss(true);
 
     } catch (error) {
@@ -374,7 +374,7 @@ export class TaskAddComponent implements OnInit {
   private async createTransaction(activity: Process, formValue: FormGroup['value']): Promise<Subprocess> {
     const now = new Date().toISOString();
     const subprocess: Subprocess = {
-      ProcessId: this.activityId,
+      ProcessId: this.processId,
       SubprocessId: Utils.generateId(),
       StatusId: STATUS.PENDING,
       InputOutput: INPUT_OUTPUT.INPUT,
@@ -405,13 +405,13 @@ export class TaskAddComponent implements OnInit {
   /**
    * Creates a new task
    */
-  private async createTask(activity: Process, transactionId: string | null): Promise<void> {
+  private async createTask(activity: Process, subprocessId: string | null): Promise<void> {
     const formValue = this.formData.value;
     const now = new Date().toISOString();
 
     const task: Task = {
-      ProcessId: this.activityId,
-      SubprocessId: transactionId || undefined,
+      ProcessId: this.processId,
+      SubprocessId: subprocessId || undefined,
       TaskId: Utils.generateId(),
       MaterialId: formValue.MaterialId,
       FacilityId: formValue.InputPointId,

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertController } from '@ionic/angular';
-import { Account } from '@app/domain/entities/account.entity';
 import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
 import { StorageService } from '@app/infrastructure/services/storage.service';
 import { STORAGE } from '@app/core/constants';
+import { User } from '@app/domain/entities/user.entity';
 
 /**
  * Page component for user profile management
@@ -17,7 +17,7 @@ import { STORAGE } from '@app/core/constants';
 })
 export class ProfilePage implements OnInit {
   formData: FormGroup;
-  account: Account | undefined = undefined;
+  user: User | undefined = undefined;
   showPassword: boolean = false;
 
   constructor(
@@ -40,11 +40,11 @@ export class ProfilePage implements OnInit {
    * Loads user account data and populates the form
    */
   async ngOnInit() {
-    this.account = await this.storage.get(STORAGE.ACCOUNT);
+    this.user = await this.storage.get(STORAGE.USER);
 
     this.formData.patchValue({
-      Nombre: this.account?.Name,
-      Correo: this.account?.Login
+      Name: this.user?.Name,
+      Email: this.user?.Email
     });
   }
 
@@ -60,14 +60,14 @@ export class ProfilePage implements OnInit {
    * Updates the name in the backend and local storage
    */
   async changeName() {
-    const userName = await this.storage.get(STORAGE.USERNAME);
+    const user = await this.storage.get(STORAGE.USER);
     const formValues = this.formData.value;
 
     try {
-      await this.authenticationService.changeName(userName, formValues.Nombre);
-      if (this.account) {
-        this.account.Name = formValues.Nombre;
-        await this.storage.set(STORAGE.ACCOUNT, this.account);
+      await this.authenticationService.changeName(user.Email, formValues.Nombre);
+      if (this.user) {
+        this.user.Name = formValues.Nombre;
+        await this.storage.set(STORAGE.USER, this.user);
       }
       await this.presentAlert('Name changed', '', 'Your name has been successfully changed');
     } catch (error) {
@@ -81,7 +81,7 @@ export class ProfilePage implements OnInit {
    * Validates current password and updates to new password
    */
   async changePassword() {
-    const userName = await this.storage.get(STORAGE.USERNAME);
+    const user = await this.storage.get(STORAGE.USER);
     const currentPassword = '';
 
     if (this.formData.valid) {
@@ -92,7 +92,7 @@ export class ProfilePage implements OnInit {
         await this.presentAlert('Error', 'Error', 'Current password is incorrect');
       } else {
         try {
-          await this.authenticationService.changePassword(userName, formValues.ClaveNueva);
+          await this.authenticationService.changePassword(user.Email, formValues.ClaveNueva);
           //await this.storage.set('Password', formValues.ClaveNueva);
           await this.presentAlert('Password changed', '', 'Your password has been successfully changed');
         } catch (error) {

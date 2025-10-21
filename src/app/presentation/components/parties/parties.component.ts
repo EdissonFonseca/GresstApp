@@ -13,7 +13,7 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
 })
 export class PartiesComponent  implements OnInit {
   @Input() showHeader: boolean = true;
-  terceros: Party[] = [];
+  parties: Party[] = [];
   formData: FormGroup;
   selectedValue: string = '';
   selectedName: string = '';
@@ -26,19 +26,18 @@ export class PartiesComponent  implements OnInit {
     private formBuilder: FormBuilder,
     private partyRepository: PartyRepository,
     private navCtrl: NavController,
-    private authorizationService: AuthorizationRepository,
-    private userNotificationService: UserNotificationService
+    private authorizationService: AuthorizationRepository
   ) {
     this.formData = this.formBuilder.group({
-      Nombre: ['', Validators.required],
+      Name: ['', Validators.required],
       Identificacion: ['', Validators.required],
-      Telefono: [''],
-      Correo: [''],
+      Phone: [''],
+      Email: [''],
     });
   }
 
   async ngOnInit() {
-    this.terceros = await this.partyRepository.getAll();
+    this.parties = await this.partyRepository.getAll();
     this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_THIRD_PARTY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
@@ -49,7 +48,7 @@ export class PartiesComponent  implements OnInit {
     this.formData.patchValue({Nombre: this.selectedName});
 
     const tercerosList = await this.partyRepository.getAll();
-    this.terceros = tercerosList.filter((tercero) => tercero.Name?.toLowerCase().indexOf(query) > -1);
+    this.parties = tercerosList.filter((tercero) => tercero.Name?.toLowerCase().indexOf(query) > -1);
   }
 
   select(idTercero: string, nombre: string) {

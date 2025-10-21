@@ -14,13 +14,12 @@ import { AuthorizationRepository } from '@app/infrastructure/repositories/author
 })
 export class FacilitiesComponent  implements OnInit, OnChanges {
   @Input() showHeader: boolean = true;
-  @Input() idTercero: string = '';
-  @Input() tipoTercero: string = '';
+  @Input() partyId: string = '';
+  @Input() partyType: string = '';
   @Input() includeMe: boolean = false;
-  idPunto: string = '';
-  puntos: Facility[] = [];
-  filteredPuntos: Facility[] = [];
-  terceros: Party[] = [];
+  facilities: Facility[] = [];
+  filteredFacilities: Facility[] = [];
+  parties: Party[] = [];
   selectedValue: string = '';
   selectedName: string = '';
   selectedOwner: string = '';
@@ -34,54 +33,83 @@ export class FacilitiesComponent  implements OnInit, OnChanges {
   ) { }
 
   async ngOnInit() {
-    await this.filterPoints();
-    this.enableNew = (await this.authorizationRepository.getPermission(PERMISSIONS.APP_POINT))?.includes(CRUD_OPERATIONS.CREATE);
+    await this.filterFacilities();
+    this.enableNew = (await this.authorizationRepository.getPermission(PERMISSIONS.APP_FACILITY))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    if (changes['idTercero']) {
-      await this.filterPoints();
+    if (changes['partyId']) {
+      await this.filterFacilities();
     }
   }
 
-  async filterPoints() {
-    const terceros = await this.partyRepository.getAll();
-    if (this.idTercero) {
-      this.terceros = terceros.filter((x: Party) => x.Id == this.idTercero);
-    } else if (this.tipoTercero) {
-      if (this.tipoTercero == THIRD_PARTY_TYPES.CLIENT)
-        this.terceros = terceros.filter((x: Party) => x.IsClient);
-      else if (this.tipoTercero == THIRD_PARTY_TYPES.SUPPLIER)
-        this.terceros = terceros.filter((x: Party) => x.IsSupplier);
-      if (this.tipoTercero == THIRD_PARTY_TYPES.INTERNAL)
-        this.terceros = terceros.filter((x: Party) => x.IsEmployee);
+  async filterFacilities() {
+    const parties = await this.partyRepository.getAll();
+    if (this.partyId) {
+      this.parties = parties.filter((x: Party) => x.Id == this.partyId);
+    } else if (this.partyType) {
+      if (this.partyType == THIRD_PARTY_TYPES.CLIENT)
+        this.parties = parties.filter((x: Party) => x.IsClient);
+      else if (this.partyType == THIRD_PARTY_TYPES.SUPPLIER)
+        this.parties = parties.filter((x: Party) => x.IsProvider);
+      if (this.partyType == THIRD_PARTY_TYPES.INTERNAL)
+        this.parties = parties.filter((x: Party) => x.IsEmployee);
     } else {
-      this.terceros = terceros;
+      this.parties = parties;
     }
 
-    const puntos =  await this.facilityRepository.getAll();
-    if (this.idTercero)
-      this.puntos = puntos.filter((x: Facility) => x.OwnerId == this.idTercero);
+    // Sort parties by name
+    this.parties = this.parties.sort((a, b) => a.Name.localeCompare(b.Name));
+
+    const facilities =  await this.facilityRepository.getAll();
+    if (this.partyId)
+      this.facilities = facilities.filter((x: Facility) => x.OwnerId == this.partyId);
     else
-      this.puntos = puntos;
-    this.filteredPuntos = this.puntos;
+      this.facilities = facilities;
+
+    // Sort facilities by party name (owner) and then by facility name
+    this.facilities = this.facilities.sort((a, b) => {
+      const partyA = this.parties.find(p => p.Id === a.OwnerId);
+      const partyB = this.parties.find(p => p.Id === b.OwnerId);
+      const partyNameA = partyA?.Name || '';
+      const partyNameB = partyB?.Name || '';
+
+      // First sort by party name
+      const partyComparison = partyNameA.localeCompare(partyNameB);
+      if (partyComparison !== 0) {
+        return partyComparison;
+      }
+
+      // Then sort by facility name
+      return a.Name.localeCompare(b.Name);
+    });
+
+    this.filteredFacilities = this.facilities;
   }
 
-  filterPuntos(idTercero: string) {
-    return this.filteredPuntos.filter((x: Facility) => x.OwnerId == idTercero);
+  getVisibleParties(): Party[] {
+    // Get unique owner IDs from filtered facilities
+    const ownerIds = new Set(this.filteredFacilities.map(f => f.OwnerId));
+    // Return only parties that have facilities in the filtered list
+    return this.parties.filter(p => ownerIds.has(p.Id));
+  }
+
+  filterFacilitiesByOwner(ownerId: string): Facility[] {
+    return this.filteredFacilities.filter((x: Facility) => x.OwnerId == ownerId);
   }
 
   async handleInput(event: any){
-    let puntos: Facility[] = [];
-    let tercero: string = '';
-    let nombre: string = '';
+    const query = event.target.value.toLowerCase().trim();
 
-    const query = event.target.value.toLowerCase();
-    nombre = query.trim();
-    puntos = this.puntos;
-    if (nombre != '')
-      puntos = puntos.filter((punto: Facility ) => punto.Name.toLowerCase().indexOf(nombre) > -1);
-    this.filteredPuntos = puntos;
+    if (query === '') {
+      // If search is empty, show all facilities
+      this.filteredFacilities = this.facilities;
+    } else {
+      // Filter facilities by name
+      this.filteredFacilities = this.facilities.filter((facility: Facility) =>
+        facility.Name.toLowerCase().indexOf(query) > -1
+      );
+    }
   }
 
   async select(idPunto: string, idTercero: string, tercero: string, nombre: string) {
@@ -102,4 +130,3 @@ export class FacilitiesComponent  implements OnInit, OnChanges {
   }
 
 }
-

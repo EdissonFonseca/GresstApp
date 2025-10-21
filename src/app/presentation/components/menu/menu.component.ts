@@ -102,7 +102,7 @@ export class MenuComponent implements OnInit {
       this.showSupply = await this.authorizationService.getPermission(PERMISSIONS.APP_SUPPLY) !== '';
       this.showMaterial = await this.authorizationService.getPermission(PERMISSIONS.APP_MATERIAL) !== '';
       this.showService = await this.authorizationService.getPermission(PERMISSIONS.APP_SERVICE) !== '';
-      this.showPoint = await this.authorizationService.getPermission(PERMISSIONS.APP_POINT) !== '';
+      this.showPoint = await this.authorizationService.getPermission(PERMISSIONS.APP_FACILITY) !== '';
       this.showThirdParty = await this.authorizationService.getPermission(PERMISSIONS.APP_THIRD_PARTY) !== '';
       this.showTreatment = await this.authorizationService.getPermission(PERMISSIONS.APP_TREATMENT) !== '';
       this.showVehicle = await this.authorizationService.getPermission(PERMISSIONS.APP_VEHICLE) !== '';

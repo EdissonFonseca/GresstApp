@@ -53,8 +53,8 @@ export class SessionService {
    * @returns {Promise<boolean>} True if a username exists in storage
    */
   async isLoggedIn(): Promise<boolean> {
-    const username = await this.storage.get(STORAGE.USERNAME);
-    return username !== null;
+    const session = await this.storage.get(STORAGE.SESSION);
+    return session.AccessToken !== null;
   }
 
   /**
@@ -92,12 +92,11 @@ export class SessionService {
    */
   async start(): Promise<boolean> {
     try {
-      await this.syncService.downloadAuthorizations();
+      await this.syncService.downloadPermissions();
       await this.syncService.downloadInventory();
       await this.syncService.downloadMasterData();
       await this.syncService.downloadOperation();
       await this.storage.set(STORAGE.MESSAGES, []);
-      await this.storage.set(STORAGE.START_DATE, new Date().toISOString());
     } catch (error) {
       this.logger.error('Error loading initial data', error);
       return false;
@@ -118,7 +117,7 @@ export class SessionService {
       if (isOnline) {
         console.log('isOnline', isOnline);
         if (await this.uploadData()) {
-          await this.syncService.downloadAuthorizations();
+          await this.syncService.downloadPermissions();
           await this.syncService.downloadInventory();
           await this.syncService.downloadMasterData();
           await this.syncService.downloadOperation();
