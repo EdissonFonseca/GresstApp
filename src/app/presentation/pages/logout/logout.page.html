@@ -1,0 +1,153 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cerrar Sesión</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Initial view - shown before attempting logout -->
+  <div *ngIf="!showExportOption()">
+    <!-- Information section - With pending data -->
+    <ion-card *ngIf="pendingMessages() > 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="log-out-outline" color="primary"></ion-icon>
+          Cerrar Sesión
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="ion-text-wrap">
+          Tiene datos pendientes por enviar al servidor. Al cerrar sesión, se intentará sincronizarlos automáticamente antes de finalizar.
+        </p>
+
+        <ion-item lines="none">
+          <ion-icon name="alert-circle-outline" slot="start" color="warning"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h3>Datos pendientes por enviar:</h3>
+            <p><strong>{{ pendingMessages() }}</strong> {{ pendingMessages() === 1 ? 'registro pendiente' : 'registros pendientes' }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Information section - No pending data -->
+    <ion-card *ngIf="pendingMessages() === 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="log-out-outline" color="primary"></ion-icon>
+          Cerrar Sesión
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p class="ion-text-wrap">
+          ¿Está seguro que desea cerrar sesión?
+        </p>
+
+        <ion-item lines="none">
+          <ion-icon name="checkmark-circle-outline" slot="start" color="success"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h3>Todos sus datos están sincronizados</h3>
+            <p style="font-size: 0.85rem; color: var(--ion-color-medium);">
+              Puede cerrar sesión sin problemas.
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Logout button -->
+    <ion-button
+      expand="block"
+      color="success"
+      (click)="logout()"
+      size="large">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      Cerrar Sesión
+    </ion-button>
+
+    <!-- Cancel button (if cancellable) -->
+    <ion-button
+      *ngIf="canCancel"
+      expand="block"
+      color="medium"
+      (click)="cancel()"
+      size="large"
+      fill="outline"
+      class="ion-margin-top">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Cancelar
+    </ion-button>
+  </div>
+
+  <!-- Force quit option (shown when sync fails) -->
+  <ion-card *ngIf="showExportOption()" color="light">
+    <ion-card-header>
+      <ion-card-title color="warning">
+        <ion-icon name="cloud-offline-outline"></ion-icon>
+        No se Pudo Sincronizar
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p class="ion-text-wrap">
+        <strong>No se pudo establecer conexión con el servidor para enviar los datos pendientes.</strong>
+      </p>
+      <p class="ion-text-wrap">
+        Para cerrar sesión, se generará automáticamente un archivo de respaldo con sus datos pendientes y luego se cerrará la sesión.
+      </p>
+
+      <ion-item lines="none">
+        <ion-icon name="alert-circle-outline" slot="start" color="warning"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h3>Datos pendientes:</h3>
+          <p><strong>{{ pendingMessages() }}</strong> {{ pendingMessages() === 1 ? 'registro' : 'registros' }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="none">
+        <ion-icon name="download-outline" slot="start" color="primary"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h3>¿Qué sucederá?</h3>
+          <p style="font-size: 0.85rem;">
+            1. Se descargará un archivo JSON con los datos pendientes<br>
+            2. Se cerrará la sesión y se borrarán todos los datos locales<br>
+            3. Deberá enviar el archivo a <strong>soporte&#64;gresst.com</strong> para su procesamiento
+          </p>
+        </ion-label>
+      </ion-item>
+
+      <ion-button
+        expand="block"
+        color="danger"
+        (click)="forceQuit()"
+        size="large"
+        class="ion-margin-top">
+        <ion-icon name="power-outline" slot="start"></ion-icon>
+        Generar Backup y Forzar Cierre
+      </ion-button>
+
+      <!-- Cancel button (if cancellable) -->
+      <ion-button
+        *ngIf="canCancel"
+        expand="block"
+        color="medium"
+        (click)="cancel()"
+        fill="outline"
+        size="large"
+        class="ion-margin-top">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        Cancelar y Volver
+      </ion-button>
+
+      <ion-note class="ion-padding-top ion-text-wrap">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <small>
+          <strong>Importante:</strong> Después del cierre forzado, deberá volver a iniciar sesión. Asegúrese de enviar el archivo exportado al equipo de soporte.
+        </small>
+      </ion-note>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+

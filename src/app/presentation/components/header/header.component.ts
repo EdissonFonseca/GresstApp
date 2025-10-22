@@ -61,6 +61,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
    */
   async synchronize() {
     try {
+      // Check if there are pending messages before attempting sync
+      const hasPending = await this.sessionService.hasPendingRequests();
+
       await this.userNotificationService.showLoading(
         this.translate.instant('HEADER.MESSAGES.SYNCHRONIZING')
       );
@@ -70,10 +73,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
       await this.userNotificationService.hideLoading();
 
       if (success) {
-        await this.userNotificationService.showToast(
-          this.translate.instant('HEADER.MESSAGES.SYNC_SUCCESS'),
-          'middle'
-        );
+        // Update pending count after successful sync
+        await this.sessionService.countPendingRequests();
+
+        const message = hasPending
+          ? this.translate.instant('HEADER.MESSAGES.SYNC_SUCCESS')
+          : this.translate.instant('HEADER.MESSAGES.DATA_UPDATED');
+
+        await this.userNotificationService.showToast(message, 'middle');
       } else {
         await this.userNotificationService.showToast(
           this.translate.instant('HEADER.MESSAGES.SYNC_ERROR'),

@@ -1,18 +1,21 @@
 import { ComponentFixture, TestBed, waitForAsync, fakeAsync, tick } from '@angular/core/testing';
 import { IonicModule, NavController } from '@ionic/angular';
-import { SynchronizationPage } from './synchronization.page';
-import { SessionService } from '@app/infrastructure/services/session.service';
+import { LogoutPage } from './logout.page';
+import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
+import { MessageRepository } from '@app/infrastructure/repositories/message.repository';
+import { StorageService } from '@app/infrastructure/services/storage.service';
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule } from '@angular/forms';
-import { ComponentsModule } from '@app/components/components.module';
 
-describe('SynchronizationPage', () => {
-  let component: SynchronizationPage;
-  let fixture: ComponentFixture<SynchronizationPage>;
+describe('LogoutPage', () => {
+  let component: LogoutPage;
+  let fixture: ComponentFixture<LogoutPage>;
   let navCtrlSpy: jasmine.SpyObj<NavController>;
   let sessionServiceSpy: jasmine.SpyObj<SessionService>;
   let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
+  let messageRepositorySpy: jasmine.SpyObj<MessageRepository>;
+  let storageServiceSpy: jasmine.SpyObj<StorageService>;
 
   beforeEach(waitForAsync(() => {
     navCtrlSpy = jasmine.createSpyObj('NavController', ['navigateForward']);
@@ -22,23 +25,26 @@ describe('SynchronizationPage', () => {
       'hideLoading',
       'showToast'
     ]);
+    messageRepositorySpy = jasmine.createSpyObj('MessageRepository', ['get']);
+    storageServiceSpy = jasmine.createSpyObj('StorageService', ['get']);
 
     TestBed.configureTestingModule({
       imports: [
         IonicModule.forRoot(),
         RouterTestingModule,
         FormsModule,
-        ComponentsModule,
-        SynchronizationPage
+        LogoutPage
       ],
       providers: [
         { provide: NavController, useValue: navCtrlSpy },
         { provide: SessionService, useValue: sessionServiceSpy },
-        { provide: UserNotificationService, useValue: userNotificationServiceSpy }
+        { provide: UserNotificationService, useValue: userNotificationServiceSpy },
+        { provide: MessageRepository, useValue: messageRepositorySpy },
+        { provide: StorageService, useValue: storageServiceSpy }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SynchronizationPage);
+    fixture = TestBed.createComponent(LogoutPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));
@@ -130,3 +136,4 @@ describe('SynchronizationPage', () => {
     expect(content.getAttribute('fullscreen')).toBe('true');
   });
 });
+

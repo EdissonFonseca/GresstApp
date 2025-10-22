@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { PERMISSIONS, STORAGE } from '@app/core/constants';
 import { environment } from '@env/environment';
-import { SessionService } from '@app/application/services/session.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { TranslateService } from '@ngx-translate/core';
@@ -44,8 +43,6 @@ export class MenuComponent implements OnInit {
   showTreatment = true;
   /** Flag to control vehicles menu item visibility */
   showVehicle = true;
-  /** Flag to control force quit option visibility */
-  showForceQuit = false;
   /** Current third party ID */
   idThirdParty: string = '';
   /** Debug mode flag */
@@ -56,7 +53,6 @@ export class MenuComponent implements OnInit {
     private navCtrl: NavController,
     private router: Router,
     private menuCtrl: MenuController,
-    private sessionService: SessionService,
     private authorizationService: AuthorizationRepository,
     private notificationService: UserNotificationService,
     private translate: TranslateService
@@ -162,21 +158,6 @@ export class MenuComponent implements OnInit {
   }
 
   /**
-   * Navigates to the synchronization page
-   */
-  async synchronize() {
-    try {
-      this.navCtrl.navigateForward('/synchronization');
-    } catch (error) {
-      console.error('Error navigating to sync page:', error);
-      this.notificationService.showToast(
-        this.translate.instant('MENU.MESSAGES.NAVIGATION_ERROR'),
-        'middle'
-      );
-    }
-  }
-
-  /**
    * Closes the menu
    */
   close() {
@@ -188,60 +169,16 @@ export class MenuComponent implements OnInit {
   }
 
   /**
-   * Handles the logout process
-   * Attempts to synchronize data before logging out
-   * Shows force quit option if synchronization fails
+   * Navigates to the logout page
    */
-  async logout() {
+  logout() {
     try {
-      await this.notificationService.showLoading(this.translate.instant('MENU.MESSAGES.SYNCHRONIZING'));
-      const sessionEnded = await this.sessionService.end();
-      await this.notificationService.hideLoading();
-
-      if (sessionEnded) {
-        this.navCtrl.navigateRoot('/login');
-      } else {
-        await this.notificationService.showAlert(
-          this.translate.instant('MENU.MESSAGES.LOGOUT_ERROR'),
-          'middle'
-        );
-        this.showForceQuit = true;
-      }
+      this.menuCtrl.close();
+      this.router.navigate(['/logout'], { queryParams: { canCancel: 'true' } });
     } catch (error) {
-      console.error('Error during logout:', error);
-      await this.notificationService.hideLoading();
-      await this.notificationService.showToast(
-        this.translate.instant('MENU.MESSAGES.SYNC_ERROR'),
-        'middle'
-      );
-    }
-  }
-
-  /**
-   * Handles the force quit process
-   * Creates a backup of unsynchronized data before closing
-   * Requires user confirmation before proceeding
-   */
-  async forceQuit() {
-    try {
-      const confirmed = await this.notificationService.showConfirm(
-        this.translate.instant('MENU.MESSAGES.FORCE_QUIT_TITLE'),
-        this.translate.instant('MENU.MESSAGES.FORCE_QUIT_MESSAGE'),
-        this.translate.instant('MENU.MESSAGES.FORCE_QUIT_CONFIRM'),
-        this.translate.instant('MENU.MESSAGES.FORCE_QUIT_CANCEL')
-      );
-
-      if (confirmed) {
-        await this.notificationService.showLoading(this.translate.instant('MENU.MESSAGES.GENERATING_BACKUP'));
-        await this.sessionService.forceQuit();
-        await this.notificationService.hideLoading();
-        this.navCtrl.navigateRoot('/login');
-      }
-    } catch (error) {
-      console.error('Error during force quit:', error);
-      await this.notificationService.hideLoading();
-      await this.notificationService.showToast(
-        this.translate.instant('MENU.MESSAGES.FORCE_QUIT_ERROR'),
+      console.error('Error navigating to logout:', error);
+      this.notificationService.showToast(
+        this.translate.instant('MENU.MESSAGES.NAVIGATION_ERROR'),
         'middle'
       );
     }

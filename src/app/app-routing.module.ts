@@ -56,8 +56,8 @@ const routes: Routes = [
     loadChildren: () => import('./presentation/pages/password-key/password-key.module').then( m => m.PasswordKeyPageModule)
   },
   {
-    path: 'synchronization',
-    loadChildren: () => import('./presentation/pages/synchronization/synchronization.module').then(m => m.SynchronizationPageModule)
+    path: 'logout',
+    loadChildren: () => import('./presentation/pages/logout/logout.module').then(m => m.LogoutPageModule)
   },
   {
     path: 'route',
@@ -76,3 +76,4 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
+

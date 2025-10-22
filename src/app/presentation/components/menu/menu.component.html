@@ -16,15 +16,9 @@
         {{ user }}
       </ion-item>
       <ion-item-divider>{{ 'MENU.MASTER_DATA' | translate }}</ion-item-divider>
-      <ion-item (click)="synchronize()">
-        <ion-icon name="sync-outline"></ion-icon>{{ 'MENU.SYNCHRONIZE' | translate }}
-      </ion-item>
       <ion-item-divider>{{ 'MENU.SESSION' | translate }}</ion-item-divider>
-      <ion-item *ngIf="!showForceQuit" (click)="logout()">
+      <ion-item (click)="logout()">
         <ion-icon name="power-outline"></ion-icon>{{ 'MENU.CLOSE' | translate }}
-      </ion-item>
-      <ion-item *ngIf="showForceQuit" (click)="forceQuit()">
-        <ion-icon name="power-outline" color="danger"></ion-icon>{{ 'MENU.FORCE_CLOSE' | translate }}
       </ion-item>
     </ion-list>
   </ion-content>

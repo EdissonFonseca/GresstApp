@@ -2,21 +2,11 @@ import { Injectable, signal } from '@angular/core';
 import { Network } from '@capacitor/network';
 import { SynchronizationService } from '@app/infrastructure/services/synchronization.service';
 import { STORAGE } from '../../core/constants';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { environment } from '../../../environments/environment';
 import { StorageService } from '@app/infrastructure/services/storage.service';
 import { Message } from '@app/domain/entities/message.entity';
 import { AuthenticationApiService } from '@app/infrastructure/services/authenticationApi.service';
-
-/**
- * Interface representing the structure of backup data
- * Contains all essential data that needs to be backed up during force quit
- */
-interface BackupData {
-  timestamp: string;      // ISO timestamp of when the backup was created
-  requests: any[];    // Array of pending transactions
-}
 
 /**
  * Service responsible for managing user session state and synchronization.
@@ -109,23 +99,35 @@ export class SessionService {
    * Synchronizes local data with the server
    * First uploads any pending data, then downloads fresh data from server
    * Only proceeds if device is online
-   * @returns {Promise<boolean>} True if synchronization was successful
+   * @returns {Promise<boolean>} True if synchronization was successful (upload AND download succeeded)
    */
   async synchronize(): Promise<boolean> {
     try {
       const isOnline = await this.isOnline();
-      if (isOnline) {
-        console.log('isOnline', isOnline);
-        if (await this.uploadData()) {
-          await this.syncService.downloadPermissions();
-          await this.syncService.downloadInventory();
-          await this.syncService.downloadMasterData();
-          await this.syncService.downloadOperation();
-          return true;
-        }
+      if (!isOnline) {
+        this.logger.warn('Device is offline, cannot synchronize');
         return false;
       }
-      return false;
+
+      // Try to upload pending data
+      const uploadSuccess = await this.uploadData();
+      if (!uploadSuccess) {
+        this.logger.warn('Failed to upload pending data to server');
+        return false;
+      }
+
+      // Try to download fresh data from server
+      try {
+        await this.syncService.downloadPermissions();
+        await this.syncService.downloadInventory();
+        await this.syncService.downloadMasterData();
+        await this.syncService.downloadOperation();
+        this.logger.info('Synchronization completed successfully');
+        return true;
+      } catch (downloadError) {
+        this.logger.error('Error downloading data from server', downloadError);
+        return false;
+      }
     } catch (error) {
       this.logger.error('Error synchronizing data', error);
       return false;
@@ -161,60 +163,12 @@ export class SessionService {
   }
 
   /**
-   * Forces application exit by creating a backup of current transactions
-   * Creates both local and server backups before clearing storage
-   * Local backup is stored in the device's documents directory
-   * Server backup is attempted but not required for successful exit
+   * Forces application exit by clearing all storage
+   * Should be called after exporting pending data
    * @returns {Promise<void>}
-   * @throws {Error} If backup creation fails
    */
   async forceQuit(): Promise<void> {
     try {
-      // Get data from storage
-        const requests = await this.storage.get(STORAGE.MESSAGES);
-
-      // Create backup data object
-      const backupData: BackupData = {
-        timestamp: new Date().toISOString(),
-        requests: requests
-      };
-
-      // Convert to JSON
-      const jsonData = JSON.stringify(backupData, null, 2);
-
-      // Create filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const fileName = `gresst-backup-${timestamp}.json`;
-
-      console.log('Backup data: ' + jsonData);
-      console.log('Backup to: ' + fileName);
-
-      // Convert string to base64
-      const base64Data = btoa(jsonData);
-
-      // Save file to documents directory
-      await Filesystem.writeFile({
-        path: fileName,
-        data: base64Data,
-        directory: Directory.Documents,
-        recursive: true
-      });
-
-      this.logger.info('Local backup created successfully', { fileName });
-
-      // In browser environment, create a downloadable link
-      if (typeof window !== 'undefined') {
-        const blob = new Blob([jsonData], { type: 'application/json' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }
-
       // Clear storage
       await this.storage.clear();
       this.logger.info('Storage cleared successfully');

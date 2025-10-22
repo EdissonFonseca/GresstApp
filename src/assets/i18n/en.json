@@ -98,7 +98,8 @@
   "HEADER": {
     "MESSAGES": {
       "SYNCHRONIZING": "Synchronizing ...",
-      "SYNC_SUCCESS": "Synchronization successful",
+      "SYNC_SUCCESS": "Data sent and updated successfully",
+      "DATA_UPDATED": "Data updated from server",
       "SYNC_ERROR": "Synchronization failed. Please try again later",
       "HELP_ERROR": "Error showing help"
     }
