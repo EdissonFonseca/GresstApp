@@ -28,7 +28,7 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let package_ of packages">
-      <ion-item (click)="select(package_.Id, package_.Name)">
+      <ion-item (click)="select(package_.Id)">
         <ion-icon name="checkmark-outline" *ngIf="selectedValue === package_.Id"></ion-icon>
         <ion-label>{{ package_.Name }}</ion-label>
       </ion-item>

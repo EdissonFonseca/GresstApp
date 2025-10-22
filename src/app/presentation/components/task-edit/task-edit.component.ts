@@ -4,18 +4,17 @@ import { SafeResourceUrl } from '@angular/platform-browser';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 import { ModalController } from '@ionic/angular';
 import { Task } from '@app/domain/entities/task.entity';
-import { INPUT_OUTPUT, STATUS, MEASUREMENTS, SERVICE_TYPES } from '@app/core/constants';
-import { InventoryRepository } from '@app/infrastructure/repositories/inventory.repository';
+import { Process } from '@app/domain/entities/process.entity';
+import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { STATUS, MEASUREMENTS } from '@app/core/constants';
 import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
-import { FacilityRepository } from '@app/infrastructure/repositories/facility.repository';
-import { TaskService } from '@app/application/services/task.service';
-import { PartyRepository } from '@app/infrastructure/repositories/party.repository';
-import { SubprocessService } from '@app/application/services/subprocess.service';
 import { PackageRepository } from '@app/infrastructure/repositories/package.repository';
+import { TaskService } from '@app/application/services/task.service';
+import { ProcessService } from '@app/application/services/process.service';
+import { SubprocessService } from '@app/application/services/subprocess.service';
 import { Utils } from '@app/core/utils';
 import { TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
-import { ProcessService } from '@app/application/services/process.service';
 import { PackagesComponent } from '@app/presentation/components/packages/packages.component';
 
 @Component({
@@ -42,203 +41,114 @@ export class TaskEditComponent implements OnInit {
   photos: string[] = [];
   status: string = '';
   showDetails: boolean = false;
-  //showTreatment: boolean = false;
   task: Task | undefined = undefined;
+
+  // Display names (not in form, just for UI)
+  materialName: string = '';
+  packageName: string = '';
+
+  // Context information (process/subprocess)
+  process: Process | undefined = undefined;
+  subprocess: Subprocess | undefined = undefined;
 
   /** Constructor */
   constructor(
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
-    private processService: ProcessService,
-    private packageRepository: PackageRepository,
-    private subprocessService: SubprocessService,
     private tasksService: TaskService,
-    private inventoryService: InventoryRepository,
-    private materialsService: MaterialRepository,
+    private processService: ProcessService,
+    private subprocessService: SubprocessService,
     private materialsRepository: MaterialRepository,
-    private facilityRepository: FacilityRepository,
-    private partiesService: PartyRepository,
+    private packageRepository: PackageRepository,
     private translate: TranslateService,
     private logger: LoggerService
   ) {
+    // Only fields that can be edited by the user
     this.frmTask = this.formBuilder.group({
-      PackageId: [null],
-      Package: [null],
       Quantity: [null],
       Weight: [null],
       Volume: [null],
-      Notes: [null],
-      Material: [null]
+      PackageId: [null],
+      Notes: [null]
     });
   }
 
   /**
    * Form initialization
+   * Load the task and populate only editable fields in the form
    */
   async ngOnInit() {
-    // Support backward compatibility
-    const finalProcessId = this.processId || this.processId;
-    const finalSubprocessId = this.subprocessId || this.subprocessId;
-
     this.photosByMaterial = Utils.photosByMaterial;
+
+    // Load the task
     this.task = await this.tasksService.get(this.taskId);
 
-    if (this.task) {
-      this.status = this.task.StatusId;
-      this.photos = this.task.Photos ?? [];
+    if (!this.task) {
+      this.logger.error('Task not found', { taskId: this.taskId });
+      return;
+    }
 
-      const materialItem = await this.materialsRepository.get(this.task.MaterialId);
-      if (materialItem) {
-        this.measurementType = materialItem.MeasurementType;
-        this.captureType = materialItem.CaptureType;
-        this.frmTask.patchValue({
-          Material: materialItem.Name
-        });
-      }
+    // Set status and photos
+    this.status = this.task.StatusId;
+    this.photos = this.task.Photos ?? [];
 
-      if (this.task.FacilityId) {
-        const itemPoint = await this.facilityRepository.get(this.task.FacilityId);
-        if (itemPoint) {
-          this.frmTask.patchValue({
-            IdDeposito: itemPoint.Id,
-            Deposito: itemPoint.Name
-          });
-        }
-      }
+    // Load context information (Process and Subprocess)
+    if (this.task.ProcessId) {
+      this.process = await this.processService.get(this.task.ProcessId);
+    }
 
-      if (this.task.DestinationFacilityId) {
-        const itemPoint = await this.facilityRepository.get(this.task.DestinationFacilityId);
-        if (itemPoint) {
-          this.frmTask.patchValue({
-            IdDepositoDestino: itemPoint.Id,
-            DepositoDestino: itemPoint.Name
-          });
-          if (itemPoint.OwnerId) {
-            const thirdParty = await this.partiesService.get(itemPoint.OwnerId);
-            if (thirdParty) {
-              this.frmTask.patchValue({
-                IdTerceroDestino: thirdParty.Id,
-                TerceroDestino: thirdParty.Name
-              });
-            }
-          }
-        }
-      }
+    if (this.task.SubprocessId) {
+      this.subprocess = await this.subprocessService.get(this.task.ProcessId, this.task.SubprocessId);
+    }
 
-      if (this.task.PartyId) {
-        const party = await this.partiesService.get(this.task.PartyId);
-        if (party) {
-          this.frmTask.patchValue({
-            IdTercero: party.Id,
-            Tercero: party.Name
-          });
-        }
-      }
+    // Get material info for measurement type and display
+    const materialItem = await this.materialsRepository.get(this.task.MaterialId);
+    if (materialItem) {
+      this.measurementType = materialItem.MeasurementType;
+      this.captureType = materialItem.CaptureType;
+      this.materialName = materialItem.Name;
+    }
 
-      if (this.task.PackageId) {
-        const packageItem = await this.packageRepository.get(this.task.PackageId);
-        if (packageItem) {
-          this.frmTask.patchValue({
-            IdEmbalaje: this.task.PackageId,
-            Embalaje: packageItem.Name
-          });
-        }
-      }
-
-      if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
-        const residueItem = await this.inventoryService.getResidue(this.wasteId);
-        if (residueItem) {
-          this.frmTask.patchValue({
-            Cantidad: residueItem.Quantity ?? 0,
-            Peso: residueItem.Weight ?? 0,
-            Volumen: residueItem.Volume ?? 0
-          });
-        }
-      }
-
-      this.frmTask.patchValue({
-        Quantity: this.task.Quantity ?? 0,
-        Weight: this.task.Weight ?? 0,
-        Volume: this.task.Volume ?? 0,
-        Notes: this.task.Notes
-      });
-    } else {
-      if (finalSubprocessId) {
-        const transaction = await this.subprocessService.get(finalProcessId, finalSubprocessId);
-        if (transaction) {
-          const point = await this.facilityRepository.get(transaction.FacilityId ?? '');
-          if (point) {
-            this.frmTask.patchValue({
-              IdDeposito: point.Id,
-              Deposito: point.Name
-            });
-            if (point.OwnerId) {
-              const owner = await this.partiesService.get(point.Id);
-              if (owner) {
-                this.frmTask.patchValue({
-                  IdTercero: owner.Id,
-                  Tercero: owner.Name
-                });
-              }
-            }
-          }
-        }
-      }
-
-      const material = await this.materialsService.get(this.materialId);
-      if (material) {
-        this.measurementType = material.MeasurementType;
-        this.captureType = material.Type;
-        this.frmTask.patchValue({
-          Material: material.Name
-        });
-      }
-
-      const residueItem = await this.inventoryService.getResidue(this.wasteId);
-      if (residueItem) {
-        this.frmTask.patchValue({
-          Quantity: residueItem.Quantity ?? 0,
-          Weight: residueItem.Weight ?? 0,
-          Volume: residueItem.Volume ?? 0
-        });
+    // Get package name for display
+    if (this.task.PackageId) {
+      const packageItem = await this.packageRepository.get(this.task.PackageId);
+      if (packageItem) {
+        this.packageName = packageItem.Name;
       }
     }
+
+    // Populate form with editable fields only
+    this.frmTask.patchValue({
+      Quantity: this.task.Quantity ?? 0,
+      Weight: this.task.Weight ?? 0,
+      Volume: this.task.Volume ?? 0,
+      PackageId: this.task.PackageId,
+      Notes: this.task.Notes
+    });
   }
 
   /**
-   * Map the form to the Task interface
+   * Update task with form values
+   * Only modifies editable fields, preserving all other task data
    */
-  private mapFormToTask(): Task {
-    const formValue = this.frmTask.value;
-    const now = new Date().toISOString();
-    const finalProcessId = this.processId || this.processId;
-    const finalSubprocessId = this.subprocessId || this.subprocessId;
+  private updateTaskFromForm(): Task {
+    if (!this.task) {
+      throw new Error('Task not loaded');
+    }
 
+    const formValue = this.frmTask.value;
+
+    // Update only editable fields
     return {
-      TaskId: this.taskId || Utils.generateId(),
-      ProcessId: finalProcessId,
-      SubprocessId: finalSubprocessId,
-      MaterialId: this.materialId,
-      WasteId: this.wasteId,
-      InputOutput: this.inputOutput,
+      ...this.task,
       Quantity: formValue.Quantity,
       Weight: formValue.Weight,
       Volume: formValue.Volume,
-      PackageId: formValue.IdEmbalaje,
-      FacilityId: formValue.IdDeposito,
-      DestinationFacilityId: formValue.IdDepositoDestino,
-      PartyId: formValue.IdTercero,
-      DestinationPartyId: formValue.IdTerceroDestino,
-      ExecutionDate: now,
-      Photos: this.photos,
+      PackageId: formValue.PackageId,
       Notes: formValue.Notes,
-      StatusId: STATUS.APPROVED,
-      ResourceId: this.task?.ResourceId || '',
-      ServiceId: this.task?.ServiceId || '',
-      Item: this.task?.Item || 0,
-      RequestId: 0,
-      Title: this.frmTask.value.Material || '',
-      Description: formValue.Observaciones || '',
+      Photos: this.photos,
+      ExecutionDate: new Date().toISOString(),
+      StatusId: STATUS.APPROVED
     };
   }
 
@@ -246,45 +156,43 @@ export class TaskEditComponent implements OnInit {
   /**
    * Confirm the task
    * Steps:
-   * 1. Update task in repository (with status = APPROVED)
-   * 2. Save to storage
-   * 3. Add to message queue
-   * 4. Try to upload to server (if fails, stays in queue)
-   * 5. Return task to caller (which will reload CardService and recalculate summaries)
+   * 1. Update task with form values (only editable fields)
+   * 2. Save to repository (which handles storage, queue, and API sync)
+   * 3. Return task to caller (which will reload CardService and recalculate summaries)
    */
   async confirm() {
-    if (!this.frmTask.valid) return;
+    if (!this.frmTask.valid || !this.task) return;
 
-    const finalProcessId = this.processId || this.processId;
-    const activity = await this.processService.get(finalProcessId);
-    if (!activity) return;
+    // Update task with form values
+    const updatedTask: Task = this.updateTaskFromForm();
 
-    let task: Task = this.mapFormToTask();
-    if (this.task) {
-      // Update task - this will:
-      // - Update in operation.Tasks
-      // - Save to storage
-      // - Add to message queue
-      // - Try to upload (if fails, message stays in queue)
-      await this.tasksService.update(task);
-    }
+    // Update task - this will:
+    // - Update in operation.Tasks
+    // - Save to storage
+    // - Add to message queue
+    // - Try to upload (if fails, message stays in queue)
+    await this.tasksService.update(updatedTask);
 
     // Return task to caller - the page will reload CardService which recalculates hierarchical summaries
-    this.modalCtrl.dismiss(task);
+    this.modalCtrl.dismiss(updatedTask);
   }
 
   /**
    * Reject the task
    */
   async reject() {
-    const task = await this.tasksService.get(this.taskId);
-    if (task) {
-      task.Notes = this.frmTask.value.Observaciones;
-      task.StatusId = STATUS.REJECTED;
-      task.ExecutionDate = new Date().toISOString();
-      await this.tasksService.update(task);
-    }
-    this.modalCtrl.dismiss(task);
+    if (!this.task) return;
+
+    // Update task with rejection
+    const rejectedTask: Task = {
+      ...this.task,
+      Notes: this.frmTask.value.Notes,
+      StatusId: STATUS.REJECTED,
+      ExecutionDate: new Date().toISOString()
+    };
+
+    await this.tasksService.update(rejectedTask);
+    this.modalCtrl.dismiss(rejectedTask);
   }
 
   /**
@@ -295,7 +203,7 @@ export class TaskEditComponent implements OnInit {
   }
 
   /**
-   * Select the package and set the values in the page variables
+   * Select the package and update the form
    */
   async selectPackage() {
     const modal = await this.modalCtrl.create({
@@ -303,13 +211,18 @@ export class TaskEditComponent implements OnInit {
       componentProps: {},
     });
 
-    modal.onDidDismiss().then((data) => {
+    modal.onDidDismiss().then(async (data) => {
       if (data && data.data) {
-        console.log('selectPackage', data.data);
+        // Update form with package ID
         this.frmTask.patchValue({
-          PackageId: data.data.id,
-          Package: data.data.name
+          PackageId: data.data
         });
+
+        // Load package name for display
+        const packageItem = await this.packageRepository.get(data.data);
+        if (packageItem) {
+          this.packageName = packageItem.Name;
+        }
       }
     });
 
@@ -355,8 +268,8 @@ export class TaskEditComponent implements OnInit {
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
     if (this.measurementType == MEASUREMENTS.WEIGHT)
-      this.frmTask.patchValue({ Peso: resultValue });
+      this.frmTask.patchValue({ Weight: resultValue });
     else if (this.measurementType == MEASUREMENTS.VOLUME)
-      this.frmTask.patchValue({ Volumen: resultValue });
+      this.frmTask.patchValue({ Volume: resultValue });
   }
 }

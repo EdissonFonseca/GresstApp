@@ -4,7 +4,6 @@ import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { Package } from '@app/domain/entities/package.entity';
 import { PackageRepository } from '@app/infrastructure/repositories/package.repository';
-import { EventEmitter, Output } from '@angular/core';
 @Component({
   selector: 'app-packages',
   templateUrl: './packages.component.html',
@@ -12,10 +11,6 @@ import { EventEmitter, Output } from '@angular/core';
 })
 export class PackagesComponent  implements OnInit {
   @Input() showHeader: boolean = true;
-  @Output() packageSelected = new EventEmitter<{
-    id: string;
-    name: string;
-  }>();
   packages : Package[] = [];
   selectedValue: string = '';
   selectedName: string = '';
@@ -36,7 +31,9 @@ export class PackagesComponent  implements OnInit {
   }
 
   async ngOnInit() {
-    this.packages = await this.packageRepository.getAll();
+    const packages = await this.packageRepository.getAll();
+    // Sort packages alphabetically by name
+    this.packages = packages.sort((a, b) => a.Name.localeCompare(b.Name));
     //this.enableNew = (await this.authorizationService.getPermission(PERMISSIONS.APP_PACKAGE))?.includes(CRUD_OPERATIONS.CREATE);
   }
 
@@ -46,19 +43,16 @@ export class PackagesComponent  implements OnInit {
     const query = event.target.value.toLowerCase();
 
     const packages = await this.packageRepository.getAll();
-    this.packages = packages.filter((package_) => package_.Name .toLowerCase().indexOf(query) > -1);
+    // Filter and sort packages alphabetically by name
+    this.packages = packages
+      .filter((package_) => package_.Name.toLowerCase().indexOf(query) > -1)
+      .sort((a, b) => a.Name.localeCompare(b.Name));
   }
 
-  select(packageId: string, name: string) {
+  select(packageId: string) {
     this.selectedValue = packageId;
-    this.selectedName = name;
-    const data = {
-      id: this.selectedValue,
-      name: this.selectedName,
-    };
-    this.packageSelected.emit(data);
-    this.modalCtrl.dismiss(data);
-}
+    this.modalCtrl.dismiss(this.selectedValue, 'confirm');
+  }
 
   cancel() {
     this.modalCtrl.dismiss(null, 'cancel');
@@ -66,7 +60,7 @@ export class PackagesComponent  implements OnInit {
 
   new() {
     this.showNew = true;
-    this.formData.setValue({Nombre: null});
+    this.formData.setValue({Name: null});
   }
 
 }

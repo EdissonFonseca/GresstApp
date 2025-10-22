@@ -1,0 +1,56 @@
+// Header context styles - Blue gradient from darker to lighter
+
+// Process level (darkest blue)
+.process-toolbar {
+  --background: #4a90e2;
+
+  ion-item {
+    --background: #4a90e2;
+    --color: white;
+  }
+
+  ion-label {
+    color: white;
+
+    h3, p {
+      color: white;
+    }
+  }
+}
+
+// Subprocess level (medium blue)
+.subprocess-toolbar {
+  --background: #7db3f5;
+
+  ion-item {
+    --background: #7db3f5;
+    --color: white;
+  }
+
+  ion-label {
+    color: white;
+
+    h3, p {
+      color: white;
+    }
+  }
+}
+
+// Material/Task level (lightest blue)
+.material-header {
+  --background: #b3d9ff;
+  --color: #2c5282;
+
+  ion-icon {
+    color: #2c5282;
+  }
+
+  ion-label {
+    color: #2c5282;
+
+    h2, p {
+      color: #2c5282;
+    }
+  }
+}
+

@@ -16,16 +16,37 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Process context information -->
+  <ion-toolbar *ngIf="process" class="process-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3><strong>{{ process.Title }}</strong></h3>
+        <p *ngIf="process.Description">{{ process.Description }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-toolbar>
+
+  <!-- Subprocess context information -->
+  <ion-toolbar *ngIf="subprocess" class="subprocess-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3>{{ subprocess.Title }}</h3>
+        <p *ngIf="subprocess.Description">{{ subprocess.Description }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-toolbar>
 </ion-header>
 <ion-content color="light">
-  <ion-item color="light" class="ion-no-padding">
-    <ion-title>{{ task?.Title }}</ion-title>
-  </ion-item>
   <form [formGroup]="frmTask">
-    <ion-list color="light" class="ion-no-padding">
-      <ion-item color="light" lines="none" class="ion-no-padding">
+    <!-- Task material header -->
+    <ion-list color="light" class="ion-no-padding" style="margin-bottom: 8px;">
+      <ion-item lines="none" class="material-header">
         <ion-icon src="../../../assets/icon/recycle-bag.svg" slot="start"></ion-icon>
-        <ion-label class="ion-text-wrap">{{ frmTask.get('Material')?.value }}</ion-label>
+        <ion-label class="ion-text-wrap">
+          <h2><strong>{{ materialName }}</strong></h2>
+          <p *ngIf="task?.Description">{{ task?.Description }}</p>
+        </ion-label>
       </ion-item>
     </ion-list>
     <ion-list inset="true" class="ion-no-padding">
@@ -46,7 +67,7 @@
       </ion-item>
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_EDIT.PACKAGING' | translate }}</ion-note>
-        <ion-label>{{ frmTask.get('Package')?.value }}</ion-label>
+        <ion-label>{{ packageName }}</ion-label>
         <ion-button color="light" *ngIf="status == 'P'" (click)="selectPackage()">...</ion-button>
       </ion-item>
       <ion-item class="ion-no-padding">
