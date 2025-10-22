@@ -12,6 +12,7 @@ import { Subprocess } from '@app/domain/entities/subprocess.entity';
 import { TaskService } from '@app/application/services/task.service';
 import { ProcessService } from '@app/application/services/process.service';
 import { SubprocessService } from '@app/application/services/subprocess.service';
+import { PackageRepository } from '@app/infrastructure/repositories/package.repository';
 import { Utils } from '@app/core/utils';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { Process } from '@app/domain/entities/process.entity';
@@ -40,12 +41,17 @@ export class TaskAddComponent implements OnInit {
   requestPackaging: boolean = false;
   requestTreatment: boolean = false;
 
+  // Context information (process/subprocess)
+  process: Process | undefined = undefined;
+  subprocess: Subprocess | undefined = undefined;
+
   constructor(
     private formBuilder: FormBuilder,
     private modalCtrl: ModalController,
     private processService: ProcessService,
     private subprocessService: SubprocessService,
     private taskService: TaskService,
+    private packageRepository: PackageRepository,
     private userNotificationService: UserNotificationService,
     private logger: LoggerService
   ) {
@@ -110,8 +116,10 @@ export class TaskAddComponent implements OnInit {
    * Loads activity data and sets up component state based on activity type
    */
   private async loadProcessData(): Promise<void> {
-    const process = await this.processService.get(this.processId);
-    if (!process) return;
+    this.process = await this.processService.get(this.processId);
+    if (!this.process) return;
+
+    const process = this.process;
 
     // Set non-editable fields from activity
     this.formData.patchValue({
@@ -134,10 +142,11 @@ export class TaskAddComponent implements OnInit {
    */
   private async handleTransportOrCollectionActivity(activity: Process): Promise<void> {
     if (this.subprocessId) {
-      const subprocess = await this.subprocessService.get(this.processId, this.subprocessId);
-      if (!subprocess) {
+      this.subprocess = await this.subprocessService.get(this.processId, this.subprocessId);
+      if (!this.subprocess) {
         this.requestPoint = true;
       } else {
+        const subprocess = this.subprocess;
         this.formData.patchValue({
           InputPointId: subprocess.FacilityId,
           //InputPoint: subprocess.FacilityName,
@@ -175,12 +184,16 @@ export class TaskAddComponent implements OnInit {
       componentProps: {},
     });
 
-    modal.onDidDismiss().then((data) => {
+    modal.onDidDismiss().then(async (data) => {
       if (data?.data) {
-        this.formData.patchValue({
-          PackagingId: data.data.id,
-          Packaging: data.data.name
-        });
+        // Get package name from repository
+        const packageItem = await this.packageRepository.get(data.data);
+        if (packageItem) {
+          this.formData.patchValue({
+            PackagingId: data.data,
+            Packaging: packageItem.Name
+          });
+        }
       }
     });
 

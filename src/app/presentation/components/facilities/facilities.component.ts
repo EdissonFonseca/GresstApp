@@ -62,10 +62,27 @@ export class FacilitiesComponent  implements OnInit, OnChanges {
     this.parties = this.parties.sort((a, b) => a.Name.localeCompare(b.Name));
 
     const facilities =  await this.facilityRepository.getAll();
+
+    // Log duplicates for debugging
+    const facilityNames = facilities.map(f => f.Name);
+    const duplicateNames = facilityNames.filter((name, index) => facilityNames.indexOf(name) !== index);
+    if (duplicateNames.length > 0) {
+      console.log('Duplicate facility names found:', [...new Set(duplicateNames)]);
+      duplicateNames.forEach(name => {
+        const dups = facilities.filter(f => f.Name === name);
+        console.log(`"${name}" appears ${dups.length} times with IDs:`, dups.map(d => ({ Id: d.Id, OwnerId: d.OwnerId })));
+      });
+    }
+
+    // Remove duplicates by ID
+    const uniqueFacilities = facilities.filter((facility, index, self) =>
+      index === self.findIndex((f) => f.Id === facility.Id)
+    );
+
     if (this.partyId)
-      this.facilities = facilities.filter((x: Facility) => x.OwnerId == this.partyId);
+      this.facilities = uniqueFacilities.filter((x: Facility) => x.OwnerId == this.partyId);
     else
-      this.facilities = facilities;
+      this.facilities = uniqueFacilities;
 
     // Sort facilities by party name (owner) and then by facility name
     this.facilities = this.facilities.sort((a, b) => {

@@ -31,15 +31,8 @@
   border: 1px solid var(--ion-color-medium);
   border-radius: 8px;
   margin: 8px;
+  margin-bottom: 16px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-  &:not(:last-child) {
-    margin-bottom: 16px;
-  }
-
-  &:last-child {
-    margin-bottom: 0;
-  }
 }
 
 // Estilos para la card de transacción
@@ -63,18 +56,18 @@
 :host {
   display: block;
   width: 100%;
-  height: 100%;
 }
 
 ion-content {
   --background: #f0f2f5;
   --padding-start: 0;
   --padding-end: 0;
-  height: 100%;
 }
 
 .content-wrapper {
   padding: 16px;
+  padding-bottom: 80px; // Extra space for FAB button
+  min-height: 100%;
 }
 
 ion-searchbar {

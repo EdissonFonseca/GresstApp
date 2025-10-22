@@ -6,13 +6,32 @@
         {{ 'TASK_ADD.CANCEL' | translate }}
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ 'TASK_ADD.TITLE' | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button [strong]="true" (click)="submit()" color="success" [disabled]="!formData.valid">
         <ion-icon name="checkmark-circle"></ion-icon>
         {{ 'TASK_ADD.CONFIRM' | translate }}
       </ion-button>
     </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Process context information -->
+  <ion-toolbar *ngIf="process" class="process-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3><strong>{{ process.Title }}</strong></h3>
+        <p *ngIf="process.Description">{{ process.Description }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-toolbar>
+
+  <!-- Subprocess context information -->
+  <ion-toolbar *ngIf="subprocess" class="subprocess-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3>{{ subprocess.Title }}</h3>
+        <p *ngIf="subprocess.Description">{{ subprocess.Description }}</p>
+      </ion-label>
+    </ion-item>
   </ion-toolbar>
 </ion-header>
 
