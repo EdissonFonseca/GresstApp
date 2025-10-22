@@ -68,14 +68,18 @@ export class MenuComponent implements OnInit {
    */
   async ngOnInit() {
     try {
+      // Load account information
       const cuenta = await this.storage.get(STORAGE.ACCOUNT);
-      if (!cuenta) {
-        throw new Error('Account information not found');
+      if (cuenta) {
+        this.idThirdParty = cuenta.PersonId;
+        this.account = cuenta.Name;
       }
 
-      this.idThirdParty = cuenta.IdPersona;
-      this.account = cuenta.Nombre;
-      this.user = cuenta.NombreUsuario;
+      // Load user information
+      const usuario = await this.storage.get(STORAGE.USER);
+      if (usuario) {
+        this.user = usuario.Name;
+      }
 
       // Load user permissions for menu items
       await this.loadPermissions();

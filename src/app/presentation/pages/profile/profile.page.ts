@@ -43,8 +43,8 @@ export class ProfilePage implements OnInit {
     this.user = await this.storage.get(STORAGE.USER);
 
     this.formData.patchValue({
-      Name: this.user?.Name,
-      Email: this.user?.Email
+      Nombre: this.user?.Name,
+      Correo: this.user?.Email
     });
   }
 
