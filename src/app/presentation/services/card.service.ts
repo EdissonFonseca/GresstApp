@@ -205,22 +205,22 @@ export class CardService {
     return parts.join(' - ');
   }
 
-  mapProcesses(actividades: Process[]): Card[] {
-    return actividades.map(actividad => {
+  mapProcesses(processes: Process[]): Card[] {
+    return processes.map(process => {
       // Find service info to get Icon and Action
-      const service = SERVICES.find(s => s.serviceId === actividad.ServiceId);
+      const service = SERVICES.find(s => s.serviceId === process.ServiceId);
 
       const card: Card = {
-        id: actividad.ProcessId,
-        title: actividad.Title,
-        status: actividad.StatusId,
+        id: process.ProcessId,
+        title: process.Title,
+        status: process.StatusId,
         type: 'process',
         level: 0,
 
-        actionName: service?.Action || actividad.Action,
-        description: '',
+        //actionName: service?.Action,
+        description: process.Description ?? '',
         iconName: undefined,
-        iconSource: service?.Icon || actividad.Icon,
+        iconSource: service?.Icon,
         parentId: null,
 
         // Initialize summary values (will be calculated later)
@@ -237,21 +237,21 @@ export class CardService {
     });
   }
 
-  mapSubprocesses(transacciones: Subprocess[]): Card[] {
-    return transacciones.map(transaccion => {
+  mapSubprocesses(subprocesses: Subprocess[]): Card[] {
+    return subprocesses.map(subprocess => {
       const card: Card = {
-        id: transaccion.SubprocessId,
-        title: transaccion.Title,
-        status: transaccion.StatusId,
+        id: subprocess.SubprocessId,
+        title: subprocess.Title,
+        status: subprocess.StatusId,
         type: 'subprocess',
         level: 1,
 
-        actionName: transaccion.Action,
-        description: transaccion.FacilityName,
-        iconName: transaccion.Icon,
+        //actionName: subprocess.ServiceId,
+        description: subprocess.Description ?? '',
+        iconName: 'location-outline',
         iconSource: undefined,
-        parentId: transaccion.ProcessId,
-        summary: this.buildSubprocessSummary(transaccion),
+        parentId: subprocess.ProcessId,
+        summary: this.buildSubprocessSummary(subprocess),
 
         // Initialize summary values (will be calculated later)
         quantity: 0,
@@ -278,39 +278,34 @@ export class CardService {
     return '';
   }
 
-  mapTasks(tareas: Task[], materials: Material[] = []): Card[] {
-    return tareas.map(tarea => {
+  mapTasks(tasks: Task[], materials: Material[] = []): Card[] {
+    return tasks.map(task => {
       // Get material name from storage if MaterialId is present
-      let title = tarea.MaterialId ?? '';
-      if (tarea.MaterialId && materials.length > 0) {
-        const material = materials.find(m => m.Id === tarea.MaterialId);
-        if (material) {
-          title = material.Name;
-        }
-      }
 
       const card: Card = {
-        id: tarea.TaskId,
-        title: title,
-        status: tarea.StatusId,
+        id: task.TaskId,
+        title: task.Title,
+        description: task.Description ?? '',
+
+        status: task.StatusId,
         type: 'task',
         level: 2,
         iconName: 'trash-bin-outline',
         iconSource: undefined,
-        parentId: tarea.SubprocessId,
-        materialId: tarea.MaterialId,
+        parentId: task.SubprocessId,
+        materialId: task.MaterialId,
 
         // Tasks have their own values (only count if APPROVED)
-        quantity: tarea.StatusId === STATUS.APPROVED ? (tarea.Quantity || 0) : 0,
-        weight: tarea.StatusId === STATUS.APPROVED ? (tarea.Weight || 0) : 0,
-        volume: tarea.StatusId === STATUS.APPROVED ? (tarea.Volume || 0) : 0,
+        quantity: task.StatusId === STATUS.APPROVED ? (task.Quantity || 0) : 0,
+        weight: task.StatusId === STATUS.APPROVED ? (task.Weight || 0) : 0,
+        volume: task.StatusId === STATUS.APPROVED ? (task.Volume || 0) : 0,
 
         // Count this task as 1 in the appropriate status
-        pendingItems: tarea.StatusId === STATUS.PENDING ? 1 : 0,
-        successItems: tarea.StatusId === STATUS.APPROVED ? 1 : 0,
-        rejectedItems: tarea.StatusId === STATUS.REJECTED ? 1 : 0,
+        pendingItems: task.StatusId === STATUS.PENDING ? 1 : 0,
+        successItems: task.StatusId === STATUS.APPROVED ? 1 : 0,
+        rejectedItems: task.StatusId === STATUS.REJECTED ? 1 : 0,
 
-        summary: this.buildTaskSummary(tarea),
+        summary: this.buildTaskSummary(task),
       };
       this.updateVisibleProperties(card);
       return card;

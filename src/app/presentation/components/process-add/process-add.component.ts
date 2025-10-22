@@ -150,7 +150,6 @@ export class ProcessAddComponent implements OnInit {
       StartDate: isoDate,
       ProcessDate: isoToday,
       StatusId: STATUS.PENDING,
-      InitialMileage: this.frmProcess.get('Kilometraje')?.value,
       Subprocesses: [],
       Tasks: []
     };

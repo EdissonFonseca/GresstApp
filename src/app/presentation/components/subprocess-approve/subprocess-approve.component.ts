@@ -114,11 +114,10 @@ export class SubprocessApproveComponent implements OnInit {
       if (transaccion) {
         this.transaction.set(transaccion);
         this.frmTransaction.patchValue({
-          Identificacion: transaccion.ResponsibleIdentification,
-          Nombre: transaccion.ResponsibleName,
-          Cargo: transaccion.ResponsiblePosition,
-          Kilometraje: transaccion.Mileage,
-          Observaciones: transaccion.ResponsibleNotes
+          Identification: transaccion.ResponsibleIdentification,
+          Name: transaccion.ResponsibleName,
+          Position: transaccion.ResponsiblePosition,
+          Notes: transaccion.ResponsibleNotes
         });
       }
     }
@@ -256,7 +255,6 @@ export class SubprocessApproveComponent implements OnInit {
     const formData = this.frmTransaction.value;
     return {
       ...transaccion,
-      Mileage: formData.Kilometraje,
       ResponsiblePosition: formData.Cargo,
       ResponsibleSignature: formData.Firma,
       ResponsibleIdentification: formData.Identificacion,

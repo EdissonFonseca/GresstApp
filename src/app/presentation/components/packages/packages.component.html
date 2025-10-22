@@ -16,7 +16,7 @@
     <ion-item-divider> Nuevo</ion-item-divider>
     <form [formGroup]="formData">
       <ion-item>
-        <ion-input formControlName="Nombre" label="Nombre" labelPlacement="stacked"></ion-input>
+        <ion-input formControlName="Name" label="Nombre" labelPlacement="stacked"></ion-input>
       </ion-item>
       <ion-item>
         <ion-button>
@@ -28,7 +28,7 @@
   </ion-content>
   <ion-content>
     <ion-list *ngFor="let package_ of packages">
-      <ion-item (click)="select(package_.Id)">
+      <ion-item (click)="select(package_.Id, package_.Name)">
         <ion-icon name="checkmark-outline" *ngIf="selectedValue === package_.Id"></ion-icon>
         <ion-label>{{ package_.Name }}</ion-label>
       </ion-item>

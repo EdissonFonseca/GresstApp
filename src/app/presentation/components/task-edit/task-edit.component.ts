@@ -13,10 +13,10 @@ import { PartyRepository } from '@app/infrastructure/repositories/party.reposito
 import { SubprocessService } from '@app/application/services/subprocess.service';
 import { PackageRepository } from '@app/infrastructure/repositories/package.repository';
 import { Utils } from '@app/core/utils';
-import { Waste } from '@app/domain/entities/waste.entity';
 import { TranslateService } from '@ngx-translate/core';
 import { LoggerService } from '@app/infrastructure/services/logger.service';
 import { ProcessService } from '@app/application/services/process.service';
+import { PackagesComponent } from '@app/presentation/components/packages/packages.component';
 
 @Component({
   selector: 'app-task-edit',
@@ -29,24 +29,20 @@ export class TaskEditComponent implements OnInit {
   @Input() subprocessId: string = '';
   @Input() taskId: string = '';
   @Input() materialId: string = '';
-  @Input() residueId: string = '';
+  @Input() wasteId: string = '';
   @Input() inputOutput: string = '';
-
-  // Deprecated - usar processId y subprocessId
-  @Input() activityId: string = '';
-  @Input() transactionId: string = '';
 
   /** Variables */
   frmTask: FormGroup;
   captureType: string = '';
   factor: number | null = null;
-  measurement: string = '';
+  measurementType: string = '';
   photo!: SafeResourceUrl;
   photosByMaterial: number = 2;
   photos: string[] = [];
   status: string = '';
   showDetails: boolean = false;
-  showTreatment: boolean = false;
+  //showTreatment: boolean = false;
   task: Task | undefined = undefined;
 
   /** Constructor */
@@ -66,24 +62,13 @@ export class TaskEditComponent implements OnInit {
     private logger: LoggerService
   ) {
     this.frmTask = this.formBuilder.group({
-      Cantidad: [null],
-      Peso: [null],
-      Volumen: [null],
-      Valor: [null],
-      IdEmbalaje: [null],
-      Observaciones: [null],
-      IdDeposito: [null],
-      IdDepositoDestino: [null],
-      IdTercero: [null],
-      IdTerceroDestino: [null],
-      IdTratamiento: [null],
-      Material: [null],
-      Deposito: [null],
-      DepositoDestino: [null],
-      Tercero: [null],
-      TerceroDestino: [null],
-      Tratamiento: [null],
-      Embalaje: [null]
+      PackageId: [null],
+      Package: [null],
+      Quantity: [null],
+      Weight: [null],
+      Volume: [null],
+      Notes: [null],
+      Material: [null]
     });
   }
 
@@ -92,8 +77,8 @@ export class TaskEditComponent implements OnInit {
    */
   async ngOnInit() {
     // Support backward compatibility
-    const finalProcessId = this.processId || this.activityId;
-    const finalSubprocessId = this.subprocessId || this.transactionId;
+    const finalProcessId = this.processId || this.processId;
+    const finalSubprocessId = this.subprocessId || this.subprocessId;
 
     this.photosByMaterial = Utils.photosByMaterial;
     this.task = await this.tasksService.get(this.taskId);
@@ -104,7 +89,7 @@ export class TaskEditComponent implements OnInit {
 
       const materialItem = await this.materialsRepository.get(this.task.MaterialId);
       if (materialItem) {
-        this.measurement = materialItem.MeasurementType;
+        this.measurementType = materialItem.MeasurementType;
         this.captureType = materialItem.CaptureType;
         this.frmTask.patchValue({
           Material: materialItem.Name
@@ -161,7 +146,7 @@ export class TaskEditComponent implements OnInit {
       }
 
       if (this.inputOutput == INPUT_OUTPUT.OUTPUT) {
-        const residueItem = await this.inventoryService.getResidue(this.residueId);
+        const residueItem = await this.inventoryService.getResidue(this.wasteId);
         if (residueItem) {
           this.frmTask.patchValue({
             Cantidad: residueItem.Quantity ?? 0,
@@ -172,11 +157,10 @@ export class TaskEditComponent implements OnInit {
       }
 
       this.frmTask.patchValue({
-        Cantidad: this.task.Quantity ?? 0,
-        Peso: this.task.Weight ?? 0,
-        Volumen: this.task.Volume ?? 0,
-        Valor: this.task.Price,
-        Observaciones: this.task.Notes
+        Quantity: this.task.Quantity ?? 0,
+        Weight: this.task.Weight ?? 0,
+        Volume: this.task.Volume ?? 0,
+        Notes: this.task.Notes
       });
     } else {
       if (finalSubprocessId) {
@@ -203,19 +187,19 @@ export class TaskEditComponent implements OnInit {
 
       const material = await this.materialsService.get(this.materialId);
       if (material) {
-        this.measurement = material.MeasurementType;
+        this.measurementType = material.MeasurementType;
         this.captureType = material.Type;
         this.frmTask.patchValue({
           Material: material.Name
         });
       }
 
-      const residueItem = await this.inventoryService.getResidue(this.residueId);
+      const residueItem = await this.inventoryService.getResidue(this.wasteId);
       if (residueItem) {
         this.frmTask.patchValue({
-          Cantidad: residueItem.Quantity ?? 0,
-          Peso: residueItem.Weight ?? 0,
-          Volumen: residueItem.Volume ?? 0
+          Quantity: residueItem.Quantity ?? 0,
+          Weight: residueItem.Weight ?? 0,
+          Volume: residueItem.Volume ?? 0
         });
       }
     }
@@ -227,62 +211,37 @@ export class TaskEditComponent implements OnInit {
   private mapFormToTask(): Task {
     const formValue = this.frmTask.value;
     const now = new Date().toISOString();
-    const finalProcessId = this.processId || this.activityId;
-    const finalSubprocessId = this.subprocessId || this.transactionId;
+    const finalProcessId = this.processId || this.processId;
+    const finalSubprocessId = this.subprocessId || this.subprocessId;
 
     return {
       TaskId: this.taskId || Utils.generateId(),
       ProcessId: finalProcessId,
       SubprocessId: finalSubprocessId,
       MaterialId: this.materialId,
-      WasteId: this.residueId,
+      WasteId: this.wasteId,
       InputOutput: this.inputOutput,
-      Quantity: formValue.Cantidad,
-      Weight: formValue.Peso,
-      Volume: formValue.Volumen,
-      Price: formValue.Valor,
+      Quantity: formValue.Quantity,
+      Weight: formValue.Weight,
+      Volume: formValue.Volume,
       PackageId: formValue.IdEmbalaje,
       FacilityId: formValue.IdDeposito,
       DestinationFacilityId: formValue.IdDepositoDestino,
       PartyId: formValue.IdTercero,
       DestinationPartyId: formValue.IdTerceroDestino,
-      TreatmentId: formValue.IdTratamiento,
       ExecutionDate: now,
       Photos: this.photos,
-      Notes: formValue.Observaciones,
+      Notes: formValue.Notes,
       StatusId: STATUS.APPROVED,
       ResourceId: this.task?.ResourceId || '',
       ServiceId: this.task?.ServiceId || '',
       Item: this.task?.Item || 0,
-      ScheduledDate: this.task?.ScheduledDate || now,
-      RequestDate: now,
       RequestId: 0,
-      RequestName: ''
+      Title: this.frmTask.value.Material || '',
+      Description: formValue.Observaciones || '',
     };
   }
 
-  /**
-   * Map the task to a residue
-   */
-  private mapResidueFromTask(task: Task): Waste {
-    return {
-      Id: Utils.generateId(),
-      MaterialId: this.materialId,
-      OwnerId: task.PartyId || '',
-      FacilityId: task.FacilityId || '',
-      VehicleId: '',
-      OriginFacilityId: task.FacilityId || '',
-      IsRecyclable: true,
-      Quantity: task.Quantity || 0,
-      PackageQuantity: 0,
-      Weight: task.Weight || 0,
-      PackageId: task.PackageId || '',
-      StatusId: STATUS.APPROVED,
-      MaterialName: this.frmTask.value.Material || '',
-      LocationName: '',
-      Volume: task.Volume || 0,
-    };
-  }
 
   /**
    * Confirm the task
@@ -296,7 +255,7 @@ export class TaskEditComponent implements OnInit {
   async confirm() {
     if (!this.frmTask.valid) return;
 
-    const finalProcessId = this.processId || this.activityId;
+    const finalProcessId = this.processId || this.processId;
     const activity = await this.processService.get(finalProcessId);
     if (!activity) return;
 
@@ -340,15 +299,16 @@ export class TaskEditComponent implements OnInit {
    */
   async selectPackage() {
     const modal = await this.modalCtrl.create({
-      component: 'app-packages',
+      component: PackagesComponent,
       componentProps: {},
     });
 
     modal.onDidDismiss().then((data) => {
       if (data && data.data) {
+        console.log('selectPackage', data.data);
         this.frmTask.patchValue({
-          IdEmbalaje: data.data.id,
-          Embalaje: data.data.name
+          PackageId: data.data.id,
+          Package: data.data.name
         });
       }
     });
@@ -356,26 +316,6 @@ export class TaskEditComponent implements OnInit {
     return await modal.present();
   }
 
-  /**
-   * Select the treatment and set the values in the page variables
-   */
-  async selectTreatment() {
-    const modal = await this.modalCtrl.create({
-      component: 'app-treatments',
-      componentProps: {},
-    });
-
-    modal.onDidDismiss().then((data) => {
-      if (data && data.data) {
-        this.frmTask.patchValue({
-          IdTratamiento: data.data.id,
-          Tratamiento: data.data.name
-        });
-      }
-    });
-
-    return await modal.present();
-  }
 
   /**
    * Take a photo
@@ -414,9 +354,9 @@ export class TaskEditComponent implements OnInit {
     const enteredValue = (event.target as HTMLInputElement).value;
     const resultValue = Number(enteredValue) * (this.factor ?? 1);
 
-    if (this.measurement == MEASUREMENTS.WEIGHT)
+    if (this.measurementType == MEASUREMENTS.WEIGHT)
       this.frmTask.patchValue({ Peso: resultValue });
-    else if (this.measurement == MEASUREMENTS.VOLUME)
+    else if (this.measurementType == MEASUREMENTS.VOLUME)
       this.frmTask.patchValue({ Volumen: resultValue });
   }
 }

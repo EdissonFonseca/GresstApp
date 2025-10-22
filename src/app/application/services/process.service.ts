@@ -95,8 +95,8 @@ export class ProcessService {
       const servicio = SERVICES.find(s => s.serviceId === process.ServiceId);
       return {
         ...process,
-        Icon: servicio?.Icon || '',
-        Action: servicio?.Action || ''
+        //Icon: servicio?.Icon || '',
+        //Action: servicio?.Action || ''
       };
     } catch (error) {
       this.logger.error('Error getting process', { processId, error });
@@ -121,9 +121,6 @@ export class ProcessService {
       }
 
       proceso.StartDate = now;
-      proceso.InitialLatitude = latitud;
-      proceso.InitialLongitude = longitud;
-
       operation.Processes.push(proceso);
       await this.operationRepository.update(operation);
       await this.messageRepository.create(DATA_TYPE.PROCESS, CRUD_OPERATIONS.CREATE, proceso);
@@ -204,8 +201,6 @@ export class ProcessService {
       }
 
       proceso.StartDate = now;
-      proceso.InitialLatitude = latitud;
-      proceso.InitialLongitude = longitud;
 
       // Update the process in the transaction
         const index = operation.Processes.findIndex(item => item.ProcessId === proceso.ProcessId);

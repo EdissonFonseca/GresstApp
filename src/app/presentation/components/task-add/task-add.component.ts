@@ -140,9 +140,9 @@ export class TaskAddComponent implements OnInit {
       } else {
         this.formData.patchValue({
           InputPointId: subprocess.FacilityId,
-          InputPoint: subprocess.FacilityName,
+          //InputPoint: subprocess.FacilityName,
           InputThirdPartyId: subprocess.PartyId,
-          InputThirdParty: subprocess.PartyName,
+          //InputThirdParty: subprocess.PartyName,
           IdTransaccion: subprocess.SubprocessId,
           Title: subprocess.Title
         });
@@ -377,24 +377,22 @@ export class TaskAddComponent implements OnInit {
       ProcessId: this.processId,
       SubprocessId: Utils.generateId(),
       StatusId: STATUS.PENDING,
-      InputOutput: INPUT_OUTPUT.INPUT,
       PartyId: formValue.InputThirdPartyId,
       FacilityId: formValue.InputPointId,
       DestinationFacilityId: formValue.OutputPointId,
       DestinationPartyId: formValue.OutputThirdPartyId,
       OrderId: activity.OrderId,
-      FacilityName: formValue.InputPoint,
-      PartyName: formValue.InputThirdParty,
+      //FacilityName: formValue.InputPoint,
+      //PartyName: formValue.InputThirdParty,
       Title: activity.ServiceId == SERVICE_TYPES.RECEPTION ?
         formValue.InputThirdParty :
         'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
-      Requests: 'Nueva',
-      Icon: activity.ServiceId == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
+      //Icon: activity.ServiceId == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
       ResourceId: activity.ResourceId,
       ServiceId: activity.ServiceId,
       StartDate: now,
       EndDate: now,
-      Action: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
+      //Action: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
       Tasks: []
     };
 
@@ -423,13 +421,13 @@ export class TaskAddComponent implements OnInit {
       StatusId: STATUS.APPROVED,
       ResourceId: activity.ResourceId,
       ExecutionDate: now,
-      RequestDate: now,
       Quantity: formValue.Quantity,
       Weight: formValue.Weight,
       Volume: formValue.Volume,
       PackageId: formValue.PackagingId,
-      ScheduledDate: now,
       Photos: this.photos,
+      Title: formValue.Material ?? '',
+      Description: formValue.Observations ?? '',
     };
 
     await this.taskService.create(task);

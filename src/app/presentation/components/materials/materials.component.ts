@@ -4,7 +4,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { Material } from '@app/domain/entities/material.entity';
 import { CRUD_OPERATIONS, PERMISSIONS } from '@app/core/constants';
 import { MaterialRepository } from '@app/infrastructure/repositories/material.repository';
-import { Utils } from '@app/core/utils';
 import { AuthorizationRepository } from '@app/infrastructure/repositories/authorization.repository';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 @Component({

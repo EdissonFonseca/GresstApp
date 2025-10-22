@@ -61,7 +61,6 @@ export class FacilityNewPage implements OnInit {
       Tasks: [],
       ProcessId: this.idActividad,
       SubprocessId: Utils.generateId(),
-      InputOutput: INPUT_OUTPUT.INPUT,
       ResourceId: "",
       ServiceId: SERVICE_TYPES.COLLECTION,
       StatusId: STATUS.PENDING,

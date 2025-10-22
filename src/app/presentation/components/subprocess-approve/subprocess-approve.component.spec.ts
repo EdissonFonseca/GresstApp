@@ -2,12 +2,13 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { SubprocessApproveComponent } from './subprocess-approve.component';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { SubprocessesService } from '@app/application/services/subprocess.service';
+import { SubprocessService } from '@app/application/services/subprocess.service';
+import { TaskService } from '@app/application/services/task.service';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { STATUS } from '@app/core/constants';
-import { Utils } from '@app/utils/utils';
+import { Utils } from '@app/core/utils';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
 import { ElementRef } from '@angular/core';
 
@@ -15,7 +16,8 @@ describe('SubprocessApproveComponent', () => {
   let component: SubprocessApproveComponent;
   let fixture: ComponentFixture<SubprocessApproveComponent>;
   let modalCtrlSpy: jasmine.SpyObj<ModalController>;
-  let transactionsServiceSpy: jasmine.SpyObj<SubprocessesService>;
+  let subprocessServiceSpy: jasmine.SpyObj<SubprocessService>;
+  let taskServiceSpy: jasmine.SpyObj<TaskService>;
   let userNotificationServiceSpy: jasmine.SpyObj<UserNotificationService>;
   let translateServiceSpy: jasmine.SpyObj<TranslateService>;
 
@@ -26,21 +28,16 @@ describe('SubprocessApproveComponent', () => {
     ServiceId: '1',
     StatusId: STATUS.PENDING,
     Title: 'Test Transaction',
-    Mileage: 100,
     ResponsiblePosition: 'Test Position',
     ResponsibleIdentification: '123',
     ResponsibleName: 'Test Name',
-    ResponsibleObservations: 'Test Notes',
-    approved: 5,
-    pending: 3,
-    rejected: 1,
-    quantity: 9,
-    InputOutput: 'INPUT'
+    ResponsibleNotes: 'Test Notes',
   };
 
   beforeEach(waitForAsync(() => {
     modalCtrlSpy = jasmine.createSpyObj('ModalController', ['dismiss']);
-    transactionsServiceSpy = jasmine.createSpyObj('SubprocessesService', ['get', 'update']);
+    subprocessServiceSpy = jasmine.createSpyObj('SubprocessService', ['get', 'update']);
+    taskServiceSpy = jasmine.createSpyObj('TaskService', ['listByProcessAndSubprocess', 'update']);
     userNotificationServiceSpy = jasmine.createSpyObj('UserNotificationService', ['showLoading', 'hideLoading', 'showToast']);
     translateServiceSpy = jasmine.createSpyObj('TranslateService', ['instant']);
 
@@ -55,7 +52,8 @@ describe('SubprocessApproveComponent', () => {
       providers: [
         FormBuilder,
         { provide: ModalController, useValue: modalCtrlSpy },
-        { provide: SubprocessesService, useValue: transactionsServiceSpy },
+        { provide: SubprocessService, useValue: subprocessServiceSpy },
+        { provide: TaskService, useValue: taskServiceSpy },
         { provide: UserNotificationService, useValue: userNotificationServiceSpy },
         { provide: TranslateService, useValue: translateServiceSpy }
       ]
@@ -83,14 +81,14 @@ describe('SubprocessApproveComponent', () => {
   });
 
   it('should load subprocess data on init', async () => {
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
     await component.ngOnInit();
-    expect(transactionsServiceSpy.get).toHaveBeenCalledWith('1', '1');
+    expect(subprocessServiceSpy.get).toHaveBeenCalledWith('1', '1');
     expect(component.transaction()).toEqual(mockTransaction);
   });
 
   it('should initialize form with subprocess data', async () => {
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
     await component.ngOnInit();
     expect(component.frmTransaction.get('Kilometraje')?.value).toBe(100);
     expect(component.frmTransaction.get('Nombre')?.value).toBe('Test Name');
@@ -147,8 +145,9 @@ describe('SubprocessApproveComponent', () => {
   });
 
   it('should submit form and approve subprocess', async () => {
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
-    transactionsServiceSpy.update.and.returnValue(Promise.resolve());
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.update.and.returnValue(Promise.resolve());
+    taskServiceSpy.listByProcessAndSubprocess.and.returnValue(Promise.resolve([]));
     translateServiceSpy.instant.and.returnValue('Test Message');
 
     await component.ngOnInit();
@@ -163,7 +162,7 @@ describe('SubprocessApproveComponent', () => {
     await component.submit();
 
     expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
-    expect(transactionsServiceSpy.update).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(subprocessServiceSpy.update).toHaveBeenCalledWith(jasmine.objectContaining({
       StatusId: STATUS.APPROVED
     }));
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
@@ -172,8 +171,9 @@ describe('SubprocessApproveComponent', () => {
 
   it('should submit form and reject subprocess', async () => {
     component.isReject = true;
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
-    transactionsServiceSpy.update.and.returnValue(Promise.resolve());
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.update.and.returnValue(Promise.resolve());
+    taskServiceSpy.listByProcessAndSubprocess.and.returnValue(Promise.resolve([]));
     translateServiceSpy.instant.and.returnValue('Test Message');
 
     await component.ngOnInit();
@@ -188,7 +188,7 @@ describe('SubprocessApproveComponent', () => {
     await component.submit();
 
     expect(userNotificationServiceSpy.showLoading).toHaveBeenCalled();
-    expect(transactionsServiceSpy.update).toHaveBeenCalledWith(jasmine.objectContaining({
+    expect(subprocessServiceSpy.update).toHaveBeenCalledWith(jasmine.objectContaining({
       StatusId: STATUS.REJECTED
     }));
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
@@ -196,8 +196,9 @@ describe('SubprocessApproveComponent', () => {
   });
 
   it('should handle form submission error', async () => {
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
-    transactionsServiceSpy.update.and.returnValue(Promise.reject('error'));
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.update.and.returnValue(Promise.reject('error'));
+    taskServiceSpy.listByProcessAndSubprocess.and.returnValue(Promise.resolve([]));
     translateServiceSpy.instant.and.returnValue('Test Message');
 
     await component.ngOnInit();
@@ -217,7 +218,7 @@ describe('SubprocessApproveComponent', () => {
   });
 
   it('should validate form before submission', async () => {
-    transactionsServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
+    subprocessServiceSpy.get.and.returnValue(Promise.resolve(mockTransaction));
     translateServiceSpy.instant.and.returnValue('Test Message');
 
     await component.ngOnInit();
@@ -228,7 +229,7 @@ describe('SubprocessApproveComponent', () => {
     await component.submit();
 
     expect(userNotificationServiceSpy.showToast).toHaveBeenCalled();
-    expect(transactionsServiceSpy.update).not.toHaveBeenCalled();
+    expect(subprocessServiceSpy.update).not.toHaveBeenCalled();
   });
 });
 

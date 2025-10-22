@@ -19,52 +19,39 @@
 </ion-header>
 <ion-content color="light">
   <ion-item color="light" class="ion-no-padding">
-    <ion-title>{{ task?.RequestName }}</ion-title>
+    <ion-title>{{ task?.Title }}</ion-title>
   </ion-item>
   <form [formGroup]="frmTask">
     <ion-list color="light" class="ion-no-padding">
-      <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="frmTask.get('Deposito')?.value">
-        <ion-icon name="location-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ frmTask.get('Tercero')?.value }} - {{ frmTask.get('Deposito')?.value }}</ion-label>
-      </ion-item>
-      <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="frmTask.get('DepositoDestino')?.value">
-        <ion-icon name="archive-outline" slot="start"></ion-icon>
-        <ion-label size="small">{{ frmTask.get('TerceroDestino')?.value }} - {{ frmTask.get('DepositoDestino')?.value }}</ion-label>
-      </ion-item>
       <ion-item color="light" lines="none" class="ion-no-padding">
         <ion-icon src="../../../assets/icon/recycle-bag.svg" slot="start"></ion-icon>
         <ion-label class="ion-text-wrap">{{ frmTask.get('Material')?.value }}</ion-label>
       </ion-item>
     </ion-list>
     <ion-list inset="true" class="ion-no-padding">
-      <ion-item class="ion-no-padding" *ngIf="showTreatment">
-        <ion-note slot="start">{{ 'TASK_EDIT.TREATMENT' | translate }}</ion-note>
-        <ion-label>{{ frmTask.get('Tratamiento')?.value }}</ion-label>
-        <ion-button color="light" (click)="selectTreatment()">{{ 'TASK_EDIT.SELECT_TREATMENT' | translate }}</ion-button>
-      </ion-item>
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_EDIT.QUANTITY' | translate }}</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Cantidad" (ionChange)="calculateFromQuantity($event)"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Quantity" (ionChange)="calculateFromQuantity($event)"></ion-input>
         <ion-note slot="end">un</ion-note>
       </ion-item>
-      <ion-item class="ion-no-padding" *ngIf="measurement=='P' || captureType == 'P'">
+      <ion-item class="ion-no-padding" *ngIf="measurementType=='P' || captureType == 'P'">
         <ion-note slot="start">{{ 'TASK_EDIT.WEIGHT' | translate }}</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Peso"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Weight"></ion-input>
         <ion-note slot="end">kg</ion-note>
       </ion-item>
-      <ion-item class="ion-no-padding" *ngIf="measurement=='V' || captureType == 'V'">
+      <ion-item class="ion-no-padding" *ngIf="measurementType=='V' || captureType == 'V'">
         <ion-note slot="start">{{ 'TASK_EDIT.VOLUME' | translate }}</ion-note>
-        <ion-input type="number" inputmode="numeric" formControlName="Volumen"></ion-input>
+        <ion-input type="number" inputmode="numeric" formControlName="Volume"></ion-input>
         <ion-note slot="end">m3</ion-note>
       </ion-item>
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_EDIT.PACKAGING' | translate }}</ion-note>
-        <ion-label>{{ frmTask.get('Embalaje')?.value }}</ion-label>
+        <ion-label>{{ frmTask.get('Package')?.value }}</ion-label>
         <ion-button color="light" *ngIf="status == 'P'" (click)="selectPackage()">...</ion-button>
       </ion-item>
       <ion-item class="ion-no-padding">
         <ion-note slot="start">{{ 'TASK_EDIT.OBSERVATIONS' | translate }}</ion-note>
-        <ion-textarea formControlName="Observaciones"></ion-textarea>
+        <ion-textarea formControlName="Notes"></ion-textarea>
       </ion-item>
       <ion-item lines="none" color="light" class="ion-no-padding">
         <ion-button expand="full" (click)="takePhoto()" color="secondary" *ngIf="status == 'P' && photosByMaterial > photos.length">

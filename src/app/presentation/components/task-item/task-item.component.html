@@ -1,8 +1,8 @@
 <ion-item lines="none" class="transparent-item">
   <ion-icon slot="start" name="trash-bin-outline"></ion-icon>
   <ion-label>
-    <h2>{{ tarea.Material }}</h2>
-    <p *ngIf="tarea.Request">{{ tarea.Request }}</p>
+    <h2>{{ task.Title }}</h2>
+    <p *ngIf="task.Description">{{ task.Description }}</p>
   </ion-label>
   <ion-button
     *ngIf="showEdit"

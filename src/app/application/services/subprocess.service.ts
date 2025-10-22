@@ -232,28 +232,5 @@ export class SubprocessService {
       throw error;
     }
   }
-
-  /**
-   * Get summary information for a subprocess
-   * @param subprocess - The subprocess to get summary for
-   * @returns string Summary text
-   */
-  getSummary(subprocess: Subprocess): string {
-    const parts = [];
-
-    if (subprocess.Quantity && subprocess.Quantity > 0) {
-      parts.push(`${subprocess.Quantity} items`);
-    }
-
-    if (subprocess.Weight && subprocess.Weight > 0) {
-      parts.push(`${subprocess.Weight} kg`);
-    }
-
-    if (subprocess.Volume && subprocess.Volume > 0) {
-      parts.push(`${subprocess.Volume} m³`);
-    }
-
-    return parts.join(' / ') || '';
-  }
 }
 

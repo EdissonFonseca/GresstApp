@@ -21,7 +21,7 @@
   <!-- Activity details section -->
   <ion-list color="light" class="ion-no-padding">
     <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="process?.Title">
-      <ion-icon [src]="process?.Icon" slot="start"></ion-icon>
+      <!--<ion-icon [src]="process?.Icon" slot="start"></ion-icon>-->
       <ion-label size="small">{{ process?.Title }}</ion-label>
     </ion-item>
   </ion-list>
@@ -45,29 +45,24 @@
   <!-- Formulario de aprobación -->
   <form [formGroup]="frmActividad">
     <ion-list>
-      <ion-item *ngIf="showMileage">
-        <ion-label position="stacked">{{ 'PROCESSES.APPROVE.MILEAGE' | translate }} ({{ mileageUnit() }})</ion-label>
-        <ion-input type="number" formControlName="Kilometraje"></ion-input>
-      </ion-item>
-
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.NAME' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Nombre"></ion-input>
+        <ion-input type="text" formControlName="Name"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showPin">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.ID' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Identificacion"></ion-input>
+        <ion-input type="text" formControlName="Identification"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.POSITION' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Cargo"></ion-input>
+        <ion-input type="text" formControlName="Position"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showNotes">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.NOTES' | translate }}</ion-label>
-        <ion-textarea formControlName="Observaciones" rows="3"></ion-textarea>
+        <ion-textarea formControlName="Notes" rows="3"></ion-textarea>
       </ion-item>
 
       <ion-item *ngIf="showSignPad">

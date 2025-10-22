@@ -11,11 +11,11 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule, IonicModule]
 })
 export class TaskItemComponent {
-  @Input() tarea!: Task;
+  @Input() task!: Task;
   @Input() showEdit: boolean = false;
   @Output() edit = new EventEmitter<string>();
 
   openEdit() {
-    this.edit.emit(this.tarea.TaskId);
+    this.edit.emit(this.task.TaskId);
   }
 }

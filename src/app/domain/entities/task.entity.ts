@@ -5,15 +5,9 @@ export interface Task{
   SubprocessId?: string;
   TaskId: string;
 
-  Quantity?: number;
   InputOutput: string;
-
   ExecutionDate?: string;
-  RequestDate?: string;
-  ScheduledDate?: string;
-
   Photos: string[];
-
   FacilityId?: string;
   DestinationFacilityId?: string;
   PackageId?: string;
@@ -25,11 +19,11 @@ export interface Task{
   RequestId?: number | null;
   PartyId?: string;
   DestinationPartyId?: string;
-  TreatmentId?: string;
   Item?: number | null;
   Notes?: string;
-  Weight?: number | null;
-  RequestName?: string | null;
-  Price?: number;
+  Title: string;
+  Description?: string;
+  Quantity?: number;
   Volume?: number;
+  Weight?: number | null;
 }

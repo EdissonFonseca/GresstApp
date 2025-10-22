@@ -106,8 +106,8 @@ export class RoutePage implements OnInit {
       const actividad = await this.processService.get(this.idActividad);
     console.log('📋 Actividad obtenida:', actividad);
 
-      if (actividad?.Destination?.Id) {
-      const idDeposito = actividad.Destination.Id;
+      if (actividad?.DestinationFacilityId) {
+      const idDeposito = actividad.DestinationFacilityId;
       console.log('🔍 Buscando coordenadas del punto de destino:', idDeposito);
       // Buscar el punto en los puntos disponibles
       const puntos = await this.facilityRepository.getAll();

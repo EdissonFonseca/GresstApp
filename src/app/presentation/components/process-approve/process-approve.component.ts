@@ -72,11 +72,10 @@ export class ProcessApproveComponent implements OnInit {
         if (process) {
           this.process = process;
           this.frmActividad.patchValue({
-            Identificacion: process.ResponsibleIdentification,
-            Nombre: process.ResponsibleName,
-            Cargo: process.ResponsiblePosition,
-            Kilometraje: process.FinalMileage,
-            Observaciones: process.ResponsibleNotes
+            Identification: process.ResponsibleIdentification,
+            Name: process.ResponsibleName,
+            Position: process.ResponsiblePosition,
+            Notes: process.ResponsibleNotes
           });
         }
       } catch (error) {
@@ -177,7 +176,6 @@ export class ProcessApproveComponent implements OnInit {
     const formData = this.frmActividad.value;
     return {
       ...process,
-      FinalMileage: formData.Kilometraje,
       ResponsiblePosition: formData.Cargo,
       ResponsibleSignature: formData.Firma,
       ResponsibleIdentification: formData.Identificacion,
@@ -219,7 +217,7 @@ export class ProcessApproveComponent implements OnInit {
 
           // Update subprocess status
           subprocess.StatusId = hasApprovedTasks ? STATUS.APPROVED : STATUS.REJECTED;
-          subprocess.ExecutionDate = new Date().toISOString();
+          subprocess.EndDate = new Date().toISOString();
           await this.subprocessService.update(subprocess);
         }
       }
