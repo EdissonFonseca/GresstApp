@@ -7,4 +7,6 @@ export interface Material{
   Reference?: string;
   CaptureType: string;
   MeasurementType: string;
+  Weight?: number;
+  Volume?: number;
 }

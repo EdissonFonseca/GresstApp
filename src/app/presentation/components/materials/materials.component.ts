@@ -18,6 +18,8 @@ export class MaterialsComponent implements OnInit {
     name: string;
     capture: string;
     measure: string;
+    weight: number | undefined;
+    volume: number | undefined;
   }>();
 
   formData: FormGroup;
@@ -81,7 +83,7 @@ export class MaterialsComponent implements OnInit {
     }
   }
 
-  async select(idMaterial: string, nombre: string, captura: string, medicion: string) {
+  async select(idMaterial: string, nombre: string, captura: string, medicion: string, weight: number | undefined = undefined, volume: number | undefined = undefined) {
     try {
       this.selectedValue = idMaterial;
       this.selectedName = nombre;
@@ -93,6 +95,8 @@ export class MaterialsComponent implements OnInit {
         name: this.selectedName,
         capture: this.selectedCaptura,
         measure: this.selectedMedicion,
+        weight: weight,
+        volume: volume,
       };
 
       this.materialSelected.emit(data);

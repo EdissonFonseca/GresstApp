@@ -64,8 +64,8 @@ export const GEOLOCATION = {
  * Defines the types of material flow operations
  */
 export const INPUT_OUTPUT = {
-  INPUT: "E",      // Entrada (Input)
-  OUTPUT: "S",     // Salida (Output)
+  INPUT: "I",      // Entrada (Input)
+  OUTPUT: "O",     // Salida (Output)
   TRANSFERENCE: "T", // Transferencia (Transference)
   NONE: "N"        // Ninguno (None)
 }

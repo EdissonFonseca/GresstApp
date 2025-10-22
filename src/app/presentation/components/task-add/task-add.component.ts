@@ -34,6 +34,8 @@ export class TaskAddComponent implements OnInit {
   captureType: string = '';
   formData!: FormGroup;
   measurementType: string = '';
+  materialWeight: number = 0;
+  materialVolume: number = 0;
   photos: string[] = [];
   photosPerMaterial: number = 2;
   requestPoint: boolean = false;
@@ -99,7 +101,6 @@ export class TaskAddComponent implements OnInit {
       Treatment: [null],
       ResidueId: [null],
       Residue: [null],
-      Factor: [null],
       Fotos: [[]]
     });
   }
@@ -162,16 +163,22 @@ export class TaskAddComponent implements OnInit {
   }
 
   /**
-   * Calculates weight or volume based on quantity and factor
+   * Calculates weight or volume based on quantity and material properties
+   * Only calculates when captureType is 'C' (Quantity) and measurementType is 'P' (Weight) or 'V' (Volume)
    */
   calculateFromQuantity(event: any): void {
     const enteredValue = (event.target as HTMLInputElement).value;
-    const resultValue = Number(enteredValue) * (this.formData.get('Factor')?.value ?? 1);
+    const quantity = Number(enteredValue);
 
-    if (this.formData.get('Measurement')?.value == MEASUREMENTS.WEIGHT) {
-      this.formData.patchValue({ Weight: resultValue });
-    } else if (this.formData.get('Measurement')?.value == MEASUREMENTS.VOLUME) {
-      this.formData.patchValue({ Volume: resultValue });
+    // Only calculate if capturing by quantity but measuring in weight/volume
+    if (this.captureType === MEASUREMENTS.QUANTITY) {
+      if (this.measurementType === MEASUREMENTS.WEIGHT && this.materialWeight) {
+        const calculatedWeight = quantity * this.materialWeight;
+        this.formData.patchValue({ Weight: calculatedWeight });
+      } else if (this.measurementType === MEASUREMENTS.VOLUME && this.materialVolume) {
+        const calculatedVolume = quantity * this.materialVolume;
+        this.formData.patchValue({ Volume: calculatedVolume });
+      }
     }
   }
 
@@ -213,12 +220,13 @@ export class TaskAddComponent implements OnInit {
       if (data?.data) {
         this.captureType = data.data.capture;
         this.measurementType = data.data.measure;
+        this.materialWeight = data.data.weight ?? 0;
+        this.materialVolume = data.data.volume ?? 0;
         this.formData.patchValue({
           MaterialId: data.data.id,
           Material: data.data.name,
           Capture: data.data.capture,
-          Measurement: data.data.measure,
-          Factor: data.data.factor
+          Measurement: data.data.measure
         });
       }
     });
@@ -395,17 +403,11 @@ export class TaskAddComponent implements OnInit {
       DestinationFacilityId: formValue.OutputPointId,
       DestinationPartyId: formValue.OutputThirdPartyId,
       OrderId: activity.OrderId,
-      //FacilityName: formValue.InputPoint,
-      //PartyName: formValue.InputThirdParty,
-      Title: activity.ServiceId == SERVICE_TYPES.RECEPTION ?
-        formValue.InputThirdParty :
-        'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
-      //Icon: activity.ServiceId == SERVICE_TYPES.RECEPTION ? 'person' : 'location',
+      Title: activity.ServiceId == SERVICE_TYPES.RECEPTION ? formValue.InputThirdParty :'Nueva - ' + (formValue.InputPoint ?? '') + (formValue.InputThirdParty ?? ''),
       ResourceId: activity.ResourceId,
       ServiceId: activity.ServiceId,
       StartDate: now,
       EndDate: now,
-      //Action: Utils.getInputOutputAction(INPUT_OUTPUT.TRANSFERENCE),
       Tasks: []
     };
 

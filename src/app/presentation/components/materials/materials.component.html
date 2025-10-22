@@ -101,7 +101,7 @@
   <ion-list>
     <ion-item
       *ngFor="let material of materials"
-      (click)="select(material.Id, material.Name, material.Type, material.MeasurementType)"
+      (click)="select(material.Id, material.Name, material.CaptureType, material.MeasurementType, material.Weight, material.Volume)"
       [class.selected]="selectedValue === material.Id">
       <ion-icon
         name="checkmark-outline"
