@@ -40,6 +40,16 @@ export class ProcessApproveComponent implements OnInit {
 
   protected Utils = Utils;
 
+  // Process summary data
+  processSummary = {
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    quantity: 0,
+    weight: 0,
+    volume: 0
+  };
+
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
@@ -72,11 +82,14 @@ export class ProcessApproveComponent implements OnInit {
         if (process) {
           this.process = process;
           this.frmActividad.patchValue({
-            Identification: process.ResponsibleIdentification,
-            Name: process.ResponsibleName,
-            Position: process.ResponsiblePosition,
-            Notes: process.ResponsibleNotes
+            Identificacion: process.ResponsibleIdentification,
+            Nombre: process.ResponsibleName,
+            Cargo: process.ResponsiblePosition,
+            Observaciones: process.ResponsibleNotes
           });
+
+          // Calculate process summary from subprocesses
+          await this.calculateProcessSummary(this.processId);
         }
       } catch (error) {
         console.error('Error loading activity:', error);
@@ -88,6 +101,36 @@ export class ProcessApproveComponent implements OnInit {
     }
 
     this.isDataLoaded = true;
+  }
+
+  /**
+   * Calculate summary data for process from its subprocesses and tasks
+   */
+  private async calculateProcessSummary(processId: string): Promise<void> {
+    const subprocesses = await this.subprocessService.listByProcess(processId);
+
+    // Count subprocesses by status
+    this.processSummary.approved = subprocesses.filter(sp => sp.StatusId === STATUS.APPROVED).length;
+    this.processSummary.pending = subprocesses.filter(sp => sp.StatusId === STATUS.PENDING).length;
+    this.processSummary.rejected = subprocesses.filter(sp => sp.StatusId === STATUS.REJECTED).length;
+
+    // Sum quantities from all tasks (only approved)
+    let totalQuantity = 0;
+    let totalWeight = 0;
+    let totalVolume = 0;
+
+    for (const subprocess of subprocesses) {
+      const tasks = await this.taskService.listByProcessAndSubprocess(processId, subprocess.SubprocessId);
+      const approvedTasks = tasks.filter(t => t.StatusId === STATUS.APPROVED);
+
+      totalQuantity += approvedTasks.reduce((sum, t) => sum + (t.Quantity || 0), 0);
+      totalWeight += approvedTasks.reduce((sum, t) => sum + (t.Weight || 0), 0);
+      totalVolume += approvedTasks.reduce((sum, t) => sum + (t.Volume || 0), 0);
+    }
+
+    this.processSummary.quantity = totalQuantity;
+    this.processSummary.weight = totalWeight;
+    this.processSummary.volume = totalVolume;
   }
 
   ionViewDidEnter() {

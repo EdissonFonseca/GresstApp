@@ -58,22 +58,22 @@
     <ion-list>
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.NAME' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Name"></ion-input>
+        <ion-input type="text" formControlName="Nombre"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showPin">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.IDENTIFICATION' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Identification"></ion-input>
+        <ion-input type="text" formControlName="Identificacion"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.POSITION' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Position"></ion-input>
+        <ion-input type="text" formControlName="Cargo"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showNotes">
         <ion-label position="stacked">{{ 'TRANSACTIONS.APPROVE.NOTES' | translate }}</ion-label>
-        <ion-textarea formControlName="Notes" rows="3"></ion-textarea>
+        <ion-textarea formControlName="Observaciones" rows="3"></ion-textarea>
       </ion-item>
 
       <ion-item *ngIf="showSignPad">

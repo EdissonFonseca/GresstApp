@@ -326,6 +326,25 @@
   "PROCESSES": {
     "TITLE": "Procesos",
     "SEARCH": "Buscar procesos...",
+    "APPROVE": {
+      "TITLE": "Aprobar Proceso",
+      "NAME": "Nombre",
+      "ID": "Identificación",
+      "POSITION": "Cargo",
+      "NOTES": "Observaciones",
+      "SIGNATURE": "Firma",
+      "BUTTON": "Aprobar",
+      "SENDING": "Enviando...",
+      "SUCCESS": "Proceso aprobado exitosamente",
+      "ERROR": "Error al aprobar el proceso"
+    },
+    "REJECT": {
+      "TITLE": "Rechazar Proceso",
+      "BUTTON": "Rechazar",
+      "SENDING": "Enviando...",
+      "SUCCESS": "Proceso rechazado exitosamente",
+      "ERROR": "Error al rechazar el proceso"
+    },
     "MESSAGES": {
       "NO_PROCESSES": "No hay procesos disponibles",
       "INIT_ERROR": "Error al inicializar la página de procesos",
@@ -336,7 +355,8 @@
       "REJECT_ERROR": "Error al rechazar el proceso",
       "SYNCHRONIZING": "Sincronizando...",
       "SYNC_SUCCESS": "Sincronización exitosa",
-      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde"
+      "SYNC_ERROR": "Sincronización fallida. Intente de nuevo más tarde",
+      "LOAD_ERROR": "Error al cargar el proceso"
     }
   }
 }

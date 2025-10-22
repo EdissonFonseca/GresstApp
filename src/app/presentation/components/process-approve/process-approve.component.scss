@@ -1,3 +1,54 @@
+// Process level toolbar with summaries
+.process-toolbar {
+  --background: #4a90e2;
+
+  ion-item {
+    --background: #4a90e2;
+    --color: white;
+  }
+
+  ion-label {
+    color: white;
+
+    h3, p {
+      color: white;
+    }
+  }
+
+  .process-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+
+    .badges-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      ion-icon {
+        color: white;
+        margin-right: 4px;
+      }
+
+      ion-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+    }
+
+    .summary-text {
+      font-size: 12px;
+      color: white;
+      opacity: 0.9;
+
+      span {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
 /* Summary content styles */
 .summary-content {
   display: flex;

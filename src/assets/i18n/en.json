@@ -326,6 +326,25 @@
   "PROCESSES": {
     "TITLE": "Processes",
     "SEARCH": "Search processes...",
+    "APPROVE": {
+      "TITLE": "Approve Process",
+      "NAME": "Name",
+      "ID": "Identification",
+      "POSITION": "Position",
+      "NOTES": "Notes",
+      "SIGNATURE": "Signature",
+      "BUTTON": "Approve",
+      "SENDING": "Sending...",
+      "SUCCESS": "Process approved successfully",
+      "ERROR": "Error approving process"
+    },
+    "REJECT": {
+      "TITLE": "Reject Process",
+      "BUTTON": "Reject",
+      "SENDING": "Sending...",
+      "SUCCESS": "Process rejected successfully",
+      "ERROR": "Error rejecting process"
+    },
     "MESSAGES": {
       "NO_PROCESSES": "No processes available",
       "INIT_ERROR": "Error initializing processes page",
@@ -336,7 +355,8 @@
       "REJECT_ERROR": "Error rejecting process",
       "SYNCHRONIZING": "Synchronizing...",
       "SYNC_SUCCESS": "Synchronization successful",
-      "SYNC_ERROR": "Synchronization failed. Please try again later"
+      "SYNC_ERROR": "Synchronization failed. Please try again later",
+      "LOAD_ERROR": "Error loading process"
     }
   }
 }

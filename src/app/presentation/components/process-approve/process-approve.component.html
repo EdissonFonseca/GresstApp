@@ -9,60 +9,61 @@
     </ion-buttons>
     <ion-buttons slot="end">
       <ion-button (click)="submit()" [color]="isReject ? 'danger' : 'success'">
-        <ion-icon [name]="isReject ? 'bag-remove' : 'bag-add'"></ion-icon>
-        {{ (isReject ? 'PROCESSES.REJECT.BUTTON' : 'PROCESSES.APPROVE.BUTTON') | translate }}
+        <ion-icon [name]="isReject ? 'close-circle' : 'checkmark-circle'"></ion-icon>
+        {{ (isReject ? 'TRANSACTIONS.REJECT.CONFIRM' : 'TRANSACTIONS.APPROVE.CONFIRM') | translate }}
       </ion-button>
     </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Process context information with summaries -->
+  <ion-toolbar *ngIf="process" class="process-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3><strong>{{ process.Title }}</strong></h3>
+        <p *ngIf="process.Description">{{ process.Description }}</p>
+
+        <!-- Summary badges and quantities -->
+        <div class="process-summary">
+          <div class="badges-container">
+            <ion-icon name="layers-outline" size="small"></ion-icon>
+            <ion-badge color="success">{{ processSummary.approved }}</ion-badge>
+            <ion-badge color="warning">{{ processSummary.pending }}</ion-badge>
+            <ion-badge color="danger">{{ processSummary.rejected }}</ion-badge>
+          </div>
+          <div class="summary-text" *ngIf="processSummary.quantity > 0 || processSummary.weight > 0 || processSummary.volume > 0">
+            <span *ngIf="processSummary.quantity > 0">{{ processSummary.quantity }} un</span>
+            <span *ngIf="processSummary.weight > 0"> • {{ processSummary.weight }} kg</span>
+            <span *ngIf="processSummary.volume > 0"> • {{ processSummary.volume }} m³</span>
+          </div>
+        </div>
+      </ion-label>
+    </ion-item>
   </ion-toolbar>
 </ion-header>
 
 <!-- Main content section with form -->
 <ion-content color="light">
-  <!-- Activity details section -->
-  <ion-list color="light" class="ion-no-padding">
-    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="process?.Title">
-      <!--<ion-icon [src]="process?.Icon" slot="start"></ion-icon>-->
-      <ion-label size="small">{{ process?.Title }}</ion-label>
-    </ion-item>
-  </ion-list>
-
-  <!-- Task summary section -->
-  <ion-list color="light" class="ion-no-padding" *ngIf="process">
-    <ion-item color="light" lines="none" class="ion-no-padding">
-      <div class="summary-content">
-        <div class="badges-left">
-          <!--<ion-badge color="success">{{ process.approved || 0 }}</ion-badge>
-          <ion-badge color="warning">{{ process.pending || 0 }}</ion-badge>
-          <ion-badge color="danger">{{ process.rejected || 0 }}</ion-badge>-->
-        </div>
-        <div class="summary-badge">
-          {{ summary }}
-        </div>
-      </div>
-    </ion-item>
-  </ion-list>
-
   <!-- Formulario de aprobación -->
   <form [formGroup]="frmActividad">
     <ion-list>
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.NAME' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Name"></ion-input>
+        <ion-input type="text" formControlName="Nombre"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showPin">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.ID' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Identification"></ion-input>
+        <ion-input type="text" formControlName="Identificacion"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showName">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.POSITION' | translate }}</ion-label>
-        <ion-input type="text" formControlName="Position"></ion-input>
+        <ion-input type="text" formControlName="Cargo"></ion-input>
       </ion-item>
 
       <ion-item *ngIf="showNotes">
         <ion-label position="stacked">{{ 'PROCESSES.APPROVE.NOTES' | translate }}</ion-label>
-        <ion-textarea formControlName="Notes" rows="3"></ion-textarea>
+        <ion-textarea formControlName="Observaciones" rows="3"></ion-textarea>
       </ion-item>
 
       <ion-item *ngIf="showSignPad">
