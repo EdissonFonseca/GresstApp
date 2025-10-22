@@ -1,0 +1,87 @@
+ion-content {
+  --background: #f5f5f5;
+}
+
+ion-card {
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+
+  ion-card-header {
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+  }
+
+  ion-card-content {
+    p {
+      margin: 8px 0;
+      line-height: 1.5;
+      color: var(--ion-color-dark);
+    }
+
+    ion-item {
+      --background: transparent;
+      --padding-start: 0;
+      --inner-padding-end: 0;
+      margin: 12px 0;
+
+      ion-label {
+        h3 {
+          font-weight: 600;
+          margin-bottom: 4px;
+          color: var(--ion-color-dark);
+        }
+
+        p {
+          font-size: 0.9rem;
+          color: var(--ion-color-medium-shade);
+          margin: 4px 0;
+        }
+      }
+    }
+  }
+}
+
+ion-button {
+  margin: 16px 0;
+  height: 48px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.3px;
+}
+
+ion-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+  border-radius: 8px;
+  margin-top: 16px;
+
+  ion-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  small {
+    line-height: 1.4;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Warning card for export option
+ion-card[color="light"] {
+  border: 2px solid var(--ion-color-warning);
+  background: #fff9e6;
+
+  ion-card-header {
+    border-bottom: 1px solid rgba(var(--ion-color-warning-rgb), 0.2);
+  }
+}
+
