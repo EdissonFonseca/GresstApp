@@ -7,7 +7,6 @@
         {{ 'COMMON.EXIT' | translate }}
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ (isReject ? 'TRANSACTIONS.REJECT.TITLE' : 'TRANSACTIONS.APPROVE.TITLE') | translate }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="submit()" [color]="isReject ? 'danger' : 'success'">
         <ion-icon [name]="isReject ? 'bag-remove' : 'bag-add'"></ion-icon>
@@ -15,35 +14,45 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- Process context information -->
+  <ion-toolbar *ngIf="process" class="process-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3><strong>{{ process.Title }}</strong></h3>
+        <p *ngIf="process.Description">{{ process.Description }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-toolbar>
+
+  <!-- Subprocess context information -->
+  <ion-toolbar *ngIf="subprocess" class="subprocess-toolbar">
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap">
+        <h3>{{ subprocess.Title }}</h3>
+        <p *ngIf="subprocess.Description">{{ subprocess.Description }}</p>
+
+        <!-- Summary badges and quantities -->
+        <div class="subprocess-summary">
+          <div class="badges-container">
+            <ion-icon name="trash-bin-outline" size="small"></ion-icon>
+            <ion-badge color="success">{{ subprocessSummary.approved }}</ion-badge>
+            <ion-badge color="warning">{{ subprocessSummary.pending }}</ion-badge>
+            <ion-badge color="danger">{{ subprocessSummary.rejected }}</ion-badge>
+          </div>
+          <div class="summary-text" *ngIf="subprocessSummary.quantity > 0 || subprocessSummary.weight > 0 || subprocessSummary.volume > 0">
+            <span *ngIf="subprocessSummary.quantity > 0">{{ subprocessSummary.quantity }} un</span>
+            <span *ngIf="subprocessSummary.weight > 0"> • {{ subprocessSummary.weight }} kg</span>
+            <span *ngIf="subprocessSummary.volume > 0"> • {{ subprocessSummary.volume }} m³</span>
+          </div>
+        </div>
+      </ion-label>
+    </ion-item>
+  </ion-toolbar>
 </ion-header>
 
 <!-- Main content section with form -->
 <ion-content color="light">
-  <!-- Transaction details section -->
-  <ion-list color="light" class="ion-no-padding">
-    <ion-item color="light" lines="none" class="ion-no-padding" *ngIf="transaction()">
-      <ion-icon name="location-outline" slot="start"></ion-icon>
-      <ion-label size="small">{{ transaction()?.Title }}</ion-label>
-    </ion-item>
-  </ion-list>
-
-  <!-- Task summary section -->
-  <ion-list color="light" class="ion-no-padding" *ngIf="transaction()">
-    <ion-item color="light" lines="none" class="ion-no-padding">
-      <div class="summary-content">
-        <div class="badges-left">
-          <!--
-          <ion-badge color="success">{{ transaction()?.approved || 0 }}</ion-badge>
-          <ion-badge color="warning">{{ transaction()?.pending || 0 }}</ion-badge>
-          <ion-badge color="danger">{{ transaction()?.rejected || 0 }}</ion-badge>-->
-        </div>
-        <div class="summary-badge">
-          <!--{{ transaction()?.quantity || 0 }}-->
-        </div>
-      </div>
-    </ion-item>
-  </ion-list>
-
   <!-- Formulario de aprobación -->
   <form [formGroup]="frmTransaction">
     <ion-list>

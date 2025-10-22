@@ -2,9 +2,11 @@ import { Component, ElementRef, Input, OnInit, Renderer2, ViewChild, signal } fr
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import { Subprocess } from '@app/domain/entities/subprocess.entity';
+import { Process } from '@app/domain/entities/process.entity';
 import { Task } from '@app/domain/entities/task.entity';
 import { STATUS } from '@app/core/constants';
 import { SubprocessService } from '@app/application/services/subprocess.service';
+import { ProcessService } from '@app/application/services/process.service';
 import { TaskService } from '@app/application/services/task.service';
 import { Utils } from '@app/core/utils';
 import { UserNotificationService } from '@app/presentation/services/user-notification.service';
@@ -74,11 +76,26 @@ export class SubprocessApproveComponent implements OnInit {
   /** Utils instance for template access */
   protected Utils = Utils;
 
+  // Context information (process/subprocess)
+  process: Process | undefined = undefined;
+  subprocess: Subprocess | undefined = undefined;
+
+  // Subprocess summary data
+  subprocessSummary = {
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    quantity: 0,
+    weight: 0,
+    volume: 0
+  };
+
   constructor(
     private formBuilder: FormBuilder,
     private renderer: Renderer2,
     private modalCtrl: ModalController,
     private subprocessService: SubprocessService,
+    private processService: ProcessService,
     private taskService: TaskService,
     private userNotificationService: UserNotificationService,
     private translate: TranslateService
@@ -108,21 +125,48 @@ export class SubprocessApproveComponent implements OnInit {
       Firma: [null]
     });
 
+    // Load context information (Process and Subprocess)
+    if (finalProcessId) {
+      this.process = await this.processService.get(finalProcessId);
+    }
+
     // Load subprocess data if available
     if (finalSubprocessId) {
       const transaccion = await this.subprocessService.get(finalProcessId, finalSubprocessId);
       if (transaccion) {
         this.transaction.set(transaccion);
+        this.subprocess = transaccion;
         this.frmTransaction.patchValue({
-          Identification: transaccion.ResponsibleIdentification,
-          Name: transaccion.ResponsibleName,
-          Position: transaccion.ResponsiblePosition,
-          Notes: transaccion.ResponsibleNotes
+          Identificacion: transaccion.ResponsibleIdentification,
+          Nombre: transaccion.ResponsibleName,
+          Cargo: transaccion.ResponsiblePosition,
+          Observaciones: transaccion.ResponsibleNotes
         });
+
+        // Calculate subprocess summary from tasks
+        await this.calculateSubprocessSummary(finalProcessId, finalSubprocessId);
       }
     }
 
     this.isDataLoaded = true;
+  }
+
+  /**
+   * Calculate summary data for subprocess from its tasks
+   */
+  private async calculateSubprocessSummary(processId: string, subprocessId: string): Promise<void> {
+    const tasks = await this.taskService.listByProcessAndSubprocess(processId, subprocessId);
+
+    // Count tasks by status
+    this.subprocessSummary.approved = tasks.filter(t => t.StatusId === STATUS.APPROVED).length;
+    this.subprocessSummary.pending = tasks.filter(t => t.StatusId === STATUS.PENDING).length;
+    this.subprocessSummary.rejected = tasks.filter(t => t.StatusId === STATUS.REJECTED).length;
+
+    // Sum quantities, weights, volumes (only from approved tasks)
+    const approvedTasks = tasks.filter(t => t.StatusId === STATUS.APPROVED);
+    this.subprocessSummary.quantity = approvedTasks.reduce((sum, t) => sum + (t.Quantity || 0), 0);
+    this.subprocessSummary.weight = approvedTasks.reduce((sum, t) => sum + (t.Weight || 0), 0);
+    this.subprocessSummary.volume = approvedTasks.reduce((sum, t) => sum + (t.Volume || 0), 0);
   }
 
   /**

@@ -1,3 +1,74 @@
+// Header context styles - Blue gradient from darker to lighter
+
+// Process level (darkest blue)
+.process-toolbar {
+  --background: #4a90e2;
+
+  ion-item {
+    --background: #4a90e2;
+    --color: white;
+  }
+
+  ion-label {
+    color: white;
+
+    h3, p {
+      color: white;
+    }
+  }
+}
+
+// Subprocess level (medium blue)
+.subprocess-toolbar {
+  --background: #7db3f5;
+
+  ion-item {
+    --background: #7db3f5;
+    --color: white;
+  }
+
+  ion-label {
+    color: white;
+
+    h3, p {
+      color: white;
+    }
+  }
+
+  .subprocess-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+
+    .badges-container {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      ion-icon {
+        color: white;
+        margin-right: 4px;
+      }
+
+      ion-badge {
+        font-size: 12px;
+        padding: 4px 8px;
+      }
+    }
+
+    .summary-text {
+      font-size: 12px;
+      color: white;
+      opacity: 0.9;
+
+      span {
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
 /* Summary content styles */
 .summary-content {
   display: flex;
@@ -79,4 +150,3 @@ ion-item.ion-no-padding ion-icon {
   color: var(--ion-color-medium);
   margin-right: 8px;
 }
-
