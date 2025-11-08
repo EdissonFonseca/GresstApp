@@ -10,6 +10,7 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
   selector: 'app-materials',
   templateUrl: './materials.component.html',
   styleUrls: ['./materials.component.scss'],
+  standalone: false
 })
 export class MaterialsComponent implements OnInit {
   @Input() showHeader: boolean = true;

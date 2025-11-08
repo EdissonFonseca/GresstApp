@@ -8,6 +8,7 @@ import { InventoryRepository } from '@app/infrastructure/repositories/inventory.
   selector: 'app-wastes',
   templateUrl: './wastes.component.html',
   styleUrls: ['./wastes.component.scss'],
+  standalone: false
 })
 export class WastesComponent  implements OnInit {
   @Input() showHeader: boolean = true;

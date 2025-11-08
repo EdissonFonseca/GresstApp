@@ -4,6 +4,7 @@ import { Component, Input, OnInit } from '@angular/core';
   selector: 'app-location',
   templateUrl: './location.component.html',
   styleUrls: ['./location.component.scss'],
+  standalone: false
 })
 export class LocationComponent  implements OnInit {
   @Input() marker: any;

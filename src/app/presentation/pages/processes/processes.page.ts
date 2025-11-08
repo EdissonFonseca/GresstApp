@@ -20,6 +20,7 @@ import { signal } from '@angular/core';
   selector: 'app-processes',
   templateUrl: './processes.page.html',
   styleUrls: ['./processes.page.scss'],
+  standalone: false
 })
 export class ProcessesPage implements OnInit {
   /** Title of the page */

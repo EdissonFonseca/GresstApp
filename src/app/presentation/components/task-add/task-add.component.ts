@@ -25,7 +25,8 @@ import { LoggerService } from '@app/infrastructure/services/logger.service';
 @Component({
   selector: 'app-task-add',
   templateUrl: './task-add.component.html',
-  styleUrls: ['./task-add.component.scss']
+  styleUrls: ['./task-add.component.scss'],
+  standalone: false
 })
 export class TaskAddComponent implements OnInit {
   @Input() processId: string = '';

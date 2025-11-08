@@ -7,6 +7,7 @@ import { PartiesComponent } from '../parties/parties.component';
   selector: 'app-facility',
   templateUrl: './facility.component.html',
   styleUrls: ['./facility.component.scss'],
+  standalone: false
 })
 export class FacilityComponent  implements OnInit {
   longitude: string= '';

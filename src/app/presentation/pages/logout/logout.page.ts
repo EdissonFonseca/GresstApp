@@ -17,6 +17,7 @@ interface BackupData {
   selector: 'app-logout',
   templateUrl: './logout.page.html',
   styleUrls: ['./logout.page.scss'],
+  standalone: false
 })
 export class LogoutPage implements OnInit {
   pendingMessages = signal<number>(0);

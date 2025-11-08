@@ -13,7 +13,8 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-process-approve',
   templateUrl: './process-approve.component.html',
-  styleUrls: ['./process-approve.component.scss']
+  styleUrls: ['./process-approve.component.scss'],
+  standalone: false
 })
 export class ProcessApproveComponent implements OnInit {
   @Input() showMileage: boolean = true;

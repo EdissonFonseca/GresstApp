@@ -6,6 +6,7 @@ import { ModalController, ToastController } from '@ionic/angular';
   selector: 'app-location-select',
   templateUrl: './location-select.component.html',
   styleUrls: ['./location-select.component.scss'],
+  standalone: false
 })
 export class LocationSelectComponent implements OnInit {
   description: string = '';

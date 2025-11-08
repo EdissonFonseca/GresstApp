@@ -8,6 +8,7 @@ import { PackageRepository } from '@app/infrastructure/repositories/package.repo
   selector: 'app-packages',
   templateUrl: './packages.component.html',
   styleUrls: ['./packages.component.scss'],
+  standalone: false
 })
 export class PackagesComponent  implements OnInit {
   @Input() showHeader: boolean = true;

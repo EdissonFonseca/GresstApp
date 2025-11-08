@@ -11,6 +11,7 @@ import { AuthorizationRepository } from '@app/infrastructure/repositories/author
   selector: 'app-facilities',
   templateUrl: './facilities.component.html',
   styleUrls: ['./facilities.component.scss'],
+  standalone: false
 })
 export class FacilitiesComponent  implements OnInit, OnChanges {
   @Input() showHeader: boolean = true;

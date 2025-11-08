@@ -26,7 +26,8 @@ import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-subprocess-approve',
   templateUrl: './subprocess-approve.component.html',
-  styleUrls: ['./subprocess-approve.component.scss']
+  styleUrls: ['./subprocess-approve.component.scss'],
+  standalone: false
 })
 export class SubprocessApproveComponent implements OnInit {
   /** Controls visibility of mileage input field */

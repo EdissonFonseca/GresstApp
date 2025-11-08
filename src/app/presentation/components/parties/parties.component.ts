@@ -10,6 +10,7 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
   selector: 'app-parties',
   templateUrl: './parties.component.html',
   styleUrls: ['./parties.component.scss'],
+  standalone: false
 })
 export class PartiesComponent  implements OnInit {
   @Input() showHeader: boolean = true;

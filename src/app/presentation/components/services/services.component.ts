@@ -8,6 +8,7 @@ import { SERVICES } from '@app/core/constants';
   selector: 'app-services',
   templateUrl: './services.component.html',
   styleUrls: ['./services.component.scss'],
+  standalone: false
 })
 export class ServicesComponent implements OnInit {
   @Input() showHeader: boolean = true;

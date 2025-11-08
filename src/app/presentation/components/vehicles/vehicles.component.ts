@@ -8,6 +8,7 @@ import { VehicleRepository } from '@app/infrastructure/repositories/vehicles.rep
   selector: 'app-vehicles',
   templateUrl: './vehicles.component.html',
   styleUrls: ['./vehicles.component.scss'],
+  standalone: false
 })
 export class VehiclesComponent  implements OnInit {
   @Input() showHeader: boolean = true;

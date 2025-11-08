@@ -13,6 +13,7 @@ import { STORAGE } from '@app/core/constants';
   selector: 'app-password-email',
   templateUrl: './password-email.page.html',
   styleUrls: ['./password-email.page.scss'],
+  standalone: false
 })
 export class PasswordEmailPage implements OnInit {
   email = '';

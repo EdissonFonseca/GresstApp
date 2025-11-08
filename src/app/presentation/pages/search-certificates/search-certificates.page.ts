@@ -8,6 +8,7 @@ import { STORAGE } from '@app/core/constants';
   selector: 'app-search-certificates',
   templateUrl: './search-certificates.page.html',
   styleUrls: ['./search-certificates.page.scss'],
+  standalone: false
 })
 export class SearchCertificatesPage implements OnInit {
   certificateType = '';

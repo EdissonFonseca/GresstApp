@@ -11,6 +11,7 @@ import { STORAGE } from '@app/core/constants';
   selector: 'app-password-code',
   templateUrl: './password-code.page.html',
   styleUrls: ['./password-code.page.scss'],
+  standalone: false
 })
 export class PasswordCodePage implements OnInit {
   verificationCode = '';

@@ -13,6 +13,7 @@ import { Subscription, interval } from 'rxjs';
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
+  standalone: false,
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {

@@ -8,6 +8,7 @@ import { ModalController } from '@ionic/angular';
   selector: 'app-sign-pad',
   templateUrl: './sign-pad.component.html',
   styleUrls: ['./sign-pad.component.scss'],
+  standalone: false
 })
 export class SignPadComponent implements OnInit, AfterViewInit {
   @Input() showName: boolean = true;

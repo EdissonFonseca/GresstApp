@@ -13,6 +13,7 @@ import { UserNotificationService } from '@app/presentation/services/user-notific
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
+  standalone: false
 })
 export class LoginPage implements OnInit {
   /** Form group for login credentials */

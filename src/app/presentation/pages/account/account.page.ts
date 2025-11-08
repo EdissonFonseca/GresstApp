@@ -13,6 +13,7 @@ import { STORAGE } from '@app/core/constants';
   selector: 'app-account',
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
+  standalone: false,
 })
 export class AccountPage implements OnInit {
   formData: FormGroup;

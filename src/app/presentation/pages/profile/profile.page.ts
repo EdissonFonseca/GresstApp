@@ -14,6 +14,7 @@ import { User } from '@app/domain/entities/user.entity';
   selector: 'app-profile',
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
+  standalone: false
 })
 export class ProfilePage implements OnInit {
   formData: FormGroup;

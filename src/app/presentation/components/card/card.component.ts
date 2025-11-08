@@ -4,7 +4,8 @@ import { Card } from '@app/presentation/view-models/card.viewmodel';
 @Component({
   selector: 'app-card',
   templateUrl: './card.component.html',
-  styleUrls: ['./card.component.scss']
+  styleUrls: ['./card.component.scss'],
+  standalone: false
 })
 export class CardComponent implements OnInit {
   @Input() card!: Card;

@@ -12,6 +12,7 @@ import { STORAGE } from '@app/core/constants';
   selector: 'app-password-key',
   templateUrl: './password-key.page.html',
   styleUrls: ['./password-key.page.scss'],
+  standalone: false
 })
 export class PasswordKeyPage implements OnInit {
   /** New password input value */

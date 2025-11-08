@@ -4,7 +4,8 @@ import { Card } from '@app/presentation/view-models/card.viewmodel';
 @Component({
   selector: 'app-card-list',
   templateUrl: './card-list.component.html',
-  styleUrls: ['./card-list.component.scss']
+  styleUrls: ['./card-list.component.scss'],
+  standalone: false
 })
 export class CardListComponent {
   @Input() cards: Card[] = [];
